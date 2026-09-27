@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>En directo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="directo.css">
+<style>
+html,body{overflow:hidden;height:100%;user-select:none;-webkit-user-select:none}
+body.juego{touch-action:none}
+main{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px}
+.caja{width:min(460px,94vw);max-height:94vh;overflow:auto}
+.caja h1{margin:4px 0 10px;color:var(--cian);font-size:24px}
+label{display:grid;gap:4px;font-size:14px;margin:8px 0}
+input{user-select:text;-webkit-user-select:text}
+#codigo{font-family:Orbitron;font-size:28px;letter-spacing:.3em;text-transform:uppercase;text-align:center}
+.avs{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.avs button{padding:0;background:none;border:2px solid transparent;border-radius:50%;aspect-ratio:1}
+.avs button img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.avs button.si{border-color:var(--ambar);box-shadow:0 0 12px rgba(255,194,74,.6)}
+.yo{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.yo img{width:110px;height:110px}
+.yo b{font-family:Orbitron;font-size:22px}
+.hoy{margin-top:12px;border:1px solid var(--ambar);border-radius:12px;padding:10px 12px;background:rgba(255,194,74,.08)}
+.hoy b{font-family:Orbitron;color:var(--ambar);font-size:15px;display:block;margin-bottom:2px}
+.hoy span{font-size:14px;line-height:1.4}
+.hoy details{margin-top:4px;font-size:14px} .hoy summary{cursor:pointer;color:var(--cian);font-weight:700}
+main.con-ticket{gap:16px}
+#panel-ticket{width:min(560px,94vw);height:min(86vh,720px);display:flex;flex-direction:column;gap:8px;padding:12px}
+#panel-ticket .cab-t{display:flex;justify-content:space-between;align-items:center}
+#panel-ticket .cab-t button{padding:6px 10px;font-size:12px}
+#panel-ticket iframe{flex:1;width:100%;border:0;border-radius:10px;background:#fff}
+@media (max-width:900px){main.con-ticket{flex-direction:column;justify-content:flex-start;overflow:auto}#panel-ticket{height:auto;min-height:520px;flex:none}#panel-ticket iframe{min-height:470px}}
+.ticket{margin-top:12px;border:1px solid var(--borde);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.ticket span{font-size:14px;line-height:1.35}
+.ticket button{padding:10px 12px;font-size:13px;flex:none}
+.ticket.hecho{border-color:var(--verde)} .ticket.hecho button{background:rgba(93,255,160,.2);color:var(--verde);border:1px solid var(--verde)}
+.nota{font-size:13px;opacity:.75;margin-top:10px}
+canvas#lienzo{position:fixed;inset:0;width:100%;height:100%}
+#hud{position:fixed;left:0;right:0;top:0;padding:10px 12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+#hud .c{background:var(--panel);border:1px solid var(--borde);border-radius:10px;padding:6px 10px;min-width:74px}
+#hud small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+#hud b{font-family:Orbitron;font-size:20px;color:var(--cian);font-variant-numeric:tabular-nums}
+#hud .c.am b{color:var(--ambar)}
+#abajo{position:fixed;left:12px;right:12px;top:66px;pointer-events:none;text-align:center;font-size:14px}
+#abajo .barra{margin-top:4px}
+#abajo .barra i{background:linear-gradient(90deg,#ff9f3d,var(--ambar))}
+#abajo.escudo .barra i{background:linear-gradient(90deg,#1fb6ff,var(--cian))}
+.carta-x{}
+#carta{position:fixed;left:10px;bottom:10px;display:flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:6px 10px 6px 6px;pointer-events:none;min-width:170px}
+#carta img{width:48px;height:48px}
+#carta b{font-family:Orbitron;font-size:13px;display:block;margin-bottom:3px}
+#carta .barra.vida{height:10px;width:110px}
+#carta .barra.vida i{background:linear-gradient(90deg,#26d07c,#5dffa0);width:100%}
+#carta.baja .barra.vida i{background:linear-gradient(90deg,#ff2e55,#ff8a5c)}
+#carta.repara{border-color:var(--rojo)} #carta.repara img{filter:grayscale(1)}
+#carta small{font-size:11px;opacity:.85}
+.capa{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(1,4,12,.72)}
+.capa .caja{border-color:var(--ambar)}
+#preg .enun{font-size:18px;font-weight:700;margin:6px 0 10px;line-height:1.35}
+.ops{display:grid;gap:8px}
+.ops button{text-align:left;font-family:"Exo 2";font-size:16px;font-weight:600;letter-spacing:0;background:#0d2236;color:#e8f6ff;border:1px solid var(--borde);padding:12px 14px}
+.ops button.bien{background:rgba(93,255,160,.25);border-color:var(--verde)}
+.ops button.mal{background:rgba(255,77,109,.25);border-color:var(--rojo)}
+#preg .res{margin-top:8px;font-size:15px;min-height:1.4em}
+.eleccion{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.eleccion button{padding:16px 10px;font-size:15px;display:flex;flex-direction:column;gap:4px;align-items:center}
+.eleccion button small{font-family:"Exo 2";font-weight:600;font-size:12px;letter-spacing:0}
+.eleccion .sab{background:linear-gradient(135deg,#ff4dd8,#8a2be2);color:#fff}
+#estatica{position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,77,216,.12) 0 2px,transparent 2px 5px);mix-blend-mode:screen}
+#conexion{position:fixed;left:50%;top:64px;transform:translateX(-50%);background:rgba(255,77,109,.9);color:#fff;font-size:13px;font-weight:700;padding:6px 12px;border-radius:14px;z-index:30}
+.eqchip{display:inline-block;padding:3px 10px;border-radius:12px;font-family:Orbitron;font-size:12px;color:#001018;margin-top:6px}
+</style>
+</head>
+<body>
+<canvas id="lienzo" class="oculto"></canvas>
+<main>
+  <div id="entrar" class="caja oculto">
+    <div class="kicker">En directo · desde tu Nave</div>
+    <h1>Únete a la clase</h1>
+    <label>Código de la pantalla<input id="codigo" maxlength="4" autocomplete="off"></label>
+    <label>Tu alias <small style="opacity:.7">(en la Nave ya es el tuyo)</small><input id="alias" maxlength="16"></label>
+    <div style="font-size:14px;margin:8px 0 4px">Tu personaje <small style="opacity:.7">(en la Nave, el que lleves puesto)</small></div>
+    <div class="avs" id="avs"></div>
+    <div class="botones"><button id="b-entrar">Entrar</button></div>
+  </div>
+  <div id="espera" class="caja oculto">
+    <div class="kicker" style="text-align:center">Sala de espera</div>
+    <div class="yo" id="yo"></div>
+    <p style="text-align:center;margin:8px 0 0" id="espera-t">Conectando…</p>
+    <div class="hoy oculto" id="hoy"></div>
+    <div class="ticket oculto" id="ticket"><span><b>1 · Tu ticket de salida</b><br>1 minuto, anónimo</span><button class="sec" id="b-ticket">Abrir</button></div>
+    <div class="botones oculto" id="fila-listo" style="justify-content:center"><button id="b-listo">2 · Ya he hecho mi ticket</button></div>
+  </div>
+  <div id="panel-ticket" class="caja oculto"><div class="cab-t"><span class="kicker">Ticket de salida</span><button class="sec" id="b-cerrar-t" aria-label="Cerrar">Cerrar</button></div><iframe id="marco-t" title="Ticket de salida"></iframe></div>
+  <div id="fin" class="caja oculto"></div>
+</main>
+<div id="hud" class="oculto">
+  <div class="c am"><small>Tus puntos</small><b id="h-pts">0</b></div>
+  <div class="c"><small id="h-2t">Puesto</small><b id="h-2">–</b></div>
+  <div class="c"><small>Tiempo</small><b id="h-t">0:00</b></div>
+</div>
+<div id="abajo" class="oculto"><span id="abajo-t"></span><div class="barra"><i id="abajo-b"></i></div></div>
+<div id="carta" class="oculto"><img id="carta-img" class="av" alt=""><div><b id="carta-alias"></b><div class="barra vida"><i id="carta-vida"></i></div><small id="carta-est">100 %</small></div></div>
+<div id="estatica" class="oculto"></div>
+<div id="preg" class="capa oculto"><div class="caja" id="preg-c"></div></div>
+<div id="conexion" class="oculto">Reconectando… sigue jugando: no pierdes nada</div>
+<div id="aviso"></div>
+<script type="module" src="alumno.js"></script>
+</body>
+</html>

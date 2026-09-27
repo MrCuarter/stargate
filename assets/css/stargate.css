@@ -7060,3 +7060,11 @@ a.ru-m:hover{background:rgba(95,244,255,.14)}
 .capa-juego iframe{width:100%;height:100%;border:0;display:block}
 .capa-juego-x{position:absolute;top:92px;left:16px;z-index:2;opacity:.9}
 body.con-juego{overflow:hidden}
+/* 27-sep · el Asedio y el directo en la Nave; y lo desplegable (menos texto a la vista) */
+.asedio-caja{border-color:rgba(255,77,216,.7);background:linear-gradient(90deg,rgba(255,77,216,.14),transparent)}
+.asedio-caja h3{color:#ffd1f3}
+.directo-caja h3{margin:4px 0}
+details.mas{margin:6px 0}
+details.mas summary{cursor:pointer;color:var(--teal,#5ff4ff);font-weight:700;font-size:14px}
+.dia.directo,.dia.asedio{padding:0}
+.dia.directo .ru-juego,.dia.asedio .ru-juego{height:min(84vh,880px)}

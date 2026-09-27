@@ -4,7 +4,7 @@ Páginas: index (portada) · guia · cronologia · actividades · geniallys · r
 Ejecutar desde web-stargate/:  python3 _build_site.py
 Datos de cronología/vídeos/geniallys en _site_data.py."""
 import os, json, hashlib, subprocess, glob
-from _site_data import (GOOGLE_CLIENT_ID, RUTA, SALA_JORAN,
+from _site_data import (GOOGLE_CLIENT_ID, RUTA, SALA_JORAN, DIRECTO, ASEDIO, JUEGOS,
                         V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
                         PROCESO, PROCESO_CIFRAS, CASTING, DIRECTOR, BRAZOS,
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
@@ -498,7 +498,8 @@ y la nave avanza sola con el calendario: cada semana se abre algo nuevo.</p>
 <li><b>Una sesión montada para cada semana</b>: el capítulo, los retos, los rankings y lo que dijo la clase.</li>
 <li><b>Llamada a filas</b>: se ficha desde el móvil con un botón.</li>
 <li><b>Herramientas de aula</b>: al azar, preguntas, votaciones, premios y el cronómetro.</li>
-<li><b>El Simulador de Joran</b>: una batalla de preguntas para repasar jugando.</li>
+<li><b>En directo</b>: el juego del final de la clase, cada recluta desde su móvil y con su personaje.</li>
+<li><b>La Ruta de la Estática</b>: al cerrar cada tema, una misión de nave con preguntas del temario.</li>
 </ul>
 </div>
 {_dz_cap("sesion", "La sesión de la semana, proyectada")}
@@ -1062,7 +1063,7 @@ _GR_TABS = [
 _GR_ABRE = {"nave": "Mi nave", "retos": "Mis retos", "botin": "Mi botín", "archivo": "El Archivo", "mercado": "el Mercado Estelar",
             "rankings": "los Rankings", "heroes": "los héroes y las cápsulas", "adornos": "los adornos de tu ficha",
             "ofertas": "la oferta de la semana", "sorteo": "el Gran Sorteo", "zoco": "el Zoco", "logros": "los logros de a bordo",
-            "simulador": "el Simulador de Joran", "arsenal": "las subidas de nota"}
+            "simulador": "la sala de Joran", "arsenal": "las subidas de nota"}
 _gr_caps = "".join(
     '<tr><td class="num">%d</td><td><b>%s</b></td><td>%s</td></tr>' % (c["semana"], c["titulo"],
         (", ".join(_GR_ABRE.get(a, a) for a in c.get("abre", [])) or "—").capitalize())
@@ -1240,20 +1241,23 @@ Lo ofrecido queda apartado hasta que se responde, y cada trato se cierra en poco
 </div></section>
 
 <section id="archivo"><div class="wrap">
-<div class="eyebrow teal">La historia</div><h2>El Archivo, el Simulador y los rankings</h2>
+<div class="eyebrow teal">La historia</div><h2>El Archivo, los juegos y los rankings</h2>
 <div class="gr-dos">
 <div>
 <p><b>El Archivo.</b> Todos los vídeos de la historia, en orden. Los <b>fragmentos</b> —el vídeo de cada tripulante de la
 Tripulación Cero— <b>se ganan</b>: aparecen al completar el relámpago de su tema. Quien no lo hace, lo verá dos semanas más tarde.</p>
-<p><b>El Simulador de Joran.</b> Una <b>batalla de preguntas</b> contra RUTA AZUL sobre todo lo recorrido, para repasar jugando.
-Si pierdes, vuelves a intentarlo; al ganar, el entrenamiento se queda en tu Nave para repasar tema a tema.</p>
+<p><b>La Ruta de la Estática.</b> Al cerrar cada tema, una misión de nave de 3 minutos hasta el planeta siguiente: las preguntas se
+contestan pilotando. <b>Bronce</b> por llegar; <b>plata</b> y <b>oro</b>, por saber y por pilotar (dan xp y créditos una vez).</p>
+<p><b>La sala de Joran.</b> Desde Ludo: cuatro máquinas arcade y el <b>Simulador de vuelo</b> para repasar. Sus hitos dan créditos
+una vez; hay Cuaderno de vuelo, ranking de la clase, Salón de la fama y la Galería con los juegos de la tripulación.</p>
+<p><b>En directo y el Asedio.</b> Al final de clase, tras el ticket, se juega todos juntos desde el móvil. Y en la semana 11, tu
+escuadrón contra los demás: el Asedio, de lunes a lunes.</p>
 <p><b>Los rankings.</b> Seis clasificaciones (más xp, esta semana, constancia, coleccionistas, el Simulador y escuadrones), del grupo entero o de tu escuadrón, <b>siempre por alias</b>: tu nombre real no sale nunca.</p>
 </div>
-{_gr_img("simulador", "El Simulador de Joran: la batalla contra RUTA AZUL", "El Simulador de Joran.")}
+{_gr_img("rankings", "El tablero de la tripulación", "Rankings.")}
 </div>
 <div class="gr-dos" style="margin-top:18px">
 {_gr_img("archivo", "El Archivo: la historia fragmento a fragmento", "El Archivo.")}
-{_gr_img("rankings", "El tablero de la tripulación", "Rankings.")}
 </div>
 </div></section>
 
@@ -2253,7 +2257,7 @@ window.SG.CFGSESION = (function () {
   function e(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function ico(k, grande){ return '<img class="ico'+(grande?' grande':'')+'" src="assets/img/iconos/'+(grande?'':'p/')+k+'.png" alt="" width="20" height="20">'; }
   var SIN_CAPTURA = { pregunta: ["pregunta", "Sale en las clases que tienen pregunta en el calendario oficial"], tripulante: ["gente", "Sale la semana del relámpago que recupera a un tripulante"], simulador: ["diana", "Sale cuando alguien ha jugado al Simulador"], votacion: ["rayo", "Sale si hay una votación esta semana"],
-                      oferta: ["monedas", "Sale si hay oferta en el Mercado"], unete: ["gente", "Sale en las semanas 1 y 2: el código y la invitación"] };
+                      oferta: ["monedas", "Sale si hay oferta en el Mercado"], directo: ["rayo", "Al final de cada clase, tras el ticket: el juego de todos desde el móvil"], asedio: ["escudo", "Semana 11: el Asedio entre escuadrones; semana 12, su resultado"], unete: ["gente", "Sale en las semanas 1 y 2: el código y la invitación"] };
   function casillas(off) {
     var hay = window.SG_CAPTURAS_SESION || [];
     return '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
@@ -3649,7 +3653,7 @@ Pasa con las flechas <b>←</b> y <b>→</b>.</p>
 <p class="small muted">El <b>consejo del Capitán</b> y el mensaje del foro están arriba, fuera del mazo:
 al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></header>
 <section><div class="wrap"><div id="sesion-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};window.SG_SECCIONES_SESION={json.dumps([list(x) for x in SESION_SECCIONES], ensure_ascii=False)};window.SG_CAPTURAS_SESION={json.dumps(sorted(f[:-4] for f in os.listdir(os.path.join(HERE, "assets/img/sesion")) if f.endswith(".jpg")))};window.SG_EMBARQUE={json.dumps([list(x) for x in SESION_EMBARQUE], ensure_ascii=False)};window.SG_ASIGNATURA={json.dumps(ASIGNATURA, ensure_ascii=False)};window.SG_BLOQUES={json.dumps([list(x) for x in BLOQUES_ASIGNATURA], ensure_ascii=False)};window.SG_TEMARIO={json.dumps({str(k): list(v) for k, v in TEMARIO.items()}, ensure_ascii=False)};window.SG_SES_ACT={json.dumps(SESION_ACTIVIDAD, ensure_ascii=False)};window.SG_RETO_PREMIO={json.dumps(RETO_PREMIO, ensure_ascii=False)};window.SG_MATRIZ={json.dumps({"plantilla": MATRIZ_PLANTILLA, "inteligencias": INTELIGENCIAS, "bloom": BLOOM}, ensure_ascii=False)};window.SG_ORTOGRAFIA={json.dumps(ORTOGRAFIA, ensure_ascii=False)};window.SG_CAPTURAS={json.dumps(CAPTURAS, ensure_ascii=False)};window.SG_VIDEOS={json.dumps({k: {"id": v[0], "titulo": v[1]} for k, v in V.items()}, ensure_ascii=False)};window.SG_EVALUACION={json.dumps([list(x) for x in EVALUACION], ensure_ascii=False)};window.SG_EVALUACION_EXAMEN={json.dumps(EVALUACION_EXAMEN, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};;window.SG_TRIPULANTES={_TRIPUL_JSON};window.SG_RUTA={json.dumps(RUTA, ensure_ascii=False)};window.SG_SALA_JORAN={json.dumps(SALA_JORAN, ensure_ascii=False)}</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};window.SG_SECCIONES_SESION={json.dumps([list(x) for x in SESION_SECCIONES], ensure_ascii=False)};window.SG_CAPTURAS_SESION={json.dumps(sorted(f[:-4] for f in os.listdir(os.path.join(HERE, "assets/img/sesion")) if f.endswith(".jpg")))};window.SG_EMBARQUE={json.dumps([list(x) for x in SESION_EMBARQUE], ensure_ascii=False)};window.SG_ASIGNATURA={json.dumps(ASIGNATURA, ensure_ascii=False)};window.SG_BLOQUES={json.dumps([list(x) for x in BLOQUES_ASIGNATURA], ensure_ascii=False)};window.SG_TEMARIO={json.dumps({str(k): list(v) for k, v in TEMARIO.items()}, ensure_ascii=False)};window.SG_SES_ACT={json.dumps(SESION_ACTIVIDAD, ensure_ascii=False)};window.SG_RETO_PREMIO={json.dumps(RETO_PREMIO, ensure_ascii=False)};window.SG_MATRIZ={json.dumps({"plantilla": MATRIZ_PLANTILLA, "inteligencias": INTELIGENCIAS, "bloom": BLOOM}, ensure_ascii=False)};window.SG_ORTOGRAFIA={json.dumps(ORTOGRAFIA, ensure_ascii=False)};window.SG_CAPTURAS={json.dumps(CAPTURAS, ensure_ascii=False)};window.SG_VIDEOS={json.dumps({k: {"id": v[0], "titulo": v[1]} for k, v in V.items()}, ensure_ascii=False)};window.SG_EVALUACION={json.dumps([list(x) for x in EVALUACION], ensure_ascii=False)};window.SG_EVALUACION_EXAMEN={json.dumps(EVALUACION_EXAMEN, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};;window.SG_TRIPULANTES={_TRIPUL_JSON};window.SG_RUTA={json.dumps(RUTA, ensure_ascii=False)};window.SG_SALA_JORAN={json.dumps(SALA_JORAN, ensure_ascii=False)};window.SG_DIRECTO={json.dumps(DIRECTO, ensure_ascii=False)};window.SG_ASEDIO={json.dumps(ASEDIO, ensure_ascii=False)};window.SG_JUEGOS={json.dumps(JUEGOS)}</script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/tkcomun.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>
@@ -3750,7 +3754,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(_ACT_NAVE, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_RUTA={json.dumps(RUTA, ensure_ascii=False)};window.SG_SALA_JORAN={json.dumps(SALA_JORAN, ensure_ascii=False)};</script>
+<script>window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(_ACT_NAVE, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_RUTA={json.dumps(RUTA, ensure_ascii=False)};window.SG_SALA_JORAN={json.dumps(SALA_JORAN, ensure_ascii=False)};window.SG_DIRECTO={json.dumps(DIRECTO, ensure_ascii=False)};window.SG_ASEDIO={json.dumps(ASEDIO, ensure_ascii=False)};window.SG_JUEGOS={json.dumps(JUEGOS)};</script>
 <script src="assets/js/secreto.js" defer></script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sobre.js" defer></script>
@@ -4313,6 +4317,8 @@ def _cabeza_motor():
         # laboratorio mirando los errores de consola, no las baterías: un `{...}` sin f delante no se ve leyendo.
         'window.SG_FRAGMENTOS=' + FRAGMENTOS_JSON + ';window.SG_A_BORDO=' + _json.dumps(_A_BORDO, ensure_ascii=False) + ';'
         'window.SG_BATALLA=' + _json.dumps(BATALLA, ensure_ascii=False) + ';'
+        # 27-sep · la sala de Joran, el directo del final de la clase y el Asedio: la Nave, la consola y la sesión los cuentan
+        'window.SG_SALA_JORAN=' + _json.dumps(SALA_JORAN, ensure_ascii=False) + ';window.SG_DIRECTO=' + _json.dumps(DIRECTO, ensure_ascii=False) + ';window.SG_ASEDIO=' + _json.dumps(ASEDIO, ensure_ascii=False) + ';window.SG_JUEGOS=' + _json.dumps(JUEGOS) + ';'
         'window.SG_SIN_PUA=' + _json.dumps(SIN_PUA, ensure_ascii=False) + ';'
         'window.SG_VOTACION=' + _json.dumps(VOTACION, ensure_ascii=False) + ';</script>'
         '<script src="' + _v("assets/js/secreto.js") + '" defer></script>'
@@ -4478,7 +4484,7 @@ _PE = [
    ("En el Puente (pasada la semana 3, en <b>Mi gente</b>), pulsa «Copiar invitación» y pégala en un documento.",
     "Un mensaje listo para el foro de la plataforma de UNIR, con el enlace directo y el código. El <b>código de clase</b> sale tapado: pulsa «Mostrar»."),
    ("Pasa a <b>Mando manual</b> y abre <b>Enlaces</b>.",
-    "Todo en un sitio y en tres apartados: <b>la sesión de clase</b> (el inicio, el cierre y la sesión completa), <b>en clase</b> (las herramientas, la llamada a filas, el tablero y el Simulador de Joran) y <b>para tu alumnado</b> (alistarse, su Nave, el padlet de la clase, que escribes ahí mismo, y tu Nave de ejemplo). Cada fila: <b>Abrir ↗</b>, <b>⧉</b> (en su propia ventana, solo con ese contenido), <b>Enlace</b> y <b>&lt;/&gt; Código</b>, el mismo para todos tus grupos."),
+    "Todo en un sitio y en tres apartados: <b>la sesión de clase</b> (el inicio, el cierre y la sesión completa), <b>en clase</b> (las herramientas, la llamada a filas, el tablero, la sala de Joran y la pantalla del directo) y <b>para tu alumnado</b> (alistarse, su Nave, el padlet de la clase, que escribes ahí mismo, y tu Nave de ejemplo). Cada fila: <b>Abrir ↗</b>, <b>⧉</b> (en su propia ventana, solo con ese contenido), <b>Enlace</b> y <b>&lt;/&gt; Código</b>, el mismo para todos tus grupos."),
    ("Arriba del todo, pulsa «Modo docente».",
     "Desaparece todo lo de referente (del menú se va <b>Gestionar grupos</b>): lo que ve un profe en clase. En <b>Mi gente</b> solo sale <b>tu escuadrón</b>, sin los botones de los demás. Vuelve con «★ Modo referente»."),
  ]),
@@ -4534,8 +4540,8 @@ _PE = [
    ("«Mis retos»: despliega un reto y márcalo.", "La misma tarjeta que la de la semana, con su insignia. Casi todos piden el <b>enlace</b> (hay un «+» para un segundo); sin él, no se registra. Algunos traen «<img class=ico src=assets/img/iconos/p/estrella.png alt> Ver un ejemplo»."),
    ("«Mi botín».", "Tus insignias, por planetas: el tripulante y el reto de cada tema."),
    ("«Mi botín» → «<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Logros de a bordo</b>» (en el grupo de prueba ya están; en uno nuevo, desde la semana 9).", "Lo que ya has hecho, con su fecha, y lo que falta con «Ir». Registra un reto o compra un sobre: NEBULA lo celebra al momento. Al completar una cubierta llega su premio, y con las cinco, el <b>Contramaestre</b>: un héroe legendario y una carta con tu alias."),
-   ("El <b>Simulador de Joran</b>: pulsa «<img class=ico src=assets/img/iconos/p/diana.png alt> Enfréntate al Simulador de Joran» (se abre con el planeta Ludo).", "Es una <b>batalla de preguntas</b> contra RUTA AZUL, para repasar jugando: aciertas y golpeas, fallas y pierdes tiempo (y Joran te corrige). Si le ganas, el entrenamiento se queda en tu Nave para repasar tema a tema, con su ranking. No es un reto: no da insignia ni cuenta para nada más que para aprender. Si pierdes, cada derrota lo cansa."),
-   ("Y con tu cuenta de docente, abre <code>batalla.html?ensayo=1</code> de tu grupo.", "Lo mismo en <b>modo ensayo</b>, para enseñarlo en clase sin que cuente."),
+   ("La <b>sala de Joran</b>: pulsa «<img class=ico src=assets/img/iconos/p/diana.png alt> Entrar en la sala» (se abre con el planeta Ludo).", "Cuatro máquinas arcade y el <b>Simulador de vuelo</b> (la Ruta para repasar, en tres niveles). La plata de cada máquina enciende la siguiente; sus hitos dan créditos una vez y la sala no da xp. Dentro: el Cuaderno de vuelo, el ranking de la clase, el Salón de la fama y la Galería de juegos."),
+   ("Y con tu cuenta de docente, en tu Nave → <b>Simulador</b>.", "La sala en <b>modo ensayo</b>, para enseñarla en clase sin que cuente; y cómo funcionan el directo del final de la clase y el Asedio."),
    ("Al acabar el viaje (última semana), en la Nave sale «<img class=ico src=assets/img/iconos/p/libro.png alt> Tu diploma».", "Con tu alias, tu nombre, tus insignias y tus cifras, firmado por tu Comandante. Se descarga o se imprime.")
  ]),
 ]
@@ -4693,12 +4699,12 @@ grupos y en todas las convocatorias — el grupo se deduce de quién pulsa. Para
 ''' + FOOT
 open(os.path.join(HERE, "batalla.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 # 🔴 27-sep · LA RUTA Y LA SALA DE JORAN (borrador): lo que se cuenta de cada misión y de cada máquina sale de _site_data.py
-for _dir, _nombre, _dato in (("juegos/ruta", "RUTA", RUTA), ("juegos/joran", "SALA_JORAN", SALA_JORAN)):
+for _dir, _nombre, _dato in (("juegos/ruta", "RUTA", RUTA), ("juegos/joran", "SALA_JORAN", SALA_JORAN), ("juegos/directo", "DIRECTO", DIRECTO), ("juegos/asedio", "ASEDIO", ASEDIO)):
     if os.path.isdir(os.path.join(HERE, _dir)):
         open(os.path.join(HERE, _dir, "datos.js"), "w", encoding="utf-8").write(
             "// GENERADO por _build_site.py desde _site_data.py (" + _nombre + "): no se edita a mano.\nexport const " + _nombre + " = "
             + json.dumps(_dato, ensure_ascii=False, indent=1) + ";\n")
-print("escrito: juegos/ruta/datos.js y juegos/joran/datos.js")
+print("escrito: juegos/{ruta,joran,directo,asedio}/datos.js")
 print("escrito: batalla.html  (el Simulador de Joran)")
 
 # ---------------------------------------------------------------- el diploma (el broche de oro)

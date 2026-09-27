@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ticket de salida (ensayo)</title>
+<style>
+/* Copia de ENSAYO del ticket de salida (no envía nada). En la web, en su lugar va el formulario anónimo de Google de
+   siempre, incrustado (SG_TICKET_URL + «&embedded=true»). Por eso el fondo es blanco: así se verá el de Google. */
+body{margin:0;font-family:Roboto,system-ui,sans-serif;background:#f0ebf8;color:#202124}
+.f{max-width:520px;margin:0 auto;padding:12px}
+.c{background:#fff;border-radius:8px;padding:14px 16px;margin-bottom:10px;border:1px solid #dadce0}
+.c.tit{border-top:8px solid #0b7a8a}
+h1{font-size:22px;margin:0 0 6px;font-weight:500}
+p{margin:0;font-size:14px;color:#5f6368}
+label{display:block;font-size:15px;margin-bottom:8px}
+.esc{display:flex;gap:6px}
+.esc button{flex:1;padding:10px 0;border:1px solid #dadce0;background:#fff;border-radius:6px;font-size:15px;cursor:pointer}
+.esc button.si{background:#0b7a8a;color:#fff;border-color:#0b7a8a}
+textarea{width:100%;box-sizing:border-box;font:inherit;font-size:15px;border:0;border-bottom:1px solid #dadce0;padding:6px 0;resize:vertical;min-height:44px}
+.enviar{background:#0b7a8a;color:#fff;border:0;border-radius:4px;padding:10px 22px;font-size:15px;cursor:pointer}
+.gracias{text-align:center;padding:30px 16px}
+</style>
+</head>
+<body>
+<div class="f" id="f">
+  <div class="c tit"><h1>Ticket de salida</h1><p>Anónimo. Un minuto. Tu docente solo ve el resumen de la clase.</p></div>
+  <div class="c"><label>¿Cómo te vas de la clase de hoy? (1 = perdido, 5 = lo tengo)</label><div class="esc" id="esc">1 2 3 4 5</div></div>
+  <div class="c"><label>Lo que más te ha servido</label><textarea rows="2"></textarea></div>
+  <div class="c"><label>Una duda o algo que cambiarías</label><textarea rows="2"></textarea></div>
+  <button class="enviar" id="enviar">Enviar</button>
+</div>
+<script>
+var e = document.getElementById('esc'); e.innerHTML = [1, 2, 3, 4, 5].map(function (n) { return '<button type="button">' + n + '</button>'; }).join('');
+e.querySelectorAll('button').forEach(function (b) { b.onclick = function () { e.querySelectorAll('button').forEach(function (x) { x.classList.toggle('si', x === b); }); }; });
+document.getElementById('enviar').onclick = function () {
+  document.getElementById('f').innerHTML = '<div class="c gracias"><h1>Respuesta registrada</h1><p>Gracias. (Ensayo: no se ha enviado nada.)</p></div>';
+  try { parent.postMessage({ sgTicket: 'hecho' }, '*'); } catch (x) { /* nada */ }
+};
+</script>
+</body>
+</html>

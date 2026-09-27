@@ -66,8 +66,8 @@ c(/match \/projects\/\{projectId\}\/voting_events\/\{eventId\}/.test(reglas) && 
 const K = leer("assets/js/consola.js");
 c(/function descargarCSV\(t, lista, filtro\)/.test(K) && /id="c-csv"/.test(K), "la consola exporta el grupo a CSV desde «Mi gente»");
 c(/"\\uFEFF"/.test(K) && /join\(";"\)/.test(K), "🔴 con BOM y punto y coma: Excel en español lo abre a la primera");
-c(/Simulador \(ganó\)/.test(K) && /Logros de a bordo/.test(K) && /Enlaces entregados/.test(K),
-  "   y lleva lo que hace falta para evaluar: retos, insignias, logros, simulador y los enlaces entregados");
+c(/Sala de Joran \(máquinas\)/.test(K) && /Logros de a bordo/.test(K) && /Enlaces entregados/.test(K),
+  "   y lleva lo que hace falta para evaluar: retos, insignias, logros, la sala de Joran y los enlaces entregados");
 c(/lista\.map\(function \(x\)/.test(K) && /filtro \? "_" \+ filtro/.test(K), "   respeta el escuadrón filtrado y lo dice en el nombre del fichero");
 
 console.log("\n  Batería 82 · las votaciones del aula y el CSV");

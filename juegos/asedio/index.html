@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>El Asedio · reto entre escuadrones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../directo/directo.css">
+<style>
+html,body{min-height:100%}
+body{background:#01040c url(../directo/img/fondo.jpg) center/cover fixed}
+body::before{content:"";position:fixed;inset:0;background:rgba(1,4,12,.72);pointer-events:none}
+main{position:relative;max-width:1100px;margin:0 auto;padding:16px}
+.vistas{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.vistas button{padding:8px 12px;font-size:12px;background:#0d2236;color:#e8f6ff;border:1px solid var(--borde);font-weight:600}
+.vistas button.si{background:linear-gradient(135deg,#19c3d6,#1a7bd6);color:#001018;font-weight:800}
+.vistas span{font-size:13px;opacity:.75;align-self:center;margin-left:6px}
+h1{margin:4px 0 6px;color:var(--cian);font-size:clamp(22px,3vw,34px)}
+h2{margin:0 0 8px;font-size:15px;color:var(--ambar);letter-spacing:.12em;text-transform:uppercase}
+.aviso-nave{display:grid;grid-template-columns:120px 1fr auto;gap:14px;align-items:center;border:1px solid var(--magenta);background:linear-gradient(90deg,rgba(255,77,216,.18),rgba(4,14,30,.9));border-radius:16px;padding:12px 16px}
+.aviso-nave img{width:120px;height:120px;object-fit:contain;filter:drop-shadow(0 0 16px rgba(255,77,216,.6))}
+.aviso-nave b{font-family:Orbitron;font-size:20px;color:#ffd1f3;display:block}
+.aviso-nave p{margin:4px 0 0;font-size:15px}
+.cuenta{font-family:Orbitron;font-size:13px;color:var(--ambar);text-align:right}
+.cuenta b{display:block;font-size:26px;color:#fff}
+.rejilla{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-top:14px}
+.clasif{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.clasif li{display:grid;grid-template-columns:24px 34px 1fr 64px;gap:8px;align-items:center;font-size:14px}
+.clasif li .pos{font-family:Orbitron;font-size:13px;text-align:right;opacity:.8}
+.clasif li img{width:34px;height:34px;object-fit:contain}
+.clasif li .b{position:relative;height:24px;background:rgba(0,0,0,.35);border-radius:6px;overflow:hidden}
+.clasif li .b i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#7a3cff,#ff4dd8);border-radius:6px}
+.clasif li .b span{position:relative;padding-left:8px;line-height:24px;font-weight:700;text-shadow:0 0 4px #000}
+.clasif li .v{font-family:Orbitron;font-size:13px;text-align:right}
+.clasif li.mio .b i{background:linear-gradient(90deg,#1a7bd6,var(--cian))}
+.clasif li.mio{color:var(--cian)}
+.dias{display:flex;gap:6px;margin:8px 0}
+.dias div{flex:1;text-align:center;border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:6px 0;font-size:12px}
+.dias div b{display:block;font-family:Orbitron;font-size:14px}
+.dias .si{border-color:var(--verde);background:rgba(93,255,160,.1)}
+.dias .hoy{border-color:var(--ambar)}
+.dias .fut{opacity:.35}
+.cifra{font-family:Orbitron;font-size:30px;color:var(--ambar)}
+.cifra small{display:block;font-family:"Exo 2";font-size:13px;color:#e8f6ff;opacity:.85}
+details.mas{margin-top:10px;font-size:14px} details.mas summary{cursor:pointer;color:var(--cian);font-weight:700} details.mas p,details.mas li{line-height:1.45;opacity:.92}
+.diapo{aspect-ratio:16/9;border:1px solid var(--borde);border-radius:16px;overflow:hidden;position:relative;background:#02030a url(../directo/img/fondo.jpg) center/cover}
+.diapo::before{content:"";position:absolute;inset:0;background:rgba(1,4,12,.55)}
+.diapo > div{position:relative;height:100%;padding:3% 4%;display:flex;flex-direction:column}
+.diapo h1{font-size:clamp(22px,3.6vw,46px);margin:0}
+.diapo .lema{font-size:clamp(14px,1.6vw,20px);margin:6px 0 0}
+.diapo .dos{display:grid;grid-template-columns:1fr 1.1fr;gap:4%;flex:1;margin-top:2%;min-height:0}
+.diapo .reglas{list-style:none;padding:0;margin:0;display:grid;gap:10px;align-content:start}
+.diapo .reglas li{font-size:clamp(13px,1.45vw,19px);line-height:1.35;background:rgba(4,14,30,.8);border:1px solid var(--borde);border-radius:12px;padding:10px 12px}
+.diapo .reglas b{color:var(--ambar)}
+.podio{display:flex;justify-content:center;align-items:flex-end;gap:3%;flex:1}
+.pd{display:flex;flex-direction:column;align-items:center;gap:4px;width:22%}
+.pd img{width:70%;filter:drop-shadow(0 0 14px rgba(95,244,255,.5))}
+.pd b{font-size:clamp(13px,1.6vw,20px);text-align:center}
+.pd span{font-size:clamp(11px,1.2vw,15px);opacity:.9}
+.pd .caj{width:100%;border-radius:12px 12px 0 0;display:flex;justify-content:center;padding-top:6px;font-family:Orbitron;font-size:clamp(18px,2.4vw,30px);color:#001018}
+.pd.p1 .caj{height:26%;min-height:70px;background:linear-gradient(var(--oro),#b8901d)} .pd.p2 .caj{height:18%;min-height:48px;background:linear-gradient(var(--plata),#8793a0)} .pd.p3 .caj{height:12%;min-height:32px;background:linear-gradient(var(--bronce),#9a5d2b)}
+.premio{margin-top:10px;background:rgba(93,255,160,.12);border:1px solid rgba(93,255,160,.6);border-radius:12px;padding:8px 12px;font-size:clamp(13px,1.4vw,17px);text-align:center}
+.salon{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.heroe{display:grid;grid-template-columns:56px 1fr;gap:4px 10px;align-items:center;background:rgba(13,34,54,.8);border:1px solid var(--ambar);border-radius:14px;padding:10px 12px}
+.heroe .av{width:56px;height:56px;grid-row:span 3}
+.heroe .t{font-family:Orbitron;font-size:12px;letter-spacing:.06em;color:var(--ambar)}
+.heroe b{font-size:17px;display:flex;align-items:center;gap:6px} .heroe b img{width:22px;height:22px}
+.heroe span{font-size:13px;opacity:.9}
+.heroe.yo{border-color:var(--cian);box-shadow:0 0 16px rgba(95,244,255,.35)}
+.salon.grande{flex:1;margin-top:2%;align-content:center}
+.salon.grande .heroe{padding:2.4% 3%;grid-template-columns:clamp(56px,7vw,96px) 1fr}
+.salon.grande .heroe .av{width:clamp(56px,7vw,96px);height:clamp(56px,7vw,96px)}
+.salon.grande .heroe .t{font-size:clamp(12px,1.2vw,16px)} .salon.grande .heroe b{font-size:clamp(17px,1.9vw,26px)} .salon.grande .heroe span{font-size:clamp(13px,1.3vw,17px)}
+@media (max-width:820px){.salon{grid-template-columns:1fr}}
+#capa{position:fixed;inset:0;background:rgba(1,4,12,.9);display:flex;align-items:center;justify-content:center;z-index:50}
+#capa iframe{width:min(430px,96vw);height:min(860px,94vh);border:1px solid var(--borde);border-radius:18px;background:#01040c}
+#capa button{position:absolute;top:14px;right:14px}
+@media (max-width:820px){.rejilla,.diapo .dos{grid-template-columns:1fr}.aviso-nave{grid-template-columns:70px 1fr}.aviso-nave img{width:70px;height:70px}.cuenta{grid-column:1/-1;text-align:left}.diapo{aspect-ratio:auto}}
+</style>
+</head>
+<body>
+<main>
+  <div class="vistas" id="vistas">
+    <button data-v="nave" class="si">La Nave del recluta</button><button data-v="lanza">Sesión · semana 11</button><button data-v="cierre">Sesión · semana 12 (el resultado)</button>
+    <span>Borrador: los demás escuadrones son de ejemplo; tus ataques cuentan de verdad (en este navegador).</span>
+  </div>
+
+  <section id="v-nave">
+    <div class="aviso-nave"><img src="../directo/img/estatica.png" alt="">
+      <div><b>La Estática asedia la flota</b><p>Tu escuadrón necesita tus disparos. Cada día cuenta tu mejor ataque.</p></div>
+      <div class="cuenta">Se cierra el lunes<b id="quedan">4 días</b></div></div>
+    <div class="rejilla">
+      <div class="caja"><h2>Los escuadrones</h2><ol class="clasif" id="clasif"></ol>
+        <details class="mas"><summary>Cómo se cuenta</summary><p>Daño medio por recluta: todo lo que aporta el escuadrón, dividido entre <b>todos</b> sus reclutas. Así un escuadrón pequeño puede ganar a uno grande, y cada persona que se suma, ayuda.</p></details></div>
+      <div class="caja"><h2>Tu aportación</h2>
+        <div class="dias" id="dias"></div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;margin:6px 0 10px">
+          <div class="cifra" id="c-hoy">0<small>tu mejor ataque de hoy</small></div>
+          <div class="cifra" id="c-total">0<small>aportado esta semana</small></div>
+        </div>
+        <div class="botones" style="margin-top:0"><button id="b-atacar">Atacar · 2 min</button></div>
+        <details class="mas"><summary>Cómo se juega</summary><ul><li>Es la Defensa del directo, tú solo: derriba lo que cae, esquiva y contesta.</li><li>Daño: derribo 1 · acierto 8 · esquiva 2 · y el escudo que te quede.</li><li>Puedes atacar las veces que quieras: cada día cuenta solo el mejor.</li></ul></details>
+        <details class="mas"><summary>Premios</summary><ul id="premios"></ul></details>
+      </div>
+    </div>
+    <div class="caja" style="margin-top:14px"><h2>Salón de héroes y heroínas</h2><div class="salon" id="salon"></div>
+      <details class="mas"><summary>Quién entra</summary><p>Los mejores de todos los escuadrones, solo con su alias y una categoría por persona. No dan puntos: dan gloria, y salen en la sesión de cierre. Para la precisión hacen falta al menos 10 respuestas.</p></details></div>
+  </section>
+
+  <section id="v-lanza" class="oculto">
+    <div class="diapo"><div>
+      <div class="kicker">Semana 11 · reto entre escuadrones</div>
+      <h1>El Asedio</h1><p class="lema">La Estática lanza su nave nodriza contra la flota. Una semana para derribarla.</p>
+      <div class="dos">
+        <ul class="reglas"><li><b>Del lunes al lunes</b>, desde vuestra Nave, cuando queráis.</li><li><b>2 minutos</b> por ataque. Cada día cuenta vuestro mejor.</li><li>Gana el escuadrón con <b>más daño por recluta</b>: cuenta que juguéis todos.</li><li id="premio-l"></li></ul>
+        <div class="caja" style="padding:10px 12px;overflow:auto"><h2>Así va</h2><ol class="clasif" id="clasif2"></ol></div>
+      </div>
+    </div></div>
+  </section>
+
+  <section id="v-cierre" class="oculto">
+    <div class="diapo"><div>
+      <div class="kicker">Semana 12 · cierre del Asedio</div>
+      <h1>¡La nodriza ha caído!</h1><p class="lema" id="lema-c"></p>
+      <div class="podio" id="podio"></div>
+      <div class="premio" id="premio-c"></div>
+    </div></div>
+    <div class="diapo" style="margin-top:14px"><div>
+      <div class="kicker">Semana 12 · cierre del Asedio</div>
+      <h1>Salón de héroes y heroínas</h1><p class="lema">Los mejores de toda la flota, escuadrón a escuadrón.</p>
+      <div class="salon grande" id="salon2"></div>
+    </div></div>
+  </section>
+</main>
+<div id="capa" class="oculto"><iframe id="marco" title="El Asedio"></iframe><button class="sec" id="b-cerrar">Volver</button></div>
+<script>
+// EL ASEDIO · reto ASÍNCRONO entre escuadrones (propuesta, semana 11 → 12 en REGULAR; en PUA no hay semana libre).
+// Se abre el lunes y se cierra el lunes siguiente. Cada recluta ataca desde su Nave (la Defensa del directo, en solitario);
+// cada día cuenta su mejor ataque, y el escuadrón suma lo de todos y lo divide entre TODOS sus reclutas.
+// En la web: lo guarda y lo cuenta el servidor (un ataque = una partida del servidor, con las preguntas sin la respuesta y
+// el daño acotado por los segundos jugados). Aquí, los demás escuadrones son de ejemplo y tus ataques, de este navegador.
+// en la web el reto vive en juegos/asedio: los avatares y los emblemas, los de siempre de la web
+var EN_WEB = location.pathname.indexOf('/juegos/') >= 0, AVD = EN_WEB ? '../../assets/img/avatares/evo/' : '../sala-joran/img/av/', ESCD = EN_WEB ? '../../assets/img/escuadrones/' : 'img/';
+var ESC = [["esc_yunques","Los Yunques"],["esc_eco_largo","Eco Largo"],["esc_cartografos","Los Cartógrafos"],["esc_senal","Señal Abierta"],["esc_faro","Faro Umbral"],["esc_ruta_azul","Ruta Azul"],["esc_porques","Los Porqués"],["esc_capa","Capa Liminar"],["esc_copistas","Los Copistas"],["esc_guardia","Guardia Cero"]];
+var MIO = "esc_ruta_azul", DIA_HOY = 2; // el reto va por el miércoles (día 3 de 7)
+// 🔴 los premios (propuesta): solo cobra quien ha atacado al menos una vez. Con 60 xp la Ruta y el Asedio juntos suman
+// 360 xp como mucho: por debajo de los 610 de margen que hay entre el viaje y Leyenda.
+var PREMIOS = [["1.º", 60, 30], ["2.º", 0, 15], ["3.º", 0, 10], ["Todo el que ataque", 0, 5]];
+var semilla = 11; function rnd() { semilla = (semilla * 16807) % 2147483647; return semilla / 2147483647; }
+var BASE = ESC.map(function (e) { var n = 18 + Math.floor(rnd() * 22), part = 0.35 + rnd() * 0.5; return { k: e[0], n: e[1], reclutas: n, total: Math.round(n * part * (70 + rnd() * 40) * (DIA_HOY + 1) * 0.8 * (e[0] === MIO ? 1.35 : 1)) }; });
+var DIAS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+function leer() { try { return JSON.parse(localStorage.getItem('sgAsedio') || '{}'); } catch (e) { return {}; } }
+function guardar(d) { try { localStorage.setItem('sgAsedio', JSON.stringify(d)); } catch (e) { /* nada */ } }
+function misDias() { var d = leer(); if (!d.dias) d.dias = { 0: 86 }; return d; } // el lunes ya atacaste (ejemplo)
+function aporte() { var d = misDias(), s = 0; for (var k in d.dias) s += d.dias[k]; return s; }
+function clasif(final) {
+  return BASE.map(function (e) { var t = e.total * (final ? 7 / (DIA_HOY + 1) : 1) + (e.k === MIO ? aporte() : 0); return { k: e.k, n: e.n, reclutas: e.reclutas, media: t / e.reclutas }; })
+    .sort(function (a, b) { return b.media - a.media; });
+}
+function pintarClasif(id, final) {
+  var l = clasif(final), max = l[0].media;
+  document.getElementById(id).innerHTML = l.map(function (e, i) { return '<li class="' + (e.k === MIO ? 'mio' : '') + '"><span class="pos">' + (i + 1) + '</span><img src="' + ESCD + e.k + '.png" alt=""><div class="b"><i style="width:' + (e.media / max * 100) + '%"></i><span>' + e.n + (e.k === MIO ? ' · el tuyo' : '') + '</span></div><span class="v">' + e.media.toFixed(1).replace('.', ',') + '</span></li>'; }).join('');
+  return l;
+}
+function pintar() {
+  pintarClasif('clasif'); pintarClasif('clasif2'); pintarSalon('salon'); pintarSalon('salon2');
+  var d = misDias();
+  document.getElementById('dias').innerHTML = DIAS.map(function (n, i) { var v = d.dias[i]; return '<div class="' + (v ? 'si ' : '') + (i === DIA_HOY ? 'hoy' : i > DIA_HOY ? 'fut' : '') + '">' + n + '<b>' + (v || (i > DIA_HOY ? '' : '–')) + '</b></div>'; }).join('');
+  document.getElementById('c-hoy').firstChild.textContent = d.dias[DIA_HOY] || 0;
+  document.getElementById('c-total').firstChild.textContent = aporte();
+  document.getElementById('quedan').textContent = (7 - DIA_HOY - 1) + ' días';
+  document.getElementById('premios').innerHTML = PREMIOS.map(function (p) { return '<li><b>' + p[0] + '</b>: ' + (p[1] ? '+' + p[1] + ' xp y ' : '') + '+' + p[2] + ' ◈</li>'; }).join('') + '<li>Solo cobra quien haya atacado al menos una vez.</li>';
+  document.getElementById('premio-l').innerHTML = 'El escuadrón ganador: <b>+' + PREMIOS[0][1] + ' xp y +' + PREMIOS[0][2] + ' ◈</b> para cada recluta que haya atacado.';
+  var f = clasif(true), pos = f.findIndex(function (e) { return e.k === MIO; }) + 1;
+  document.getElementById('podio').innerHTML = [1, 0, 2].map(function (i) { var e = f[i]; return '<div class="pd p' + (i + 1) + '"><img src="' + ESCD + e.k + '.png" alt=""><b>' + e.n + '</b><span>' + e.media.toFixed(1).replace('.', ',') + ' por recluta</span><div class="caj">' + (i + 1) + '</div></div>'; }).join('');
+  document.getElementById('lema-c').textContent = 'Vuestro escuadrón, ' + f[pos - 1].n + ', queda ' + pos + '.º de ' + f.length + '.';
+  document.getElementById('premio-c').innerHTML = '<b>' + f[0].n + '</b>: +' + PREMIOS[0][1] + ' xp y +' + PREMIOS[0][2] + ' ◈ a cada recluta que atacó · 2.º +' + PREMIOS[1][2] + ' ◈ · 3.º +' + PREMIOS[2][2] + ' ◈ · todos los que atacaron, +' + PREMIOS[3][2] + ' ◈';
+}
+document.querySelectorAll('[data-v]').forEach(function (b) { b.onclick = function () {
+  document.querySelectorAll('[data-v]').forEach(function (x) { x.classList.toggle('si', x === b); });
+  ['nave', 'lanza', 'cierre'].forEach(function (v) { document.getElementById('v-' + v).classList.toggle('oculto', v !== b.dataset.v); });
+}; });
+document.getElementById('b-atacar').onclick = function () { document.getElementById('marco').src = '../directo/alumno.html?solo=asedio&tema=6'; document.getElementById('capa').classList.remove('oculto'); };
+document.getElementById('b-cerrar').onclick = function () { document.getElementById('capa').classList.add('oculto'); document.getElementById('marco').src = 'about:blank'; };
+// EL SALÓN: seis categorías, entre TODOS los escuadrones. Tus números salen de tus ataques; los demás, de ejemplo.
+var SALON = [
+  ['dano', 'Terror de la nodriza', 'más daño en la semana', function (p) { return p.dano; }, function (v) { return v + ' de daño'; }],
+  ['derribos', 'Cazanaves', 'más naves derribadas', function (p) { return p.derribos; }, function (v) { return v + ' derribos'; }],
+  ['precision', 'Ojo de halcón', 'más precisión respondiendo', function (p) { return p.respondidas >= 10 ? p.aciertos / p.respondidas + p.aciertos * 1e-4 : -1; }, function (v, p) { return Math.round(p.aciertos / p.respondidas * 100) + ' % (' + p.aciertos + ' de ' + p.respondidas + ')'; }],
+  ['mejor', 'Golpe maestro', 'el mejor ataque', function (p) { return p.mejor; }, function (v) { return v + ' en un ataque'; }],
+  ['esquivas', 'Fantasma', 'más disparos esquivados', function (p) { return p.esquivas; }, function (v) { return v + ' esquivas'; }],
+  ['dias', 'Constancia', 'más días atacando', function (p) { return p.dias + p.dano * 1e-6; }, function (v, p) { return p.dias + ' de 7 días'; }],
+];
+var ALIAS = ['Rigel', 'Altair', 'Sirio', 'Antares', 'Deneb', 'Mizar', 'Capella', 'Bellatrix', 'Procyon', 'Canopus', 'Spica', 'Pollux', 'Tavek', 'Nyra', 'Lumen', 'Iskra', 'Vexa', 'Soren', 'Yara', 'Oryx', 'Kyra', 'Maren', 'Noctis', 'Sable'];
+var AVS = ['p1f', 'p1m', 'p2f', 'p2m', 'p3f', 'p3m', 'p4f', 'p4m', 'p5f', 'p5m', 'p6f', 'p6m', 'p7f', 'p7m'];
+var FLOTA = ALIAS.map(function (a, i) {
+  var dias = 1 + Math.floor(rnd() * (DIA_HOY + 1)), atq = dias * (1 + Math.floor(rnd() * 3)), resp = Math.round(atq * (6 + rnd() * 4)), acie = Math.round(resp * (0.45 + rnd() * 0.45));
+  var der = Math.round(atq * (40 + rnd() * 45)), esq = Math.round(atq * rnd() * 6);
+  return { alias: a, avatar: AVS[i % AVS.length] + '_r' + (1 + i % 4), esc: ESC[i % ESC.length][0], dias: dias, derribos: der, respondidas: resp, aciertos: acie, esquivas: esq, mejor: Math.round((der / atq + acie / atq * 8 + esq / atq * 2) * (1 + rnd() * 0.3)), dano: Math.round(der + acie * 8 + esq * 2) };
+});
+function yo() {
+  var d = misDias(), t = d.tot || { derribos: 0, aciertos: 0, respondidas: 0, esquivas: 0 }, v = Object.keys(d.dias).map(function (k) { return d.dias[k]; });
+  return { alias: 'Tú', avatar: 'p3f_r2', esc: MIO, yo: true, dias: v.length, dano: aporte(), mejor: Math.max.apply(null, v.concat([0])), derribos: t.derribos, respondidas: t.respondidas, aciertos: t.aciertos, esquivas: t.esquivas };
+}
+function pintarSalon(id) {
+  var todos = FLOTA.concat([yo()]), nombre = {}; ESC.forEach(function (e) { nombre[e[0]] = e[1]; });
+  // cada persona entra en UNA sola categoría (la primera que gana): así la gloria se reparte
+  var usados = [];
+  document.getElementById(id).innerHTML = SALON.map(function (c) {
+    var libres = todos.filter(function (x) { return usados.indexOf(x) < 0; });
+    var p = libres.reduce(function (a, b) { return c[3](b) > c[3](a) ? b : a; }), v = c[3](p);
+    if (v < 0) return '';
+    usados.push(p);
+    return '<div class="heroe' + (p.yo ? ' yo' : '') + '"><img class="av" src="' + AVD + p.avatar + '.jpg" alt=""><div class="t">' + c[1] + '</div><b>' + p.alias + ' <img src="' + ESCD + p.esc + '.png" alt="" title="' + nombre[p.esc] + '"></b><span>' + c[2] + ': ' + c[4](Math.round(v), p) + '</span></div>';
+  }).join('');
+}
+addEventListener('message', function (ev) {
+  if (!ev.data || !ev.data.sgAsedio) return;
+  var d = misDias(), dano = ev.data.sgAsedio.dano;
+  if (dano > (d.dias[DIA_HOY] || 0)) d.dias[DIA_HOY] = dano;
+  // lo de todos tus ataques (no solo el mejor): derribos, respuestas y esquivas, para el salón
+  var st = ev.data.sgAsedio.stats || {}; d.tot = d.tot || { derribos: 0, aciertos: 0, respondidas: 0, esquivas: 0 };
+  ['derribos', 'aciertos', 'respondidas', 'esquivas'].forEach(function (k) { d.tot[k] += st[k] || 0; });
+  guardar(d);
+  pintar();
+});
+pintar();
+// ?vista=lanza|cierre → la diapositiva de la sesión (sin las pestañas de arriba)
+var VISTA = new URLSearchParams(location.search).get('vista');
+if (VISTA) { document.getElementById('vistas').style.display = 'none'; var bt = document.querySelector('[data-v="' + VISTA + '"]'); if (bt) bt.click(); }
+</script>
+<script type="module">
+// en la web, los premios, la semana y los nombres del salón salen de _site_data.py → ASEDIO (el build escribe datos.js)
+try { const A = (await import('./datos.js')).ASEDIO; PREMIOS.splice(0, PREMIOS.length, ...A.premios); A.salon.forEach((t, i) => { if (SALON[i]) SALON[i][1] = t; }); pintar(); } catch (e) { /* borrador: sin datos.js */ }
+</script>
+</body>
+</html>

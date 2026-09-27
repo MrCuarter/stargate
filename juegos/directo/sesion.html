@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sesión · en directo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="directo.css">
+<style>
+html,body{height:100%;overflow:hidden}
+body{display:flex;flex-direction:column}
+.barra-s{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 14px;background:rgba(1,4,12,.92);border-bottom:1px solid rgba(95,244,255,.25);font-size:14px}
+.barra-s .t{font-family:Orbitron;font-size:13px;color:var(--cian);letter-spacing:.06em}
+.barra-s .dias{display:flex;gap:6px}
+.barra-s .dias button{padding:6px 10px;font-size:12px;background:#0d2236;color:#e8f6ff;border:1px solid var(--borde);font-weight:600}
+.barra-s .dias button.si{border-color:var(--ambar);color:var(--ambar)}
+.barra-s .rol{margin-left:auto;display:flex;gap:6px;align-items:center}
+.barra-s .rol a{font-size:12px;padding:6px 10px}
+.barra-s .rol b{font-family:Orbitron;font-size:12px;color:var(--ambar)}
+iframe{flex:1;border:0;width:100%;background:#01040c}
+#ticket{flex:1;display:flex;align-items:center;justify-content:center;padding:16px}
+#ticket .caja{max-width:640px}
+#ticket h1{color:var(--cian);margin:6px 0}
+</style>
+</head>
+<body>
+<div class="barra-s">
+  <span class="t">Sesión · semana de Ludo (tema 6)</span>
+  <div class="dias"><button data-d="ticket">18 · Ticket de salida</button><button data-d="directo" class="si">19 · En directo</button></div>
+  <div class="rol"><span>Estás viendo la sesión como</span><b id="rol-t"></b><a class="boton sec" id="rol-otro"></a><a class="boton sec" href="sesion.html?rol=recluta" target="_blank">+ otro recluta (pestaña nueva)</a></div>
+</div>
+<div id="ticket" class="oculto"><div class="caja"><div class="kicker">Ticket de salida</div><h1>¿Cómo ha ido la clase?</h1><p style="font-size:17px;line-height:1.5">Aquí va la diapositiva del ticket de siempre (el formulario anónimo). En la propuesta, el directo va <b>después</b>: y mientras el comandante prepara la partida, la sala de espera de cada recluta le enseña el botón del ticket. Ese minuto de espera es el minuto del ticket.</p></div></div>
+<iframe id="marco" title="La diapositiva del directo" allow="vibrate"></iframe>
+<script>
+// Maqueta de la sesión: en la web, sesion.js ya sabe quién es quién (st.alumno) y en directo el recluta sigue la
+// diapositiva del docente. Aquí se elige con ?rol=docente|recluta. La sala es la de la clase: el mismo código para todos.
+var qs = new URLSearchParams(location.search), rol = qs.get('rol') === 'recluta' ? 'recluta' : 'docente', SALA = 'NAVE', TEMA = 6;
+document.getElementById('rol-t').textContent = rol === 'docente' ? 'DOCENTE' : 'RECLUTA';
+var otro = document.getElementById('rol-otro'); otro.textContent = 'Ver como ' + (rol === 'docente' ? 'recluta' : 'docente'); otro.href = 'sesion.html?rol=' + (rol === 'docente' ? 'recluta' : 'docente');
+var marco = document.getElementById('marco');
+marco.src = (rol === 'docente' ? 'proyector.html' : 'alumno.html') + '?sesion=1&c=' + SALA + '&tema=' + TEMA + '&ticket=ticket.html&tk=sgTicket:ensayo:' + TEMA;
+document.querySelectorAll('[data-d]').forEach(function (b) { b.onclick = function () {
+  document.querySelectorAll('[data-d]').forEach(function (x) { x.classList.toggle('si', x === b); });
+  var directo = b.dataset.d === 'directo';
+  document.getElementById('ticket').classList.toggle('oculto', directo); marco.classList.toggle('oculto', !directo);
+}; });
+</script>
+</body>
+</html>

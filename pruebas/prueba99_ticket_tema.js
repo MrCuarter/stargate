@@ -36,8 +36,10 @@ c(/function diaTicketForm\(s, clave\)/.test(SES) && /function diasTicket\(lista,
 c(/if\(primeraDelTema\(L, iS\)\) diasTicket\(L, iS\)/.test(SES), "   el resumen y las dudas, al empezar un tema");
 // 23-sep · el mismo sitio lo ocupa la despedida (el comandante saluda) cuando la clase NO cierra tema
 // 27-sep · entre medias ya va la misión de la Ruta (antes del ticket): la ventana crece, lo vigilado es lo mismo
-c(/var tf=ultimaDelTema\(L, iS\)\?diaTicketForm\(s\):null;[\s\S]{0,900}if\(tf\) ci\.push\(tf\);\s*\n\s*if\(finViaje\) ci\.push\(diaHastaPronto\(true\)\); else if\(!tf\) ci\.push\(diaHastaPronto\(\)\);/.test(SES),
-  "🔴 y el formulario, lo ÚLTIMO de la última sesión del tema (en el tramo de cierre): ni la despedida va detrás");
+// 27-sep · Norberto: el juego EN DIRECTO va DESPUÉS del ticket (y su sala de espera trae el ticket dentro, con el botón
+// «Ya he hecho mi ticket» para entrar): lo único que puede ir detrás del formulario es ese juego
+c(/var tf=ultimaDelTema\(L, iS\)\?diaTicketForm\(s\):null;[\s\S]{0,900}if\(tf\) ci\.push\(tf\);\s*\n[^\n]*\n\s*var dd=diaDirecto\(s, tf\?ticketDe\(s\):null\); if\(dd\) ci\.push\(dd\);\s*\n\s*if\(finViaje\) ci\.push\(diaHastaPronto\(true\)\); else if\(!tf\) ci\.push\(diaHastaPronto\(\)\);/.test(SES),
+  "🔴 y el formulario, al final de la última sesión del tema: detrás, solo el juego en directo (con el ticket en su sala de espera)");
 c(SES.indexOf("if(tf) ci.push(tf);") > SES.indexOf("diasMisiones(s)"), "   detrás de las misiones y de los vídeos de cierre (en la última del viaje, solo la cita para después de la batalla va detrás)");
 c(!/diaTicket\(\)/.test(SES), "   y ya no hay un ticket semanal suelto");
 

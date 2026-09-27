@@ -1,3 +1,8 @@
 CC0 · Quaternius «Ultimate Space Kit» (poly.pizza / quaternius.com): finn, barbara, fernando, dron, dron_mini, llave, rayo, esfera, caja, botiquin, alien.
 img/sala.jpg, joran_*.jpg, rival*.jpg, emblema.webp, P6_joran.webp · de STARGATE (Magnific, cuenta CCD).
 img/finn|barbara|fernando.jpg · carteles de poly.pizza de los modelos CC0 de Quaternius.
+nave_finn|barbara|fernando.glb · naves de Quaternius («Ultimate Space Kit», poly.pizza): CC0 1.0.
+ovni1.glb, ovni2.glb, ovni3.glb · «Flying saucer» / «UFO» de Poly by Google (poly.pizza): CC-BY 3.0 → hay que citar «Poly by Google» (va en los créditos del juego).
+modulo_lunar.glb · «Apollo Lunar Module», NASA 3D Resources: dominio público.
+asteroides/* · NASA 3D Resources: dominio público. tex/fobos.jpg · NASA: dominio público.
+tex/p*.jpg, estatica.jpg · de las imágenes de planeta de STARGATE.

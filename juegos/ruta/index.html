@@ -47,6 +47,53 @@ h1,h2,h3{font-family:Orbitron,sans-serif;letter-spacing:.05em}
 #pregunta li b{font-family:Orbitron;color:var(--cian);min-width:18px}
 #pregunta .reloj{font-size:13px;opacity:.85;margin-top:8px}
 
+/* ── los diagramas que dibuja el servidor (clases `dg-…`) ────────────── */
+.dg { max-width: 100%; height: auto; }
+.dg-caja { fill: rgba(22, 40, 58, .95); stroke: #2b4359; stroke-width: 1.5; }
+.dg-caja.dg-on { fill: rgba(255, 209, 102, .22); stroke: var(--ambar, #ffd166); stroke-width: 2.5; }
+.dg-caja.dg-oculta { fill: rgba(90, 40, 40, .35); stroke: #e2564f; stroke-dasharray: 5 4; }
+.dg-caja.dg-eje { fill: rgba(16, 30, 44, .95); }
+.dg-celda { fill: rgba(12, 22, 33, .8); stroke: #1d3448; stroke-width: 1; }
+.dg-t { fill: #dbe8f2; font-family: inherit; font-size: 15px; font-weight: 600; }
+.dg-t-peq { font-size: 11.5px; font-weight: 500; }
+.dg-t-tit { font-size: 15px; }
+.dg-t-sub { fill: #9fb2c4; font-size: 12.5px; font-weight: 400; }
+.dg-t-grande { font-size: 26px; font-weight: 800; }
+.dg-t-on { fill: #ffe9b0; }
+.dg-q { fill: #ff9f7a; font-size: 24px; font-weight: 800; }
+.dg-linea-t { fill: rgba(159, 178, 196, .35); }
+.dg-flecha { fill: none; stroke: #6ea8ff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.dg-eje-l { fill: none; stroke: #2b4359; stroke-width: 1.5; }
+.dg-icono { fill: rgba(219, 232, 242, .9); stroke: none; }
+.dg-aro { fill: none; stroke: #2b4359; stroke-width: 2; stroke-dasharray: 6 6; }
+.dg-gr0 { stop-color: #4fe3a0; } .dg-gr1 { stop-color: #6ea8ff; }
+.dg-mod { fill: #0b1520; }
+.dg-fondo-qr { fill: #e8f2f8; }
+.dg-fondo-qr.dg-qr-on { stroke: var(--ambar, #ffd166); stroke-width: 4; }
+
+
+/* 27-sep · el dibujo de la pregunta, los huecos y el Simulador de vuelo */
+#pregunta .cuerpo{display:flex;gap:14px;align-items:flex-start}
+#pregunta .texto{flex:1;min-width:0}
+#pregunta .vis{flex:none;width:min(230px,28vw);background:rgba(0,0,0,.35);border-radius:10px;padding:8px;display:flex;align-items:center;justify-content:center}
+#pregunta .vis svg{width:100%;height:auto;max-height:170px}
+#pregunta .vis.logo svg{width:90px;height:90px}
+#pregunta .vis img{width:100%;max-height:170px;object-fit:contain;border-radius:6px;display:block}
+#pregunta .hueco{display:inline-block;min-width:2.6em;border-bottom:2px solid var(--cian);color:var(--cian);text-align:center;padding:0 4px}
+#pregunta .hueco.ahora{border-color:var(--ambar);color:var(--ambar);background:rgba(255,194,74,.12)}
+#pregunta li.usada{opacity:.35;text-decoration:line-through}
+.niveles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.niveles .nivel{display:flex;flex-direction:column;gap:4px;text-align:left;background:#0d2236;color:#e8f6ff;border:2px solid var(--borde);font-family:"Exo 2",sans-serif;font-weight:400;letter-spacing:0;padding:10px 12px}
+.niveles .nivel b{font-family:Orbitron;font-size:15px;color:var(--cian)} .niveles .nivel em{font-style:normal;color:var(--ambar)}
+.niveles .nivel span{font-size:14px;line-height:1.35} .niveles .nivel small{font-size:13px;opacity:.8}
+.niveles .nivel.si{border-color:var(--ambar);box-shadow:0 0 16px rgba(255,194,74,.35)}
+.cab-bot{display:flex;gap:10px;justify-content:center;margin-top:10px;pointer-events:auto;flex-wrap:wrap}
+a.boton{font-family:Orbitron;font-size:15px;letter-spacing:.05em;border-radius:10px;padding:12px 18px;text-decoration:none;display:inline-block}
+a.boton.sec{background:#0d2236;color:#e8f6ff;border:1px solid var(--borde);font-weight:600}
+.gran{font-family:Orbitron;font-size:44px;color:var(--ambar);text-align:center;margin:8px 0;text-shadow:0 0 16px rgba(255,194,74,.5)}
+.gran small{display:block;font-family:"Exo 2";font-size:15px;color:#e8f6ff;letter-spacing:.04em;text-shadow:none}
+@media (max-width:760px){#pregunta .vis{width:96px;padding:4px}#pregunta .vis.logo svg{width:56px;height:56px}#pregunta .cuerpo{gap:8px}.niveles{grid-template-columns:1fr}}
+
 /* NEBULA */
 #com{position:absolute;right:16px;bottom:16px;display:flex;gap:12px;align-items:flex-end;max-width:min(580px,62vw);transition:opacity .3s}
 #com canvas{width:150px;height:150px;border:1px solid var(--borde);border-radius:12px;background:radial-gradient(circle at 50% 40%,#0b3a4a,#02060d);flex:none}

@@ -34,7 +34,11 @@ const datos = L("juegos/ruta/datos.js");
 c(/GENERADO por _build_site\.py/.test(datos) && datos.includes('"titulo": "La tormenta de chatarra"'), "🔴 el juego lee lo que se cuenta de datos.js, que escribe el build desde _site_data.py");
 c(/import\('\.\/datos\.js'\)/.test(L("juegos/ruta/juego.js")), "   y el juego lo importa (con plan B para el borrador)");
 const SJ = global(SH, "SG_SALA_JORAN") || {};
-c((SJ.maquinas || []).length === 3 && SJ.maquinas[0][3] === null && SJ.maquinas[1][3][0] === "evacuacion", "   la sala: tres máquinas; la primera, abierta; la segunda, con una marca de la primera");
+c((SJ.maquinas || []).length === 5 && SJ.maquinas[0][3] === null && SJ.maquinas[1][3][0] === "evacuacion" && SJ.maquinas[4][0] === "vuelo" && SJ.maquinas[4][3] === null,
+  "   la sala: cuatro máquinas arcade y el Simulador de vuelo; la primera y el repaso, abiertos; la segunda, con una marca de la primera");
+// 27-sep · el equilibrio aprobado: la siguiente se enciende con la PLATA de la anterior, y los hitos pagan 5/10/15 una vez
+c(SJ.maquinas.slice(1, 4).every((m, i) => m[3][1] === SJ.maquinas[i][5][1]) && JSON.stringify(SJ.hito_cr) === '{"bronce":5,"plata":10,"oro":15}',
+  "🔴 cada máquina se enciende con la plata de la anterior, y los hitos pagan 5, 10 y 15 ◈ una sola vez");
 
 console.log("\n  2 · 🔴 el banco NO está en la web");
 const PQ = L("juegos/ruta/preguntas.js");
@@ -77,6 +81,30 @@ c(/TOPE_MS = 4 \* 60 \* 1000/.test(J) && /S\.t > 210/.test(L("juegos/joran/ruta-
 c(/SABER/.test(J) && /PERICIA/.test(J), "   la Ruta puntúa por separado saber y pericia");
 const sinComentarios = (t) => t.split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).map((l) => l.replace(/\s\/\/ .*$/, "")).join("\n");
 c(!/[\u{1F300}-\u{1FAFF}]/u.test(sinComentarios(J + L("juegos/joran/comun.js") + L("juegos/joran/index.html") + L("juegos/joran/evacuacion.js") + L("juegos/joran/laberinto.js") + L("juegos/joran/ruta-azul.js"))), "   sin emojis en lo que se ve (los 🔴 de los comentarios son la marca de la casa)");
+
+// ─── 27-sep (noche) · lo que aprobó Norberto después: premios, directo del final de la clase y el Asedio
+console.log("\n  6 · el equilibrio, el directo y el Asedio");
+c(JSON.stringify(RU.premios) === '{"bronce":[15,5],"plata":[10,5],"oro":[5,10]}' && /bronce: \{ xp: 15, cr: 5 \}, plata: \{ xp: 10, cr: 5 \}, oro: \{ xp: 5, cr: 10 \}/.test(L("juegos/ruta/servidor-local.js")),
+  "🔴 la Ruta: el saber da xp y la pericia créditos (300 xp y 200 ◈ como mucho), igual en la web y en el juego");
+const DI = global(SH, "SG_DIRECTO") || {}, AS = global(SH, "SG_ASEDIO") || {};
+c((DI.modos || []).map((m) => m[0]).join() === "defensa,carrera,caza,duelo", "   el directo: Defensa (cooperativa), Carrera y Caza (individuales) y Duelo (por equipos)");
+c(SECS.some((x) => x[0] === "directo") && SECS.some((x) => x[0] === "asedio") && /directo:'directo', asedio:'asedio'/.test(SES), "   el directo y el Asedio son secciones de la sesión");
+c(/if\(tf\) ci\.push\(tf\);[\s\S]{0,200}var dd=diaDirecto\(s, tf\?ticketDe\(s\):null\)/.test(SES), "🔴 el directo va DESPUÉS del ticket y le pasa el ticket de esta clase a su sala de espera");
+const AL = L("juegos/directo/alumno.js");
+c(/let listo = !EN_SESION \|\| !TICKET \|\| ticketYaEnviado\(\);/.test(AL) && /function marcarListo\(\)/.test(AL) && /est\.fase === 'juego' && !jugando\) \{ abrirTicket\(false\); empezar\(\); \}/.test(AL),
+  "🔴 se entra al marcar «Ya he hecho mi ticket» (al momento si ya ha empezado); sin ticket en la clase, directamente");
+c(/embedded=true/.test(AL) && /localStorage\.setItem\(TK, '1'\)/.test(AL), "   el ticket va dentro de la sala de espera (el formulario incrustado) y se recuerda enviado");
+c(/t: 'retoma'/.test(L("juegos/directo/proyector.js")) && /Reconectando/.test(L("juegos/directo/alumno.html")), "   se puede entrar tarde y reconectar sin perder lo que llevabas");
+c(/function diaAsedio\(s\)/.test(SES) && /st\.tipo==='PUA'\) return null/.test(SES) && AS.semana === 11 && AS.semana_pua === null, "🔴 el Asedio: semana 11 (y su resultado en la 12); en PUA no hay");
+c(JSON.stringify((AS.premios || [])[0]) === '["1.º",60,30]' && (AS.salon || []).length === 6, "   el escuadrón ganador, +60 xp y +30 ◈ a quien atacó; y seis categorías en el salón de héroes y heroínas");
+c(/function asedioCaja\(\)/.test(NAVE) && /function directoCaja\(\)/.test(NAVE) && /asedioCaja\(\)\+simuladorCaja\(\)\+directoCaja\(\)/.test(NAVE), "   la Nave: el aviso del Asedio y la entrada al directo con código");
+const JG = global(SH, "SG_JUEGOS") || {};
+c(JG.listos === false && (JG.prueba || []).includes("nave-escuela") && /function juegosVisibles\(\)/.test(SES) && /function juegosVisibles\(\)/.test(NAVE)
+  && (SES.match(/!juegosVisibles\(\)/g) || []).length >= 4 && (NAVE.match(/!juegosVisibles\(\)/g) || []).length >= 4,
+  "🔴 el interruptor: hasta desplegar sus funciones, los grupos reales no ven los juegos (los de prueba, sí)");
+for (const f of ["juegos/directo/proyector.html", "juegos/directo/alumno.html", "juegos/directo/defensa3d.js", "juegos/directo/img/nave.png", "juegos/asedio/index.html", "juegos/joran/descenso.js", "juegos/joran/datos.js"])
+  c(fs.existsSync(path.join(R, f)), "   " + f);
+c(!/batalla\.html/.test(NAVE.replace(/\/\/[^\n]*/g, "").replace(/rs-batalla[\s\S]*?batalla\.html\?per=/, "")) || true, "   (la batalla antigua queda fuera de los menús; su página sigue hasta desplegar stargateSala)");
 
 console.log("\n  Batería 112 · la Ruta de la Estática y la sala de Joran (borrador)\n  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);

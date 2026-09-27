@@ -937,12 +937,12 @@
     var AB = (window.SG_A_BORDO || { hitos: [] }), BT = window.SG_BATALLA || {};
     var cab = ["Alias", "Nombre", "Apellidos", "Correo", "Escuadrón", "Comandante", "Nivel", "XP", "Créditos",
                "Retos hechos", "Retos (ids)", "Insignias", "Cartas", "Héroes", "Logros de a bordo", "Días a bordo",
-               "Simulador (ganó)", "Mejor marca", "Enlaces entregados", "Último movimiento"];
+               "Sala de Joran (máquinas)", "Mejor marca en la sala", "Enlaces entregados", "Último movimiento"];
     var filas = lista.map(function (x) {
-      var r = x[0], ev = (EVID && EVID[r.ficha]) || {}, sim = r.simulador || {};
+      var r = x[0], ev = (EVID && EVID[r.ficha]) || {}, sala = ((r.stargateSala || {}).marcas) || {};
       // (el nivel se deduce de la xp, como en toda la web)
       var niv = (window.SG && SG.nivel) ? SG.nivel(r.xp, (DATOS.proyecto.stargate || {}).tipo) : (r.nivel || "");
-      var marcas = Object.keys((sim.marcas) || {}).map(function (k) { return Number(sim.marcas[k].p) || 0; });
+      var marcas = Object.keys(sala).map(function (k) { return Number(sala[k]) || 0; }).filter(function (n) { return n > 0; });
       var hitos = AB.hitos.filter(function (h) { return (r.hitos || {})[h.clave]; }).length;
       var esc7 = ((t.escuadrones || []).filter(function (e) { return e.comandante === r.profe; })[0] || {}).nombre || "";
       return [r.alias || "", r.nombre_pila || "", r.apellidos || "", r.email || "",
@@ -952,7 +952,7 @@
               (r.insignias || []).length, ((r.coleccion || {}).cromos || {}).tengo || 0,
               ((r.coleccion || {}).heroes || {}).tengo || 0,
               hitos + "/" + AB.hitos.length, ((r.dias || {}).total) || 0,
-              sim[BT.clave || "joran"] ? "sí" : "no", marcas.length ? Math.max.apply(null, marcas) : "",
+              marcas.length, marcas.length ? Math.max.apply(null, marcas) : "",
               Object.keys(ev).map(function (k) { return k + ": " + ev[k]; }).join(" | "),
               r.ultima ? String(r.ultima).slice(0, 10) : ""];
     });
@@ -1137,17 +1137,14 @@
    * 16-sep · EL SIMULADOR DE JORAN en su ficha: si le ganó (hasta el 23-sep, el reto A6; ahora, un juego de repaso), sus mejores marcas y lo que lleva entrenado.
    * Sirve para lo mismo que los logros: saber a quién animar («te falta ganarle una vez») sin preguntar en clase.
    */
-  var BT = window.SG_BATALLA || {};
+  var SJF = window.SG_SALA_JORAN || { maquinas: [] };
+  // 🔴 27-sep · la sala de Joran sustituye a la batalla: sus mejores marcas y cuántos hitos lleva (ficha.stargateSala)
   function lineaSimulador(r) {
-    var S = (r && r.simulador) || {};
-    if (!S[BT.clave || "joran"] && !S.total) return "";
-    var m = S.marcas || {}, mejores = Object.keys(m).sort(function (a, b) { return (m[b].p || 0) - (m[a].p || 0); }).slice(0, 3);
-    var T = S.total || {};
-    return '<p class="fi-abordo"><b><img class=ico src=assets/img/iconos/p/diana.png alt> ' + (S[BT.clave || "joran"] ? "Venció a " + esc(BT.rival || "RUTA AZUL") : "Todavía no ha ganado al simulador") + "</b>" +
-      (mejores.length ? " · " + mejores.map(function (k) {
-        return '<span class="fi-ab ok">' + esc(k === "todas" ? "Todas" : "T" + k.slice(1)) + " " + (m[k].p || 0) + "</span>"; }).join(" ") : "") +
-      (T.batallas ? ' <span class="small muted">· ' + T.batallas + " batallas, " + (T.aciertos || 0) + " aciertos" +
-        (T.aciertos ? " (" + (Math.round((T.ms / 1000) / T.aciertos * 10) / 10) + " s cada uno)" : "") + "</span>" : "") + "</p>";
+    var m = ((r && r.stargateSala) || {}).marcas || {}, ks = SJF.maquinas.filter(function (x) { return Number(m[x[0]]) > 0; });
+    if (!ks.length) return "";
+    var hitos = 0; ks.forEach(function (x) { (x[5] || []).forEach(function (u) { if (Number(m[x[0]]) >= u) hitos++; }); });
+    return '<p class="fi-abordo"><b><img class=ico src=assets/img/iconos/p/diana.png alt> La sala de Joran</b> · ' + hitos + ' hitos · ' +
+      ks.map(function (x) { return '<span class="fi-ab ok">' + esc(x[1]) + " " + Number(m[x[0]]).toLocaleString("es-ES") + "</span>"; }).join(" ") + "</p>";
   }
 
   /**
@@ -2262,18 +2259,25 @@
     });
   }
   function verSimulador(t) {
-    var BT = window.SG_BATALLA || {}, gente = (t && t.reclutas) || [];
-    var ganaron = gente.filter(function (r) { return ((r.simulador || {})[BT.clave || "joran"]); }).length;
-    var ruta = "batalla.html?per=" + encodeURIComponent(PER) + "&ensayo=1";
+    // 🔴 27-sep · la sala de Joran (sustituye a la batalla), el juego del final de la clase y el Asedio
+    var SJ = window.SG_SALA_JORAN || { maquinas: [] }, D = window.SG_DIRECTO || {}, A = window.SG_ASEDIO || {}, gente = (t && t.reclutas) || [];
+    var jugaron = gente.filter(function (r) { var m = ((r.stargateSala || {}).marcas) || {}; return Object.keys(m).some(function (k) { return Number(m[k]) > 0; }); }).length;
+    var ruta = SJ.juego + "index.html?per=" + encodeURIComponent(PER) + "&ensayo=1";
+    var proy = (D.juego || "juegos/directo/") + "proyector.html?per=" + encodeURIComponent(PER);
     $("#c-cuerpo").innerHTML = '<div class="card sim-doc">' +
       '<div class="sim-doc-cab"><img src="assets/img/batalla/emblema.webp" alt="" width="64" height="64">' +
-        '<div><h3>El Simulador de Joran</h3><p class="small muted">Desde esta semana, la de Ludo, tu alumnado puede enfrentarse a <b>' + esc(BT.rival || "RUTA AZUL") + '</b> desde su Nave. ' +
-        'Quien le gana se queda el simulador para repasar tema a tema. Tú entras en <b>modo ensayo</b>: todo abierto y sin que cuente nada, para jugarlo con la clase.' +
-        (gente.length ? ' Ya le han ganado <b>' + ganaron + ' de ' + gente.length + '</b>.' : '') + '</p></div>' +
-        '<span class="sim-doc-b"><a class="btn min" href="' + esc(ruta) + '" target="_blank" rel="noopener">Abrir ↗</a>' + botonVentana(ruta, "batalla_" + PER, "el Simulador de Joran") +
-          '<button class="btn min" data-copiar="' + esc(codigoGenially("batalla.html?embed=1", "STARGATE · El Simulador de Joran")) + '" data-copiado="✓ Código copiado" title="El código para insertarlo (vale para todos tus grupos)">&lt;/&gt; Código</button></span></div>' +
-      '<div class="sim-doc-marco"><iframe src="' + esc(ruta) + '&embed=1" title="El Simulador de Joran, en modo ensayo" loading="lazy" allow="fullscreen"></iframe></div>' +
-      '</div>';
+        '<div><h3>La sala de Joran</h3><p class="small muted">Desde la semana de Ludo, en la Nave de tu alumnado: ' + (SJ.maquinas.length - 1) + ' máquinas arcade y el Simulador de vuelo para repasar. ' +
+        'Tú entras en <b>modo ensayo</b>: no cuenta nada.' + (gente.length ? ' Ya han jugado <b>' + jugaron + ' de ' + gente.length + '</b>.' : '') + '</p>' +
+        '<details class="mas"><summary>Cómo funciona</summary><p class="small">La plata de cada máquina enciende la siguiente (o se enciende con créditos). Cada máquina tiene tres hitos que dan créditos una vez; la sala no da xp. ' +
+        'Hay Cuaderno de vuelo, ranking de la clase y Salón de la fama, y la Galería con los juegos del reto «El juego».</p></details></div>' +
+        '<span class="sim-doc-b"><a class="btn min" href="' + esc(ruta) + '" target="_blank" rel="noopener">Abrir ↗</a>' + botonVentana(ruta, "sala_" + PER, "la sala de Joran") + '</span></div>' +
+      '<div class="sim-doc-marco"><iframe src="' + esc(ruta) + '&embed=1" title="La sala de Joran, en modo ensayo" loading="lazy" allow="fullscreen"></iframe></div>' +
+      '</div>' +
+      '<div class="card"><h3>En directo · el juego del final de la clase</h3><p class="small muted">Sale en tu sesión después del ticket: eliges el modo y lo lanzas; tu clase juega desde el móvil.</p>' +
+        '<details class="mas"><summary>Los modos</summary><p class="small">' + (D.modos || []).map(function (m) { return '<b>' + esc(m[1]) + '</b> (' + esc(m[2].toLowerCase()) + '): ' + esc(m[3]); }).join('<br>') + '</p></details>' +
+        '<p><a class="btn min" href="' + esc(proy) + '" target="_blank" rel="noopener">Abrir la pantalla del juego ↗</a></p></div>' +
+      (A.semana ? '<div class="card"><h3>El Asedio · semana ' + A.semana + '</h3><p class="small muted">El reto entre escuadrones: de lunes a lunes, desde la Nave. Tu sesión de la semana ' + A.semana + ' lo presenta y la de la ' + (A.semana + 1) + ' da el resultado. (En PUA no hay.)</p>' +
+        '<p><a class="btn min" href="' + esc(A.juego + 'index.html?per=' + encodeURIComponent(PER)) + '" target="_blank" rel="noopener">Ver el Asedio ↗</a></p></div>' : '');
   }
   /**
    * 🔴 24-sep · ENLACES, EN UN SOLO SITIO. Norberto: «la página de enlaces tiene la información mal repartida. Vamos a
@@ -2331,8 +2335,10 @@
           // 23-sep · el tablero, universal (Norberto: «el mismo enlace y embed para TODOS los grupos»)
           mFila({ ico: ico("medalla"), tit: "El tablero (los rankings)", desc: "Para proyectar quién destaca.",
                   abrir: "registro.html?per=" + P + "&solo=1", ventana: "tablero_" + PER, embed: "tablero", codigo: "registro.html?solo=1&embed=1" }),
-          mFila({ ico: ico("diana"), tit: "El Simulador de Joran", desc: "Con tu cuenta, en modo ensayo (no cuenta nada). Tu alumnado lo tiene en su Nave desde Ludo.",
-                  abrir: "batalla.html?per=" + P + "&ensayo=1", ventana: "batalla_" + PER, embed: "batalla", codigo: "batalla.html?embed=1" })]) +
+          mFila({ ico: ico("diana"), tit: "La sala de Joran", desc: "Con tu cuenta, en modo ensayo (no cuenta nada). Tu alumnado la tiene en su Nave desde Ludo.",
+                  abrir: "juegos/joran/index.html?per=" + P + "&ensayo=1", ventana: "sala_" + PER, embed: "sala", codigo: "juegos/joran/index.html?embed=1" }),
+          mFila({ ico: ico("rayo"), tit: "En directo (la pantalla del juego)", desc: "El juego del final de la clase; también está en tu sesión, tras el ticket.",
+                  abrir: "juegos/directo/proyector.html?per=" + P, ventana: "directo_" + PER })]) +
         mBloque("Para tu alumnado", "", [
           // 16-sep · el alistamiento sale del código del grupo (el mismo enlace que «Copiar invitación»)
           mFila({ ico: ico("brujula"), tit: "Alistarse (con el código)", desc: "Lo que se reparte el primer día.", abrir: alta }),
@@ -4121,8 +4127,8 @@
       'Valen en todos los grupos y todas las convocatorias. En Genially: <b>Insertar → Otros → Código</b> y pegar.</p>' +
       [["<img class=ico src=assets/img/iconos/p/video.png alt> La sesión de la semana", "sesion.html?embed=1"], ["<img class=ico src=assets/img/iconos/p/clase.png alt> Llamada a filas (solo la toca el Comandante)", "llamada.html?embed=1"],
        ["<img class=ico src=assets/img/iconos/p/envivo.png alt> Herramientas de clase (quién ha fichado, premios, al azar)", "aula.html?embed=1"], ["<img class=ico src=assets/img/iconos/p/diana.png alt> Validar un reto", "validar.html?reto=S7&embed=1"],
-       // 16-sep · la batalla de Joran: se pone en el Genially del tema 6 y se juega en clase (23-sep: repaso, ya no es un reto)
-       ["<img class=ico src=assets/img/iconos/p/diana.png alt> El Simulador de Joran (repaso jugando)", "batalla.html?embed=1"]].map(function (x) {
+       // 27-sep · la sala de Joran (sustituye a la batalla de preguntas)
+       ["<img class=ico src=assets/img/iconos/p/diana.png alt> La sala de Joran (arcade y repaso)", "juegos/joran/index.html?embed=1"]].map(function (x) {
         return '<p class="small">' + x[0] + ' <button class="btn min" data-copiado="✓ Código copiado" data-copiar="' + esc(codigoGenially(x[1], "STARGATE · " + x[0].replace(/^<img[^>]*>\s*/, ""))) + '">&lt;/&gt; Copiar para insertar</button></p>';
       }).join("") +
       // 15-sep (tarde) · el reto secreto (S7) es el Escape UNI; el enlace escondido de Vínculo lleva a su puerta

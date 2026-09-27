@@ -4,6 +4,7 @@
 // pilotos de pruebas llevan las mascotas que eligieron los niños (Finn, Bárbara y Fernando).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
 export const $ = (id) => document.getElementById(id);
@@ -15,14 +16,27 @@ export const EMBED = QS.get('embed') === '1';
 
 // ── LAS MÁQUINAS DE LA SALA (un dato, un sitio: la sala, los juegos y el servidor leen de aquí)
 // abre = qué marca la desbloquea · precio = o pagarla con créditos (◈). La primera viene abierta.
+// 27-sep · el equilibrio que aprobó Norberto: la sala NO da xp (pilotar bien no es aprender). Da créditos solo con los
+// HITOS de cada máquina (bronce, plata y oro de marca), UNA vez cada uno: 5 + 10 + 15 = 30 ◈ por máquina, 120 ◈ las cuatro.
+// Encender las tres cerradas con créditos cuesta 180 ◈: quien las compra, gasta más de lo que la sala le devuelve; quien
+// las abre jugando, se las ahorra. Y la regla para abrir la siguiente es siempre la misma: la PLATA de la anterior.
+// hitos = [bronce, plata, oro] en puntos (🔧 a recalibrar con partidas reales: un jugador medio, plata en ~3 intentos).
+export const HITO_CR = { bronce: 5, plata: 10, oro: 15 };
+export const ESCALONES = ['bronce', 'plata', 'oro'];
 export const JUEGOS = [
-  { id: 'evacuacion', n: 'La Evacuación', lema: 'Corre por los pasillos de la Cero antes de que la Estática te alcance.', controles: '← → cambiar de carril · ↑ saltar · ↓ agacharse (o desliza el dedo)', abre: null, precio: 0, img: 'img/maq_evacuacion.jpg', url: 'evacuacion.html' },
-  { id: 'laberinto', n: 'El Laberinto de la Cero', lema: 'La nave se ha apagado. Encuentra las tres llaves y llega a la cápsula… a oscuras.', controles: 'Flechas / WASD o el joystick del dedo · Espacio: pulso que aturde', abre: { juego: 'evacuacion', puntos: 2500 }, precio: 40, img: 'img/maq_laberinto.jpg', url: 'laberinto.html' },
-  { id: 'ruta-azul', n: 'RUTA AZUL', lema: 'El arcade que Joran programó para entrenar pilotos. Oleadas de la Estática y el jefe final.', controles: '← → o el dedo para moverte · dispara solo · Espacio: bomba', abre: { juego: 'laberinto', puntos: 3000 }, precio: 60, img: 'img/maq_rutaazul.jpg', url: 'ruta-azul.html' },
+  { id: 'evacuacion', n: 'La Evacuación', lema: 'Corre por los pasillos de la Cero antes de que la Estática te alcance.', controles: '← → cambiar de carril · ↑ saltar · ↓ agacharse (o desliza el dedo)', abre: null, precio: 0, hitos: [1200, 2500, 5000], img: 'img/maq_evacuacion.jpg', url: 'evacuacion.html' },
+  { id: 'laberinto', n: 'El Laberinto de la Cero', lema: 'La nave se ha apagado. Encuentra las tres llaves y llega a la cápsula… a oscuras.', controles: 'Flechas / WASD o el joystick del dedo · Espacio: pulso que aturde', abre: { juego: 'evacuacion', puntos: 2500 }, precio: 40, hitos: [1500, 3000, 6000], img: 'img/maq_laberinto.jpg', url: 'laberinto.html' },
+  { id: 'ruta-azul', n: 'RUTA AZUL', lema: 'El arcade que Joran programó para entrenar pilotos. Oleadas de la Estática y el jefe final.', controles: '← → o el dedo para moverte · dispara solo · Espacio: bomba', abre: { juego: 'laberinto', puntos: 3000 }, precio: 60, hitos: [1500, 3000, 6000], img: 'img/maq_rutaazul.jpg', url: 'ruta-azul.html' },
+  { id: 'descenso', n: 'El Descenso', lema: 'Posa el Módulo Lunar en los ocho planetas: cada uno con su gravedad, su viento solar y su truco.', controles: '← → girar · ↑ / Espacio propulsor (en el móvil, los botones)', abre: { juego: 'ruta-azul', puntos: 3000 }, precio: 80, hitos: [1200, 3000, 5500], img: 'img/maq_descenso.jpg', url: 'descenso.html' },
+  // el REPASO: la Ruta de la Estática con niveles. Abierta desde el principio y sin créditos (repetir preguntas no puede ser
+  // una fuente de premios): solo su ranking y el hito «Repaso de oro» del Cuaderno.
+  { id: 'vuelo', n: 'Simulador de vuelo', lema: 'La Ruta de la Estática para repasar: cualquier tramo, en fácil, media o difícil, o todo el viaje de una vez.', controles: 'Como en la Ruta: ratón, teclado o el dedo · las respuestas, pilotando', abre: null, precio: 0, repaso: true, hitos: [2000, 4000, 7000], img: 'img/maq_vuelo.jpg', url: (location.pathname.includes('/juegos/') ? '../ruta/' : '../ruta-estatica/') + 'index.html?repaso=1' },
 ];
+export const ARCADE = JUEGOS.filter((j) => !j.repaso);
 // 🔴 En la web, lo que se cuenta de cada máquina y cómo se enciende (marca y precio) llega de _site_data.py → datos.js
 // (lo escribe el build): un dato, un sitio. En el borrador no hay datos.js y se queda lo de arriba.
-try { const D = await import('./datos.js'); for (const [id, n, lema, abre, precio] of D.SALA_JORAN.maquinas) { const j = JUEGOS.find((x) => x.id === id); if (j) Object.assign(j, { n, lema, abre: abre ? { juego: abre[0], puntos: abre[1] } : null, precio }); } } catch (e) { /* borrador: sin datos.js */ }
+let DATOS = null;
+try { DATOS = (await import('./datos.js')).SALA_JORAN; for (const [id, n, lema, abre, precio, hitos] of DATOS.maquinas) { const j = JUEGOS.find((x) => x.id === id); if (j) Object.assign(j, { n, lema, abre: abre ? { juego: abre[0], puntos: abre[1] } : null, precio }, hitos ? { hitos } : {}); } if (DATOS.hito_cr) Object.assign(HITO_CR, DATOS.hito_cr); } catch (e) { /* borrador: sin datos.js */ }
 export const AVATARES = [
   { id: 'finn', n: 'Finn', que: 'la rana', img: 'img/finn.jpg' },
   { id: 'barbara', n: 'Bárbara', que: 'la abeja', img: 'img/barbara.jpg' },
@@ -34,7 +48,7 @@ export const AVATARES = [
 const CLAVE = 'sgJoran';
 export function estado() {
   let e = null; try { e = JSON.parse(localStorage.getItem(CLAVE) || 'null'); } catch (x) { /* nada */ }
-  return Object.assign({ avatar: 'finn', marcas: {}, desbloqueados: ['evacuacion'], creditos: 100, partidas: {} }, e || {});
+  return Object.assign({ avatar: 'finn', alias: 'Vega', marcas: {}, desbloqueados: ['evacuacion'], creditos: 100, partidas: {}, hitos: {}, logros: {} }, e || {});
 }
 export function guardar(e) { try { localStorage.setItem(CLAVE, JSON.stringify(e)); } catch (x) { /* sin almacenamiento */ } }
 export function abierto(e, j) { return !j.abre || e.desbloqueados.includes(j.id); }
@@ -45,15 +59,52 @@ const PER = QS.get('per') || '';
 function motor() { try { return window.parent !== window && window.parent.SG && window.parent.SG.MOTOR && window.parent.SG.MOTOR.llamar ? window.parent.SG.MOTOR : null; } catch (e) { return null; } }
 export async function alServidor(datos) { const m = motor(); if (!m || !PER) return null; try { return await m.llamar('stargateSala', { projectId: PER, ...datos }); } catch (e) { console.warn('La sala, sin servidor:', e && e.message); return null; } }
 const T0 = performance.now();
-export function registrarPartida(juego, puntos) {
-  const e = estado(), antes = e.marcas[juego] || 0, nuevos = [];
-  e.marcas[juego] = Math.max(antes, Math.round(puntos));
+// extra = lo que cada juego sabe de la partida y cuenta para el Cuaderno de vuelo (intocable, perfecto, nivel del repaso)
+export function registrarPartida(juego, puntos, extra = {}) {
+  const e = estado(), antes = e.marcas[juego] || 0, nuevos = [], hitos = [], j = JUEGOS.find((x) => x.id === juego);
+  puntos = Math.round(puntos);
+  e.marcas[juego] = Math.max(antes, puntos);
   e.partidas[juego] = (e.partidas[juego] || 0) + 1;
-  for (const j of JUEGOS) if (j.abre && !e.desbloqueados.includes(j.id) && (e.marcas[j.abre.juego] || 0) >= j.abre.puntos) { e.desbloqueados.push(j.id); nuevos.push(j); }
+  for (const x of JUEGOS) if (x.abre && !e.desbloqueados.includes(x.id) && (e.marcas[x.abre.juego] || 0) >= x.abre.puntos) { e.desbloqueados.push(x.id); nuevos.push(x); }
+  // los hitos de la máquina: cada escalón, una vez; el repaso no paga
+  if (j && j.hitos) ESCALONES.forEach((esc, i) => {
+    const k = juego + ':' + esc;
+    if (!e.hitos[k] && puntos >= j.hitos[i]) { const cr = j.repaso ? 0 : HITO_CR[esc]; e.hitos[k] = true; e.creditos += cr; hitos.push({ esc, cr, puntos: j.hitos[i] }); }
+  });
+  if (extra.intocable) e.logros.intocable = true;
+  if (extra.perfecto) e.logros.perfecto = true;
+  if (juego === 'vuelo' && extra.nivel === 'dificil' && j && puntos >= j.hitos[2]) e.logros.repasoOro = true;
   guardar(e);
-  alServidor({ accion: 'marca', juego, puntos: Math.round(puntos), segundos: Math.round((performance.now() - (window.__t0Partida || T0)) / 1000) });
-  try { window.parent !== window && window.parent.postMessage({ sgJoran: { juego, puntos: Math.round(puntos), record: puntos > antes } }, '*'); } catch (x) { /* sin padre */ }
-  return { record: puntos > antes, antes, nuevos, mejor: e.marcas[juego] };
+  alServidor({ accion: 'marca', juego, puntos, extra, segundos: Math.round((performance.now() - (window.__t0Partida || T0)) / 1000) });
+  try { window.parent !== window && window.parent.postMessage({ sgJoran: { juego, puntos, record: puntos > antes } }, '*'); } catch (x) { /* sin padre */ }
+  return { record: puntos > antes, antes, nuevos, hitos, mejor: e.marcas[juego] };
+}
+
+// ── EL CUADERNO DE VUELO: los hitos de la Ruta y de la sala. Todo junto da el título y el marco «As de Joran» (cosmético:
+// ni xp ni nota). 🔴 Fuera de los Logros de a bordo a propósito: un juego opcional no puede cerrar el paso al Contramaestre.
+const leerLS = (k) => { try { return JSON.parse(localStorage.getItem(k) || '{}'); } catch (x) { return {}; } };
+export function galeria() { return Object.assign({ votos: {}, mio: null }, leerLS('sgGaleria')); }
+export const CUADERNO = [
+  { k: 'despegue', t: 'Primer vuelo', que: 'Termina tu primera misión de la Ruta de la Estática.', ok: (c) => c.medallasRuta >= 1 },
+  { k: 'ruta', t: 'La Ruta entera', que: 'Medalla en las diez misiones de la Ruta.', ok: (c) => c.medallasRuta >= 10 },
+  { k: 'oros', t: 'Piloto de oro', que: 'Oro en las diez misiones de la Ruta.', ok: (c) => c.orosRuta >= 10 },
+  { k: 'probador', t: 'Probador de la sala', que: 'Juega a las cuatro máquinas arcade.', ok: (c) => ARCADE.every((j) => c.e.partidas[j.id]) },
+  { k: 'marcador', t: 'En el marcador', que: 'Tu primer hito (bronce) en una máquina.', ok: (c) => ARCADE.some((j) => c.e.hitos[j.id + ':bronce']) },
+  { k: 'oro1', t: 'Récord de Joran', que: 'Oro en una máquina arcade.', ok: (c) => ARCADE.some((j) => c.e.hitos[j.id + ':oro']) },
+  { k: 'oro4', t: 'Maestro de la sala', que: 'Oro en las cuatro máquinas arcade.', ok: (c) => ARCADE.every((j) => c.e.hitos[j.id + ':oro']) },
+  { k: 'intocable', t: 'Intocable', que: 'Vence a RUTA AZUL sin perder una vida.', ok: (c) => !!c.e.logros.intocable },
+  { k: 'perfecto', t: 'Ocho mundos, cero golpes', que: 'Pósate en los ocho planetas de El Descenso sin perder un módulo.', ok: (c) => !!c.e.logros.perfecto },
+  { k: 'repasoOro', t: 'Repaso de oro', que: 'Oro en el Simulador de vuelo en nivel difícil.', ok: (c) => !!c.e.logros.repasoOro },
+  { k: 'critico', t: 'Crítico de Ludo', que: 'Valora cinco juegos de la Galería de la tripulación.', ok: (c) => Object.keys(c.g.votos).length >= 5 },
+];
+export const PREMIO_CUADERNO = (DATOS && DATOS.premio_cuaderno) || 'el título «As de Joran» y el marco holográfico para tu avatar';
+// los textos del Cuaderno, de _site_data.py (aquí solo manda CÓMO se comprueba cada hito)
+if (DATOS && DATOS.cuaderno) for (const [k, t, que] of DATOS.cuaderno) { const h = CUADERNO.find((x) => x.k === k); if (h) Object.assign(h, { t, que }); }
+export function cuaderno() {
+  const ruta = Object.values(leerLS('sgRutaMarcas'));
+  const c = { e: estado(), g: galeria(), medallasRuta: ruta.filter((m) => m.medalla && m.medalla !== 'nada').length, orosRuta: ruta.filter((m) => m.medalla === 'oro').length };
+  const lista = CUADERNO.map((h) => ({ ...h, hecho: !!h.ok(c) }));
+  return { lista, hechos: lista.filter((h) => h.hecho).length, total: lista.length };
 }
 export function comprar(id) {
   const e = estado(), j = JUEGOS.find((x) => x.id === id);
@@ -116,6 +167,8 @@ export function holo(obj, color = 0x5ff4ff, fuerza = 0.9) {
 
 // ── modelos
 const cargador = new GLTFLoader();
+// algunos modelos libres (el Módulo Lunar de la NASA) vienen comprimidos con Draco: su descompresor, de la misma CDN que three
+const draco = new DRACOLoader(); draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/libs/draco/gltf/'); cargador.setDRACOLoader(draco);
 const cache = {};
 export function cargar(nombre) {
   if (!cache[nombre]) cache[nombre] = new Promise((ok, mal) => cargador.load(`modelos/${nombre}.glb`, ok, undefined, mal));
@@ -170,14 +223,17 @@ export function cerrarPantalla() { $('pantalla').classList.add('oculto'); }
 let avisoHasta = 0;
 export function aviso(t, color = '#fff', seg = 1.2) { const a = $('aviso'); if (!a) return; a.textContent = t; a.style.color = color; a.classList.add('ver'); clearTimeout(a._t); a._t = setTimeout(() => a.classList.remove('ver'), seg * 1000); }
 // el panel del final de partida, igual en todos los juegos
-export function finDePartida({ juego, titulo, puntos, filas, texto = '', alRepetir }) {
-  const r = registrarPartida(juego, puntos), j = JUEGOS.find((x) => x.id === juego);
+export function finDePartida({ juego, titulo, puntos, filas, texto = '', alRepetir, extra = {} }) {
+  const r = registrarPartida(juego, puntos, extra), j = JUEGOS.find((x) => x.id === juego);
+  const NOM = { bronce: 'Bronce', plata: 'Plata', oro: 'Oro' };
+  const hitos = r.hitos.map((h) => `<div class="premio hito ${h.esc}">Hito de <b>${NOM[h.esc]}</b> en ${esc(j.n)} (${h.puntos.toLocaleString('es-ES')} puntos)${h.cr ? `: <b>+${h.cr} ◈</b>` : ''}</div>`).join('');
+  const sigHito = j.hitos && ESCALONES.map((e2, i) => [e2, j.hitos[i]]).find(([, p]) => r.mejor < p);
   const nuevos = r.nuevos.map((n) => `<div class="premio">¡Nueva máquina desbloqueada en la sala: <b>${esc(n.n)}</b>!</div>`).join('');
   const sig = JUEGOS.find((x) => x.abre && x.abre.juego === juego && !estado().desbloqueados.includes(x.id));
   pantalla(`<div class="kicker">${esc(j.n)}</div><h2>${esc(titulo)}</h2>${texto ? `<p>${texto}</p>` : ''}
     <div class="gran">${Math.round(puntos).toLocaleString('es-ES')}<small>puntos${r.record ? ' · ¡récord!' : ` · tu récord: ${r.mejor.toLocaleString('es-ES')}`}</small></div>
     <div class="filas">${filas.map(([a, b]) => `<div><span>${esc(a)}</span><b>${esc(b)}</b></div>`).join('')}</div>
-    ${nuevos}${sig ? `<p class="pista">Con <b>${sig.abre.puntos.toLocaleString('es-ES')}</b> puntos aquí se abre <b>${esc(sig.n)}</b> (o se compra por ${sig.precio} ◈ en la sala).</p>` : ''}
+    ${hitos}${nuevos}${sigHito ? `<p class="pista">Siguiente hito: <b>${NOM[sigHito[0]]}</b> con ${sigHito[1].toLocaleString('es-ES')} puntos${j.repaso ? '' : ` (+${HITO_CR[sigHito[0]]} ◈)`}.</p>` : ''}${sig ? `<p class="pista">Con <b>${sig.abre.puntos.toLocaleString('es-ES')}</b> puntos aquí se abre <b>${esc(sig.n)}</b> (o se compra por ${sig.precio} ◈ en la sala).</p>` : ''}
     <div class="botones"><button id="b-otra">Otra partida</button>${EMBED ? '' : '<a class="boton sec" href="index.html">Volver a la sala</a>'}</div>`);
   $('b-otra').onclick = () => { cerrarPantalla(); alRepetir(); };
   return r;

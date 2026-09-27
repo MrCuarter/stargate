@@ -101,16 +101,21 @@ function montar(root, per, OPC){
     return '<span class="'+(c.tengo===c.total?'muted full':'muted')+'" title="'+esc(det)+'">'+pct2(c.pct)+'&nbsp;%</span>'
       +(p.n_album?' <span class="sello-serie mini" title="Series completas">✦'+p.n_album+'</span>':'');}
 
-  // ---------- el Simulador de Joran: sus marcas ----------
-  function simT(p){ return (p.simulador&&p.simulador.total)||{}; }
+  // ---------- el Simulador de Joran (27-sep: la SALA de Joran): los hitos de marca que lleva ----------
+  // Cada máquina tiene tres (bronce, plata y oro de marca, SG_SALA_JORAN.maquinas[i][5]); su marca la guarda el servidor.
+  function hitosSala(p){
+    var m=((p.stargateSala||{}).marcas)||{}, n=0;
+    ((window.SG_SALA_JORAN||{}).maquinas||[]).forEach(function(x){ (x[5]||[]).forEach(function(u){ if(Number(m[x[0]])>=u) n++; }); });
+    return n;
+  }
 
 
   // ---------- los rankings ----------
   /**
    * 🔴 26-sep · SEIS, Y CADA UNO PREMIA ALGO DISTINTO. Eran trece y el alumnado mira dos o tres; varios daban casi el mismo
    * orden que el de xp. Norberto aprobó la propuesta: más xp, esta semana (quien empezó tarde también sale), constancia (no
-   * fallar, también en diferido), coleccionistas (el lado del juego), el Simulador (uno: los aciertos; el más certero y el
-   * más rápido siguen siendo medallas de la batalla) y los escuadrones. Fuera: «Mi escuadrón» (lo hacen los botones de
+   * fallar, también en diferido), coleccionistas (el lado del juego), el Simulador (27-sep: los hitos de la sala de
+   * Joran; la batalla de preguntas quedó retirada) y los escuadrones. Fuera: «Mi escuadrón» (lo hacen los botones de
    * escuadrón de encima), insignias y explorador (siguen al de xp), logros de a bordo (su contador vive en Mi botín) y
    * relámpago (se hace en clase: castigaba al diferido). Un enlace viejo con ?ranking=… de los que ya no están cae en «Más xp».
    */
@@ -131,9 +136,9 @@ function montar(root, per, OPC){
      val:pctCol, unidad:' %', pct:true, soloConValor:true,
      vacio:'Nadie ha empezado a coleccionar todavía. Los sobres se abren desde la semana 2.'},
     {k:'sabio', et:'<img class=ico src=assets/img/iconos/p/diana.png alt> Simulador', col:'xp',
-     ayuda:function(){return 'Respuestas <b>correctas</b> en el Simulador de Joran, sumando todas sus batallas. El más certero y el más rápido se llevan su medalla en la batalla.';},
-     val:function(p){return Number(simT(p).aciertos)||0;}, unidad:' aciertos', soloConValor:true,
-     vacio:'Nadie ha peleado todavía contra el Simulador de Joran.'},
+     ayuda:function(){return 'Los <b>hitos</b> conseguidos en la sala de Joran: bronce, plata y oro de marca en cada máquina.';},
+     val:function(p){return hitosSala(p)||0;}, unidad:function(v){return v===1?' hito':' hitos';}, soloConValor:true,
+     vacio:'Nadie ha conseguido todavía un hito en la sala de Joran.'},
     {k:'escuadrones', et:'<img class=ico src=assets/img/iconos/p/escudo.png alt> Escuadrones', col:'xp', porEquipos:true,
      ayuda:'Los escuadrones entre sí, por <b>media de xp por recluta</b>. Por media y no por total: sumando ganaría siempre el más numeroso, y eso no mediría nada.',
      val:function(p){return p.xp;}, unidad:' xp de media',

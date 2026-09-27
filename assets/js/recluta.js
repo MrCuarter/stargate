@@ -1333,7 +1333,7 @@
       +retosDeLaSemana()
       +ticketDelTema()
       +rutaCaja()
-      +simuladorCaja()
+      +asedioCaja()+simuladorCaja()+directoCaja()
       +panelEmbebido();
   }
   /**
@@ -1698,7 +1698,7 @@
     var ult=0; L.forEach(function(x){ if(Number(x.tema_n)===Number(m.tema)) ult=x.sem; }); return ult||L.length;
   }
   function rutaCaja(){
-    var R=window.SG_RUTA; if(!R || !per || st.estado==='antes') return '';
+    var R=window.SG_RUTA; if(!R || !per || st.estado==='antes' || !juegosVisibles()) return '';
     var L=st.semanas||[], hoy=Math.max(st.actual||0,1), marcas={};
     try{ marcas=JSON.parse(localStorage.getItem('sgRutaMarcas')||'{}'); }catch(e){}
     var med={nada:'Sin medalla', bronce:'Bronce', plata:'Plata', oro:'Oro'};
@@ -1714,35 +1714,43 @@
           : '<span class="ru-m cerrada"><b>'+m.n+'</b><span>'+nombre+'<small>Semana '+sem+'</small></span></span>';
       }).join('')+'</div></div>';
   }
+  // 🔴 27-sep · el interruptor: hasta desplegar sus funciones, los juegos solo en los grupos de prueba
+  function juegosVisibles(){ var J=window.SG_JUEGOS||{}; return !!J.listos || (J.prueba||[]).indexOf(per)>=0; }
   function simuladorCaja(){
-    if(!motorNuevo() || !st.yo) return '';
-    // 🔴 27-sep · (borrador) el Simulador de Joran pasa a ser su SALA DE JUEGOS: se abre con su capítulo (c11, el tema 6)
+    if(!motorNuevo() || !st.yo || !juegosVisibles()) return '';
+    // 🔴 27-sep · el Simulador de Joran es su SALA: cuatro máquinas arcade y el Simulador de vuelo (la Ruta para repasar,
+    // con niveles). Se abre con su capítulo (c11, el tema 6). La batalla de preguntas (batalla.html) queda retirada.
     var SJ = window.SG_SALA_JORAN;
-    if(SJ && abierto('simulador')) return '<div class="card sim-caja">'
+    if(!SJ || !abierto('simulador')) return '';
+    var arcade = SJ.maquinas.filter(function(m){ return m[0] !== 'vuelo'; });
+    return '<div class="card sim-caja">'
       + '<img class="sim-em" src="assets/img/batalla/emblema.webp" alt="" width="84" height="84" loading="lazy">'
       + '<div class="sim-txt"><div class="eyebrow amber">La sala de Joran</div><h3>El Simulador de Joran</h3>'
-      + '<p class="small">Sus máquinas de entrenamiento: arcade puro. ' + SJ.maquinas.map(function(m){ return '<b>' + esc(m[1]) + '</b>'; }).join(', ')
-      + '. La primera está encendida; las demás se encienden con buenas marcas… o con créditos.</p>'
+      + '<p class="small">' + arcade.length + ' máquinas arcade y el <b>Simulador de vuelo</b> para repasar. La plata de cada máquina enciende la siguiente; sus hitos dan créditos una vez.</p>'
+      + '<details class="mas"><summary>Qué hay dentro</summary><p class="small">' + arcade.map(function(m){ return '<b>' + esc(m[1]) + '</b>'; }).join(', ')
+      + '. El <b>Cuaderno de vuelo</b> (' + (SJ.cuaderno || []).length + ' hitos), el ranking de tu clase y el Salón de la fama, y la <b>Galería</b> con los juegos de la tripulación.</p></details>'
       + '<p><a class="btn epico" data-juego href="' + esc(SJ.juego + '?per=' + encodeURIComponent(per)) + '"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Entrar en la sala</span></a></p>'
       + '</div></div>';
-    var gano = ganoAJoran(), presentado = abierto('simulador');
-    if(!gano && !presentado) return '';
-    var S = st.yo.simulador || {}, marcas = S.marcas || {}, T = S.total || null;
-    var mejores = Object.keys(marcas).sort(function(a, b){ return (marcas[b].p||0) - (marcas[a].p||0); }).slice(0, 3);
-    return '<div class="card sim-caja' + (gano ? '' : ' cerrada') + '">'
-      + '<img class="sim-em" src="assets/img/batalla/emblema.webp" alt="" width="84" height="84" loading="lazy">'
-      + '<div class="sim-txt"><div class="eyebrow amber">' + (gano ? 'Desbloqueado' : 'Bloqueado') + '</div>'
-      + '<h3>El Simulador de Joran</h3>'
-      + '<p class="small">' + (gano
-          ? 'Repasa tema a tema o con todas las preguntas del viaje, y mide tu marca contra la de tu tripulación.'
-          : 'Gánale a <b>' + esc(BT.rival || 'RUTA AZUL') + '</b>' + (BT.reto ? ' en el reto ' + esc(BT.reto) : '') + ' y el entrenamiento se queda en tu Nave para siempre.') + '</p>'
-      + (gano && mejores.length ? '<p class="sim-marcas">' + mejores.map(function(m){
-          return '<span>' + esc(m === 'todas' ? 'Todas' : 'T' + m.slice(1)) + ' <b>' + (marcas[m].p || 0) + '</b></span>'; }).join('') + '</p>' : '')
-      + (gano && T ? '<p class="small muted">' + (T.batallas || 0) + ' batallas · ' + (T.aciertos || 0) + ' aciertos'
-          + (T.aciertos ? ' · ' + (Math.round((T.ms / 1000) / T.aciertos * 10) / 10) + ' s por acierto' : '') + '</p>' : '')
-      + '<p><a class="btn ' + (gano ? 'primary' : 'epico') + '" href="batalla.html?per=' + esc(per) + '">'
-      + (gano ? '<img class=ico src=assets/img/iconos/p/diana.png alt> Entrenar' : '<span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Enfrentarte al simulador</span>') + '</a></p>'
-      + '</div></div>';
+  }
+  /**
+   * 🔴 27-sep · EL ASEDIO (reto asíncrono entre escuadrones): su semana (REGULAR, la 11) y la siguiente, con el resultado.
+   * En PUA no hay. El reto vive en juegos/asedio/.
+   */
+  function asedioCaja(){
+    var A = window.SG_ASEDIO; if(!A || !motorNuevo() || !st.yo || st.tipo === 'PUA' || !juegosVisibles()) return '';
+    var hoy = Math.max(st.actual || 0, 1); if(hoy !== A.semana && hoy !== A.semana + 1) return '';
+    var abierto_ = hoy === A.semana;
+    return '<div class="card asedio-caja"><div class="as-txt"><div class="eyebrow amber">' + (abierto_ ? 'Reto entre escuadrones · hasta el lunes' : 'El Asedio · resultado') + '</div>'
+      + '<h3>' + (abierto_ ? 'La Estática asedia la flota' : 'La nodriza ha caído') + '</h3>'
+      + '<p class="small">' + (abierto_ ? 'Tu escuadrón necesita tus disparos: ataques de ' + A.minutos + ' minutos y cada día cuenta el mejor.' : 'Mira cómo quedó tu escuadrón y el salón de héroes y heroínas.') + '</p>'
+      + '<p><a class="btn ' + (abierto_ ? 'epico' : 'primary') + '" data-juego href="' + esc(A.juego + 'index.html?per=' + encodeURIComponent(per)) + '">' + (abierto_ ? '<span class="ep-luz"></span><span class="ep-txt">Atacar</span>' : 'Ver el resultado') + '</a></p></div></div>';
+  }
+  /** 🔴 27-sep · EN DIRECTO: para quien no tiene la sesión abierta, la entrada con el código de la pantalla del docente. */
+  function directoCaja(){
+    var D = window.SG_DIRECTO; if(!D || !motorNuevo() || !st.yo || st.estado === 'antes' || !juegosVisibles()) return '';
+    return '<div class="card directo-caja"><div class="eyebrow">En directo</div><h3>¿Partida en clase?</h3>'
+      + '<p class="small">Si tu comandante ha abierto el juego del final, entra con el código de su pantalla.</p>'
+      + '<p><a class="btn" data-juego href="' + esc(D.juego + 'alumno.html?per=' + encodeURIComponent(per)) + '">Entrar con el código</a></p></div>';
   }
   /**
    * 🔴 EL RETO A6 SE REGISTRA SOLO. Si ganó en la página de la batalla y el reto no quedó registrado (cerró la
@@ -3320,10 +3328,10 @@
          {t:'Poco tiempo y pocas unidades',foco:'.nb-t[data-tab="mercado"]',
           x:'Dura lo que dura la semana y, si es algo raro, hay pocas unidades para todo el grupo: cuando se acaban, se acabó. <b>Una por persona</b>. Tu docente también puede preparar las suyas.'}],
     // 16-sep · EL SIMULADOR DE JORAN (semana 11). 23-sep · ya no es un reto: un juego de repaso que se enseña a todos
-    c11:[{t:'El Simulador de Joran',foco:'.nb-t[data-tab="nave"]',
-          x:'Joran dejó encendido su simulador de entrenamiento, <b>RUTA AZUL</b>: un rival hecho de luz que pregunta por el temario. Gánale una vez y el entrenamiento se queda en tu Nave; si pierdes, vuelve a intentarlo — <b>cada derrota lo cansa</b>. No es un reto: es para repasar jugando.'},
-         {t:'Repasar jugando',foco:'.nb-t[data-tab="nave"]',
-          x:'Dentro se entrena <b>tema a tema</b> o con <b>todas</b> las preguntas del viaje, y se elige la dificultad. Cada modo tiene su <b>ranking</b> del grupo, y hay reconocimientos al más rápido, al más certero y a quien más sabe.'}],
+    c11:[{t:'La sala de Joran',foco:'.nb-t[data-tab="nave"]',
+          x:'Joran convirtió el simulacro de evacuación en un juego, y aquí están sus máquinas: <b>cuatro arcade</b> y el <b>Simulador de vuelo</b> para repasar la Ruta en tres niveles. La plata de cada máquina enciende la siguiente (o la enciendes con créditos).'},
+         {t:'Hitos, Cuaderno y Galería',foco:'.nb-t[data-tab="nave"]',
+          x:'Cada máquina tiene tres hitos que dan créditos <b>una vez</b>. El <b>Cuaderno de vuelo</b> guarda los grandes logros, hay ranking de tu clase y Salón de la fama, y en la <b>Galería</b> se valoran los juegos de la tripulación.'}],
     // 14-sep · el Gran Sorteo: lo cuenta con el premio y los ganadores de SU grupo (el referente
     // puede cambiarlos), por eso se arma al momento
     c6:function(){

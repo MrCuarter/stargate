@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>El Descenso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="comun.css">
+<style>
+.instr{position:absolute;right:16px;top:14px;display:grid;grid-template-columns:auto auto;gap:3px 12px;background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:10px 14px;font-size:14px;min-width:210px}
+.instr span{opacity:.8}
+.instr b{text-align:right;font-variant-numeric:tabular-nums}
+.instr b.ok{color:var(--verde)} .instr b.mal{color:var(--rojo)}
+#viento{position:absolute;right:16px;top:176px;background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:8px 14px;font-size:14px;display:flex;gap:10px;align-items:center;min-width:210px}
+#viento .flecha{display:inline-flex;width:64px;justify-content:center}
+#viento i{display:inline-block;width:20px;height:4px;background:var(--ambar);position:relative;border-radius:2px;transition:width .2s}
+#viento i.izq{transform:scaleX(-1)}
+#viento b{min-width:44px;text-align:right}
+#viento i::after{content:"";position:absolute;right:-6px;top:-5px;border-left:10px solid var(--ambar);border-top:7px solid transparent;border-bottom:7px solid transparent}
+.comb{position:absolute;left:16px;bottom:16px;width:min(320px,42vw)}
+#extra{bottom:66px!important;max-width:min(520px,60vw);color:var(--ambar)!important;text-shadow:0 0 8px #000!important}
+.comb small{font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+.mandos{position:fixed;left:0;right:0;bottom:14px;display:none;justify-content:space-between;gap:12px;padding:0 14px;pointer-events:none}
+.mandos button{pointer-events:auto;width:88px;height:88px;border-radius:50%;padding:0;font-size:28px;background:rgba(13,34,54,.8);color:var(--cian);border:1px solid var(--borde)}
+.mandos button.prop{width:120px;border-radius:44px;font-size:13px;background:linear-gradient(135deg,#ffb347,#ff6a3d);color:#1a0600}
+body.tactil .mandos{display:flex}
+body.tactil .comb{bottom:120px}
+body.tactil #extra{bottom:170px!important}
+@media (max-width:760px){.instr{top:120px;min-width:0;font-size:13px}#viento{top:262px;min-width:0}}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+</script>
+</head>
+<body class="juego">
+<canvas id="lienzo" class="lienzo"></canvas>
+<div id="carga">Preparando el descenso…</div>
+<div class="hud oculto" id="hud">
+  <div class="cifras">
+    <div class="cif am"><small>Puntos</small><b id="h-pts">0</b></div>
+    <div class="cif"><small>Planeta</small><b id="h-pl">1/8</b></div>
+    <div class="cif"><small>Vidas</small><b id="h-vid">3</b></div>
+  </div>
+  <div class="instr">
+    <span>Altura</span><b id="h-alt">0 m</b>
+    <span>Caída</span><b id="h-vy">0,0 m/s</b>
+    <span>Deriva</span><b id="h-vx">0,0 m/s</b>
+    <span>Inclinación</span><b id="h-ang">0°</b>
+    <span>Gravedad</span><b id="h-g">1,6 m/s²</b>
+  </div>
+  <div id="viento"><span>Viento solar</span><span class="flecha"><i id="h-vi"></i></span><b id="h-vf">0</b></div>
+  <div class="comb"><small>Combustible</small><div class="barra" id="h-cb"><i id="h-c"></i></div></div>
+  <div id="extra"></div>
+</div>
+<div class="mandos" id="mandos"><button id="m-izq" aria-label="Girar a la izquierda">⟲</button><button id="m-prop" class="prop">PROPULSOR</button><button id="m-der" aria-label="Girar a la derecha">⟳</button></div>
+<div id="aviso"></div>
+<div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
+<script type="module" src="descenso.js"></script>
+</body>
+</html>

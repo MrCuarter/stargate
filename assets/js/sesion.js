@@ -969,32 +969,54 @@
     var suya=(c.semanas||{})[t]||99, antes=ab[clave]===true?1:Number(ab[clave])||0;
     return Number(sem)>=(antes&&antes<suya?antes:suya);
   }
+  /**
+   * 🔴 27-sep · LA SALA DE JORAN (sustituye a la batalla de preguntas). Los récords de la clase en cada máquina (las marcas
+   * que guarda el servidor, stargateSala → ficha.stargateSala.marcas). Solo sale si alguien ha jugado.
+   */
   function diaSimulador(s){
-    var BT=window.SG_BATALLA||{};
-    // 23-sep · el Simulador ya no es un reto (BT.reto = null), pero sigue siendo el juego de repaso: sus marcas, igual
-    if(!BT.clave || !s || !capituloEn(BT.capitulo||'c11', s.sem)) return null;
-    var R=vivos(), sim=function(p){ return p.simulador||{}; };
-    var ganaron=R.filter(function(p){ return sim(p)[BT.clave||'joran']; });
-    var marcas=R.map(function(p){ var m=(sim(p).marcas)||{}; var mejor=Object.keys(m).reduce(function(a,k){ return Math.max(a, Number(m[k].p)||0); }, 0);
-        return {p:p, n:mejor}; }).filter(function(x){ return x.n>0; }).sort(function(a,b){ return b.n-a.n; }).slice(0,3);
-    var con=function(f){ return R.map(function(p){ return {p:p, t:(sim(p).total)||null}; }).filter(function(x){ return x.t && x.t.aciertos>0; }).sort(f)[0]; };
-    var rapido=con(function(a,b){ return (a.t.ms/a.t.aciertos)-(b.t.ms/b.t.aciertos); });
-    var certero=con(function(a,b){ return (b.t.aciertos/b.t.respondidas)-(a.t.aciertos/a.t.respondidas); });
-    var sabio=con(function(a,b){ return b.t.aciertos-a.t.aciertos; });
-    if(!ganaron.length && !marcas.length) return null;
-    var med=function(ico, tit, x, val){ return x?'<span class="col-ley-u">'+cara(x.p)+'<b>'+esc(x.p.alias)+'</b><em>'+ico+' '+tit+' · '+val(x.t)+'</em></span>':''; };
-    return {k:'simulador', rot:'El Simulador de Joran', html:
-      '<div class="dia simulador"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Entrenamiento</div><h2>El Simulador de Joran</h2>'
-      +'<p class="ses-sub">Quien le gana a <b>'+esc(BT.rival||'RUTA AZUL')+'</b> se queda el entrenamiento en su Nave para repasar tema a tema… y quien no, puede volver a intentarlo: cada derrota lo cansa.</p>'
-      +(ganaron.length?'<div class="col-ley"><span class="col-ley-t"><img class=ico src=assets/img/iconos/p/diana.png alt> Le han ganado ('+ganaron.length+')</span>'+ganaron.slice(0,10).map(function(p){
-          return '<span class="col-ley-u">'+cara(p)+'<b>'+esc(p.alias)+'</b></span>'; }).join('')+'</div>':'')
-      +(marcas.length?'<div class="col-grid"><div class="col-c"><h3><img class=ico src=assets/img/iconos/p/rankings.png alt> Mejores marcas</h3><ol>'+marcas.map(function(x,i){
-          return '<li style="--i:'+i+'"><span class="col-pos">'+(i+1)+'</span>'+cara(x.p)+'<b>'+esc(x.p.alias)+'</b><span class="col-n">'+x.n+'</span></li>'; }).join('')+'</ol></div></div>':'')
-      +((rapido||certero||sabio)?'<div class="col-ley"><span class="col-ley-t"><img class=ico src=assets/img/iconos/p/medalla.png alt> Reconocimientos</span>'
-          +med('<img class=ico src=assets/img/iconos/p/rayo.png alt>','el más rápido',rapido,function(t){ return (Math.round((t.ms/1000)/t.aciertos*10)/10)+' s por acierto'; })
-          +med('<img class=ico src=assets/img/iconos/p/diana.png alt>','el más certero',certero,function(t){ return Math.round(t.aciertos*100/t.respondidas)+' % de aciertos'; })
-          +med('<img class=ico src=assets/img/iconos/p/libro.png alt>','quien más sabe',sabio,function(t){ return t.aciertos+' aciertos'; })+'</div>':'')
-      +'</div>'};
+    var SJ=window.SG_SALA_JORAN, BT=window.SG_BATALLA||{};
+    if(!SJ || !s || !juegosVisibles() || !capituloEn(BT.capitulo||'c11', s.sem)) return null;
+    var R=vivos(), mar=function(p){ return ((p.stargateSala||{}).marcas)||{}; };
+    var cols=(SJ.maquinas||[]).map(function(m){
+      var top=R.map(function(p){ return {p:p, n:Number(mar(p)[m[0]])||0}; }).filter(function(x){ return x.n>0; }).sort(function(a,b){ return b.n-a.n; }).slice(0,3);
+      return {m:m, top:top};
+    }).filter(function(c){ return c.top.length; });
+    if(!cols.length) return null;
+    return {k:'simulador', rot:'La sala de Joran', html:
+      '<div class="dia simulador"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> La sala de Joran</div><h2>Los récords de la clase</h2>'
+      +'<p class="ses-sub">Cuatro máquinas arcade y el Simulador de vuelo, en vuestra Nave. La plata de cada una enciende la siguiente.</p>'
+      +'<div class="col-grid">'+cols.map(function(c){ return '<div class="col-c"><h3>'+esc(c.m[1])+'</h3><ol>'+c.top.map(function(x,i){
+          return '<li style="--i:'+i+'"><span class="col-pos">'+(i+1)+'</span>'+cara(x.p)+'<b>'+esc(x.p.alias)+'</b><span class="col-n">'+x.n.toLocaleString('es-ES')+'</span></li>'; }).join('')+'</ol></div>'; }).join('')
+      +'</div></div>'};
+  }
+  /**
+   * 🔴 27-sep · EL ASEDIO (reto asíncrono entre escuadrones). Semana ASEDIO.semana: el lanzamiento; la siguiente, el podio
+   * y el salón de héroes y heroínas. En PUA no hay (no queda semana libre). El reto: juegos/asedio/ (?vista=lanza|cierre).
+   */
+  function diaAsedio(s){
+    var A=window.SG_ASEDIO; if(!A || !s || st.tipo==='PUA' || !juegosVisibles()) return null;
+    var sem=Number(s.sem), vista=sem===A.semana?'lanza':sem===A.semana+1?'cierre':''; if(!vista) return null;
+    var u=A.juego+'index.html?vista='+vista+'&embed=1'+(st.per?'&per='+encodeURIComponent(st.per):'');
+    return {k:'asedio', sec:'asedio', rot:vista==='lanza'?'El Asedio':'El Asedio: el resultado', html:
+      '<div class="dia ruta asedio"><iframe class="ru-juego" src="'+esc(u)+'" title="El Asedio" loading="lazy"></iframe></div>'};
+  }
+  /**
+   * 🔴 27-sep · EN DIRECTO: el juego del final de la clase, DESPUÉS del ticket. El docente lo configura y lo lanza; cada
+   * recluta entra en su sala de espera (con el ticket dentro, si esta clase lo tiene) y juega desde el móvil al marcar
+   * «Ya he hecho mi ticket». La sala es la de la clase (grupo + semana): nadie escribe código.
+   */
+  function salaDirecto(s){
+    var base=(st.per||'demo')+':'+(s&&s.sem||0), h=0, L='ABCDEFGHJKLMNPQRSTUVWXYZ', c='';
+    for(var i=0;i<base.length;i++) h=(h*31+base.charCodeAt(i))>>>0;
+    for(var k=0;k<4;k++){ c+=L[h%L.length]; h=Math.floor(h/L.length)+k*7; }
+    return c;
+  }
+  function diaDirecto(s, tk){
+    var D=window.SG_DIRECTO; if(!D || !s || !juegosVisibles()) return null;
+    var q='?sesion=1&c='+salaDirecto(s)+'&tema='+encodeURIComponent(Math.max(1, temaDe(s)||1))+(st.per?'&per='+encodeURIComponent(st.per):'')
+      +(tk?'&ticket='+encodeURIComponent(tk.u)+'&tk='+encodeURIComponent(tk.clave):'');
+    return {k:'directo', sec:'directo', t:'ci', rot:'En directo', html:
+      '<div class="dia ruta directo"><iframe class="ru-juego" src="'+esc(D.juego+(st.alumno?'alumno.html':'proyector.html')+q)+'" title="En directo" loading="lazy" allow="autoplay; fullscreen; vibrate" allowfullscreen></iframe></div>'};
   }
 
   // ── 8 · escuadrones, por MEDIA (si fuera por suma ganaría siempre el más numeroso)
@@ -1048,6 +1070,16 @@
     for(var k=0;k<lista.length;k++) if(temaDe(lista[k])===n && new RegExp('Actividad\\s*'+m[1]+'\\b','i').test(String(lista[k].sub||''))) return true;
     return false;
   }
+  function urlTicket(opcion){
+    return String(window.SG_TICKET_URL).split('{GRUPO}').join(encodeURIComponent(st.per||''))
+            .split('{COMANDANTE}').join(encodeURIComponent(elComandante()))
+            .split('{TEMA}').join(encodeURIComponent(opcion));
+  }
+  /** 27-sep · el ticket de esta clase, si lo tiene: {u: dirección, clave: la marca de «enviado» en este navegador} */
+  function ticketDe(s){
+    if(!window.SG_TICKET_URL||!st.per) return null;
+    var opcion=opcionTema(s); return {u:urlTicket(opcion), clave:'sgTicket:'+(st.per||'')+':'+opcion};
+  }
   /** La última diapositiva de la última sesión del tema: el formulario, para rellenarlo en clase. */
   // 23-sep · `clave`: la opción del formulario, si no es la del tema de la semana («p» = la presentación de la asignatura,
   // que se rellena en la semana 1 al acabar el embarque)
@@ -1057,9 +1089,7 @@
     // 🔴 20-sep · el hueco «Grupo» lleva el ID del grupo, no su nombre: es por lo que pregunta el lector de la
     // hoja (`motor/tablero.js` lo rellena igual). Con el nombre, las respuestas no aparecían en ningún sitio.
     // Y el Comandante, el de quien da la clase o el del recluta que la sigue: antes se quedaba vacío al seguirla.
-    var u=String(window.SG_TICKET_URL).split('{GRUPO}').join(encodeURIComponent(st.per||''))
-            .split('{COMANDANTE}').join(encodeURIComponent(elComandante()))
-            .split('{TEMA}').join(encodeURIComponent(opcion));
+    var u=urlTicket(opcion);
     // 26-sep · enviado aquí, la Nave de ese navegador ya lo da por hecho (sgTicket:<grupo>:<tema>, ver ticketDelTema en recluta.js)
     return {k:'ticket_form', sec:'ticket', t:'ci', rot:'Ticket de salida', montar:function(el){
         var f=el.querySelector('iframe[data-tk]'), cargas=0; if(!f) return null;
@@ -1078,8 +1108,10 @@
    * aquí mismo; proyectada, sirve para enseñarla) y el ticket, si la clase cierra tema, sigue siendo lo último.
    * Lo que se cuenta de cada misión: _site_data.py → RUTA (SG_RUTA). El juego: juegos/ruta/.
    */
+  // 🔴 27-sep · el interruptor: hasta desplegar sus funciones, los juegos solo salen en los grupos de prueba (y sin grupo)
+  function juegosVisibles(){ var J=window.SG_JUEGOS||{}; return !!J.listos || !st.per || (J.prueba||[]).indexOf(st.per)>=0; }
   function diaRuta(id){
-    var R=window.SG_RUTA; if(!R) return null;
+    var R=window.SG_RUTA; if(!R || !juegosVisibles()) return null;
     var m=(R.misiones||[]).filter(function(x){ return x.id===id; })[0]; if(!m) return null;
     var u=R.juego+'?mision='+encodeURIComponent(id)+'&embed=1'+(st.per?'&per='+encodeURIComponent(st.per):'');
     return {k:'ruta', sec:'ruta', t:'ci', rot:m.final?'Vaeon':'La Ruta', html:
@@ -1489,7 +1521,7 @@
     movido:'clasificacion', semanal:'clasificacion', top:'clasificacion', escuadrones:'clasificacion', coleccion:'coleccion',
     simulador:'simulador', votacion:'votacion', ticket:'ticket', oferta:'oferta', nuevo:'novedades', simulacro:'novedades',
     genially:'despegue', puente:'despegue', act:'actividad', actretos:'actividad', entrega:'actividad',
-    reto:'misiones', hito:'misiones', insignias:'recompensa', ruta:'ruta'};
+    reto:'misiones', hito:'misiones', insignias:'recompensa', ruta:'ruta', directo:'directo', asedio:'asedio'};
   function secDe(x){ return x.sec || SEC_DE_K[x.k] || 'misiones'; }
   function apagadas(){
     var S=st.sesionesDelGrupo||(st.d&&st.d.sesiones)||{}, quien=String((!st.alumno&&st.miNombre)||st.profeMio||'').trim();
@@ -2081,6 +2113,7 @@
       diaSimulador(s), diaVotacion(s), yaRank?diaEscuadrones():null, yaOferta?diaOferta():null])
       .forEach(function(x){ if(x) d.push(x); });
     if(!(Number(s.sem)===1&&hayPresentacion())) d=d.concat(diapositivasNuevas(s));
+    var as=diaAsedio(s); if(as) d.push(as);
     d.forEach(function(x){ x.t='ap'; });     // todo lo de arriba es APERTURA
     var ci=[];
     deTipo('tema').forEach(function(v,i){ ci.push(Object.assign(diaVideo(v, i, 'Rumbo al planeta', 'Rumbo al planeta'), {sec:'misiones'})); });
@@ -2124,6 +2157,8 @@
     if(ultimaDelTema(L, iS) && temaDe(s)>=1 && temaDe(s)<=8){ var ru=diaRuta('m'+temaDe(s)); if(ru) ci.push(ru); }
     if(iS===L.length-1){ var rv=diaRuta('m9'); if(rv) ci.push(rv); }
     if(tf) ci.push(tf);
+    // 27-sep · y el juego del final, detrás del ticket (con el ticket dentro de su sala de espera, si la clase lo tiene)
+    var dd=diaDirecto(s, tf?ticketDe(s):null); if(dd) ci.push(dd);
     if(finViaje) ci.push(diaHastaPronto(true)); else if(!tf) ci.push(diaHastaPronto());
     ci.forEach(function(x){ x.t='ci'; });
 

@@ -998,11 +998,15 @@ SESION_SECCIONES = [
     ("repaso", "Repaso de la semana anterior", "Quién hizo cada misión la semana pasada."),
     ("clasificacion", "Clasificación", "Han movido ficha, la semana, el top 5 y los escuadrones."),
     ("coleccion", "Coleccionistas", "Quién va más avanzado en su colección."),
-    ("simulador", "El Simulador de Joran", "Las marcas y los reconocimientos de la batalla."),
+    ("simulador", "La sala de Joran", "Los récords de la clase en las máquinas de Joran."),
     ("votacion", "Votación", "La votación de la semana, si la hay."),
     # 27-sep · la misión de nave al cerrar cada tema (y tras la presentación, y Vaeon en la última clase) · borrador
     ("ruta", "La Ruta de la Estática", "Al cerrar cada tema: la misión de nave hasta el planeta siguiente (3 minutos). Tras la presentación, el primer vuelo; en la última clase, Vaeon."),
     ("ticket", "Ticket de salida", "Lo que dijisteis al salir (o el ticket para rellenar)."),
+    # 27-sep · el juego del final de cada clase: tú lo configuras y lo lanzas; la clase, desde el móvil (borrador)
+    ("directo", "En directo", "El juego del final: cada recluta desde su móvil, con su personaje. Tras el ticket."),
+    # 27-sep · el reto entre escuadrones: semana 11, el lanzamiento; semana 12, el resultado (borrador)
+    ("asedio", "El Asedio", "Semana 11: el reto entre escuadrones. Semana 12: el podio y el salón de héroes y heroínas."),
     ("oferta", "Oferta de la semana", "La rebaja de esta semana en el Mercado."),
     ("novedades", "Novedades de la semana", "Lo que se abre en la Nave, y tu Nave de ejemplo para enseñarlo."),
     ("despegue", "El despegue", "Tu Genially: la teoría y la práctica guiada."),
@@ -1559,8 +1563,10 @@ assert all(CAPITULOS[i]["semana"] <= CAPITULOS[i + 1]["semana"] for i in range(l
 # 🔴 El banco de preguntas NO viaja a la web (el repositorio es público): las da el servidor, sin la respuesta.
 RUTA = {
     "juego": "juegos/ruta/",
-    # cada escalón se cobra UNA vez por misión: [xp, créditos] (propuesta: la decide Norberto)
-    "premios": {"bronce": [30, 5], "plata": [15, 5], "oro": [15, 5]},
+    # cada escalón se cobra UNA vez por misión: [xp, créditos]. 🔴 27-sep · aprobado por Norberto: el SABER da xp y la
+    # PERICIA da créditos. 30 xp y 20 ◈ por misión como mucho → 300 xp y 200 ◈ el curso (con 600 xp se llegaba a Leyenda
+    # saltándose casi medio viaje: entre XP_VIAJE y el nivel 10 solo hay 610 de margen). Espejo: juegos/ruta/servidor-local.js
+    "premios": {"bronce": [15, 5], "plata": [10, 5], "oro": [5, 10]},
     "misiones": [
         {"id": "m0", "n": 0, "de": "La Cero", "a": "Fôrge", "tema": 0, "cuando": "Tras la presentación", "titulo": "Primer vuelo",
          "lema": "NEBULA te enseña a pilotar camino de Fôrge. Las preguntas son de la asignatura."},
@@ -1589,13 +1595,72 @@ RUTA = {
 # Norberto: «para mantener el simulador de Joran, piensa otra propuesta, no tiene por qué ser de naves espaciales, pero
 # debe estar relacionado con la narrativa… puede ser arcade puro y duro, diversión a tope, velocidad y reflejos… podría
 # ser una serie de minijuegos: empieza con uno, y el resto se desbloquean al llegar a cierta puntuación o pagando
-# créditos… algún juego de escapar de una nave laberíntica». Tres máquinas (juegos/joran/comun.js → JUEGOS manda en el
-# juego; aquí, lo que enseñan la Nave y la sesión).
-SALA_JORAN = {"juego": "juegos/joran/", "maquinas": [
-    ["evacuacion", "La Evacuación", "Corre por los pasillos de la Cero antes de que la Estática te alcance.", None, 0],
-    ["laberinto", "El Laberinto de la Cero", "La nave, a oscuras: tres llaves por nivel y la cápsula.", ["evacuacion", 2500], 40],
-    ["ruta-azul", "RUTA AZUL", "El arcade de neón: cuatro oleadas y el jefe final.", ["laberinto", 3000], 60],
-]}
+# créditos». Sustituye a la batalla de preguntas (batalla.html): se abre con el capítulo c11 (Ludo, tema 6).
+# 🔴 EL EQUILIBRIO (aprobado): la sala NO da xp (pilotar bien no es aprender). Da créditos solo con los HITOS de cada
+# máquina (bronce, plata, oro de marca), UNA vez cada uno: 5 + 10 + 15 = 30 ◈ por máquina, 120 ◈ las cuatro. Encender las
+# tres cerradas cuesta 180 ◈. La siguiente máquina se enciende con la PLATA de la anterior. El Simulador de vuelo (la Ruta
+# para repasar, con niveles) está abierto siempre y no paga: solo su ranking.
+# [clave, nombre, lema, abre (marca en otra máquina) o None, precio ◈, hitos [bronce, plata, oro]]
+# (juegos/joran/comun.js → JUEGOS manda en la jugabilidad; lo que se cuenta, AQUÍ: el build lo lleva a juegos/joran/datos.js)
+SALA_JORAN = {"juego": "juegos/joran/", "hito_cr": {"bronce": 5, "plata": 10, "oro": 15}, "maquinas": [
+    ["evacuacion", "La Evacuación", "Corre por los pasillos de la Cero antes de que la Estática te alcance.", None, 0, [1200, 2500, 5000]],
+    ["laberinto", "El Laberinto de la Cero", "La nave se ha apagado: tres llaves y la cápsula… a oscuras.", ["evacuacion", 2500], 40, [1500, 3000, 6000]],
+    ["ruta-azul", "RUTA AZUL", "El arcade que Joran programó para entrenar pilotos: oleadas de la Estática y el jefe final.", ["laberinto", 3000], 60, [1500, 3000, 6000]],
+    ["descenso", "El Descenso", "Posa el Módulo Lunar en los ocho planetas: cada uno con su gravedad, su viento solar y su truco.", ["ruta-azul", 3000], 80, [1200, 3000, 5500]],
+    ["vuelo", "Simulador de vuelo", "La Ruta de la Estática para repasar: cualquier tramo, en tres niveles, o todo el viaje de una vez.", None, 0, [2000, 4000, 7000]],
+],
+    # EL CUADERNO DE VUELO: 11 hitos entre la Ruta y la sala; con todos, un premio de ADORNO. 🔴 Fuera de los Logros de a
+    # bordo a propósito: un juego opcional no puede cerrar el paso al Contramaestre. [clave, título, qué hay que hacer]
+    "cuaderno": [
+        ["despegue", "Primer vuelo", "Termina tu primera misión de la Ruta de la Estática."],
+        ["ruta", "La Ruta entera", "Medalla en las diez misiones de la Ruta."],
+        ["oros", "Piloto de oro", "Oro en las diez misiones de la Ruta."],
+        ["probador", "Probador de la sala", "Juega a las cuatro máquinas arcade."],
+        ["marcador", "En el marcador", "Tu primer hito (bronce) en una máquina."],
+        ["oro1", "Récord de Joran", "Oro en una máquina arcade."],
+        ["oro4", "Maestro de la sala", "Oro en las cuatro máquinas arcade."],
+        ["intocable", "Intocable", "Vence a RUTA AZUL sin perder una vida."],
+        ["perfecto", "Ocho mundos, cero golpes", "Pósate en los ocho planetas de El Descenso sin perder un módulo."],
+        ["repasoOro", "Repaso de oro", "Oro en el Simulador de vuelo en nivel difícil."],
+        ["critico", "Crítico de Ludo", "Valora cinco juegos de la Galería de la tripulación."],
+    ],
+    "premio_cuaderno": "el título «As de Joran» y el marco holográfico para tu avatar",
+    # LA GALERÍA: el reto principal del tema 6 («El juego», B6) que cada recluta decide enseñar; 1-5 estrellas, nunca el
+    # propio; valorar no da créditos. Rankings: el de tu clase por máquina y el Salón de la fama (10 mejores del curso, alias).
+    "galeria_reto": "B6", "fama": 10,
+}
+
+# ────────────────────────── 🔴 27-sep · EL INTERRUPTOR DE LOS JUEGOS ──────────────────────────
+# La Ruta, la sala de Joran, el directo y el Asedio necesitan sus funciones de GamificaPro (stargateRuta, stargateSala,
+# stargateDirecto, stargateAsedio) para contar de verdad (medallas, créditos, móviles conectados con el proyector). Hasta
+# que Norberto las despliegue, los grupos REALES no los ven; los de prueba (y la sesión sin grupo), sí, para probarlos en la
+# web de verdad. 🔴 Al desplegar las funciones: JUEGOS_LISTOS = True (y reconstruir).
+JUEGOS = {"listos": False, "prueba": [PER_ESCUELA, PER_DEMO]}
+
+# ────────────────────────── 🔴 27-sep · EN DIRECTO: el juego del final de la clase (borrador) ──────────────────────────
+# Norberto: «una diapositiva… si eres docente te permite configurar el juego y lanzarlo; si eres estudiante entra en sala de
+# espera», «cooperativo… contra diferentes enemigos 3D a modo de simulacro (por no quemar a Vaeon)», «un modo por equipos»
+# (🔴 NO por escuadrones: en directo toda la clase es del mismo) y «formas de configurar el juego». Va DESPUÉS del ticket:
+# la sala de espera trae el ticket dentro y se entra al marcar «Ya he hecho mi ticket». Se puede entrar tarde y reconectar.
+# La jugabilidad y las cifras finas viven en juegos/directo/canal.js; aquí, lo que se cuenta.
+DIRECTO = {"juego": "juegos/directo/", "modos": [
+    ["defensa", "Simulacro de defensa", "Cooperativa", "Toda la clase contra la Estática: se gana o se pierde junta."],
+    ["carrera", "La carrera al planeta", "Individual", "El primero en llegar al planeta."],
+    ["caza", "La caza", "Individual", "Todos contra todos, a por puntos."],
+    ["duelo", "Duelo de escuadrillas", "Por equipos", "Cian contra Ámbar, al azar: tirad de la baliza."],
+], "heroes": ["El Muro", "Ojo de halcón", "El Fantasma", "El Ingeniero"],
+    "premio": {"jugar": 5, "ganar_clase": 10, "podio": 10, "equipo": 10}}
+
+# ────────────────────────── 🔴 27-sep · EL ASEDIO: reto asíncrono entre escuadrones (borrador) ──────────────────────────
+# Norberto: «¿nos queda alguna semana sin novedad? Podríamos lanzar un reto asíncrono entre escuadrones… se lanza el lunes
+# y se cierra el siguiente lunes. A los estudiantes les aparece un mensaje en su Nave. En la sesión de la semana que se
+# abre aparece el desafío; en la siguiente, el resultado a modo de cierre. El escuadrón ganador recibe xp y créditos extra
+# (todos los participantes)». Y el salón de héroes y heroínas. REGULAR: de la 11 a la 14 no se abre nada → la 11 (tema 7,
+# gamificación). PUA: ninguna semana libre → no hay Asedio (como el sorteo). Cada ataque: la Defensa en solitario, 2 min;
+# cuenta el mejor de cada día; escuadrón = suma / TODOS sus reclutas. Premios: [puesto, xp, ◈] a cada recluta que atacó.
+ASEDIO = {"juego": "juegos/asedio/", "semana": 11, "semana_pua": None, "minutos": 2,
+    "premios": [["1.º", 60, 30], ["2.º", 0, 15], ["3.º", 0, 10], ["Todo el que ataque", 0, 5]],
+    "salon": ["Terror de la nodriza", "Cazanaves", "Ojo de halcón", "Golpe maestro", "Fantasma", "Constancia"]}
 
 BATALLA = {
     # 🔴 23-sep · el Simulador deja de ser un reto (el relámpago de Ludo pasa a ser «Encuentra el juego»): se queda en la

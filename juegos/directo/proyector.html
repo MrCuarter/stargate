@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>En directo · docente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="directo.css">
+<style>
+html,body{overflow:hidden;height:100%}
+main{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:14px}
+#preparar{width:min(1240px,98vw);max-height:96vh;overflow:auto;display:grid;grid-template-columns:1.25fr 1fr;gap:16px;padding:16px 18px}
+#preparar h1{margin:2px 0 8px;color:var(--cian);font-size:clamp(20px,2.4vw,30px)}
+.atajos{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
+.atajos button{padding:8px 12px;font-size:13px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:#0d2236;color:#e8f6ff;border:1px solid var(--ambar)}
+.atajos button small{font-family:"Exo 2";font-weight:400;font-size:12px;letter-spacing:0;opacity:.85}
+.modos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modo{text-align:left;background:#0d2236;color:#e8f6ff;border:2px solid var(--borde);font-family:"Exo 2";font-weight:400;letter-spacing:0;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.modo b{font-family:Orbitron;font-size:15px;color:var(--cian)}
+.modo i{font-style:normal;font-family:Orbitron;font-size:10px;letter-spacing:.12em;color:var(--ambar);text-transform:uppercase}
+.modo span{font-size:13.5px;line-height:1.35}
+.modo.si{border-color:var(--ambar);box-shadow:0 0 18px rgba(255,194,74,.35)}
+.ajustes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.ajustes label{display:grid;gap:3px;font-size:13px}
+.ajustes select{font-size:14px;padding:7px 8px}
+.interruptores{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:14px}
+.interruptores label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.interruptores input{width:18px;height:18px;accent-color:#19c3d6}
+.mas{margin-top:8px;font-size:14px}
+.mas summary{cursor:pointer;color:var(--cian);font-weight:700}
+.mas p{margin:6px 0 0;line-height:1.45;opacity:.9}
+.codigo-l small{font-size:12px;opacity:.7;margin-left:auto}
+.lado{display:flex;flex-direction:column;gap:8px;min-height:0}
+.codigo-l{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.codigo-l b{font-family:Orbitron;font-size:26px;letter-spacing:.14em;color:var(--ambar);text-shadow:0 0 16px rgba(255,194,74,.5)}
+.codigo-l span{font-family:Orbitron;font-size:14px;letter-spacing:.1em;color:var(--ambar);text-transform:uppercase}
+#jugadores{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;overflow:auto;padding:4px;flex:1;min-height:120px}
+.eqs{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;min-height:120px}
+.eq{border:1px solid;border-radius:12px;padding:6px 8px;display:flex;flex-direction:column;gap:6px}
+.eq h3{margin:0;font-size:13px;letter-spacing:.1em}
+.eq .lista{display:flex;flex-wrap:wrap;gap:6px}
+.j{display:flex;flex-direction:column;align-items:center;gap:2px;width:64px;animation:entra .4s ease-out}
+.j img{width:48px;height:48px}
+.j.espera img{opacity:.45;filter:grayscale(.6)}
+.j i{font-style:normal;font-size:10px;color:var(--ambar);display:block}
+.listos{font-size:13px;opacity:.85}
+.j span{font-size:12px;font-weight:700;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes entra{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+canvas.lienzo{position:fixed;inset:0;width:100%;height:100%}
+#hud{position:fixed;inset:0;pointer-events:none}
+#hud .arriba{position:absolute;top:14px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+#hud .tit{background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:8px 14px}
+#hud .tit b{font-family:Orbitron;color:var(--cian);font-size:18px;display:block}
+#hud .reloj{font-family:Orbitron;font-size:34px;background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:6px 16px;font-variant-numeric:tabular-nums}
+#hud .reloj.poco{color:var(--rojo);border-color:var(--rojo)}
+#meta{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:min(760px,74vw);text-align:center}
+#meta b{font-family:Orbitron;font-size:21px;color:var(--ambar);text-shadow:0 0 8px #000}
+#meta .barra{height:22px;margin-top:6px}
+#meta .barra i{background:linear-gradient(90deg,#ff9f3d,var(--ambar))}
+#meta.escudo .barra i{background:linear-gradient(90deg,#1fb6ff,var(--cian))}
+#meta.escudo.bajo .barra i{background:linear-gradient(90deg,#ff2e55,#ff8a5c)}
+#jefe{position:absolute;left:50%;top:84px;transform:translateX(-50%);width:min(620px,60vw);text-align:center}
+#jefe b{font-family:Orbitron;font-size:16px;color:var(--magenta);text-shadow:0 0 8px #000}
+#jefe .barra i{background:linear-gradient(90deg,#ff2e55,var(--magenta))}
+#top{position:absolute;right:16px;top:90px;width:270px;background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:10px 12px}
+#top h3{margin:0 0 6px;font-size:13px;color:var(--ambar);letter-spacing:.12em}
+#top ol{list-style:none;margin:0;padding:0}
+#top li{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:16px}
+#top li img{width:30px;height:30px}
+#top li .p{margin-left:auto;font-family:Orbitron;font-size:14px}
+#top li.llega .p{color:var(--verde)}
+#top.abajo{top:auto;bottom:16px}
+#fin{width:min(1060px,97vw);max-height:96vh;overflow:auto;text-align:center}
+#fin h1{margin:6px 0;color:var(--cian);font-size:clamp(26px,4vw,44px)}
+.podio{display:flex;justify-content:center;align-items:flex-end;gap:18px;margin:18px 0 8px}
+.pd{display:flex;flex-direction:column;align-items:center;gap:6px}
+.pd img{width:92px;height:92px}
+.pd .caj{width:124px;border-radius:12px 12px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:8px;font-family:Orbitron;font-size:28px;color:#001018}
+.pd.p1 .caj{height:116px;background:linear-gradient(var(--oro),#b8901d)} .pd.p2 .caj{height:80px;background:linear-gradient(var(--plata),#8793a0)} .pd.p3 .caj{height:58px;background:linear-gradient(var(--bronce),#9a5d2b)}
+.pd.p1 img{width:116px;height:116px;border-color:var(--oro);box-shadow:0 0 24px rgba(255,211,92,.6)}
+.pd b{font-size:18px}
+.heroes{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0 6px}
+.heroe{background:rgba(13,34,54,.8);border:1px solid var(--ambar);border-radius:14px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.heroe img{width:84px;height:84px}
+.heroe .t{font-family:Orbitron;font-size:14px;color:var(--ambar);letter-spacing:.06em}
+.heroe b{font-size:18px} .heroe span{font-size:13px;opacity:.9}
+.eqfin{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.eqfin > div{border:2px solid;border-radius:14px;padding:10px}
+.eqfin .miembros{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:6px 0}
+.eqfin .miembros img{width:34px;height:34px}
+.premio{margin:12px auto 0;max-width:820px;background:rgba(93,255,160,.1);border:1px solid rgba(93,255,160,.55);border-radius:12px;padding:10px 14px;font-size:16px}
+.todos{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin-top:12px;font-size:14px;opacity:.9}
+.credito{font-size:12px;opacity:.6;margin-top:8px}
+#aviso{top:64%}
+@media (max-width:900px){#preparar{grid-template-columns:1fr}.ajustes{grid-template-columns:1fr 1fr}.heroes{grid-template-columns:1fr 1fr}#top{display:none}}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<canvas id="lienzo" class="lienzo oculto"></canvas>
+<canvas id="lienzo3d" class="lienzo oculto"></canvas>
+<main>
+  <div id="preparar" class="caja">
+    <div>
+      <div class="kicker" id="kicker">Final de la clase · en directo</div>
+      <h1>Prepara la partida</h1>
+      <div class="atajos" id="atajos"></div>
+      <div class="modos" id="modos"></div>
+      <div class="ajustes">
+        <label>Duración<select id="a-dur"></select></label>
+        <label>Preguntas<select id="a-preg"></select></label>
+        <label>Cada cuánto<select id="a-frec"></select></label>
+        <label>Intensidad<select id="a-int"></select></label>
+      </div>
+      <div class="interruptores">
+        <label><input type="checkbox" id="a-pot">Potenciadores</label>
+        <label><input type="checkbox" id="a-oculto">Marcador oculto hasta el final</label>
+        <label><input type="checkbox" id="a-premio">Premio simbólico (◈)</label>
+      </div>
+      <details class="mas" id="como"><summary id="como-t">Cómo se juega</summary><p id="como-p"></p></details>
+      <details class="mas"><summary>Para la clase de teoría</summary><p id="teoria"></p></details>
+    </div>
+    <div class="lado">
+      <div class="codigo-l"><span>Sala de espera</span><small>desde la Nave, código</small><b id="codigo">····</b></div>
+      <div id="listos" class="listos"></div>
+      <div id="jugadores"></div>
+      <div class="eqs oculto" id="eqs"></div>
+      <div class="botones" style="margin-top:0">
+        <button id="b-lanzar" disabled>Lanzar</button>
+        <button class="sec oculto" id="b-barajar">Barajar escuadrillas</button>
+        <a class="boton sec" id="b-movil" target="_blank">Abrir un móvil de prueba</a>
+        <label style="font-size:13px;display:flex;gap:6px;align-items:center">Reclutas de ejemplo<select id="a-bots"><option value="0">0</option><option value="8">8</option><option value="16" selected>16</option><option value="24">24</option></select></label>
+      </div>
+    </div>
+  </div>
+  <div id="fin" class="caja oculto"></div>
+</main>
+<div id="hud" class="oculto">
+  <div class="arriba"><div class="tit"><span class="kicker" id="h-modo"></span><b id="h-tit"></b></div><div class="reloj" id="h-reloj">3:00</div></div>
+  <div id="jefe" class="oculto"><b>DESTRUCTOR DE LA ESTÁTICA</b><div class="barra"><i id="jefe-b"></i></div></div>
+  <div id="top"><h3 id="top-t">EN CABEZA</h3><ol id="top-l"></ol></div>
+  <div id="meta"><b id="meta-t"></b><div class="barra"><i id="meta-b"></i></div></div>
+</div>
+<div id="aviso"></div>
+<script type="module" src="proyector.js"></script>
+</body>
+</html>

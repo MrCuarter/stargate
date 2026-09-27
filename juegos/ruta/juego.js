@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-import { PREMIOS, CRITERIOS, ORDEN } from './servidor-local.js';
+import { PREMIOS, CRITERIOS, ORDEN, NIVELES } from './servidor-local.js';
 import { SERVIDOR, enEnsayo } from './servidor.js';
 
 const V3 = THREE.Vector3;
@@ -18,6 +18,13 @@ const barajar = (xs) => { const a = xs.slice(); for (let i = a.length - 1; i > 0
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const QS = new URLSearchParams(location.search);
 const EMBED = QS.get('embed') === '1';
+// ?repaso=1 → el SIMULADOR DE VUELO de la sala de Joran: cualquier tramo, en tres niveles, sin premio (solo la marca)
+const REPASO = QS.get('repaso') === '1';
+let NIVEL = REPASO ? (NIVELES[QS.get('nivel')] ? QS.get('nivel') : 'media') : null;
+// en la web los juegos viven en juegos/ruta y juegos/joran; en el borrador, en ruta-estatica y sala-joran
+const EN_WEB = location.pathname.includes('/juegos/');
+const SALA = EN_WEB ? '../joran/' : '../sala-joran/';
+const BASE_WEB = EN_WEB ? '../../' : ''; // las ilustraciones de las preguntas (assets/img/batalla/p/…)
 
 // ───────────────────────────────────────── EL MAPA Y LAS MISIONES (un dato, un sitio)
 const NODOS = [
@@ -68,6 +75,11 @@ const MISIONES = [
 // 🔴 En la web, lo que se CUENTA de cada misión (título, lema, cuándo) llega de _site_data.py → datos.js (lo escribe el
 // build); aquí manda solo la jugabilidad. En el borrador no hay datos.js y se queda lo de arriba.
 try { const D = await import('./datos.js'); for (const d of D.RUTA.misiones) { const m = MISIONES.find((x) => x.id === d.id); if (m) Object.assign(m, { titulo: d.titulo, lema: d.lema, cuando: d.cuando, tema: d.final ? 'final' : d.tema }); } } catch (e) { /* borrador: sin datos.js */ }
+
+// el tramo que solo existe en el repaso: preguntas de los ocho temas, rumbo a la Estática
+const VIAJE = { id: 'viaje', n: '∞', de: 0, a: 9, tema: 'todo', cuando: 'Simulador de vuelo', titulo: 'Todo el viaje',
+  lema: 'Seis preguntas de los ocho temas, mezcladas, y todo lo que la Estática ha ido aprendiendo.',
+  mezcla: { roca: 2, dron: 3, enjambre: 2, mina: 1, muro: 1, anillo: 2 }, ambiente: { niebla: 0x080010 } };
 
 // ───────────────────────────────────────── motor gráfico
 const lienzo = $('lienzo');
@@ -291,7 +303,7 @@ function anillo() {
 // ───────────────────────────────────────── EL MAPA
 const mapa = new THREE.Group(); escena.add(mapa);
 const nodosMapa = [];
-let naveMapa = null, elegido = null, marcasMapa = {};
+let naveMapa = null, elegido = null, marcasMapa = {}, repasoMapa = {};
 const lineasMapa = [];
 const COLOR_MED = { nada: 0x3b5266, bronce: 0xe0945a, plata: 0xcfe3f0, oro: 0xffd54a };
 function posNodo(i) {
@@ -338,7 +350,7 @@ async function entrarMapa() {
   $('hud').classList.add('oculto'); $('mapa-ui').classList.remove('oculto'); $('pantalla').classList.add('oculto');
   camara.position.set(0, 1.2, 12); camara.lookAt(0, 0, -2);
   ponerMusica(false);
-  marcasMapa = await SERVIDOR.marcas(); pintarEtiquetas();
+  marcasMapa = await SERVIDOR.marcas(); if (REPASO) repasoMapa = await SERVIDOR.repaso(); pintarEtiquetas();
   // la nave espera en la primera misión sin medalla
   const sig = MISIONES.find((m) => medDe(m.id) === 'nada') || MISIONES[9];
   elegirNodo(nodosMapa[sig.a]);
@@ -348,7 +360,8 @@ function elegirNodo(g) {
   // la Cero no es destino de nadie: pulsarla abre la primera misión (la que sale de ella)
   const llegan = i === 0 ? [MISIONES[0]] : MISIONES.filter((m) => m.a === i);
   f.classList.remove('oculto');
-  f.innerHTML = llegan.map((m) => `<div class="mis"><div><div class="cuando">Misión ${m.n} · ${esc(m.cuando)}</div><h3>${esc(m.final ? 'Vaeon · la batalla final' : NODOS[m.de].n + ' → ' + NODOS[m.a].n + ' · ' + m.titulo)}</h3><p>${esc(m.lema)}</p><span class="med ${medDe(m.id)}">${NOMBRE_MED[medDe(m.id)]}</span></div><button data-m="${m.id}">Despegar</button></div>`).join('');
+  const mejor = (id) => Math.max(0, ...Object.keys(NIVELES).map((k) => repasoMapa[id + '|' + k] || 0));
+  f.innerHTML = llegan.map((m) => `<div class="mis"><div><div class="cuando">Misión ${m.n} · ${esc(m.cuando)}</div><h3>${esc(m.final ? 'Vaeon · la batalla final' : NODOS[m.de].n + ' → ' + NODOS[m.a].n + ' · ' + m.titulo)}</h3><p>${esc(m.lema)}</p>${REPASO ? `<span class="med">Tu mejor repaso: ${mejor(m.id).toLocaleString('es-ES')}</span>` : `<span class="med ${medDe(m.id)}">${NOMBRE_MED[medDe(m.id)]}</span>`}</div><button data-m="${m.id}">${REPASO ? 'Repasar' : 'Despegar'}</button></div>`).join('');
   f.querySelectorAll('[data-m]').forEach((b) => { b.onclick = () => { audio(); briefing(MISIONES.find((m) => m.id === b.dataset.m)); }; });
 }
 const rayo = new THREE.Raycaster();
@@ -380,18 +393,34 @@ function tickMapa(dt) {
 
 // ───────────────────────────────────────── briefing
 function pantalla(html) { $('pantalla').classList.remove('oculto'); $('pantalla-caja').innerHTML = html; }
-function briefing(m) {
-  $('mapa-ui').classList.add('oculto');
-  const tabla = ['bronce', 'plata', 'oro'].map((e) => `<span class="med ${e}">${NOMBRE_MED[e]} +${PREMIOS[e].xp} xp +${PREMIOS[e].cr} ◈</span>`).join(' ');
-  pantalla(`<div class="kicker">Misión ${m.n} · ${esc(m.cuando)}</div>
-  <h2>${esc(m.final ? 'Vaeon · la batalla final' : NODOS[m.de].n + ' → ' + NODOS[m.a].n)}</h2>
-  <p><b>${esc(m.titulo)}.</b> ${esc(m.lema)}</p>
-  <p>${m.final ? 'Rompe los cristales de sus manos. Cada vez que caiga un punto débil, una pregunta: si aciertas se abre el siguiente (núcleo y cabeza); si fallas, se regenera.' : 'Tres veces el tiempo se ralentiza y llegan puertas con respuestas: <b>atraviesa la correcta</b>. Llegar ya es medalla de bronce.'}</p>
-  ${matchMedia('(pointer: coarse)').matches
+function teclasHTML() {
+  return matchMedia('(pointer: coarse)').matches
     ? '<div class="teclas"><kbd>Arrastra el dedo</kbd><span>La nave te sigue y dispara mientras tocas</span><kbd>Dos dedos</kbd><span>Tonel: esquivas los disparos un instante</span></div>'
-    : '<div class="teclas"><kbd>Ratón / WASD / flechas</kbd><span>Pilotar</span><kbd>Clic / Espacio (mantén)</kbd><span>Disparar</span><kbd>Mayús / Q / E / doble clic</kbd><span>Tonel: esquivas los disparos un instante</span></div>'}
-  <p style="font-size:15px">Se puntúa aparte <b style="color:var(--ambar)">SABER</b> y <b style="color:var(--cian)">PERICIA</b>. El oro pide las dos. Cada medalla se cobra una vez: ${tabla}</p>
-  <div class="botones"><button id="b-ya">¡Despegar!</button>${EMBED ? '' : '<button class="sec" id="b-mapa">Volver al mapa</button>'}</div>`);
+    : '<div class="teclas"><kbd>Ratón / WASD / flechas</kbd><span>Pilotar</span><kbd>Clic / Espacio (mantén)</kbd><span>Disparar</span><kbd>Mayús / Q / E / doble clic</kbd><span>Tonel: esquivas los disparos un instante</span></div>';
+}
+const titMision = (m) => m.final ? 'Vaeon · la batalla final' : m.tema === 'todo' ? 'Todo el viaje' : NODOS[m.de].n + ' → ' + NODOS[m.a].n;
+async function briefing(m) {
+  $('mapa-ui').classList.add('oculto');
+  if (REPASO) { // el Simulador de vuelo: se elige el nivel; no hay premio
+    const mejores = await SERVIDOR.repaso();
+    pantalla(`<div class="kicker">Simulador de vuelo · repaso</div>
+    <h2>${esc(titMision(m))}</h2>
+    <p><b>${esc(m.titulo)}.</b> ${esc(m.lema)}</p>
+    <div class="niveles">${Object.entries(NIVELES).map(([k, v]) => `<button class="nivel${k === NIVEL ? ' si' : ''}" data-nivel="${k}"><b>${v.n} <em>×${String(v.mult).replace('.', ',')}</em></b><span>${esc(v.que)}</span><small>Tu mejor marca: ${(mejores[m.id + '|' + k] || 0).toLocaleString('es-ES')}</small></button>`).join('')}</div>
+    ${teclasHTML()}
+    <p style="font-size:15px">El repaso <b>no da xp ni créditos</b>: tu marca (tus puntos × el nivel) va al ranking del Simulador de vuelo en la sala de Joran.</p>
+    <div class="botones"><button id="b-ya">¡Despegar!</button><button class="sec" id="b-mapa">Volver al mapa</button></div>`);
+    document.querySelectorAll('[data-nivel]').forEach((b) => { b.onclick = () => { NIVEL = b.dataset.nivel; document.querySelectorAll('[data-nivel]').forEach((x) => x.classList.toggle('si', x === b)); }; });
+  } else {
+    const tabla = ['bronce', 'plata', 'oro'].map((e) => `<span class="med ${e}">${NOMBRE_MED[e]} +${PREMIOS[e].xp} xp +${PREMIOS[e].cr} ◈</span>`).join(' ');
+    pantalla(`<div class="kicker">Misión ${m.n} · ${esc(m.cuando)}</div>
+    <h2>${esc(titMision(m))}</h2>
+    <p><b>${esc(m.titulo)}.</b> ${esc(m.lema)}</p>
+    <p>${m.final ? 'Rompe los cristales de sus manos. Cada vez que caiga un punto débil, una pregunta: si aciertas se abre el siguiente (núcleo y cabeza); si fallas, se regenera.' : 'Tres veces el tiempo se ralentiza y llegan puertas con respuestas: <b>atraviesa la correcta</b> (si hay dos huecos, dos tandas de puertas). Llegar ya es medalla de bronce.'}</p>
+    ${teclasHTML()}
+    <p style="font-size:15px"><b style="color:var(--ambar)">SABER</b> da xp y <b style="color:var(--cian)">PERICIA</b> da créditos; el oro pide las dos. Cada medalla se cobra una vez: ${tabla}</p>
+    <div class="botones"><button id="b-ya">¡Despegar!</button>${EMBED ? '' : '<button class="sec" id="b-mapa">Volver al mapa</button>'}</div>`);
+  }
   $('b-ya').onclick = () => { audio(); $('pantalla').classList.add('oculto'); empezar(m); };
   if ($('b-mapa')) $('b-mapa').onclick = () => entrarMapa();
 }
@@ -418,9 +447,14 @@ function nuevaMision(m) {
     m, tipo: m.final ? 'final' : 'ruta', t: 0, juego: 0, lenta: 1, lentaObj: 1, escudo: 100, saber: 0, pericia: 0, combo: 0, maxCombo: 0,
     disparos: 0, impactos: 0, derribos: 0, anillos: 0, daño: 0, aciertos: 0, preguntas: 0, racha: 0, maxRacha: 0,
     doble: 0, tonel: -1, cadencia: 0, sigSpawn: 2, pregunta: null, fin: false, pos: new V3(0, 0, 0), velN: new V3(),
-    preguntasCola: [], partida: null, momentos: m.final ? [] : [28, 60, 92], duracion: 112, guion: m.tutorial ? GUION_TUTORIAL.slice() : [],
+    preguntasCola: [], partida: null, momentos: m.final ? [] : momentosDe(m), duracion: m.tema === 'todo' ? 130 : 112, guion: m.tutorial ? GUION_TUTORIAL.slice() : [],
     escuadrillas: {}, inicio: performance.now(), llegando: null,
   };
+}
+// cuándo llegan las puertas (en segundos de vuelo): tres en la misión; cuatro en el repaso; seis en todo el viaje
+function momentosDe(m) {
+  const n = m.tema === 'todo' ? 6 : NIVEL ? 4 : 3;
+  return n === 3 ? [28, 60, 92] : Array.from({ length: n }, (_, i) => Math.round(18 + i * (m.tema === 'todo' ? 96 : 78) / (n - 1)));
 }
 const GUION_TUTORIAL = [
   { t: 1, txt: 'Aquí NEBULA. Es tu primer vuelo: mueve el ratón (o el dedo) y la nave te sigue.' },
@@ -438,7 +472,7 @@ async function empezar(mis) {
   ponerAmbiente(mis.ambiente || {});
   $('hud').classList.remove('oculto'); $('pregunta').classList.add('oculto');
   $('prog').classList.toggle('oculto', !!mis.final); $('jefe').classList.toggle('oculto', !mis.final);
-  $('mision-t').textContent = `MISIÓN ${mis.n} · ${mis.titulo.toUpperCase()}`;
+  $('mision-t').textContent = (REPASO ? `REPASO ${NIVELES[NIVEL].n.toUpperCase()} · ` : `MISIÓN ${mis.n} · `) + mis.titulo.toUpperCase();
   $('prog-t').textContent = mis.final ? '' : `Rumbo a ${NODOS[mis.a].n}`;
   if (!nave) {
     nave = modelos.nave.clone();
@@ -462,7 +496,7 @@ async function empezar(mis) {
   }
   aviso(mis.final ? 'VAEON' : d.n.toUpperCase(), '#5ff4ff', 2.2);
   // las preguntas las da «el servidor» (sin la respuesta)
-  const r = await SERVIDOR.empezar(mis);
+  const r = await SERVIDOR.empezar(mis, { nivel: NIVEL });
   if (!M || M.m !== mis) return;
   M.partida = r.partida; M.preguntasCola = r.preguntas;
 }
@@ -517,7 +551,7 @@ function oleada() {
     poner('anillo', -15 + (hx + 0.5) * 5, -6.5 + (hy + 0.5) * 4.8, -330);
     M.sigSpawn = 3.2; return;
   } else if (tipo === 'anillo') poner('anillo', azar(-10, 10), azar(-4, 6));
-  M.sigSpawn = (azar(1.1, 2.0) - f * 0.5) / tut;
+  M.sigSpawn = (azar(1.1, 2.0) - f * 0.5) / tut / (NIVEL ? NIVELES[NIVEL].ritmo : 1);
 }
 
 // ── la nave
@@ -567,7 +601,7 @@ function sumarPericia(n) { const mult = 1 + Math.min(M.combo, 20) * 0.1; M.peric
 function recibirDaño(n) {
   if (M.fin) return false;
   if (M.tonel > 0) { SON.blindado(); return false; }
-  M.escudo -= n; M.daño += n; M.combo = 0; SON.golpe();
+  n *= NIVEL ? NIVELES[NIVEL].daño : 1; M.escudo -= n; M.daño += n; M.combo = 0; SON.golpe();
   lienzo.style.filter = 'brightness(1.8) saturate(0.5)'; setTimeout(() => (lienzo.style.filter = ''), 90);
   if (M.escudo <= 0) { M.escudo = 0; derrota(); }
   return true;
@@ -585,46 +619,76 @@ function textoPuerta(letra, texto) {
   ls = ls.slice(0, 5); ls.forEach((t, i) => x.fillText(t.trim(), 160, 128 + (i - (ls.length - 1) / 2) * 40));
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; return tex;
 }
-function lanzarPregunta(alAcabar) {
-  // sin preguntas (la web sin servidor todavía): Vaeon no se queda regenerándose para siempre, se abre la fase siguiente
-  const q = M.preguntasCola.shift(); if (!q) return alAcabar && alAcabar(true);
-  for (const c of cosas.slice()) if (!c.anillo && !c.puerta) { explotar(c.obj.position, 0x5ff4ff, 16, 0.6); quitar(c); }
-  for (const b of balas.splice(0)) escena.remove(b.obj);
-  const letras = 'ABCD', n = q.opciones.length, sep = 30 / n, jefe = M.tipo === 'final';
-  M.pregunta = { q, t: 0, alAcabar, puertas: [] };
-  q.opciones.forEach((op, i) => {
+// Las preguntas de VARIOS pasos (completar dos huecos, o las de varias correctas) se vuelan en tandas: una tanda de
+// puertas por hueco (en orden) o por respuesta buena (en cualquier orden). Lo que ya has elegido no vuelve a salir.
+const LETRAS = 'ABCDEF';
+function htmlVisual(v) {
+  if (!v) return '';
+  if (v.svg) return `<div class="vis ${esc(v.tipo)}">${v.svg}</div>`; // el SVG lo dibuja el servidor (ya escapado)
+  if (v.src) return `<div class="vis imagen"><img src="${BASE_WEB}${esc(v.src)}" alt="${esc(v.alt || '')}"></div>`;
+  return '';
+}
+function panelPregunta(P) {
+  const q = P.q, n = P.elegidas.length;
+  let enun = esc(q.enunciado);
+  if (q.tipo === 'hueco') { let k = 0; enun = enun.replace(/_{2,}/g, () => { const i = k++, w = P.elegidas[i]; return `<span class="hueco${i === n ? ' ahora' : ''}">${w != null ? esc(q.opciones[w]) : '?'}</span>`; }); }
+  const tit = q.pasos > 1 ? (q.tipo === 'hueco' ? `HUECO ${n + 1} DE ${q.pasos} · UNA PUERTA POR HUECO` : `BUENA ${n + 1} DE ${q.pasos} · CRUZA TODAS LAS CORRECTAS`) : 'ATRAVIESA LA PUERTA CORRECTA';
+  return `<div class="tit">PREGUNTA ${M.preguntas + 1} · ${tit}</div><div class="cuerpo">${htmlVisual(q.visual)}<div class="texto"><div class="enun">${enun}</div><ol>${q.opciones.map((o, i) => `<li class="${P.elegidas.includes(i) ? 'usada' : ''}"><b>${LETRAS[i]}</b><span>${esc(o)}</span></li>`).join('')}</ol></div></div><div class="reloj" id="p-reloj"></div>`;
+}
+function ponerPuertas(P) {
+  const jefe = M.tipo === 'final', libres = P.q.opciones.map((_, i) => i).filter((i) => !P.elegidas.includes(i)), sep = 30 / libres.length;
+  const z = jefe ? -72 : P.elegidas.length ? -140 : -190; // la segunda tanda llega antes: ya vas a cámara lenta
+  P.puertas = [];
+  libres.forEach((i, k) => {
     const g = new THREE.Group(), marco = new THREE.MeshBasicMaterial({ color: 0x5ff4ff });
     const W = Math.min(sep - 0.4, 7.4), H = 7;
     for (const [w, h, x, y] of [[W, 0.3, 0, H / 2], [W, 0.3, 0, -H / 2], [0.3, H, -W / 2, 0], [0.3, H, W / 2, 0]]) { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.3), marco); b.position.set(x, y, 0); g.add(b); }
-    const cartel = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.02, W * 0.51), new THREE.MeshBasicMaterial({ map: textoPuerta(letras[i], op), transparent: true, side: THREE.DoubleSide }));
+    const cartel = new THREE.Mesh(new THREE.PlaneGeometry(W * 1.02, W * 0.51), new THREE.MeshBasicMaterial({ map: textoPuerta(LETRAS[i], P.q.opciones[i]), transparent: true, side: THREE.DoubleSide }));
     cartel.position.y = H / 2 + W * 0.28; g.add(cartel);
     const velo = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({ color: 0x5ff4ff, transparent: true, opacity: 0.08, side: THREE.DoubleSide }));
     g.add(velo);
-    g.position.set(-15 + sep * (i + 0.5), jefe ? -5 : 0, jefe ? -72 : -190); escena.add(g);
-    const c = { tipo: 'puerta', obj: g, r: 0, hp: Infinity, puerta: true, i, W, H, marco, velo }; cosas.push(c); M.pregunta.puertas.push(c);
+    g.position.set(-15 + sep * (k + 0.5), jefe ? -5 : 0, z); escena.add(g);
+    const c = { tipo: 'puerta', obj: g, r: 0, hp: Infinity, puerta: true, i, W, H, marco, velo }; cosas.push(c); P.puertas.push(c);
   });
-  $('pregunta').innerHTML = `<div class="tit">PREGUNTA ${M.preguntas + 1} · ATRAVIESA LA PUERTA CORRECTA</div><div class="enun">${esc(q.enunciado)}</div><ol>${q.opciones.map((o, i) => `<li><b>${letras[i]}</b><span>${esc(o)}</span></li>`).join('')}</ol><div class="reloj" id="p-reloj"></div>`;
+  $('pregunta').innerHTML = panelPregunta(P);
   $('pregunta').classList.remove('oculto');
-  M.lentaObj = jefe ? 0.16 : 0.3;
+}
+function lanzarPregunta(alAcabar) {
+  // sin preguntas (la web sin servidor todavía): Vaeon no se queda regenerándose para siempre, se abre la fase siguiente
+  const q = M.preguntasCola.shift(); if (!q) return alAcabar && alAcabar(true);
+  q.pasos = q.pasos || 1;
+  for (const c of cosas.slice()) if (!c.anillo && !c.puerta) { explotar(c.obj.position, 0x5ff4ff, 16, 0.6); quitar(c); }
+  for (const b of balas.splice(0)) escena.remove(b.obj);
+  M.pregunta = { q, t: 0, alAcabar, puertas: [], elegidas: [] };
+  ponerPuertas(M.pregunta);
+  M.lentaObj = M.tipo === 'final' ? 0.16 : NIVEL ? NIVELES[NIVEL].lenta : 0.3;
 }
 async function resolverPregunta(i) {
   const P = M.pregunta; if (!P) return;
+  if (i != null && P.elegidas.length + 1 < P.q.pasos) { // queda otra tanda
+    P.elegidas.push(i);
+    const viejas = P.puertas; for (const c of viejas) c.marco.color.set(c.i === i ? 0xffc24a : 0x5ff4ff);
+    setTimeout(() => { for (const c of viejas) quitar(c); }, 500);
+    SON.anillo(); aviso(P.q.tipo === 'hueco' ? `HUECO ${P.elegidas.length + 1}` : 'OTRA BUENA', '#ffc24a', 1);
+    ponerPuertas(P); return;
+  }
+  if (i != null) P.elegidas.push(i);
   M.pregunta = null; M.lentaObj = 1; M.preguntas++;
   $('pregunta').classList.add('oculto');
-  const r = await SERVIDOR.responder(M.partida, P.q.id, i);
+  const r = await SERVIDOR.responder(M.partida, P.q.id, P.q.pasos > 1 ? P.elegidas : i);
   if (!M) return;
   const ok = !!r.ok;
   for (const c of P.puertas) c.marco.color.set(c.i === i ? (ok ? 0x5dffa0 : 0xff4d6d) : 0x5ff4ff);
   if (ok) {
     M.aciertos++; M.racha++; M.maxRacha = Math.max(M.maxRacha, M.racha);
-    const pts = 500 * (1 + (M.racha - 1) * 0.5); M.saber += pts;
+    const pts = 500 * P.q.pasos * (1 + (M.racha - 1) * 0.5); M.saber += pts;
     M.escudo = Math.min(100, M.escudo + 20); M.doble = 14;
     SON.bien(); aviso(`¡CORRECTO! +${pts}`, '#5dffa0', 1.8);
     decir('¡Correcto! ' + (r.correccion || '') + ' Te paso el láser doble.', 7);
   } else {
     M.racha = 0; SON.mal(); recibirDaño(10);
     aviso(i == null ? 'SIN RESPUESTA' : 'FALLO', '#ff4d6d', 1.8);
-    decir((i == null ? 'Hay que atravesar una puerta. ' : 'No era esa. ') + (r.correccion || ''), 9);
+    decir((i == null ? 'Hay que atravesar una puerta. ' : P.q.pasos > 1 ? 'No era esa combinación. ' : 'No era esa. ') + (r.correccion || ''), 9);
   }
   setTimeout(() => { for (const c of P.puertas) quitar(c); }, 700);
   P.alAcabar && P.alAcabar(ok);
@@ -805,7 +869,7 @@ function tickMision(dtReal) {
       const dx = o.position.x - M.pos.x, dy = o.position.y - M.pos.y, d = Math.hypot(dx, dy);
       if (c.anillo) { if (d < 3) { M.anillos++; M.escudo = Math.min(100, M.escudo + 10); sumarPericia(200); SON.anillo(); aviso('+ ANILLO', '#ffc24a', 0.9); } }
       else if (c.puerta) {
-        if (M.pregunta && c.i === 0) {
+        if (M.pregunta && c === M.pregunta.puertas[0]) {
           const P = M.pregunta, cerca = P.puertas.reduce((a, b) => Math.abs(b.obj.position.x - M.pos.x) < Math.abs(a.obj.position.x - M.pos.x) ? b : a);
           resolverPregunta(Math.abs(M.pos.y - cerca.obj.position.y) < cerca.H / 2 + 1.5 ? cerca.i : null);
         }
@@ -865,6 +929,24 @@ async function fin(llego, motivo = '') {
   const r = M.partida ? await SERVIDOR.terminar(M.partida, datos) : { medalla: 'nada', premio: { xp: 0, cr: 0, escalones: [] } };
   try { window.parent !== window && window.parent.postMessage({ sgRuta: { mision: m.id, medalla: r.medalla, puntos: Math.round(datos.puntos) } }, '*'); } catch (e) { /* sin padre */ }
   const X = M;
+  if (r.repaso) { // el Simulador de vuelo: la marca va a la sala de Joran (su ranking y sus hitos)
+    try { const S = await import(SALA + 'comun.js'); S.registrarPartida('vuelo', r.total, { nivel: r.nivel, mision: m.id }); } catch (e) { console.warn('sin sala', e); }
+    setTimeout(() => {
+      $('hud').classList.add('oculto');
+      pantalla(`<div class="kicker">Simulador de vuelo · nivel ${esc(NIVELES[r.nivel].n)} (×${String(NIVELES[r.nivel].mult).replace('.', ',')})</div>
+      <h2>${llego ? esc(titMision(m)) + ': tramo completado' : 'Vuelo sin terminar'}</h2>${motivo ? `<p>${esc(motivo)}</p>` : ''}
+      <div class="gran">${r.total.toLocaleString('es-ES')}<small>puntos${r.record ? ' · ¡récord!' : ` · tu mejor marca en este nivel: ${r.mejor.toLocaleString('es-ES')}`}</small></div>
+      <div class="res">
+        <div class="col saber"><h3>SABER · ${Math.round(X.saber)}</h3><div class="l"><span>Aciertos</span><b>${X.aciertos} / ${X.preguntas}</b></div><div class="l"><span>Mejor racha</span><b>${X.maxRacha ? '×' + X.maxRacha : '—'}</b></div></div>
+        <div class="col pericia"><h3>PERICIA · ${Math.round(X.pericia)}</h3><div class="l"><span>Derribos</span><b>${X.derribos}</b></div><div class="l"><span>Puntería</span><b>${Math.round(prec * 100)} %</b></div><div class="l"><span>Escudo</span><b>${Math.round(X.escudo)} %</b></div></div>
+      </div>
+      <p style="font-size:14px;opacity:.85">${r.total ? 'Es repaso: no da xp ni créditos. Tu marca ya está en el ranking del Simulador de vuelo.' : 'Esta vez no hay marca: para puntuar hay que llegar al planeta.'}</p>
+      <div class="botones"><button id="b-otra">Repetir</button><button class="sec" id="b-mapa">Otro tramo</button><a class="boton sec" href="${SALA}index.html">Volver a la sala</a></div>`);
+      $('b-otra').onclick = () => { $('pantalla').classList.add('oculto'); briefing(m); };
+      $('b-mapa').onclick = () => entrarMapa();
+    }, llego ? 1200 : 1500);
+    return;
+  }
   setTimeout(() => {
     $('hud').classList.add('oculto');
     const premio = r.premio && r.premio.escalones.length
@@ -933,12 +1015,16 @@ function bucle(ahora) {
   comCam.position.set(0, 0.33, 0.7); comCam.lookAt(0, 0.33, 0);
   await cargarAsteroides(); paso();
   montarMapa();
+  if (REPASO) { // la cabecera del Simulador de vuelo: el tramo de los ocho temas y la vuelta a la sala
+    document.querySelector('#mapa-ui .cab').innerHTML = `<h1>SIMULADOR DE VUELO</h1><p>Repasa cualquier tramo de la Ruta en tres niveles · sin premio, con ranking</p><div class="cab-bot"><button id="b-viaje">Todo el viaje · los 8 temas</button><a class="boton sec" href="${SALA}index.html">Volver a la sala</a></div>`;
+    $('b-viaje').onclick = () => { audio(); briefing(VIAJE); };
+  }
   $('carga').remove();
   requestAnimationFrame(bucle);
-  const pedida = MISIONES.find((m) => m.id === QS.get('mision'));
+  const pedida = [...MISIONES, VIAJE].find((m) => m.id === QS.get('mision'));
   if (pedida) { mapa.visible = false; modo = 'briefing'; camara.position.set(0, 3, 13); camara.lookAt(0, 0, -30); briefing(pedida); }
   else entrarMapa();
 })().catch((e) => { $('carga').textContent = 'No se pudo cargar: ' + e.message; console.error(e); });
 
 // para probarlo desde fuera
-window.JUEGO = { get M() { return M; }, cosas, oleada, romper: (k) => cristalRoto(k), empezar, entrarMapa, MISIONES, get modo() { return modo; }, camara, escena, poner, SERVIDOR };
+window.JUEGO = { get M() { return M; }, cosas, oleada, lanzar: (f) => lanzarPregunta(f), resolver: (i) => resolverPregunta(i), romper: (k) => cristalRoto(k), empezar, entrarMapa, MISIONES, get modo() { return modo; }, camara, escena, poner, SERVIDOR };

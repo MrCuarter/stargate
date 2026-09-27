@@ -3,16 +3,16 @@ export const RUTA = {
  "juego": "juegos/ruta/",
  "premios": {
   "bronce": [
-   30,
+   15,
    5
   ],
   "plata": [
-   15,
+   10,
    5
   ],
   "oro": [
-   15,
-   5
+   5,
+   10
   ]
  },
  "misiones": [

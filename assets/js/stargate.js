@@ -470,7 +470,7 @@ window.SG.CFGSESION = (function () {
   function e(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function ico(k, grande){ return '<img class="ico'+(grande?' grande':'')+'" src="assets/img/iconos/'+(grande?'':'p/')+k+'.png" alt="" width="20" height="20">'; }
   var SIN_CAPTURA = { pregunta: ["pregunta", "Sale en las clases que tienen pregunta en el calendario oficial"], tripulante: ["gente", "Sale la semana del relámpago que recupera a un tripulante"], simulador: ["diana", "Sale cuando alguien ha jugado al Simulador"], votacion: ["rayo", "Sale si hay una votación esta semana"],
-                      oferta: ["monedas", "Sale si hay oferta en el Mercado"], unete: ["gente", "Sale en las semanas 1 y 2: el código y la invitación"] };
+                      oferta: ["monedas", "Sale si hay oferta en el Mercado"], directo: ["rayo", "Al final de cada clase, tras el ticket: el juego de todos desde el móvil"], asedio: ["escudo", "Semana 11: el Asedio entre escuadrones; semana 12, su resultado"], unete: ["gente", "Sale en las semanas 1 y 2: el código y la invitación"] };
   function casillas(off) {
     var hay = window.SG_CAPTURAS_SESION || [];
     return '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {

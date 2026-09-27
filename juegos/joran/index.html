@@ -10,39 +10,110 @@
 <style>
 html,body{overflow:auto}
 body{background:#01040c url(img/sala.jpg) center/cover fixed}
-body::before{content:"";position:fixed;inset:0;background:linear-gradient(180deg,rgba(1,4,12,.55),rgba(1,4,12,.88) 60%);pointer-events:none}
+body::before{content:"";position:fixed;inset:0;background:linear-gradient(180deg,rgba(1,4,12,.55),rgba(1,4,12,.9) 60%);pointer-events:none}
 main{position:relative;max-width:1180px;margin:0 auto;padding:18px 16px 28px}
 .cab{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
 .cab h1{margin:2px 0 0;font-size:clamp(24px,3.6vw,40px);color:var(--cian);text-shadow:0 0 18px rgba(95,244,255,.6)}
 .cred{background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:8px 14px;font-size:15px}
 .cred b{font-size:22px;color:var(--ambar)}
-.joran{display:grid;grid-template-columns:220px 1fr;gap:14px;align-items:center;margin-top:14px;background:var(--panel);border:1px solid var(--borde);border-radius:16px;overflow:hidden}
-.joran img{width:100%;height:100%;min-height:150px;object-fit:cover;object-position:78% 30%}
+nav.sub{position:sticky;top:0;z-index:5;display:flex;gap:6px;flex-wrap:wrap;margin:14px -16px 0;padding:8px 16px;background:rgba(1,4,12,.88);backdrop-filter:blur(6px);border-bottom:1px solid rgba(95,244,255,.2)}
+nav.sub a{font-family:Orbitron;font-size:13px;letter-spacing:.06em;color:#e8f6ff;text-decoration:none;padding:7px 12px;border-radius:20px;border:1px solid var(--borde);background:#0d2236}
+nav.sub a:hover{border-color:var(--ambar);color:var(--ambar)}
+.joran{display:grid;grid-template-columns:200px 1fr;gap:14px;align-items:center;margin-top:14px;background:var(--panel);border:1px solid var(--borde);border-radius:16px;overflow:hidden}
+.joran img{width:100%;height:100%;min-height:140px;object-fit:cover;object-position:78% 30%}
 .joran p{margin:10px 16px 10px 0;font-size:17px;line-height:1.45}
 .joran p b{color:var(--ambar)}
-h2.sec{font-size:15px;letter-spacing:.14em;color:var(--ambar);margin:20px 0 8px;text-transform:uppercase}
+h2.sec{font-size:15px;letter-spacing:.14em;color:var(--ambar);margin:26px 0 4px;text-transform:uppercase;scroll-margin-top:64px}
+p.intro{margin:0 0 10px;font-size:15px;opacity:.88;line-height:1.45}
 .avatares{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.av{display:flex;gap:10px;align-items:center;background:var(--panel);border:2px solid transparent;border-radius:14px;padding:6px 12px 6px 6px;cursor:pointer;font:inherit;color:inherit;text-align:left}
-.av img{width:64px;height:64px;border-radius:10px;object-fit:cover;object-position:50% 30%}
+.av{display:flex;gap:10px;align-items:center;background:var(--panel);border:2px solid transparent;border-radius:14px;padding:6px 12px 6px 6px;cursor:pointer;font:inherit;color:inherit;text-align:left;letter-spacing:0}
+.av img{width:56px;height:56px;border-radius:10px;object-fit:cover;object-position:50% 30%}
 .av b{font-family:Orbitron;font-size:15px;display:block}
-.av span{font-size:14px;opacity:.85}
+.av span{font-size:14px;opacity:.85;font-weight:400}
 .av.si{border-color:var(--cian);box-shadow:0 0 18px rgba(95,244,255,.35)}
 .maquinas{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
 .maq{background:var(--panel);border:1px solid var(--borde);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.maq.repaso{border-color:rgba(255,194,74,.7)}
 .maq .foto{position:relative;aspect-ratio:16/9;background:#000}
 .maq .foto img{width:100%;height:100%;object-fit:cover;display:block}
 .maq.cerrada .foto img{filter:grayscale(1) brightness(.45)}
 .maq .candado{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:15px;letter-spacing:.1em;color:var(--ambar);text-shadow:0 0 10px #000}
+.maq .etq{position:absolute;left:10px;top:10px;font-family:Orbitron;font-size:11px;letter-spacing:.12em;padding:4px 8px;border-radius:12px;background:rgba(1,4,12,.8);border:1px solid var(--ambar);color:var(--ambar)}
 .maq .txt{padding:10px 14px 12px}
 .maq h3{margin:0 0 4px;font-size:18px;color:var(--cian)}
 .maq p{margin:0 0 6px;font-size:15px;line-height:1.4}
 .maq .ctl{font-size:13px;opacity:.8}
-.maq .rec{font-size:14px;margin:6px 0}
+.maq .rec{font-size:14px;margin:8px 0 4px}
 .maq .rec b{color:var(--ambar)}
 .maq .req{font-size:14px;margin:6px 0}
-.maq .botones{margin-top:8px}
-.nota{margin-top:18px;font-size:14px;opacity:.85;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
-@media (max-width:900px){.maquinas{grid-template-columns:1fr}.joran{grid-template-columns:120px 1fr}.joran p{font-size:15px}.avatares{grid-template-columns:1fr}}
+.hitos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}
+.hito{border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:5px 6px;text-align:center;font-size:12px;line-height:1.25;opacity:.6}
+.hito b{display:block;font-family:Orbitron;font-size:11px;letter-spacing:.08em}
+.hito.si{opacity:1;background:rgba(255,255,255,.06)}
+.hito.bronce b{color:#e39a5b} .hito.plata b{color:#cfd8e3} .hito.oro b{color:#ffd35c}
+.hito.bronce.si{border-color:#e39a5b} .hito.plata.si{border-color:#cfd8e3} .hito.oro.si{border-color:#ffd35c}
+.top3{list-style:none;margin:6px 0 0;padding:0;font-size:14px}
+.top3 li{display:flex;align-items:center;gap:8px;padding:2px 0}
+.top3 li.yo{color:var(--ambar);font-weight:700}
+.top3 .pos{font-family:Orbitron;font-size:12px;width:18px;opacity:.8}
+.top3 img,.rk img,.gj .quien img{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid var(--borde)}
+.top3 .pts{margin-left:auto;font-variant-numeric:tabular-nums}
+.maq .botones{margin-top:10px}
+.maq .botones .boton,.maq .botones button{padding:10px 14px;font-size:13px}
+/* el cuaderno */
+.cuad{background:var(--panel);border:1px solid var(--borde);border-radius:16px;padding:14px 16px}
+.cuad .cab2{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.cuad .cab2 b{font-family:Orbitron;font-size:20px;color:var(--cian)}
+.cuad .lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-top:12px}
+.ch{display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:8px 10px;opacity:.62}
+.ch.si{opacity:1;border-color:rgba(93,255,160,.6);background:rgba(93,255,160,.07)}
+.ch i{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;font-style:normal;font-family:Orbitron;font-size:13px;color:#7f95a8}
+.ch.si i{color:var(--verde)}
+.ch b{display:block;font-size:15px} .ch span{font-size:13px;opacity:.85}
+.as{margin-top:12px;display:flex;gap:14px;align-items:center;border:1px dashed var(--ambar);border-radius:14px;padding:10px 14px}
+.as .marco{flex:none;width:64px;height:64px;border-radius:50%;padding:3px;background:conic-gradient(var(--cian),var(--magenta),var(--ambar),var(--cian));box-shadow:0 0 18px rgba(95,244,255,.5)}
+.as .marco img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.as.gris .marco{filter:grayscale(1);opacity:.6}
+.as b{color:var(--ambar);font-family:Orbitron;font-size:15px}
+/* rankings */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
+.tabs button{padding:8px 12px;font-size:12px;background:#0d2236;color:#e8f6ff;border:1px solid var(--borde);font-weight:600}
+.tabs button.si{background:linear-gradient(135deg,#19c3d6,#1a7bd6);color:#001018;font-weight:800}
+.rkcaja{background:var(--panel);border:1px solid var(--borde);border-radius:16px;padding:12px 16px}
+.rk{list-style:none;margin:0;padding:0;columns:2;column-gap:24px}
+.rk li{break-inside:avoid}
+.rk li{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:10px;font-size:15px}
+.rk li:nth-child(-n+3) .pos{color:var(--ambar)}
+.rk li.yo{background:rgba(255,194,74,.14);outline:1px solid var(--ambar)}
+.rk .pos{font-family:Orbitron;font-size:13px;width:26px;text-align:right}
+.rk .pts{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:700}
+.rk li.sep{justify-content:center;opacity:.6;padding:0}
+.aviso-rk{font-size:13px;opacity:.75;margin-top:8px}
+/* la galería */
+.podio{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
+.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.gj{background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.gj.top{border-color:#ffd35c;box-shadow:0 0 18px rgba(255,211,92,.2)}
+.gj.mio{border-color:var(--verde)}
+.gj .herr{font-family:Orbitron;font-size:11px;letter-spacing:.1em;color:var(--ambar);text-transform:uppercase}
+.gj h3{margin:0;font-size:17px;color:var(--cian)}
+.gj p{margin:0;font-size:14px;line-height:1.4;opacity:.9}
+.gj .quien{display:flex;gap:8px;align-items:center;font-size:14px}
+.gj .medalla-top{font-family:Orbitron;font-size:12px;color:#ffd35c}
+.estrellas{display:flex;align-items:center;gap:2px}
+.estrellas button{background:none;border:0;padding:0 2px;font-size:22px;line-height:1;color:#3b5068;cursor:pointer;font-family:inherit;font-weight:400;letter-spacing:0}
+.estrellas button.on{color:#ffd35c;text-shadow:0 0 8px rgba(255,211,92,.6)}
+.estrellas button:disabled{cursor:default}
+.estrellas .media{margin-left:8px;font-size:14px}
+.estrellas .media b{color:#ffd35c}
+.gj .pie{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:auto}
+.gj .pie a{font-size:13px;padding:8px 12px}
+.form{display:grid;gap:8px}
+.form label{font-size:14px;display:grid;gap:4px}
+.form input,.form select,.form textarea{font:inherit;font-size:15px;color:#e8f6ff;background:#0d2236;border:1px solid var(--borde);border-radius:8px;padding:8px 10px;user-select:text;-webkit-user-select:text}
+.nota{margin-top:22px;font-size:14px;opacity:.85;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+@media (max-width:1000px){.maquinas,.gal,.podio{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:700px){nav.sub{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}nav.sub a{white-space:nowrap;flex:none}.maquinas,.gal,.podio{grid-template-columns:1fr}.rk{columns:1}.joran{grid-template-columns:110px 1fr}.joran p{font-size:15px}.avatares{grid-template-columns:1fr}}
 </style>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
@@ -54,34 +125,128 @@ h2.sec{font-size:15px;letter-spacing:.14em;color:var(--ambar);margin:20px 0 8px;
     <div><div class="kicker">Ludo · la sala de pruebas de Joran Pike</div><h1>EL SIMULADOR DE JORAN</h1></div>
     <div class="cred">Tus créditos: <b id="cred">0</b> ◈ <small>(de prueba)</small></div>
   </div>
+  <nav class="sub"><a href="#maquinas">Máquinas</a><a href="#cuaderno">Cuaderno de vuelo</a><a href="#rankings">Rankings</a><a href="#galeria">Galería de juegos</a></nav>
   <div class="joran"><img src="img/joran_consola.jpg" alt="Joran, en su consola">
-    <p>«¡Recluta! Aquí ensayábamos la evacuación los niños del refugio y yo: <b>cada máquina es un simulacro</b> disfrazado de juego. Empieza por <b>La Evacuación</b>. Las demás se encienden cuando haces una buena marca en la anterior… o si pagas la ficha con créditos. Elige tu mascota, como hacían ellos.»</p></div>
+    <p>«¡Recluta! Aquí ensayábamos la evacuación los niños del refugio y yo: <b>cada máquina es un simulacro</b> disfrazado de juego. Empieza por <b>La Evacuación</b>: la <b>plata</b> de cada máquina enciende la siguiente… o paga la ficha con créditos. Y el <b>Simulador de vuelo</b> está siempre encendido, para repasar.»</p></div>
   <h2 class="sec">Tu piloto de pruebas</h2>
   <div class="avatares" id="avatares"></div>
-  <h2 class="sec">Las máquinas</h2>
-  <div class="maquinas" id="maquinas"></div>
-  <div class="nota"><span>Borrador: las marcas, las máquinas abiertas y los créditos se guardan solo en este navegador. En el juego de verdad, en tu Nave (y cada máquina tiene su ranking de la clase).</span><button class="sec" id="reiniciar">Empezar de cero</button></div>
+
+  <h2 class="sec" id="maquinas">Las máquinas</h2>
+  <p class="intro">Cada máquina tiene tres hitos de marca. Cada uno se cobra <b>una sola vez</b>: bronce +5 ◈, plata +10 ◈ y oro +15 ◈. Las máquinas no dan xp: la xp es lo que aprendes en el viaje.</p>
+  <div class="maquinas" id="lista-maq"></div>
+
+  <h2 class="sec" id="cuaderno">Cuaderno de vuelo</h2>
+  <p class="intro">Once hitos entre la Ruta de la Estática y la sala. Con todos, el premio de Joran para tu Nave.</p>
+  <div class="cuad" id="cuad"></div>
+
+  <h2 class="sec" id="rankings">Rankings</h2>
+  <p class="intro">Tu clase, máquina a máquina. Y el <b>Salón de la fama</b>: los diez mejores de todos los grupos del curso (solo se ven los alias).</p>
+  <div class="tabs" id="rk-cual"></div>
+  <div class="tabs" id="rk-maq"></div>
+  <div class="rkcaja"><ol class="rk" id="rk"></ol><div class="aviso-rk">Borrador: tus compañeros son de ejemplo. En la Nave, tu clase de verdad.</div></div>
+
+  <h2 class="sec" id="galeria">Galería de juegos de la tripulación</h2>
+  <p class="intro">El reto principal de Ludo es <b>crear un juego</b>. Aquí están los que la tripulación ha querido enseñar: juega, y dales de <b>una a cinco estrellas</b>. El tuyo no lo puedes valorar tú, y valorar no da créditos (así nadie vota a lo loco).</p>
+  <div class="botones" style="margin:0 0 12px"><button id="b-publicar">Publicar mi juego</button></div>
+  <div class="podio" id="podio"></div>
+  <div class="gal" id="gal"></div>
+
+  <div class="nota"><span>Borrador: las marcas, los hitos, los votos y los créditos se guardan solo en este navegador. En el juego de verdad, en tu Nave (y los decide el servidor).</span><button class="sec" id="reiniciar">Empezar de cero</button></div>
 </main>
+<div id="aviso"></div>
 <div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
 <script type="module">
-import { $, esc, JUEGOS, AVATARES, estado, guardar, abierto, comprar, pantalla, cerrarPantalla, SON, audio } from './comun.js';
+import { $, esc, JUEGOS, ARCADE, AVATARES, ESCALONES, HITO_CR, estado, guardar, abierto, comprar, pantalla, cerrarPantalla, SON, audio, aviso, cuaderno, galeria, PREMIO_CUADERNO } from './comun.js';
+import { ranking, juegosGaleria, nota, AV } from './ejemplo.js';
+const n = (x) => Math.round(x).toLocaleString('es-ES');
+const NOM = { bronce: 'Bronce', plata: 'Plata', oro: 'Oro' };
+let rkCual = 'clase', rkMaq = 'evacuacion';
+
+function pintarMaquinas(e) {
+  $('lista-maq').innerHTML = JUEGOS.map((j, i) => {
+    const ok = abierto(e, j), rec = e.marcas[j.id] || 0;
+    const hitos = `<div class="hitos">${ESCALONES.map((s, k) => `<div class="hito ${s}${e.hitos[j.id + ':' + s] ? ' si' : ''}"><b>${NOM[s]}</b>${n(j.hitos[k])}${j.repaso ? '' : ` · +${HITO_CR[s]} ◈`}</div>`).join('')}</div>`;
+    const top = ranking(j.id, 'clase').slice(0, 3);
+    const top3 = top.length ? `<ol class="top3">${top.map((p, k) => `<li class="${p.yo ? 'yo' : ''}"><span class="pos">${k + 1}</span><img src="${AV(p.avatar)}" alt=""><span>${esc(p.alias)}${p.yo ? ' (tú)' : ''}</span><span class="pts">${n(p.puntos)}</span></li>`).join('')}</ol>` : '';
+    let pie;
+    if (ok) pie = `<div class="botones"><a class="boton" href="${j.url}">${j.repaso ? 'Repasar' : 'Jugar'}</a><button class="sec" data-rk="${j.id}">Ranking</button></div>`;
+    else {
+      const prev = JUEGOS.find((x) => x.id === j.abre.juego), llevo = e.marcas[prev.id] || 0, pc = Math.min(100, llevo / j.abre.puntos * 100);
+      pie = `<div class="req">Se enciende con la <b>plata</b> de ${esc(prev.n)}: <b>${n(j.abre.puntos)}</b> puntos (tu récord: ${n(llevo)})</div><div class="barra"><i style="width:${pc}%"></i></div>
+        <div class="botones"><button data-comprar="${j.id}" ${e.creditos < j.precio ? 'disabled' : ''}>Encender por ${j.precio} ◈</button><button class="sec" data-rk="${j.id}">Ranking</button></div>`;
+    }
+    const num = j.repaso ? '' : `MÁQUINA ${ARCADE.indexOf(j) + 1} · APAGADA`;
+    return `<div class="maq${ok ? '' : ' cerrada'}${j.repaso ? ' repaso' : ''}"><div class="foto"><img src="${j.img}" alt="">${j.repaso ? '<span class="etq">REPASO · SIN PREMIO</span>' : ''}${ok ? '' : `<div class="candado">${num}</div>`}</div>
+      <div class="txt"><h3>${esc(j.n)}</h3><p>${esc(j.lema)}</p><div class="ctl">${esc(j.controles)}</div>
+      ${ok ? `<div class="rec">Tu récord: <b>${n(rec)}</b></div>` : ''}${hitos}${top3}${pie}</div></div>`;
+  }).join('');
+}
+function pintarCuaderno() {
+  const c = cuaderno(), e = estado(), todo = c.hechos === c.total;
+  $('cuad').innerHTML = `<div class="cab2"><span><b>${c.hechos} / ${c.total}</b> hitos</span><div class="barra" style="flex:1;min-width:180px;max-width:420px"><i style="width:${c.hechos / c.total * 100}%"></i></div></div>
+    <div class="lista">${c.lista.map((h) => `<div class="ch${h.hecho ? ' si' : ''}"><i>${h.hecho ? '✓' : ''}</i><div><b>${esc(h.t)}</b><span>${esc(h.que)}</span></div></div>`).join('')}</div>
+    <div class="as${todo ? '' : ' gris'}"><div class="marco"><img src="${AV(e.avatarNave || 'p3f_r2')}" alt=""></div><div><b>AS DE JORAN</b><br>${todo ? '¡Conseguido! Ya tienes ' : 'Con los once: '}${esc(PREMIO_CUADERNO)}. Es solo de adorno: no da xp ni cuenta para la nota.</div></div>`;
+}
+function pintarRanking() {
+  $('rk-cual').innerHTML = [['clase', 'Tu clase'], ['fama', 'Salón de la fama · todo el curso']].map(([k, t]) => `<button class="${k === rkCual ? 'si' : ''}" data-cual="${k}">${t}</button>`).join('');
+  $('rk-maq').innerHTML = JUEGOS.map((j) => `<button class="${j.id === rkMaq ? 'si' : ''}" data-maq="${j.id}">${esc(j.n)}</button>`).join('');
+  const l = ranking(rkMaq, rkCual);
+  $('rk').innerHTML = l.length ? l.map((p, i) => {
+    const pos = rkCual === 'fama' && i >= 10 ? '…' : i + 1;
+    return `${rkCual === 'fama' && i === 10 ? '<li class="sep">· · ·</li>' : ''}<li class="${p.yo ? 'yo' : ''}"><span class="pos">${pos}</span><img src="${AV(p.avatar)}" alt=""><span>${esc(p.alias)}${p.yo ? ' (tú)' : ''}</span><span class="pts">${n(p.puntos)}</span></li>`;
+  }).join('') : '<li>Aún no ha jugado nadie.</li>';
+  document.querySelectorAll('[data-cual]').forEach((b) => { b.onclick = () => { rkCual = b.dataset.cual; pintarRanking(); }; });
+  document.querySelectorAll('[data-maq]').forEach((b) => { b.onclick = () => { rkMaq = b.dataset.maq; pintarRanking(); }; });
+}
+function estrellas(j) {
+  const media = j.votos.length ? j.votos.reduce((a, b) => a + b, 0) / j.votos.length : 0;
+  return `<div class="estrellas" data-j="${j.id}">${[1, 2, 3, 4, 5].map((k) => `<button data-v="${k}" class="${k <= (j.miVoto || Math.round(media)) ? 'on' : ''}" ${j.mio ? 'disabled' : ''} aria-label="${k} estrellas">★</button>`).join('')}<span class="media">${j.votos.length ? `<b>${media.toFixed(1).replace('.', ',')}</b> · ${j.votos.length} votos` : 'sin votos aún'}${j.miVoto ? ` · tu voto: ${j.miVoto}` : ''}</span></div>`;
+}
+function tarjeta(j, top) {
+  return `<div class="gj${top ? ' top' : ''}${j.mio ? ' mio' : ''}"><div class="herr">${esc(j.herr)}${top ? ` · <span class="medalla-top">${['1.º', '2.º', '3.º'][top - 1]} favorito</span>` : ''}</div>
+    <h3>${esc(j.titulo)}</h3><p>${esc(j.desc)}</p><div class="quien"><img src="${AV(j.avatar)}" alt=""><span>de <b>${esc(j.alias)}</b>${j.mio ? ' (tú)' : ''}</span></div>
+    ${estrellas(j)}<div class="pie"><a class="boton sec" href="${j.url ? esc(j.url) : '#'}" ${j.url ? 'target="_blank" rel="noopener"' : 'data-ejemplo="1"'}>Jugar</a>${j.mio ? '<button class="sec" id="b-retirar" style="padding:8px 12px;font-size:12px">Retirar de la galería</button>' : ''}</div></div>`;
+}
+function pintarGaleria() {
+  const lista = juegosGaleria().sort((a, b) => nota(b.votos) - nota(a.votos));
+  const conVotos = lista.filter((j) => j.votos.length >= 3);
+  const podio = conVotos.slice(0, 3);
+  $('podio').innerHTML = podio.map((j, i) => tarjeta(j, i + 1)).join('');
+  $('gal').innerHTML = lista.filter((j) => !podio.includes(j)).map((j) => tarjeta(j, 0)).join('');
+  $('b-publicar').textContent = galeria().mio ? 'Editar mi juego' : 'Publicar mi juego';
+  document.querySelectorAll('.estrellas button[data-v]').forEach((b) => { b.onclick = () => {
+    const id = b.parentElement.dataset.j, g = galeria(); g.votos[id] = Number(b.dataset.v);
+    try { localStorage.setItem('sgGaleria', JSON.stringify(g)); } catch (x) { /* nada */ }
+    audio(); SON.chispa(); aviso(`${b.dataset.v} ★`, '#ffd35c', 0.8); pintarGaleria(); pintarCuaderno();
+  }; });
+  document.querySelectorAll('[data-ejemplo]').forEach((a) => { a.onclick = (ev) => { ev.preventDefault(); aviso('Juego de ejemplo: en la Nave abre el enlace de su reto', '#5ff4ff', 2.2); }; });
+  if ($('b-retirar')) $('b-retirar').onclick = () => { const g = galeria(); g.mio = null; try { localStorage.setItem('sgGaleria', JSON.stringify(g)); } catch (x) { /* nada */ } pintarGaleria(); };
+}
+$('b-publicar').onclick = () => {
+  const m = galeria().mio || { titulo: '', url: '', herr: 'Genially', desc: '' };
+  pantalla(`<div class="kicker">Galería de la tripulación</div><h2>Publicar mi juego</h2>
+    <p style="font-size:15px">En la Nave, el enlace sale ya de tu reto «El juego» (tema 6). Solo se publica si tú quieres, y lo puedes retirar cuando quieras.</p>
+    <div class="form"><label>Título<input id="f-t" maxlength="60" value="${esc(m.titulo)}"></label>
+    <label>Enlace al juego<input id="f-u" placeholder="https://…" value="${esc(m.url)}"></label>
+    <label>Herramienta<select id="f-h">${['Genially', 'Wordwall', 'Educaplay', 'Kahoot!', 'Scratch', 'Otra'].map((h) => `<option${h === m.herr ? ' selected' : ''}>${h}</option>`).join('')}</select></label>
+    <label>En una frase: para quién es y a qué se juega<textarea id="f-d" maxlength="140" rows="2">${esc(m.desc)}</textarea></label></div>
+    <div class="botones"><button id="f-ok">Publicar</button><button class="sec" id="f-no">Cancelar</button></div>`);
+  $('f-no').onclick = cerrarPantalla;
+  $('f-ok').onclick = () => {
+    const t = $('f-t').value.trim(), u = $('f-u').value.trim(), d = $('f-d').value.trim();
+    if (!t || !/^https:\/\/\S+$/.test(u)) { aviso('Falta el título o el enlace (https://…)', '#ff4d6d', 1.8); return; }
+    const g = galeria(); g.mio = { titulo: t, url: u, herr: $('f-h').value, desc: d };
+    try { localStorage.setItem('sgGaleria', JSON.stringify(g)); } catch (x) { /* nada */ }
+    cerrarPantalla(); pintarGaleria(); aviso('¡Publicado en la galería!', '#5dffa0', 1.6);
+  };
+};
 function pintar() {
   const e = estado();
   $('cred').textContent = e.creditos;
   $('avatares').innerHTML = AVATARES.map((a) => `<button class="av${e.avatar === a.id ? ' si' : ''}" data-av="${a.id}"><img src="${a.img}" alt=""><span><b>${esc(a.n)}</b>${esc(a.que)}</span></button>`).join('');
-  $('maquinas').innerHTML = JUEGOS.map((j, i) => {
-    const ok = abierto(e, j), rec = e.marcas[j.id] || 0;
-    let pie = '';
-    if (ok) pie = `<div class="botones"><a class="boton" href="${j.url}">Jugar</a></div>`;
-    else {
-      const prev = JUEGOS.find((x) => x.id === j.abre.juego), llevo = e.marcas[prev.id] || 0, pc = Math.min(100, llevo / j.abre.puntos * 100);
-      pie = `<div class="req">Se enciende con <b>${j.abre.puntos.toLocaleString('es-ES')}</b> puntos en <b>${esc(prev.n)}</b> (tu récord: ${llevo.toLocaleString('es-ES')})</div><div class="barra"><i style="width:${pc}%"></i></div>
-        <div class="botones"><button data-comprar="${j.id}" ${e.creditos < j.precio ? 'disabled' : ''}>Encender por ${j.precio} ◈</button></div>`;
-    }
-    return `<div class="maq${ok ? '' : ' cerrada'}"><div class="foto"><img src="${j.img}" alt="">${ok ? '' : `<div class="candado">MÁQUINA ${i + 1} · APAGADA</div>`}</div>
-      <div class="txt"><h3>${esc(j.n)}</h3><p>${esc(j.lema)}</p><div class="ctl">${esc(j.controles)}</div>${ok ? `<div class="rec">Tu récord: <b>${rec.toLocaleString('es-ES')}</b></div>` : ''}${pie}</div></div>`;
-  }).join('');
+  pintarMaquinas(e); pintarCuaderno(); pintarRanking(); pintarGaleria();
   document.querySelectorAll('[data-av]').forEach((b) => { b.onclick = () => { const e2 = estado(); e2.avatar = b.dataset.av; guardar(e2); audio(); SON.carril(); pintar(); }; });
+  document.querySelectorAll('[data-rk]').forEach((b) => { b.onclick = () => { rkMaq = b.dataset.rk; rkCual = 'clase'; pintarRanking(); $('rankings').scrollIntoView({ behavior: 'smooth' }); }; });
   document.querySelectorAll('[data-comprar]').forEach((b) => { b.onclick = () => {
     const j = JUEGOS.find((x) => x.id === b.dataset.comprar);
     pantalla(`<h2>¿Encender ${esc(j.n)}?</h2><p>Cuesta <b>${j.precio} ◈</b>. Te quedarán ${estado().creditos - j.precio} ◈.</p><div class="botones"><button id="si">Sí, encenderla</button><button class="sec" id="no">Mejor no</button></div>`);
@@ -89,7 +254,7 @@ function pintar() {
     $('si').onclick = () => { const r = comprar(j.id); if (r.ok) { audio(); SON.bien(); cerrarPantalla(); pintar(); } else { $('pantalla-caja').insertAdjacentHTML('beforeend', `<p>${esc(r.motivo)}</p>`); } };
   }; });
 }
-$('reiniciar').onclick = () => { try { localStorage.removeItem('sgJoran'); } catch (e) { /* nada */ } pintar(); };
+$('reiniciar').onclick = () => { for (const k of ['sgJoran', 'sgGaleria', 'sgRutaMarcas', 'sgRutaRepaso']) try { localStorage.removeItem(k); } catch (e) { /* nada */ } pintar(); };
 pintar();
 </script>
 </body>

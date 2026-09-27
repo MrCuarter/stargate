@@ -13,12 +13,14 @@ export const enEnsayo = () => modo === 'local';
 
 export const SERVIDOR = {
   async marcas() { return LOCAL.marcas(); },
-  async empezar(mision) {
+  async repaso() { return LOCAL.repaso(); },
+  // op.nivel = el repaso del Simulador de vuelo (sin premio)
+  async empezar(mision, op = {}) {
     if (modo === 'remoto') {
-      try { const r = await llamar({ accion: 'empezar', projectId: per, mision: mision.id }); return { partida: r.partida, preguntas: r.preguntas, ensayo: !!r.ensayo }; }
+      try { const r = await llamar({ accion: 'empezar', projectId: per, mision: mision.id, nivel: op.nivel || null }); return { partida: r.partida, preguntas: r.preguntas, ensayo: !!r.ensayo }; }
       catch (e) { console.warn('La Ruta, sin servidor: vuelo de ensayo.', e && e.message); modo = 'local'; }
     }
-    return LOCAL.empezar(mision);
+    return LOCAL.empezar(mision, op);
   },
   async responder(partida, qid, pos) {
     if (modo === 'remoto') { try { return await llamar({ accion: 'responder', partida, qid, pos }); } catch (e) { return { ok: false, correccion: '' }; } }
@@ -27,7 +29,7 @@ export const SERVIDOR = {
   async terminar(partida, datos) {
     if (modo === 'remoto') {
       try { const r = await llamar({ accion: 'terminar', partida, llego: !!datos.llego, precision: datos.precision, escudo: datos.escudo, puntos: Math.round(datos.puntos || 0) });
-        return { medalla: r.medalla, premio: r.premio || { xp: 0, cr: 0, escalones: [] }, mejor: r.mejor }; }
+        return r.repaso ? r : { medalla: r.medalla, premio: r.premio || { xp: 0, cr: 0, escalones: [] }, mejor: r.mejor }; }
       catch (e) { return { medalla: 'nada', premio: { xp: 0, cr: 0, escalones: [] }, error: true }; }
     }
     return LOCAL.terminar(partida, datos);
