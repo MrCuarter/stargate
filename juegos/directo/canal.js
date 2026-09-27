@@ -7,15 +7,47 @@
 // Con 30 alumnos y 5 minutos: unas 20.000 lecturas y 2.000 escrituras (el plan gratuito da 50.000 y 20.000 al día).
 // En la sesión, la sala es la de la clase (grupo + sesión): el recluta no escribe código. El código de 4 letras queda para
 // quien entra desde la Nave sin la sesión abierta.
-export function conectar(codigo, alMensaje) {
+// 🔴 28-sep · EN LA WEB (dentro de la sesión o de la Nave, con ?per=): la sala del grupo por Firestore, a través del motor de
+// la página que lo contiene (SG.MOTOR.directoCanal). Fuera (el borrador), BroadcastChannel entre pestañas.
+export const PER = new URLSearchParams(location.search).get('per') || '';
+// el motor está en la Nave o en la sesión: el juego va en su marco (o, en el Asedio, en un marco dentro de otro marco)
+export function motor() {
+  let w = window;
+  for (let i = 0; i < 3 && w.parent && w.parent !== w; i++) {
+    w = w.parent;
+    try { const M = w.SG && w.SG.MOTOR; if (M && M.directoCanal) return M; } catch (e) { return null; }
+  }
+  return null;
+}
+// se espera al motor Y a la sesión iniciada (la cuenta llega un momento después de cargar la página)
+export async function esperarMotor(ms = 8000) {
+  for (let t = 0; t < ms; t += 150) { const M = motor(); if (M && M.auth && M.auth.currentUser) return M; await new Promise((r) => setTimeout(r, 150)); }
+  return motor();
+}
+export const conServidor = () => !!(PER && motor());
+export function conectar(codigo, alMensaje, { docente = false, yo = null } = {}) {
+  const M = PER && motor();
+  if (M) return M.directoCanal(PER, docente, yo, alMensaje);
   const bc = new BroadcastChannel('sg-directo-' + String(codigo).toUpperCase());
   bc.onmessage = (ev) => alMensaje(ev.data);
-  return { enviar: (m) => bc.postMessage(m), cerrar: () => bc.close() };
+  return { enviar: (m) => bc.postMessage(m), cerrar: () => bc.close(), mio: async () => null };
+}
+// las preguntas en la web: las da el servidor (una partida «libre» de stargateRuta), sin la respuesta; se responde allí
+export async function preguntasDelServidor(temas, n = 20) {
+  const M = motor(); if (!M || !PER || !temas.length) return null;
+  try { const r = await M.llamar('stargateRuta', { accion: 'empezar', projectId: PER, mision: 'libre', temas, n }); return { partida: r.partida, preguntas: r.preguntas || [] }; }
+  catch (e) { return null; }
+}
+export async function responderAlServidor(partida, qid, pos) {
+  const M = motor(); if (!M) return { ok: false };
+  try { return await M.llamar('stargateRuta', { accion: 'responder', partida, qid, pos }); } catch (e) { return { ok: false }; }
 }
 export const LETRAS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // sin I ni O: no se confunden con 1 y 0
 export const nuevoCodigo = () => Array.from({ length: 4 }, () => LETRAS[Math.floor(Math.random() * LETRAS.length)]).join('');
 export const EN_WEB = location.pathname.includes('/juegos/');
-export const AV = (k) => (EN_WEB ? '../../assets/img/avatares/evo/' : '../sala-joran/img/av/') + k + '.jpg';
+// el avatar: una clave del borrador (p3f_r2) o, en la web, la imagen de la ficha (la que pinta la Nave)
+export const AV = (k) => { k = String(k || ''); if (/^https?:\/\//.test(k)) return k; if (k.includes('/')) return (EN_WEB ? '../../' : '') + k;
+  return (EN_WEB ? '../../assets/img/avatares/evo/' : '../sala-joran/img/av/') + (k || 'p3f_r2') + '.jpg'; };
 export const AVATARES = ['p1f', 'p1m', 'p2f', 'p2m', 'p3f', 'p3m', 'p4f', 'p4m', 'p5f', 'p5m', 'p6f', 'p6m', 'p7f', 'p7m'].map((p) => p + '_r2');
 export const TEMAS = ['', 'Fôrge', 'Ecos', 'Sendara', 'Reliae', 'Umbral', 'Ludo', 'Vínculo', 'Liminar'];
 

@@ -5,7 +5,7 @@
 //   · Duelo (por equipos): acertar deja elegir: EMPUJAR la baliza o SABOTEAR a la otra escuadrilla (una tormenta de estática).
 // ?sesion=1 → dentro de la sesión: entras solo, con tu alias y tu personaje (en la Nave salen de tu ficha), y la sala de espera
 // trae el ticket de salida. Sin ?sesion, la pantalla de «Únete» (desde la Nave, con el código).
-import { conectar, imagen, EN_WEB, AV, AVATARES, TEMAS, MODOS, EQUIPOS, VALOR, INTENSIDAD, temasDe } from './canal.js';
+import { conectar, esperarMotor, conServidor, motor, PER, preguntasDelServidor, responderAlServidor, imagen, EN_WEB, AV, AVATARES, TEMAS, MODOS, EQUIPOS, VALOR, INTENSIDAD, temasDe } from './canal.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -20,6 +20,11 @@ let yo = { id: 'r' + Math.random().toString(36).slice(2, 8), alias: ALIAS_PRUEBA
 // ?nuevo=1 → otra persona en la misma pestaña (solo para probar: en la web, cada móvil es quien es)
 try { const g = QS.get('nuevo') ? null : JSON.parse(sessionStorage.getItem('sgDirecto') || 'null'); if (g) yo = g; } catch (e) { /* nada */ }
 if (QS.get('alias')) yo.alias = QS.get('alias').slice(0, 16);
+// 🔴 EN LA WEB (con ?per=): eres tu ficha (alias y personaje de la Nave), la sala es la del grupo, las preguntas las da el
+// servidor sin la respuesta (y corrige él) y el Asedio lo apunta él. Sin motor (el borrador), todo en local.
+if (PER) await esperarMotor();
+const WEB = conServidor();
+if (WEB) { try { const y = await motor().directoYo(PER); if (y) yo = y; } catch (e) { /* sin ficha: mira, pero no juega */ } }
 let canal = null, est = null, jugando = false, pregunta = null, banco = [], sigPreg = 10, sigEsq = 8, tormenta = 0, ultimoFin = null;
 // 🔴 en la sesión, se entra en la partida al marcar «Ya he hecho mi ticket» (si ya había empezado, al momento). Fuera de la
 // sesión (desde la Nave, con el código) no hay ticket: se entra directamente.
@@ -41,10 +46,11 @@ const miEquipo = () => (est && est.equipos ? est.equipos[yo.id] : null);
 
 // ─────────────────────────────── ENTRAR (solo fuera de la sesión) y la SALA DE ESPERA
 function pintarAvs() { $('avs').innerHTML = AVATARES.map((a) => `<button class="${a === yo.avatar ? 'si' : ''}" data-a="${a}"><img src="${AV(a)}" alt=""></button>`).join(''); document.querySelectorAll('[data-a]').forEach((b) => { b.onclick = () => { yo.avatar = b.dataset.a; pintarAvs(); }; }); }
-function entrar(codigo) {
-  try { sessionStorage.setItem('sgDirecto', JSON.stringify(yo)); } catch (e) { /* nada */ }
+async function entrar(codigo) {
+  if (!WEB) try { sessionStorage.setItem('sgDirecto', JSON.stringify(yo)); } catch (e) { /* nada */ }
   miImg = imagen(AV(yo.avatar));
-  canal = conectar(codigo, alMensaje);
+  canal = conectar(codigo, alMensaje, { yo });
+  if (WEB) { const antes = await canal.mio(); if (antes && antes.listo === true) listo = true; } // volver tras recargar: sin repetir el ticket
   canal.enviar({ t: 'hola', ...yo, listo });
   $('entrar').classList.add('oculto'); $('espera').classList.remove('oculto');
   $('yo').innerHTML = `<img class="av" onerror="if(!this.dataset.r){this.dataset.r=1;setTimeout(()=>{this.src+='?r=1'},400)}" src="${AV(yo.avatar)}" alt=""><b>${esc(yo.alias)}</b><span id="mi-eq"></span>`;
@@ -53,7 +59,7 @@ function entrar(codigo) {
   setInterval(() => { if (!est || !(yo.id in (est.equipos || {}))) canal.enviar({ t: 'hola', ...yo, listo }); }, 1500);
 }
 if (SOLO) setTimeout(empezarSolo, 0); // tras cargar todo el módulo (el lienzo y las rocas se declaran más abajo)
-else if (EN_SESION) entrar(QS.get('c') || 'NAVE');
+else if (EN_SESION || WEB) entrar(QS.get('c') || 'NAVE'); // en la web, la sala es la del grupo: sin código
 else {
   $('entrar').classList.remove('oculto');
   $('codigo').value = (QS.get('c') || '').toUpperCase(); $('alias').value = yo.alias; pintarAvs();
@@ -118,8 +124,10 @@ async function empezar() {
   jugando = true; puntos = 0; stats = nuevaStats(); pregunta = null; tormenta = 0; rocas.length = 0;
   const c = cfg(); sigPreg = c.frecuencia * 0.6; sigEsq = azar(5, 8);
   banco = [];
-  const temas = temasDe(c, est.temaSemana);
-  if (temas.length) try { const { PREGUNTAS } = await import(EN_WEB ? '../ruta/preguntas.js' : '../ruta-estatica/preguntas.js'); banco = temas.flatMap((t) => PREGUNTAS[t] || []).filter((q) => q.tipo === 'una' && !q.visual).sort(() => Math.random() - 0.5); } catch (e) { banco = []; }
+  const temas = temasDe(c, est.temaSemana); temasJuego = temas;
+  if (WEB) banco = await pedirPreguntas(temas);
+  if (WEB && SOLO && !ataque) setTimeout(finSolo, 50); // el Asedio no está abierto (o no hay sesión): se dice y ya
+  else if (temas.length) try { const { PREGUNTAS } = await import(EN_WEB ? '../ruta/preguntas.js' : '../ruta-estatica/preguntas.js'); banco = temas.flatMap((t) => PREGUNTAS[t] || []).filter((q) => q.tipo === 'una' && !q.visual).sort(() => Math.random() - 0.5); } catch (e) { banco = []; }
   document.body.classList.add('juego');
   ticketAbierto = !$('panel-ticket').classList.contains('oculto');
   for (const id of ['espera', 'fin', 'entrar', 'panel-ticket']) $(id).classList.add('oculto'); document.querySelector('main').classList.remove('con-ticket');
@@ -134,25 +142,51 @@ async function empezar() {
 setInterval(() => { if (jugando && canal) canal.enviar({ t: 'pts', id: yo.id, puntos, stats }); }, 500);
 function sumar(n, x, y, color = '93,255,160') { puntos += n; for (let i = 0; i < 10; i++) { const a = azar(0, 6.3), v = azar(80, 240); chispas.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, vida: azar(0.3, 0.6) }); } if (n) flotan.push({ x, y, t: '+' + n, vida: 0.8, color }); }
 
+// en la web: una tanda de preguntas del servidor (cada una se contesta una vez; al acabarse, se pide otra tanda)
+let temasJuego = [], pidiendo = false;
+async function pedirPreguntas(temas) {
+  if (!temas.length && !SOLO) return [];
+  if (SOLO) { // el Asedio: el ataque lo abre el servidor (y con él, sus preguntas)
+    try { const r = await motor().llamar('stargateAsedio', { accion: 'empezar', projectId: PER }); ataque = r.ataque; return (r.preguntas || []).map((q) => ({ ...q, srv: 'asedio' })); }
+    catch (e) { ataque = null; asedioError = (e && e.message) || 'El Asedio no está abierto.'; return []; }
+  }
+  const r = await preguntasDelServidor(temas, 20);
+  return r ? r.preguntas.map((q) => ({ ...q, srv: 'ruta', partida: r.partida })) : [];
+}
+let ataque = null, asedioError = '';
 function lanzarPregunta() {
-  const q = banco.shift(); if (!q) return;
-  banco.push(q);
-  // cuatro opciones como mucho, con la buena (en la web: el servidor las da barajadas y comprueba él)
-  let ops = q.opciones.map((_, i) => i).sort(() => Math.random() - 0.5).slice(0, 4);
-  if (!ops.includes(q.correctas[0])) ops[0] = q.correctas[0];
-  ops = ops.sort(() => Math.random() - 0.5);
+  const q = banco.shift();
+  if (!q) { if (WEB && !SOLO && !pidiendo && jugando) { pidiendo = true; pedirPreguntas(temasJuego).then((l) => { banco = l; pidiendo = false; }); } return; }
+  if (!WEB) banco.push(q);
+  // cuatro opciones como mucho, con la buena. En la web vienen ya barajadas (y sin decir cuál es): comprueba el servidor.
+  let ops = q.opciones.map((_, i) => i);
+  if (!WEB) {
+    ops = ops.sort(() => Math.random() - 0.5).slice(0, 4);
+    if (!ops.includes(q.correctas[0])) ops[0] = q.correctas[0];
+    ops = ops.sort(() => Math.random() - 0.5);
+  }
   pregunta = q;
   const c = cfg(), premio = { defensa: `reparas el escudo de la Cero`, duelo: c.potenciadores ? 'empujas la baliza o saboteas' : `empujas la baliza (+${VALOR.empuje})`, carrera: `+${VALOR.acierto}`, caza: `+${VALOR.acierto}` }[c.modo];
   $('preg-c').innerHTML = `<div class="kicker">Pregunta · si aciertas, ${premio}</div><div class="enun">${esc(q.enunciado)}</div><div class="ops">${ops.map((i) => `<button data-i="${i}">${esc(q.opciones[i])}</button>`).join('')}</div><div class="res" id="preg-r"></div>`;
   $('preg').classList.remove('oculto');
-  document.querySelectorAll('#preg [data-i]').forEach((b) => { b.onclick = () => {
+  document.querySelectorAll('#preg [data-i]').forEach((b) => { b.onclick = async () => {
     if (pregunta !== q) return;
-    const ok = Number(b.dataset.i) === q.correctas[0];
+    pregunta = 'respondida';
+    let ok, correccion = q.correccion;
+    if (WEB) {
+      b.classList.add('pensando');
+      const i = Number(b.dataset.i);
+      const r = q.srv === 'asedio'
+        ? await motor().llamar('stargateAsedio', { accion: 'responder', ataque, qid: q.id, pos: i }).catch(() => ({ ok: false }))
+        : await responderAlServidor(q.partida, q.id, i);
+      b.classList.remove('pensando');
+      ok = !!(r && r.ok); correccion = r && r.correccion;
+      if (!jugando) return;
+    } else ok = Number(b.dataset.i) === q.correctas[0];
     stats.respondidas++; if (ok) stats.aciertos++;
     b.classList.add(ok ? 'bien' : 'mal');
-    if (!ok) document.querySelector(`#preg [data-i="${q.correctas[0]}"]`).classList.add('bien');
-    $('preg-r').textContent = ok ? '¡Correcto!' : (q.correccion || 'No era esa.');
-    pregunta = 'respondida';
+    if (!ok && !WEB) document.querySelector(`#preg [data-i="${q.correctas[0]}"]`).classList.add('bien');
+    $('preg-r').textContent = ok ? '¡Correcto!' : (correccion || 'No era esa.');
     setTimeout(() => {
       if (!ok) { $('preg').classList.add('oculto'); pregunta = null; return; }
       if (c.modo === 'duelo' && c.potenciadores) return elegir();
@@ -341,14 +375,20 @@ function empezarSolo() {
   empezar();
 }
 function golpeSolo(n) { est.escudo = Math.max(0, est.escudo - n); }
-function finSolo() {
+async function finSolo() {
   if (!jugando) return;
-  const dano = danoDe(stats, est.escudo);
+  let dano = danoDe(stats, est.escudo), extra = '';
+  if (WEB) { // lo apunta el servidor (y lo recalcula él con los aciertos que ha visto)
+    jugando = false;
+    try { const r = await motor().llamar('stargateAsedio', { accion: 'terminar', ataque, derribos: stats.derribos, esquivas: stats.esquivas, escudo: Math.round(est.escudo) });
+      dano = r.dano; if (r.mejorHoy > dano) extra = `<p style="text-align:center">Hoy cuenta tu mejor ataque: <b>${r.mejorHoy}</b></p>`; }
+    catch (e) { extra = `<p style="text-align:center;color:#ff4d6d">${esc(ataque ? 'No se ha podido apuntar el ataque. Prueba otra vez.' : asedioError || 'El Asedio no está abierto.')}</p>`; }
+  }
   jugando = false; document.body.classList.remove('juego');
   for (const id of ['preg', 'lienzo', 'hud', 'abajo', 'carta', 'estatica']) $(id).classList.add('oculto');
   $('fin').innerHTML = `<div class="kicker" style="text-align:center">El Asedio · tu ataque</div><h1 style="text-align:center">${est.escudo > 0 ? 'Ataque completado' : 'Tu escudo ha caído'}</h1>
     <div style="font-family:Orbitron;font-size:44px;color:var(--ambar);text-align:center">${dano}<small style="display:block;font-family:'Exo 2';font-size:15px;color:#e8f6ff">de daño a la nodriza</small></div>
-    <p style="text-align:center">${stats.derribos} derribos · ${stats.aciertos} de ${stats.respondidas} aciertos · ${stats.esquivas} esquivas · escudo ${Math.round(est.escudo)} %</p>`;
+    ${extra}<p style="text-align:center">${stats.derribos} derribos · ${stats.aciertos} de ${stats.respondidas} aciertos · ${stats.esquivas} esquivas · escudo ${Math.round(est.escudo)} %</p>`;
   $('fin').classList.remove('oculto');
   try { parent.postMessage({ sgAsedio: { dano, stats } }, '*'); } catch (e) { /* nada */ }
 }

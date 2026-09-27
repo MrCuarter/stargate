@@ -2246,6 +2246,66 @@ function codigoGenially(ruta, titulo) {
     'allow="fullscreen; clipboard-write; autoplay; encrypted-media" allowfullscreen title="' + titulo + '"></iframe>';
 }
 
+/**
+ * 🔴 28-sep · EN DIRECTO: el juego del final de la clase, por Firestore (juegos/directo/canal.js lo usa desde su marco).
+ * Una sala por grupo: stargate_directo/{grupo} (el estado, lo escribe la pantalla del docente), jugadores/{ficha} (cada
+ * recluta la suya) y eventos (sabotajes, el final, retomar). Mismo idioma que el canal del borrador (mensajes {t, …}):
+ * la pantalla recibe «hola» y «pts» de cada jugador; los móviles, «estado» y los eventos. 🔴 Firestore aguanta ~1
+ * escritura por segundo en cada documento: aquí se agrupan (la última gana) para no pasarse.
+ */
+async function directoYo(perId) {
+  const u = auth.currentUser; if (!u) return null;
+  const r = await getDocs(query(collection(db, "student_profiles"), where("projectId", "==", perId), where("userId", "==", u.uid)));
+  if (r.empty) return null;
+  const f = r.docs[0], p = f.data(), alias = String(p.displayName || "");
+  let src = ""; try { src = window.SG.avatarSrc(p.stargateAvatar || {}, alias, Number(p.totalPoints) || 0).src; } catch (e) { /* sin avatar */ }
+  return { id: f.id, alias, avatar: src };
+}
+function directoCanal(perId, esDocente, yo, alMensaje) {
+  const u = auth.currentUser, t0 = Date.now(), fuera = [];
+  const sala = doc(db, "stargate_directo", perId);
+  let ultimo = 0, pendiente = null, reloj = null, miDoc = null;
+  // escribir como mucho una vez por segundo por documento (se guarda solo lo último)
+  const tanda = (fn) => { pendiente = fn; if (reloj) return; const t = Math.max(0, 1000 - (Date.now() - ultimo));
+    reloj = setTimeout(() => { reloj = null; ultimo = Date.now(); const f = pendiente; pendiente = null; f && f().catch(() => {}); }, t); };
+  fuera.push(onSnapshot(sala, (s) => { const d = s.exists() ? s.data() : null; if (d && d.estado) alMensaje(Object.assign({ t: "estado" }, d.estado)); }, () => {}));
+  fuera.push(onSnapshot(query(collection(db, "stargate_directo", perId, "eventos"), where("creado", ">", t0 - 2000)), (r) => {
+    r.docChanges().forEach((c) => { if (c.type === "added") { const e = c.doc.data(); alMensaje(Object.assign({}, e.datos || {}, { t: e.t })); } });
+  }, () => {}));
+  if (esDocente) fuera.push(onSnapshot(collection(db, "stargate_directo", perId, "jugadores"), (r) => {
+    r.docChanges().forEach((c) => { if (c.type === "removed") return; const j = c.doc.data();
+      if (Date.now() - (Number(j.actualizado) || 0) > 20 * 60 * 1000) return;   // (restos de otra clase)
+      alMensaje({ t: "hola", id: j.fichaId, alias: j.alias, avatar: j.avatar, listo: j.listo === true });
+      alMensaje({ t: "pts", id: j.fichaId, puntos: j.puntos || 0, stats: j.stats || {} }); });
+  }, () => {}));
+  const limpio = (o) => JSON.parse(JSON.stringify(o));
+  function enviar(m) {
+    if (!u || !m || !m.t) return;
+    if (esDocente) {
+      if (m.t === "estado") { const e = limpio(m); delete e.t; tanda(() => setDoc(sala, { projectId: perId, estado: e, actualizado: Date.now() })); return; }
+      addDoc(collection(db, "stargate_directo", perId, "eventos"), { t: m.t, datos: limpio(m), uid: u.uid, creado: Date.now() }).catch(() => {});
+      return;
+    }
+    if (!yo) return;
+    if (m.t === "sabotaje") { addDoc(collection(db, "stargate_directo", perId, "eventos"), { t: "sabotaje", datos: { id: yo.id }, uid: u.uid, fichaId: yo.id, creado: Date.now() }).catch(() => {}); return; }
+    miDoc = Object.assign({ projectId: perId, fichaId: yo.id, uid: u.uid, alias: yo.alias, avatar: String(yo.avatar || "").slice(0, 300), listo: false, puntos: 0, stats: {} }, miDoc || {});
+    if (m.t === "hola") miDoc.listo = m.listo !== false;
+    if (m.t === "pts") { miDoc.puntos = Math.max(0, Math.min(100000, Math.round(Number(m.puntos) || 0))); miDoc.stats = limpio(m.stats || {}); }
+    miDoc.actualizado = Date.now();
+    const d = Object.assign({}, miDoc);
+    tanda(() => setDoc(doc(db, "stargate_directo", perId, "jugadores", yo.id), d));
+  }
+  // al volver, lo mío (si ya estaba jugando): lo usa el móvil para retomar sin esperar a la pantalla
+  async function mio() {
+    if (!yo) return null;
+    try { const s = await getDoc(doc(db, "stargate_directo", perId, "jugadores", yo.id)); if (!s.exists()) return null;
+      const d = s.data(); if (Date.now() - (Number(d.actualizado) || 0) > 20 * 60 * 1000) return null;
+      if (!miDoc) miDoc = { projectId: perId, fichaId: yo.id, uid: u.uid, alias: yo.alias, avatar: String(yo.avatar || "").slice(0, 300), listo: d.listo === true, puntos: Number(d.puntos) || 0, stats: d.stats || {} };
+      return d; } catch (e) { return null; }
+  }
+  return { enviar, mio, cerrar: () => fuera.forEach((f) => { try { f(); } catch (e) { /* nada */ } }) };
+}
+
 window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
@@ -2264,5 +2324,6 @@ window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs
                     vigilarVotaciones, vigilarEnVivo, publicarEnVivo, lanzarPregunta, cerrarPregunta, responderPregunta, vigilarRespuestas, quitarRespuesta, miRespuesta,
                     referenteGlobal, crearInvitacion, leerInvitacion, canjearInvitacion, invitaciones, referentes, ponerReferente,
                     profes, anotarConexion, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
+                    directoYo, directoCanal,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

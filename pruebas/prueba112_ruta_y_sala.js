@@ -99,9 +99,9 @@ c(/function diaAsedio\(s\)/.test(SES) && /st\.tipo==='PUA'\) return null/.test(S
 c(JSON.stringify((AS.premios || [])[0]) === '["1.º",60,30]' && (AS.salon || []).length === 6, "   el escuadrón ganador, +60 xp y +30 ◈ a quien atacó; y seis categorías en el salón de héroes y heroínas");
 c(/function asedioCaja\(\)/.test(NAVE) && /function directoCaja\(\)/.test(NAVE) && /asedioCaja\(\)\+simuladorCaja\(\)\+directoCaja\(\)/.test(NAVE), "   la Nave: el aviso del Asedio y la entrada al directo con código");
 const JG = global(SH, "SG_JUEGOS") || {};
-c(JG.listos === false && (JG.prueba || []).includes("nave-escuela") && /function juegosVisibles\(\)/.test(SES) && /function juegosVisibles\(\)/.test(NAVE)
+c(typeof JG.listos === "boolean" && (JG.prueba || []).includes("nave-escuela") && /function juegosVisibles\(\)/.test(SES) && /function juegosVisibles\(\)/.test(NAVE)
   && (SES.match(/!juegosVisibles\(\)/g) || []).length >= 4 && (NAVE.match(/!juegosVisibles\(\)/g) || []).length >= 4,
-  "🔴 el interruptor: hasta desplegar sus funciones, los grupos reales no ven los juegos (los de prueba, sí)");
+  "🔴 el interruptor: con JUEGOS.listos en falso, los grupos reales no ven los juegos (los de prueba, sí); 28-sep: encendido");
 for (const f of ["juegos/directo/proyector.html", "juegos/directo/alumno.html", "juegos/directo/defensa3d.js", "juegos/directo/img/nave.png", "juegos/asedio/index.html", "juegos/joran/descenso.js", "juegos/joran/datos.js"])
   c(fs.existsSync(path.join(R, f)), "   " + f);
 c(!/batalla\.html/.test(NAVE.replace(/\/\/[^\n]*/g, "").replace(/rs-batalla[\s\S]*?batalla\.html\?per=/, "")) || true, "   (la batalla antigua queda fuera de los menús; su página sigue hasta desplegar stargateSala)");

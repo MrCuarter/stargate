@@ -372,6 +372,8 @@
         hitos: p.stargateHitos || {}, cubiertas: p.stargateCubiertas || {}, dias: p.stargateDias || {},
         // 16-sep · el Simulador de Joran: quién le ganó y sus marcas (los rankings de cada tema y la sesión)
         simulador: p.stargateSimulador || {},
+        // 28-sep · las medallas de la Ruta de la Estática (las escribe el servidor): el mapa de misiones de la Nave
+        ruta: p.stargateRuta || {},
         cromos: cromos, xp7: xp7, bio: priv.bio || p.stargateBio || "",
         // 14-sep · qué misiones ha superado (sus ids de STARGATE): la sesión proyectada enseña quién
         // hizo cada misión de la semana pasada. No destapa nada que el ranking no enseñe ya.

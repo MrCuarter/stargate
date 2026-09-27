@@ -996,7 +996,7 @@
   function diaAsedio(s){
     var A=window.SG_ASEDIO; if(!A || !s || st.tipo==='PUA' || !juegosVisibles()) return null;
     var sem=Number(s.sem), vista=sem===A.semana?'lanza':sem===A.semana+1?'cierre':''; if(!vista) return null;
-    var u=A.juego+'index.html?vista='+vista+'&embed=1'+(st.per?'&per='+encodeURIComponent(st.per):'');
+    var u=A.juego+'index.html?vista='+vista+'&embed=1'+(st.per?'&per='+encodeURIComponent(st.per):'')+(st.alumno?'':'&docente=1');
     return {k:'asedio', sec:'asedio', rot:vista==='lanza'?'El Asedio':'El Asedio: el resultado', html:
       '<div class="dia ruta asedio"><iframe class="ru-juego" src="'+esc(u)+'" title="El Asedio" loading="lazy"></iframe></div>'};
   }

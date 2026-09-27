@@ -45,7 +45,8 @@ export const AVATARES = [
 
 // ── lo guardado. En el juego de verdad: la ficha del recluta (marcas, desbloqueos) y sus créditos, por el servidor.
 // En el borrador, el navegador, con 100 ◈ de prueba para poder ensayar la compra.
-const CLAVE = 'sgJoran';
+const PER = QS.get('per') || '';
+const CLAVE = 'sgJoran' + (PER ? ':' + PER : '');
 export function estado() {
   let e = null; try { e = JSON.parse(localStorage.getItem(CLAVE) || 'null'); } catch (x) { /* nada */ }
   return Object.assign({ avatar: 'finn', alias: 'Vega', marcas: {}, desbloqueados: ['evacuacion'], creditos: 100, partidas: {}, hitos: {}, logros: {} }, e || {});
@@ -55,8 +56,34 @@ export function abierto(e, j) { return !j.abre || e.desbloqueados.includes(j.id)
 // al terminar una partida: guarda la marca y abre lo que toque. Devuelve lo nuevo que se ha abierto.
 // En la web (dentro de la Nave, que carga el motor), las marcas y las compras van al servidor (stargateSala) y lo de este
 // navegador es solo la copia para pintar al momento. Fuera, o sin la función desplegada, solo el navegador (ensayo).
-const PER = QS.get('per') || '';
-function motor() { try { return window.parent !== window && window.parent.SG && window.parent.SG.MOTOR && window.parent.SG.MOTOR.llamar ? window.parent.SG.MOTOR : null; } catch (e) { return null; } }
+// el motor está en la Nave (la sala va en su marco; y cada máquina, en el mismo marco que la sala)
+function motor() {
+  let w = window;
+  for (let i = 0; i < 3 && w.parent && w.parent !== w; i++) { w = w.parent; try { if (w.SG && w.SG.MOTOR && w.SG.MOTOR.llamar) return w.SG.MOTOR; } catch (e) { return null; } }
+  return null;
+}
+export const WEB = !!(PER && motor());
+// 🔴 el ?per= viaja con cada enlace de la sala (a las máquinas, al Simulador de vuelo y de vuelta a la sala): sin él, la
+// partida no llegaría al servidor
+if (PER) document.addEventListener('click', (ev) => {
+  const a = ev.target.closest && ev.target.closest('a[href]'); if (!a) return;
+  const h = a.getAttribute('href'); if (!h || /^(https?:|#|mailto:)/.test(h) || /[?&]per=/.test(h)) return;
+  a.setAttribute('href', h + (h.includes('?') ? '&' : '?') + 'per=' + encodeURIComponent(PER));
+}, true);
+// EN LA WEB: al entrar en la sala se trae lo tuyo (marcas, máquinas encendidas, hitos, créditos) y lo de tu clase; lo de
+// este navegador es solo la copia para pintar al momento
+export let CLASE_SRV = {}, RUTA_SRV = null;
+export async function sincronizar() {
+  if (!WEB) return false;
+  const [r, ru] = await Promise.all([alServidor({ accion: 'estado' }), motor().llamar('stargateRuta', { accion: 'marcas', projectId: PER }).catch(() => null)]);
+  if (!r) return false;
+  const e = estado();
+  Object.assign(e, { marcas: r.sala.marcas || {}, desbloqueados: r.sala.abiertas || ['evacuacion'], hitos: r.sala.hitos || {}, logros: r.sala.logros || {},
+    votados: r.sala.votados || {}, creditos: r.coins, alias: r.alias || e.alias, ensayo: !!r.ensayo });
+  guardar(e); CLASE_SRV = r.clase || {};
+  if (ru && ru.marcas) RUTA_SRV = ru.marcas;
+  return true;
+}
 export async function alServidor(datos) { const m = motor(); if (!m || !PER) return null; try { return await m.llamar('stargateSala', { projectId: PER, ...datos }); } catch (e) { console.warn('La sala, sin servidor:', e && e.message); return null; } }
 const T0 = performance.now();
 // extra = lo que cada juego sabe de la partida y cuenta para el Cuaderno de vuelo (intocable, perfecto, nivel del repaso)
@@ -75,7 +102,8 @@ export function registrarPartida(juego, puntos, extra = {}) {
   if (extra.perfecto) e.logros.perfecto = true;
   if (juego === 'vuelo' && extra.nivel === 'dificil' && j && puntos >= j.hitos[2]) e.logros.repasoOro = true;
   guardar(e);
-  alServidor({ accion: 'marca', juego, puntos, extra, segundos: Math.round((performance.now() - (window.__t0Partida || T0)) / 1000) });
+  alServidor({ accion: 'marca', juego, puntos, extra, segundos: Math.round((performance.now() - (window.__t0Partida || T0)) / 1000) })
+    .then((r) => { if (r && r.ok && !r.ensayo) { const e2 = estado(); e2.creditos = r.coins; e2.desbloqueados = r.abiertas; guardar(e2); } });
   try { window.parent !== window && window.parent.postMessage({ sgJoran: { juego, puntos, record: puntos > antes } }, '*'); } catch (x) { /* sin padre */ }
   return { record: puntos > antes, antes, nuevos, hitos, mejor: e.marcas[juego] };
 }
@@ -83,7 +111,7 @@ export function registrarPartida(juego, puntos, extra = {}) {
 // ── EL CUADERNO DE VUELO: los hitos de la Ruta y de la sala. Todo junto da el título y el marco «As de Joran» (cosmético:
 // ni xp ni nota). 🔴 Fuera de los Logros de a bordo a propósito: un juego opcional no puede cerrar el paso al Contramaestre.
 const leerLS = (k) => { try { return JSON.parse(localStorage.getItem(k) || '{}'); } catch (x) { return {}; } };
-export function galeria() { return Object.assign({ votos: {}, mio: null }, leerLS('sgGaleria')); }
+export function galeria() { if (WEB) return { votos: estado().votados || {}, mio: null }; return Object.assign({ votos: {}, mio: null }, leerLS('sgGaleria')); }
 export const CUADERNO = [
   { k: 'despegue', t: 'Primer vuelo', que: 'Termina tu primera misión de la Ruta de la Estática.', ok: (c) => c.medallasRuta >= 1 },
   { k: 'ruta', t: 'La Ruta entera', que: 'Medalla en las diez misiones de la Ruta.', ok: (c) => c.medallasRuta >= 10 },
@@ -101,13 +129,19 @@ export const PREMIO_CUADERNO = (DATOS && DATOS.premio_cuaderno) || 'el título �
 // los textos del Cuaderno, de _site_data.py (aquí solo manda CÓMO se comprueba cada hito)
 if (DATOS && DATOS.cuaderno) for (const [k, t, que] of DATOS.cuaderno) { const h = CUADERNO.find((x) => x.k === k); if (h) Object.assign(h, { t, que }); }
 export function cuaderno() {
-  const ruta = Object.values(leerLS('sgRutaMarcas'));
+  const ruta = Object.entries(RUTA_SRV || (WEB ? {} : leerLS('sgRutaMarcas'))).filter(([k]) => k !== 'repaso').map(([, v]) => v || {});
   const c = { e: estado(), g: galeria(), medallasRuta: ruta.filter((m) => m.medalla && m.medalla !== 'nada').length, orosRuta: ruta.filter((m) => m.medalla === 'oro').length };
   const lista = CUADERNO.map((h) => ({ ...h, hecho: !!h.ok(c) }));
   return { lista, hechos: lista.filter((h) => h.hecho).length, total: lista.length };
 }
-export function comprar(id) {
+export async function comprar(id) {
   const e = estado(), j = JUEGOS.find((x) => x.id === id);
+  if (WEB) { // lo cobra el servidor
+    try { const r = await motor().llamar('stargateSala', { accion: 'comprar', projectId: PER, juego: id });
+      if (r && r.ensayo) return { ok: false, motivo: 'Sin ficha de recluta en este grupo: solo se puede mirar.' };
+      e.desbloqueados = r.abiertas; e.creditos = r.coins; guardar(e); return { ok: true }; }
+    catch (x) { return { ok: false, motivo: (x && x.message) || 'No se ha podido.' }; }
+  }
   if (!j || abierto(e, j)) return { ok: true };
   if (e.creditos < j.precio) return { ok: false, motivo: `Te faltan ${j.precio - e.creditos} ◈.` };
   e.creditos -= j.precio; e.desbloqueados.push(j.id); guardar(e); return { ok: true };

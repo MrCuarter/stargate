@@ -156,8 +156,24 @@ p.intro{margin:0 0 10px;font-size:15px;opacity:.88;line-height:1.45}
 <div id="aviso"></div>
 <div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
 <script type="module">
-import { $, esc, JUEGOS, ARCADE, AVATARES, ESCALONES, HITO_CR, estado, guardar, abierto, comprar, pantalla, cerrarPantalla, SON, audio, aviso, cuaderno, galeria, PREMIO_CUADERNO } from './comun.js';
-import { ranking, juegosGaleria, nota, AV } from './ejemplo.js';
+import { $, esc, JUEGOS, ARCADE, AVATARES, ESCALONES, HITO_CR, estado, guardar, abierto, comprar, pantalla, cerrarPantalla, SON, audio, aviso, cuaderno, galeria, PREMIO_CUADERNO, WEB, alServidor, sincronizar, CLASE_SRV } from './comun.js';
+import * as EJ from './ejemplo.js';
+// 🔴 EN LA WEB (la sala dentro de la Nave, con ?per=): tu clase, el Salón de la fama y la Galería, del servidor. Fuera, de ejemplo.
+const EN_WEB = location.pathname.includes('/juegos/');
+const AV = (k) => { k = String(k || ''); if (/^https?:\/\//.test(k)) return k; if (k.includes('/')) return (EN_WEB ? '../../' : '') + k; return EJ.AV(k || 'p3f_r2'); };
+const RK = {}; let GAL = null;
+function ranking(juego, cual) {
+  if (!WEB) return EJ.ranking(juego, cual);
+  if (cual === 'clase' && !RK[juego + cual] && CLASE_SRV[juego]) return CLASE_SRV[juego].map((f) => ({ alias: f.alias, avatar: f.avatar, puntos: f.p, yo: f.yo }));
+  if (!RK[juego + cual]) { RK[juego + cual] = []; alServidor({ accion: 'ranking', juego, cual }).then((r) => { RK[juego + cual] = ((r && r.filas) || []).map((f) => ({ alias: f.alias, avatar: f.avatar, puntos: f.p, yo: f.yo })); pintarRanking(); }); }
+  return RK[juego + cual];
+}
+const nota = (v) => (WEB ? 0 : EJ.nota(v));
+function juegosGaleria() {
+  if (!WEB) return EJ.juegosGaleria();
+  return (GAL || []).map((j) => ({ ...j, votos: Array(j.n).fill(Math.round(j.media) || 0), _nota: j.nota, miVoto: j.miVoto }));
+}
+async function traerGaleria() { const r = await alServidor({ accion: 'galeria' }); GAL = (r && r.juegos) || []; pintarGaleria(); }
 const n = (x) => Math.round(x).toLocaleString('es-ES');
 const NOM = { bronce: 'Bronce', plata: 'Plata', oro: 'Oro' };
 let rkCual = 'clase', rkMaq = 'evacuacion';
@@ -199,7 +215,7 @@ function pintarRanking() {
   document.querySelectorAll('[data-maq]').forEach((b) => { b.onclick = () => { rkMaq = b.dataset.maq; pintarRanking(); }; });
 }
 function estrellas(j) {
-  const media = j.votos.length ? j.votos.reduce((a, b) => a + b, 0) / j.votos.length : 0;
+  const media = j.media != null ? j.media : j.votos.length ? j.votos.reduce((a, b) => a + b, 0) / j.votos.length : 0;
   return `<div class="estrellas" data-j="${j.id}">${[1, 2, 3, 4, 5].map((k) => `<button data-v="${k}" class="${k <= (j.miVoto || Math.round(media)) ? 'on' : ''}" ${j.mio ? 'disabled' : ''} aria-label="${k} estrellas">★</button>`).join('')}<span class="media">${j.votos.length ? `<b>${media.toFixed(1).replace('.', ',')}</b> · ${j.votos.length} votos` : 'sin votos aún'}${j.miVoto ? ` · tu voto: ${j.miVoto}` : ''}</span></div>`;
 }
 function tarjeta(j, top) {
@@ -208,22 +224,29 @@ function tarjeta(j, top) {
     ${estrellas(j)}<div class="pie"><a class="boton sec" href="${j.url ? esc(j.url) : '#'}" ${j.url ? 'target="_blank" rel="noopener"' : 'data-ejemplo="1"'}>Jugar</a>${j.mio ? '<button class="sec" id="b-retirar" style="padding:8px 12px;font-size:12px">Retirar de la galería</button>' : ''}</div></div>`;
 }
 function pintarGaleria() {
-  const lista = juegosGaleria().sort((a, b) => nota(b.votos) - nota(a.votos));
+  const lista = juegosGaleria().sort((a, b) => (WEB ? b._nota - a._nota : nota(b.votos) - nota(a.votos)));
   const conVotos = lista.filter((j) => j.votos.length >= 3);
   const podio = conVotos.slice(0, 3);
   $('podio').innerHTML = podio.map((j, i) => tarjeta(j, i + 1)).join('');
   $('gal').innerHTML = lista.filter((j) => !podio.includes(j)).map((j) => tarjeta(j, 0)).join('');
-  $('b-publicar').textContent = galeria().mio ? 'Editar mi juego' : 'Publicar mi juego';
-  document.querySelectorAll('.estrellas button[data-v]').forEach((b) => { b.onclick = () => {
-    const id = b.parentElement.dataset.j, g = galeria(); g.votos[id] = Number(b.dataset.v);
+  const mioW = WEB && (GAL || []).find((j) => j.mio);
+  $('b-publicar').textContent = (WEB ? mioW : galeria().mio) ? 'Editar mi juego' : 'Publicar mi juego';
+  if (WEB && GAL && !lista.length) $('gal').innerHTML = '<p class="intro">Aún no hay juegos en la galería: el primero puede ser el tuyo.</p>';
+  document.querySelectorAll('.estrellas button[data-v]').forEach((b) => { b.onclick = async () => {
+    const id = b.parentElement.dataset.j;
+    if (WEB) { try { const r = await alServidor({ accion: 'votar', juego: id, estrellas: Number(b.dataset.v) }); if (!r) throw 0; if (r.ensayo) { aviso('Sin ficha de recluta: solo se puede mirar', '#ff4d6d', 1.8); return; } }
+      catch (x) { aviso('No se ha podido votar', '#ff4d6d', 1.6); return; }
+      await sincronizar(); audio(); SON.chispa(); aviso(`${b.dataset.v} ★`, '#ffd35c', 0.8); traerGaleria(); pintarCuaderno(); return; }
+    const g = galeria(); g.votos[id] = Number(b.dataset.v);
     try { localStorage.setItem('sgGaleria', JSON.stringify(g)); } catch (x) { /* nada */ }
     audio(); SON.chispa(); aviso(`${b.dataset.v} ★`, '#ffd35c', 0.8); pintarGaleria(); pintarCuaderno();
   }; });
   document.querySelectorAll('[data-ejemplo]').forEach((a) => { a.onclick = (ev) => { ev.preventDefault(); aviso('Juego de ejemplo: en la Nave abre el enlace de su reto', '#5ff4ff', 2.2); }; });
-  if ($('b-retirar')) $('b-retirar').onclick = () => { const g = galeria(); g.mio = null; try { localStorage.setItem('sgGaleria', JSON.stringify(g)); } catch (x) { /* nada */ } pintarGaleria(); };
+  if ($('b-retirar') && WEB) $('b-retirar').onclick = async () => { await alServidor({ accion: 'retirar' }); traerGaleria(); };
+  else if ($('b-retirar')) $('b-retirar').onclick = () => { const g = galeria(); g.mio = null; try { localStorage.setItem('sgGaleria', JSON.stringify(g)); } catch (x) { /* nada */ } pintarGaleria(); };
 }
 $('b-publicar').onclick = () => {
-  const m = galeria().mio || { titulo: '', url: '', herr: 'Genially', desc: '' };
+  const m = (WEB ? (GAL || []).find((j) => j.mio) : galeria().mio) || { titulo: '', url: '', herr: 'Genially', desc: '' };
   pantalla(`<div class="kicker">Galería de la tripulación</div><h2>Publicar mi juego</h2>
     <p style="font-size:15px">En la Nave, el enlace sale ya de tu reto «El juego» (tema 6). Solo se publica si tú quieres, y lo puedes retirar cuando quieras.</p>
     <div class="form"><label>Título<input id="f-t" maxlength="60" value="${esc(m.titulo)}"></label>
@@ -232,9 +255,12 @@ $('b-publicar').onclick = () => {
     <label>En una frase: para quién es y a qué se juega<textarea id="f-d" maxlength="140" rows="2">${esc(m.desc)}</textarea></label></div>
     <div class="botones"><button id="f-ok">Publicar</button><button class="sec" id="f-no">Cancelar</button></div>`);
   $('f-no').onclick = cerrarPantalla;
-  $('f-ok').onclick = () => {
+  $('f-ok').onclick = async () => {
     const t = $('f-t').value.trim(), u = $('f-u').value.trim(), d = $('f-d').value.trim();
     if (!t || !/^https:\/\/\S+$/.test(u)) { aviso('Falta el título o el enlace (https://…)', '#ff4d6d', 1.8); return; }
+    if (WEB) { const r = await alServidor({ accion: 'publicar', titulo: t, url: u, herr: $('f-h').value, desc: d });
+      if (!r || r.ensayo) { aviso(r && r.ensayo ? 'Sin ficha de recluta: solo se puede mirar' : 'No se ha podido publicar', '#ff4d6d', 1.8); return; }
+      cerrarPantalla(); traerGaleria(); aviso('¡Publicado en la galería!', '#5dffa0', 1.6); return; }
     const g = galeria(); g.mio = { titulo: t, url: u, herr: $('f-h').value, desc: d };
     try { localStorage.setItem('sgGaleria', JSON.stringify(g)); } catch (x) { /* nada */ }
     cerrarPantalla(); pintarGaleria(); aviso('¡Publicado en la galería!', '#5dffa0', 1.6);
@@ -251,11 +277,13 @@ function pintar() {
     const j = JUEGOS.find((x) => x.id === b.dataset.comprar);
     pantalla(`<h2>¿Encender ${esc(j.n)}?</h2><p>Cuesta <b>${j.precio} ◈</b>. Te quedarán ${estado().creditos - j.precio} ◈.</p><div class="botones"><button id="si">Sí, encenderla</button><button class="sec" id="no">Mejor no</button></div>`);
     $('no').onclick = cerrarPantalla;
-    $('si').onclick = () => { const r = comprar(j.id); if (r.ok) { audio(); SON.bien(); cerrarPantalla(); pintar(); } else { $('pantalla-caja').insertAdjacentHTML('beforeend', `<p>${esc(r.motivo)}</p>`); } };
+    $('si').onclick = async () => { const r = await comprar(j.id); if (r.ok) { audio(); SON.bien(); cerrarPantalla(); pintar(); } else { $('pantalla-caja').insertAdjacentHTML('beforeend', `<p>${esc(r.motivo)}</p>`); } };
   }; });
 }
-$('reiniciar').onclick = () => { for (const k of ['sgJoran', 'sgGaleria', 'sgRutaMarcas', 'sgRutaRepaso']) try { localStorage.removeItem(k); } catch (e) { /* nada */ } pintar(); };
+if (WEB) { document.querySelector('.nota').remove(); document.querySelector('.aviso-rk').remove(); }
+else $('reiniciar').onclick = () => { for (const k of ['sgJoran', 'sgGaleria', 'sgRutaMarcas', 'sgRutaRepaso']) try { localStorage.removeItem(k); } catch (e) { /* nada */ } pintar(); };
 pintar();
+if (WEB) { sincronizar().then(() => { for (const k of Object.keys(RK)) delete RK[k]; pintar(); }); traerGaleria(); }
 </script>
 </body>
 </html>

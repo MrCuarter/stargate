@@ -1700,7 +1700,8 @@
   function rutaCaja(){
     var R=window.SG_RUTA; if(!R || !per || st.estado==='antes' || !juegosVisibles()) return '';
     var L=st.semanas||[], hoy=Math.max(st.actual||0,1), marcas={};
-    try{ marcas=JSON.parse(localStorage.getItem('sgRutaMarcas')||'{}'); }catch(e){}
+    // en la web, las de la ficha (st.yo.ruta, del servidor); en el borrador, las del navegador
+    if(st.yo && st.yo.ruta) marcas=st.yo.ruta; else try{ marcas=JSON.parse(localStorage.getItem('sgRutaMarcas')||'{}'); }catch(e){}
     var med={nada:'Sin medalla', bronce:'Bronce', plata:'Plata', oro:'Oro'};
     var abiertas=R.misiones.filter(function(m){ return semanaDeMision(m, L)<=hoy; });
     if(!abiertas.length) return '';

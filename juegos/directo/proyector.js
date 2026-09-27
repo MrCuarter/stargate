@@ -3,7 +3,7 @@
 // Defensa (cooperativa, en 3D), Carrera y Caza (individuales) y Duelo (dos escuadrillas al azar).
 // El proyector es quien manda: decide cuándo empieza y acaba, suma, ordena y reparte. Los móviles solo mandan lo suyo.
 // ?sesion=1&c=XXXX&tema=6 → dentro de la sesión (la sala es la de la clase y el tema de la semana viene dado).
-import { conectar, nuevoCodigo, imagen, AV, AVATARES, TEMAS, MODOS, DURACIONES, PREGUNTAS, FRECUENCIAS, INTENSIDAD, CFG_INICIAL, ATAJOS, EQUIPOS, VALOR, metaCarrera, BALIZA, PREMIO, EN_WEB } from './canal.js';
+import { conectar, esperarMotor, conServidor, motor, PER, nuevoCodigo, imagen, AV, AVATARES, TEMAS, MODOS, DURACIONES, PREGUNTAS, FRECUENCIAS, INTENSIDAD, CFG_INICIAL, ATAJOS, EQUIPOS, VALOR, metaCarrera, BALIZA, PREMIO, EN_WEB } from './canal.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -25,9 +25,12 @@ let aviso0 = null;
 function aviso(t, color = '#fff', seg = 1.4) { const a = $('aviso'); a.textContent = t; a.style.color = color; a.classList.add('ver'); clearTimeout(aviso0); aviso0 = setTimeout(() => a.classList.remove('ver'), seg * 1000); }
 
 // ─────────────────────────────── PREPARAR: la configuración y la sala de espera, a la vez
-const canal = conectar(codigo, alMensaje);
+// en la web (con ?per=), la sala del grupo por Firestore: se espera al motor de la página que contiene el juego
+if (PER) await esperarMotor();
+const WEB = conServidor();
+const canal = conectar(codigo, alMensaje, { docente: true });
 $('codigo').textContent = codigo;
-$('b-movil').href = `alumno.html?c=${codigo}` + (EN_SESION ? `&sesion=1&tema=${TEMA_SEMANA}` : '');
+$('b-movil').href = `alumno.html?c=${codigo}` + (EN_SESION ? `&sesion=1&tema=${TEMA_SEMANA}` : '') + (PER ? `&per=${encodeURIComponent(PER)}` : '');
 if (EN_SESION) $('kicker').textContent = `Final de la clase · en directo · semana de ${TEMAS[TEMA_SEMANA]}`;
 $('a-dur').innerHTML = DURACIONES.map((d) => `<option value="${d}">${d / 60} minutos</option>`).join('');
 $('a-preg').innerHTML = Object.entries(PREGUNTAS).map(([k, t]) => `<option value="${k}">${esc(t)}${k === 'semana' ? ` (tema ${TEMA_SEMANA})` : k === 'vistos' ? ` (1 a ${TEMA_SEMANA})` : ''}</option>`).join('');
@@ -87,6 +90,7 @@ function ponerBots() {
   NOMBRES_BOT.slice(hay.length, quiero).forEach((alias, i) => setTimeout(() => { if (fase === 'preparar' && tanda === tandaBots) alta('bot' + alias, alias, AVATARES[Math.floor(Math.random() * AVATARES.length)], true); }, 300 + i * azar(120, 320)));
   pintarSala();
 }
+if (WEB) $('a-bots').value = '0'; // con la clase de verdad, sin reclutas de ejemplo (se pueden añadir para probar)
 $('a-bots').onchange = ponerBots; ponerBots();
 
 function alMensaje(m) {
@@ -94,7 +98,7 @@ function alMensaje(m) {
   if (m.t === 'hola') {
     // entrar tarde, volver tras perder la conexión o llegar tras el ticket: quien ya jugaba recupera lo suyo; quien entra nuevo, con 0
     const antes = jugadores.get(m.id), estabaDentro = !!(antes && antes.listo), listo = m.listo !== false;
-    alta(m.id, String(m.alias || 'Recluta').slice(0, 16), AVATARES.includes(m.avatar) ? m.avatar : AVATARES[0], false, listo);
+    alta(m.id, String(m.alias || 'Recluta').slice(0, 16), (AVATARES.includes(m.avatar) || /^https?:\/\//.test(String(m.avatar || ''))) ? m.avatar : AVATARES[0], false, listo);
     const j = jugadores.get(m.id);
     if (fase === 'juego' && j.listo) { canal.enviar({ t: 'retoma', id: m.id, puntos: j.puntos, stats: j.stats, nuevo: !estabaDentro }); if (!estabaDentro) { recolocar(); if (!cfg.oculto) aviso(`${j.alias} se une`, '#5ff4ff', 1); } }
     emitir();
@@ -216,9 +220,22 @@ function acabar(gana) {
     <div class="botones" style="justify-content:center"><button id="b-otra">Otra partida</button></div>`;
   fin.podio = podio.map((j) => j.id); fin.orden = o.map((j) => j.id);
   canal.enviar(fin);
+  if (WEB && cfg.premio) premiarEnServidor(fin);
   $('hud').classList.add('oculto');
   $('fin').innerHTML = html; $('fin').classList.remove('oculto');
   $('b-otra').onclick = () => { $('fin').classList.add('oculto'); $('lienzo').classList.add('oculto'); $('lienzo3d').classList.add('oculto'); fase = 'preparar'; $('preparar').classList.remove('oculto'); pintarSala(); emitir(); };
+}
+
+// 🔴 los créditos, en el servidor: él mira quién jugó de verdad (su ficha en la sala, con el ticket hecho) y paga una vez
+// por partida (dos partidas al día como mucho). Los reclutas de ejemplo no cobran: no tienen ficha.
+async function premiarEnServidor(fin) {
+  const equipos = Object.fromEntries([...jugadores.values()].filter((j) => !j.bot).map((j) => [j.id, j.equipo || null]));
+  try {
+    const r = await motor().llamar('stargateDirecto', { accion: 'premiar', projectId: PER, partida: 'd' + inicio, modo: fin.modo, gana: fin.gana === true,
+      podio: (fin.podio || []).filter((id) => !String(id).startsWith('bot')), equipo: fin.equipo || null, equipos });
+    const p = document.querySelector('#fin .premio');
+    if (p) p.insertAdjacentHTML('beforeend', r && r.ok ? (r.repetida ? '' : ` <small>· pagado a ${r.pagados} ${r.pagados === 1 ? 'recluta' : 'reclutas'}</small>`) : ` <small>· ${esc((r && r.motivo) || 'sin premio')}</small>`);
+  } catch (e) { const p = document.querySelector('#fin .premio'); if (p) p.insertAdjacentHTML('beforeend', ' <small>· no se ha podido pagar</small>'); }
 }
 
 // ─────────────────────────────── EL DIBUJO (2D: carrera, caza y duelo)

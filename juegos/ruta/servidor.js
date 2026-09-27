@@ -5,15 +5,23 @@ import { SERVIDOR as LOCAL } from './servidor-local.js';
 
 const QS = new URLSearchParams(location.search);
 const per = QS.get('per') || '';
-function motor() { try { return window.parent !== window && window.parent.SG && window.parent.SG.MOTOR && window.parent.SG.MOTOR.llamar ? window.parent.SG.MOTOR : null; } catch (e) { return null; } }
+// el motor está en la Nave o en la sesión (la Ruta va en su marco; el Simulador de vuelo, en el marco de la sala)
+function motor() {
+  let w = window;
+  for (let i = 0; i < 3 && w.parent && w.parent !== w; i++) { w = w.parent; try { if (w.SG && w.SG.MOTOR && w.SG.MOTOR.llamar) return w.SG.MOTOR; } catch (e) { return null; } }
+  return null;
+}
 const llamar = (datos) => motor().llamar('stargateRuta', datos);
 
 let modo = motor() && per ? 'remoto' : 'local';
 export const enEnsayo = () => modo === 'local';
+let marcas0 = null;
+const susMarcas = () => (marcas0 = marcas0 || llamar({ accion: 'marcas', projectId: per }).then((r) => r.marcas || {}).catch(() => null));
 
 export const SERVIDOR = {
-  async marcas() { return LOCAL.marcas(); },
-  async repaso() { return LOCAL.repaso(); },
+  // las medallas del mapa y las marcas del repaso: en la web, las de tu ficha (una sola llamada para las dos)
+  async marcas() { if (modo === 'remoto') { const m = await susMarcas(); if (m) { const { repaso, ...rest } = m; return rest; } } return LOCAL.marcas(); },
+  async repaso() { if (modo === 'remoto') { const m = await susMarcas(); if (m) return m.repaso || {}; } return LOCAL.repaso(); },
   // op.nivel = el repaso del Simulador de vuelo (sin premio)
   async empezar(mision, op = {}) {
     if (modo === 'remoto') {
@@ -27,6 +35,7 @@ export const SERVIDOR = {
     return LOCAL.responder(partida, qid, pos);
   },
   async terminar(partida, datos) {
+    marcas0 = null; // al volver al mapa, las medallas de nuevo
     if (modo === 'remoto') {
       try { const r = await llamar({ accion: 'terminar', partida, llego: !!datos.llego, precision: datos.precision, escudo: datos.escudo, puntos: Math.round(datos.puntos || 0) });
         return r.repaso ? r : { medalla: r.medalla, premio: r.premio || { xp: 0, cr: 0, escalones: [] }, mejor: r.mejor }; }

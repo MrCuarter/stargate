@@ -1634,8 +1634,8 @@ SALA_JORAN = {"juego": "juegos/joran/", "hito_cr": {"bronce": 5, "plata": 10, "o
 # La Ruta, la sala de Joran, el directo y el Asedio necesitan sus funciones de GamificaPro (stargateRuta, stargateSala,
 # stargateDirecto, stargateAsedio) para contar de verdad (medallas, créditos, móviles conectados con el proyector). Hasta
 # que Norberto las despliegue, los grupos REALES no los ven; los de prueba (y la sesión sin grupo), sí, para probarlos en la
-# web de verdad. 🔴 Al desplegar las funciones: JUEGOS_LISTOS = True (y reconstruir).
-JUEGOS = {"listos": False, "prueba": [PER_ESCUELA, PER_DEMO]}
+# web de verdad. 🔴 28-sep: ENCENDIDO (las funciones, desplegadas con `desplegar_stargate.sh juegos`). Para apagarlo, False.
+JUEGOS = {"listos": True, "prueba": [PER_ESCUELA, PER_DEMO]}
 
 # ────────────────────────── 🔴 27-sep · EN DIRECTO: el juego del final de la clase (borrador) ──────────────────────────
 # Norberto: «una diapositiva… si eres docente te permite configurar el juego y lanzarlo; si eres estudiante entra en sala de

@@ -152,15 +152,26 @@ var BASE = ESC.map(function (e) { var n = 18 + Math.floor(rnd() * 22), part = 0.
 var DIAS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 function leer() { try { return JSON.parse(localStorage.getItem('sgAsedio') || '{}'); } catch (e) { return {}; } }
 function guardar(d) { try { localStorage.setItem('sgAsedio', JSON.stringify(d)); } catch (e) { /* nada */ } }
-function misDias() { var d = leer(); if (!d.dias) d.dias = { 0: 86 }; return d; } // el lunes ya atacaste (ejemplo)
+// 🔴 EN LA WEB (con ?per= y la Nave o la sesión alrededor): todo sale del servidor (stargateAsedio · estado). SRV = su respuesta.
+var SRV = null, QP = new URLSearchParams(location.search), PER = QP.get('per') || '';
+var ruta = function (u) { u = String(u || ''); return /^https?:\/\//.test(u) ? u : u ? (EN_WEB ? '../../' : '') + u : ''; };
+var imgEsc = function (e) { return e.img ? ruta(e.img) : ESCD + e.k + '.png'; };
+var diaSemana = function (iso) { var d = new Date(iso + 'T12:00:00'); return (d.getDay() + 6) % 7; }; // lunes = 0
+function misDias() {
+  if (SRV) { var o = { dias: {}, tot: (SRV.yo && SRV.yo.tot) || null }, dd = (SRV.yo && SRV.yo.dias) || {}, hoy = new Date(SRV.hoy + 'T12:00:00');
+    Object.keys(dd).forEach(function (k) { var dif = (hoy - new Date(k + 'T12:00:00')) / 864e5; if (dif >= 0 && dif < 7 && diaSemana(k) <= DIA_HOY) o.dias[diaSemana(k)] = dd[k]; });
+    return o; }
+  var d = leer(); if (!d.dias) d.dias = { 0: 86 }; return d; } // el lunes ya atacaste (ejemplo)
 function aporte() { var d = misDias(), s = 0; for (var k in d.dias) s += d.dias[k]; return s; }
 function clasif(final) {
+  if (SRV) return (SRV.clasificacion || []).map(function (e) { return { k: e.id, n: e.n, img: e.img, reclutas: e.reclutas, media: e.media }; });
   return BASE.map(function (e) { var t = e.total * (final ? 7 / (DIA_HOY + 1) : 1) + (e.k === MIO ? aporte() : 0); return { k: e.k, n: e.n, reclutas: e.reclutas, media: t / e.reclutas }; })
     .sort(function (a, b) { return b.media - a.media; });
 }
 function pintarClasif(id, final) {
-  var l = clasif(final), max = l[0].media;
-  document.getElementById(id).innerHTML = l.map(function (e, i) { return '<li class="' + (e.k === MIO ? 'mio' : '') + '"><span class="pos">' + (i + 1) + '</span><img src="' + ESCD + e.k + '.png" alt=""><div class="b"><i style="width:' + (e.media / max * 100) + '%"></i><span>' + e.n + (e.k === MIO ? ' · el tuyo' : '') + '</span></div><span class="v">' + e.media.toFixed(1).replace('.', ',') + '</span></li>'; }).join('');
+  var l = clasif(final), max = (l[0] && l[0].media) || 1;
+  if (!l.length) { document.getElementById(id).innerHTML = '<li><span class="v">Aún no ha atacado nadie.</span></li>'; return l; }
+  document.getElementById(id).innerHTML = l.map(function (e, i) { return '<li class="' + (e.k === MIO ? 'mio' : '') + '"><span class="pos">' + (i + 1) + '</span><img src="' + imgEsc(e) + '" alt=""><div class="b"><i style="width:' + (e.media / max * 100) + '%"></i><span>' + e.n + (e.k === MIO ? ' · el tuyo' : '') + '</span></div><span class="v">' + e.media.toFixed(1).replace('.', ',') + '</span></li>'; }).join('');
   return l;
 }
 function pintar() {
@@ -173,15 +184,18 @@ function pintar() {
   document.getElementById('premios').innerHTML = PREMIOS.map(function (p) { return '<li><b>' + p[0] + '</b>: ' + (p[1] ? '+' + p[1] + ' xp y ' : '') + '+' + p[2] + ' ◈</li>'; }).join('') + '<li>Solo cobra quien haya atacado al menos una vez.</li>';
   document.getElementById('premio-l').innerHTML = 'El escuadrón ganador: <b>+' + PREMIOS[0][1] + ' xp y +' + PREMIOS[0][2] + ' ◈</b> para cada recluta que haya atacado.';
   var f = clasif(true), pos = f.findIndex(function (e) { return e.k === MIO; }) + 1;
-  document.getElementById('podio').innerHTML = [1, 0, 2].map(function (i) { var e = f[i]; return '<div class="pd p' + (i + 1) + '"><img src="' + ESCD + e.k + '.png" alt=""><b>' + e.n + '</b><span>' + e.media.toFixed(1).replace('.', ',') + ' por recluta</span><div class="caj">' + (i + 1) + '</div></div>'; }).join('');
-  document.getElementById('lema-c').textContent = 'Vuestro escuadrón, ' + f[pos - 1].n + ', queda ' + pos + '.º de ' + f.length + '.';
+  if (SRV && SRV.resultado && SRV.resultado.podio) f = SRV.resultado.podio.map(function (e) { return { k: e.id, n: e.n, img: e.img, media: e.media }; }).concat(f.slice(SRV.resultado.podio.length));
+  if (!f.length) { document.getElementById('podio').innerHTML = ''; document.getElementById('lema-c').textContent = 'Nadie atacó.'; return; }
+  document.getElementById('podio').innerHTML = [1, 0, 2].map(function (i) { var e = f[i]; if (!e) return ''; return '<div class="pd p' + (i + 1) + '"><img src="' + imgEsc(e) + '" alt=""><b>' + e.n + '</b><span>' + e.media.toFixed(1).replace('.', ',') + ' por recluta</span><div class="caj">' + (i + 1) + '</div></div>'; }).join('');
+  document.getElementById('lema-c').textContent = pos ? 'Vuestro escuadrón, ' + f[pos - 1].n + ', queda ' + pos + '.º de ' + f.length + '.' : 'Gana ' + f[0].n + '.';
   document.getElementById('premio-c').innerHTML = '<b>' + f[0].n + '</b>: +' + PREMIOS[0][1] + ' xp y +' + PREMIOS[0][2] + ' ◈ a cada recluta que atacó · 2.º +' + PREMIOS[1][2] + ' ◈ · 3.º +' + PREMIOS[2][2] + ' ◈ · todos los que atacaron, +' + PREMIOS[3][2] + ' ◈';
+  if (SRV) pintarWeb();
 }
 document.querySelectorAll('[data-v]').forEach(function (b) { b.onclick = function () {
   document.querySelectorAll('[data-v]').forEach(function (x) { x.classList.toggle('si', x === b); });
   ['nave', 'lanza', 'cierre'].forEach(function (v) { document.getElementById('v-' + v).classList.toggle('oculto', v !== b.dataset.v); });
 }; });
-document.getElementById('b-atacar').onclick = function () { document.getElementById('marco').src = '../directo/alumno.html?solo=asedio&tema=6'; document.getElementById('capa').classList.remove('oculto'); };
+document.getElementById('b-atacar').onclick = function () { if (SRV && !SRV.abierto) return; document.getElementById('marco').src = '../directo/alumno.html?solo=asedio&tema=6' + (PER ? '&per=' + encodeURIComponent(PER) : ''); document.getElementById('capa').classList.remove('oculto'); };
 document.getElementById('b-cerrar').onclick = function () { document.getElementById('capa').classList.add('oculto'); document.getElementById('marco').src = 'about:blank'; };
 // EL SALÓN: seis categorías, entre TODOS los escuadrones. Tus números salen de tus ataques; los demás, de ejemplo.
 var SALON = [
@@ -204,6 +218,15 @@ function yo() {
   return { alias: 'Tú', avatar: 'p3f_r2', esc: MIO, yo: true, dias: v.length, dano: aporte(), mejor: Math.max.apply(null, v.concat([0])), derribos: t.derribos, respondidas: t.respondidas, aciertos: t.aciertos, esquivas: t.esquivas };
 }
 function pintarSalon(id) {
+  if (SRV) { // el del servidor: ya viene con una categoría por persona
+    var nom = {}, img = {}; (SRV.clasificacion || []).forEach(function (e) { nom[e.id] = e.n; img[e.id] = imgEsc({ k: e.id, img: e.img }); });
+    var FMT = [function (v) { return Math.round(v) + ' de daño'; }, function (v) { return Math.round(v) + ' derribos'; }, function (v) { return Math.round(v * 100) + ' % de aciertos'; },
+      function (v) { return Math.round(v) + ' en un ataque'; }, function (v) { return Math.round(v) + ' esquivas'; }, function (v) { return Math.floor(v) + ' de 7 días'; }];
+    var h = (SRV.salon || []).map(function (x) { var i = SALON.findIndex(function (c) { return c[1] === x.t; }), c = SALON[i] || ['', x.t, '']; var e = function (t) { return String(t).replace(/[&<>"]/g, function (z) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[z]; }); };
+      return '<div class="heroe"><img class="av" src="' + e(ruta(x.avatar)) + '" alt=""><div class="t">' + e(x.t) + '</div><b>' + e(x.alias) + (x.esc && img[x.esc] ? ' <img src="' + e(img[x.esc]) + '" alt="" title="' + e(nom[x.esc] || '') + '">' : '') + '</b><span>' + c[2] + ': ' + (FMT[i] ? FMT[i](x.v) : Math.round(x.v)) + '</span></div>'; }).join('');
+    document.getElementById(id).innerHTML = h || '<p>Aún no hay héroes: el primer ataque entra aquí.</p>';
+    return;
+  }
   var todos = FLOTA.concat([yo()]), nombre = {}; ESC.forEach(function (e) { nombre[e[0]] = e[1]; });
   // cada persona entra en UNA sola categoría (la primera que gana): así la gloria se reparte
   var usados = [];
@@ -217,6 +240,7 @@ function pintarSalon(id) {
 }
 addEventListener('message', function (ev) {
   if (!ev.data || !ev.data.sgAsedio) return;
+  if (SRV) { cargar(); return; } // lo ha apuntado el servidor: se vuelve a pedir
   var d = misDias(), dano = ev.data.sgAsedio.dano;
   if (dano > (d.dias[DIA_HOY] || 0)) d.dias[DIA_HOY] = dano;
   // lo de todos tus ataques (no solo el mejor): derribos, respuestas y esquivas, para el salón
@@ -225,6 +249,33 @@ addEventListener('message', function (ev) {
   guardar(d);
   pintar();
 });
+// lo que solo pasa en la web: el botón (abierto o no), los días que quedan y, para el profesorado, abrir y cerrar a mano
+function pintarWeb() {
+  var b = document.getElementById('b-atacar'), q = document.getElementById('quedan');
+  b.disabled = !SRV.abierto; b.textContent = SRV.abierto ? 'Atacar · 2 min' : SRV.cerrado ? 'El Asedio se ha cerrado' : 'Aún no ha empezado';
+  q.textContent = SRV.abierto ? (7 - DIA_HOY - 1 || 'menos de 1') + ' días' : SRV.cerrado ? 'cerrado' : 'semana ' + SRV.semana;
+  var pc = document.getElementById('premio-c'); if (SRV.resultado && pc && SRV.resultado.pagados != null) pc.insertAdjacentHTML('beforeend', ' · <b>pagado a ' + SRV.resultado.pagados + '</b>');
+}
+function motorArriba() { var w = window; for (var i = 0; i < 3 && w.parent && w.parent !== w; i++) { w = w.parent; try { if (w.SG && w.SG.MOTOR && w.SG.MOTOR.llamar) return w.SG.MOTOR; } catch (e) { return null; } } return null; }
+async function cargar() {
+  var M = motorArriba(); if (!M) return;
+  try { var r = await M.llamar('stargateAsedio', { accion: 'estado', projectId: PER });
+    if (r.nohay) { document.querySelector('main').innerHTML = '<div class="caja"><h2>En este grupo no hay Asedio</h2><p>En el PER intensivo no hay semana libre.</p></div>'; return; }
+    SRV = r; MIO = r.miEscuadron || ''; DIA_HOY = diaSemana(r.hoy); pintar();
+  } catch (e) { /* sin sesión: se queda el ejemplo */ }
+}
+if (PER) (async function () { for (var t = 0; t < 8000 && !(motorArriba() && motorArriba().auth && motorArriba().auth.currentUser); t += 200) await new Promise(function (r) { setTimeout(r, 200); }); cargar(); })();
+// el profesorado, en la diapositiva de la sesión: abrir o cerrar a mano (para probar o si hace falta mover la semana)
+if (PER && QP.get('docente') === '1') {
+  var dz = document.createElement('details'); dz.className = 'mas'; dz.style.marginTop = '12px';
+  dz.innerHTML = '<summary>Profesorado · abrir o cerrar a mano</summary><p>Se abre solo en la semana 11 y se cierra solo al empezar la 12. Aquí puedes adelantarlo para probar. Al cerrarlo se pagan los premios (una vez).</p><div class="botones"><button id="b-abrir">Abrir ahora</button><button class="sec" id="b-cerrar-a">Cerrar y pagar</button></div><p id="doc-r"></p>';
+  document.getElementById('v-lanza').appendChild(dz);
+  var accion = async function (a) { var M = motorArriba(); if (!M) return; document.getElementById('doc-r').textContent = '…';
+    try { await M.llamar('stargateAsedio', { accion: a, projectId: PER }); document.getElementById('doc-r').textContent = a === 'abrir' ? 'Abierto.' : 'Cerrado.'; cargar(); }
+    catch (e) { document.getElementById('doc-r').textContent = (e && e.message) || 'No se ha podido.'; } };
+  document.getElementById('b-abrir').onclick = function () { accion('abrir'); };
+  document.getElementById('b-cerrar-a').onclick = function () { accion('cerrar'); };
+}
 pintar();
 // ?vista=lanza|cierre → la diapositiva de la sesión (sin las pestañas de arriba)
 var VISTA = new URLSearchParams(location.search).get('vista');
