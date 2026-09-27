@@ -3799,6 +3799,7 @@ tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <script src="assets/js/secreto.js" defer></script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sobre.js" defer></script>
+<script src="assets/js/nebula-chat.js" defer></script>
 <script src="assets/js/recluta.js" defer></script>
 </div></section>
 <section id="nave-ranking"><div class="wrap">

@@ -97,7 +97,7 @@ c(SECS.some((x) => x[0] === "ruta") && /ruta:'ruta'/.test(SES), "   es una secci
 c(fs.existsSync(path.join(R, "assets/img/sesion/ruta.jpg")), "   con su miniatura");
 
 console.log("\n  4 · en la Nave");
-c(/function rutaCaja\(\)/.test(NAVE) && /\+rutaCaja\(\)/.test(NAVE), "🔴 la Nave enseña las diez misiones");
+c(/function rutaCaja\(\)/.test(NAVE) && /if\(st\.tab==='ruta'\)\s*return rutaCaja\(\)/.test(NAVE), "🔴 la Nave enseña las diez misiones (Retos → La Ruta)");
 c(/function semanaDeMision\(m, L\)/.test(NAVE) && /if\(m\.id==='m0'\) return 1;/.test(NAVE) && /if\(m\.final\) return L\.length;/.test(NAVE), "   cada una se abre cuando se cierra su tema (la 0, en la semana 1; Vaeon, en la última)");
 c(/Semana '\+sem\+'/.test(NAVE), "   las que faltan dicen en qué semana llegan");
 c(/La sala de Joran/.test(NAVE) && /\['simulador','simulador','Simulador de Joran'\]/.test(NAVE) && /SJ\.juego\+'index\.html\?per='/.test(NAVE) && /href="#simulador"/.test(NAVE),
@@ -130,7 +130,7 @@ c(/embedded=true/.test(AL) && /localStorage\.setItem\(TK, '1'\)/.test(AL), "   e
 c(/t: 'retoma'/.test(L("juegos/directo/proyector.js")) && /Reconectando/.test(L("juegos/directo/alumno.html")), "   se puede entrar tarde y reconectar sin perder lo que llevabas");
 c(/function diaAsedio\(s\)/.test(SES) && /st\.tipo==='PUA'\) return null/.test(SES) && AS.semana === 11 && AS.semana_pua === null, "🔴 el Asedio: semana 11 (y su resultado en la 12); en PUA no hay");
 c(JSON.stringify((AS.premios || [])[0]) === '["1.º",60,30]' && (AS.salon || []).length === 6, "   el escuadrón ganador, +60 xp y +30 ◈ a quien atacó; y seis categorías en el salón de héroes y heroínas");
-c(/function asedioCaja\(\)/.test(NAVE) && /function directoCaja\(\)/.test(NAVE) && /asedioCaja\(\)\+simuladorCaja\(\)\+directoCaja\(\)/.test(NAVE), "   la Nave: el aviso del Asedio y la entrada al directo con código");
+c(/function asedioCaja\(\)/.test(NAVE) && /function directoCaja\(\)/.test(NAVE) && /asedioCaja\(\)\+directoCaja\(\)/.test(NAVE), "   la Nave: el aviso del Asedio y la entrada al directo con código");
 const JG = global(SH, "SG_JUEGOS") || {};
 c(typeof JG.listos === "boolean" && (JG.prueba || []).includes("nave-escuela") && /function juegosVisibles\(\)/.test(SES) && /function juegosVisibles\(\)/.test(NAVE)
   && (SES.match(/!juegosVisibles\(\)/g) || []).length >= 4 && (NAVE.match(/!juegosVisibles\(\)/g) || []).length >= 4,

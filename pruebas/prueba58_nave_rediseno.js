@@ -16,8 +16,9 @@ const AULA = js("aula.js"), LLAMADA = js("llamada.js"), CSS = fs.readFileSync(
   path.join(__dirname, "..", "assets", "css", "stargate.css"), "utf8");
 
 // ---------------------------------------------------------------- a) cinco pestañas, y las viejas no rompen
-igual((NAVE.match(/\['(nave|retos|botin|mercado|rankings)','/g) || []).length, 5,
-  "🔴 cinco pestañas, ni una más: seis mezclaban hacer, tener y comprar");
+// 28-sep · la barra agrupa (BARRA) y cada pestaña lleva sus secciones: seis, con su nombre siempre a la vista
+igual(((NAVE.match(/var BARRA=\[([\s\S]*?)\];\n/) || [, ""])[1].match(/\['(nave|retos|botin|mercado|archivo|rankings)','\1','/g) || []).length, 6,
+  "🔴 seis pestañas en la barra (Mi nave, Retos, Botín, Mercado, Archivo, Rankings), cada una con sus secciones");
 c(/TABS_VIEJAS=\{ficha:'nave',semana:'nave',planetas:'retos',premios:'mercado',tablero:'rankings'\}/.test(NAVE),
   "🔴 y los identificadores VIEJOS siguen funcionando: un enlace guardado a #premios no puede dar error");
 c(/if\(TABS_VIEJAS\[k\]\) k=TABS_VIEJAS\[k\];/.test(NAVE), "   la traducción ocurre antes de validar");

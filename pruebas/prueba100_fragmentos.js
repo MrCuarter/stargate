@@ -45,7 +45,7 @@ c(!/data-cine-play/.test(REC.slice(REC.indexOf("var fr=fragDe(v.id)"), REC.index
   "   y cuando está tapado no se pinta ningún botón de reproducir");
 
 // ── 3 · El Archivo
-c(/\['archivo','archivo','El Archivo'\]/.test(REC) && /if\(st\.tab==='archivo'\)  return archivo\(\);/.test(REC), "🔴 la Nave tiene «El Archivo»");
+c(/\['archivo','archivo','Archivo'\]/.test(REC) && /if\(st\.tab==='archivo'\)  return archivo\(\);/.test(REC), "🔴 la Nave tiene «El Archivo»");
 c(/function archivo\(\)/.test(REC) && /La historia, fragmento a fragmento/.test(REC) && /\.ar-grid\{/.test(CSS), "   con todos los vídeos en orden");
 c(/de '\+FRAGS\.length\+' fragmentos/.test(REC), "   y el marcador de cuántos fragmentos llevas");
 // 20-sep · y se ven en la web: el visor, no YouTube

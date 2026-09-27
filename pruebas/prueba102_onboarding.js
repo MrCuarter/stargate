@@ -86,11 +86,12 @@ c(rol.length === 1 && rol[0].sel === ".cn-ficha", "   señala tu ficha, que est�
 c(REC.indexOf("'Cinco sitios") < 0, "🔴 NEBULA ya no dice «Cinco sitios» a pelo (con El Archivo son seis, y con el Zoco, siete)");
 c(/function pasoTabs\(\)/.test(REC), "   el paso de las pestañas se arma al momento");
 c(/tabsVisibles\(\)\.map[\s\S]{0,140}TAB_QUE_ES/.test(REC), "   y lo arma con las pestañas visibles, no con una lista a mano");
-const tabs = (REC.match(/var TABS=\[([\s\S]*?)\];/) || [, ""])[1].match(/\['([a-z]+)'/g).map(function (x) { return x.slice(2, -1); });
+// 28-sep · la barra agrupa las vistas (BARRA): cada pestaña de la barra, su frase
+const tabs = (REC.match(/var BARRA=\[([\s\S]*?)\];\n/) || [, ""])[1].match(/^\s*\[?\['([a-z]+)'|\],\['([a-z]+)'/gm).map(function (x) { return x.replace(/[^a-z]/g, ""); });
 const dicc = (REC.match(/var TAB_QUE_ES=\{([\s\S]*?)\};/) || [, ""])[1];
 const sinFrase = tabs.filter(function (k) { return k !== "envivo" && dicc.indexOf(k + ":") < 0; });
 c(!sinFrase.length, "🔴 cada pestaña de la Nave tiene su frase (si se añade una, se nota aquí)", sinFrase.join(", "));
-c(dicc.indexOf("archivo:") >= 0 && /El Archivo<\/b>, la historia en v[ií]deo/.test(REC), "   incluida «El Archivo»");
+c(dicc.indexOf("archivo:") >= 0 && /<b>Archivo<\/b>, la historia en v[ií]deo/.test(REC), "   incluida «El Archivo»");
 c(/Los <b>fragmentos<\/b> de cada tripulante, no: esos se ganan/.test(REC), "🔴 y NEBULA explica que los fragmentos se ganan");
 c(/pasos:pasosNave/.test(REC) && /typeof A\.pasos==='function'/.test(REC), "   la bienvenida entera se arma al empezar, no al cargar la página");
 

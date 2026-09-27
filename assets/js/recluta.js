@@ -533,6 +533,31 @@
     });
     return out;
   }
+  /**
+   * 🔴 28-sep · «NEBULA RESPONDE». Norberto: «¿activar la ayuda de NEBULA aquí? Limitarnos a responder preguntas de la
+   * asignatura, de la herramienta, fechas, formato del examen… pero no destripar el juego, dar soluciones ni correos».
+   * Un botón flotante abre el chat (assets/js/nebula-chat.js; lo que sabe y lo que no, lo decide el servidor:
+   * stargateNebula). Vive fuera del panel, como el Simulador: la conversación no se borra al repintar la Nave.
+   */
+  function ayudaNebula(si){
+    var b=document.getElementById('neb-ayuda-b'), cap=document.getElementById('neb-ayuda');
+    if(!si || !window.SG || !SG.NEBULA_CHAT){ if(b) b.style.display='none'; if(cap) cap.hidden=true; return; }
+    if(!b){
+      b=document.createElement('button'); b.type='button'; b.id='neb-ayuda-b'; b.className='neb-ayuda-b';
+      b.innerHTML='<img src="assets/img/personajes/nebula.png" alt=""><span>Pregunta a NEBULA</span>';
+      cap=document.createElement('aside'); cap.id='neb-ayuda'; cap.className='neb-ayuda'; cap.hidden=true;
+      cap.setAttribute('aria-label','Pregunta a NEBULA');
+      cap.innerHTML='<button type="button" class="neb-ayuda-x" aria-label="Cerrar">×</button><div id="neb-ayuda-chat"></div>';
+      document.body.appendChild(b); document.body.appendChild(cap);
+      var montado=false;
+      b.onclick=function(){ cap.hidden=!cap.hidden; b.setAttribute('aria-expanded', String(!cap.hidden));
+        if(!cap.hidden && !montado){ montado=true; SG.NEBULA_CHAT.montar('neb-ayuda-chat', { per: per }); }
+        if(!cap.hidden){ var t=cap.querySelector('textarea,input'); if(t) setTimeout(function(){ t.focus(); }, 60); } };
+      cap.querySelector('.neb-ayuda-x').onclick=function(){ cap.hidden=true; b.setAttribute('aria-expanded','false'); b.focus(); };
+      document.addEventListener('keydown',function(e){ if(e.key==='Escape' && !cap.hidden){ cap.hidden=true; b.focus(); } });
+    }
+    b.style.display='';
+  }
   function verSesion(si){
     var cap=document.getElementById('nave-ses');
     if(!si || !st.arSes){ if(cap) cap.style.display='none'; return; }
@@ -1367,8 +1392,7 @@
       +votacionCaja()
       +retosDeLaSemana()
       +ticketDelTema()
-      +rutaCaja()
-      +asedioCaja()+simuladorCaja()+directoCaja()
+      +asedioCaja()+directoCaja()
       +panelEmbebido();
   }
   /**
@@ -2226,9 +2250,34 @@
   // 17-sep · el segundo campo ya no es un emoji: es el icono de la pestaña (assets/img/nave/iconos/<clave>.png), hecho con
   // Magnific en una sola lámina para que los ocho compartan estilo (Norberto: «botones más sólidos con iconos dedicados,
   // con la estética de la narrativa»; y «evitar emojis, salvo momentos concretos»).
-  var TABS=[['nave','nave','Mi nave'],['retos','retos','Mis retos'],['botin','botin','Mi botín'],
-            ['archivo','archivo','El Archivo'],['simulador','simulador','Simulador de Joran'],
-            ['mercado','mercado','Mercado Estelar'],['zoco','zoco','El Zoco'],['rankings','rankings','Rankings'],['envivo','envivo','En vivo']];
+  // (las VISTAS: cada una es un sitio de la Nave; la barra las agrupa en BARRA)
+  var TABS=[['nave','nave','Mi nave'],['retos','retos','Retos'],['ruta','retos','La Ruta'],['simulador','simulador','Simulador de Joran'],
+            ['botin','botin','Botín'],['mercado','mercado','Bazar'],['zoco','zoco','Zoco'],
+            ['archivo','archivo','Archivo'],['rankings','rankings','Rankings'],['envivo','envivo','En vivo']];
+  /**
+   * 🔴 28-sep · SEIS PESTAÑAS, CON SECCIONES DENTRO. Norberto: «no quiero que se contraiga el menú de arriba… fusionamos
+   * Mercado Estelar con Zoco: Bazar y Zoco… el Simulador de Joran, sección dentro de Retos… unificar y usar secciones».
+   * La barra enseña GRUPOS; dentro, una tira con sus secciones. Cada sección sigue siendo su vista de siempre (st.tab =
+   * 'zoco', 'simulador'…), así que todo lo que ya lleva a una de ellas (#zoco, «Ir al Zoco», el cartel) sigue igual.
+   * [clave de la barra, icono, nombre, vistas]
+   */
+  var BARRA=[['nave','nave','Mi nave',['nave']],['retos','retos','Retos',['retos','ruta','simulador']],['botin','botin','Botín',['botin']],
+             ['mercado','mercado','Mercado',['mercado','zoco']],['archivo','archivo','Archivo',['archivo']],['rankings','rankings','Rankings',['rankings']],
+             ['envivo','envivo','En vivo',['envivo']]];
+  var CORTO={nave:'Nave', rankings:'Ranking'};   // (en el móvil, para que quepan las seis con su nombre)
+  function grupoDe(k){ return BARRA.filter(function(g){ return g[3].indexOf(k)>=0; })[0]||BARRA[0]; }
+  function grupoAbierto(g){ return g[3].some(function(k){ return tabVisible(k); }); }
+  // la tira de secciones del grupo (solo si tiene más de una); las cerradas, apagadas como en la barra
+  function seccionesDe(){
+    var g=grupoDe(st.tab); if(g[3].length<2) return '';
+    return '<div class="nb-secs" role="tablist" aria-label="'+esc(g[2])+'">'+g[3].map(function(k){
+      var x=TABS.filter(function(t){ return t[0]===k; })[0], on=st.tab===k, cerrada=!tabVisible(k);
+      return '<button type="button" role="tab" class="nb-sec'+(on?' on':'')+(cerrada?' bloq':'')+'" aria-selected="'+on+'" data-tab="'+k+'">'+esc(x[2])
+        +(cerrada?'<span class="nb-candado" aria-label="(cerrado)"></span>':'')
+        +(k==='simulador'&&simNuevo()&&!on?'<span class="nb-badge nuevo">NUEVO</span>':'')
+        +(k==='zoco'&&zocoPendientes().length?'<span class="nb-badge">'+zocoPendientes().length+'</span>':'')+'</button>';
+    }).join('')+'</div>';
+  }
   function iconoTab(k){ return '<img class="i" src="'+(k==='simulador'?'assets/img/iconos/diana.png':'assets/img/nave/iconos/'+k+'.png')+'" alt="" width="26" height="26" aria-hidden="true">'; }
   /**
    * 🔴 28-sep · TODAS LAS PESTAÑAS A LA VISTA. Norberto: «que salgan todas las opciones a la vez, pero si no están
@@ -2292,10 +2341,10 @@
   }
   function proximoCap(){ var ab=capsAbiertos(); return capsTipo().filter(function(c){ return ab.indexOf(c)<0; })[0]||null; }
   // 17-sep · «En vivo» solo existe mientras hay algo en directo (una votación, una pregunta, la sesión proyectándose)
-  function tabVisible(k){ return k==='nave'||k==='retos'||k==='botin'||k==='archivo'||(k==='envivo'?hayEnVivo():abierto(k)); }
+  function tabVisible(k){ return k==='nave'||k==='retos'||k==='ruta'||k==='botin'||k==='archivo'||(k==='envivo'?hayEnVivo():abierto(k)); }
   function tabsVisibles(){ return TABS.filter(function(x){ return tabVisible(x[0]); }); }
   // en la barra salen TODAS (las cerradas, apagadas); «En vivo», solo en directo (fuera de clase no significa nada)
-  function tabsBarra(){ return TABS.filter(function(x){ return x[0]!=='envivo' || hayEnVivo(); }); }
+  function tabsBarra(){ return BARRA.filter(function(x){ return x[0]!=='envivo' || hayEnVivo(); }); }
   /**
    * 🔴 23-sep · A MEDIA PANTALLA, NINGUNA PESTAÑA ESCONDIDA. Norberto: «con la ventana a media pantalla se rompe». Entre
    * 760 y ~1080 px las siete pestañas con su nombre no caben, y la barra (que se desplaza sin barra visible) dejaba
@@ -2349,14 +2398,14 @@
       // Se cumple abajo, en `cablearTeclado`. Y `tabindex` sigue el patrón estándar: solo la pestaña
       // activa es alcanzable con el tabulador; dentro, se mueve uno con las flechas.
       +'<div class="nb-tabs" role="tablist" aria-label="Secciones de tu nave">'+tabsBarra().map(function(x){
-        var on = st.tab===x[0], cerrada=!tabVisible(x[0]);
+        var on = grupoDe(st.tab)[0]===x[0], cerrada=!grupoAbierto(x);
         return '<button type="button" class="nb-t'+(on?' on':'')+(cerrada?' bloq':'')+'" role="tab"'
           +' aria-selected="'+on+'" aria-controls="nave-panel" tabindex="'+(on?'0':'-1')+'"'
           +' id="nb-t-'+x[0]+'" data-tab="'+x[0]+'" title="'+esc(x[2])+'">'
-          +iconoTab(x[1])+'<b>'+esc(x[2])+'</b>'
+          +iconoTab(x[1])+'<b><span class="l-largo">'+esc(x[2])+'</span><span class="l-corto">'+esc(CORTO[x[0]]||x[2])+'</span></b>'
           +(cerrada?'<span class="nb-candado" aria-label="(cerrado)"></span>':'')
-          +(x[0]==='simulador'&&simNuevo()&&!on?'<span class="nb-badge nuevo" title="Recién encendido">NUEVO</span>':'')
-          +(x[0]==='zoco'&&zocoPendientes().length?'<span class="nb-badge" title="Te toca responder">'+zocoPendientes().length+'</span>':'')+'</button>';
+          +(x[0]==='retos'&&simNuevo()&&st.tab!=='simulador'?'<span class="nb-badge nuevo" title="El Simulador de Joran, recién encendido">NUEVO</span>':'')
+          +(x[0]==='mercado'&&zocoPendientes().length?'<span class="nb-badge" title="Te toca responder">'+zocoPendientes().length+'</span>':'')+'</button>';
       }).join('')+'</div>'
       +'<div class="nb-fin">'
         +'<button type="button" class="nb-mas" id="nb-mas" aria-haspopup="true" aria-expanded="false" aria-label="Más opciones" title="Más opciones">'+iconoTab('mas')+'</button>'
@@ -2402,8 +2451,12 @@
     // 🔴 El orden importa: primero quién eres y qué toca hoy, luego el pique con quien tienes
     // cerca (una frase), y lo demás en cajones cerrados. El vestuario es una colección, como el
     // álbum: se mira cuando se quiere mirar, no cada vez que abres la Nave.
+    return seccionesDe()+vista();
+  }
+  function vista(){
     if(!tabVisible(st.tab)) return tabBloqueada(st.tab);
     if(st.tab==='simulador') return '';                 // la sala vive en su marco fijo (verSimulador)
+    if(st.tab==='ruta')     return rutaCaja()||'<div class="card"><p class="muted">Aún no hay misiones abiertas: la primera, el <b>Primer vuelo</b>, llega tras la presentación de la asignatura.</p></div>';
     if(st.tab==='nave')     return personaje();
     if(st.tab==='retos')    return mapa()+retos();
     if(st.tab==='botin')    return botin();
@@ -3337,13 +3390,12 @@
    * frase se arma con las pestañas que esa persona tiene delante. «En vivo» no cuenta: va y viene con la
    * clase, y mañana no estaría.
    */
+  // (una frase por pestaña de la BARRA; las secciones se cuentan dentro de la suya)
   var TAB_QUE_ES={nave:'<b>Mi nave</b> es esto.',
-    retos:'<b>Mis retos</b>, el viaje entero por los ocho planetas.',
-    botin:'<b>Mi botín</b>, lo que llevas ganado: insignias, cromos y personajes.',
-    archivo:'<b>El Archivo</b>, la historia en vídeo y las sesiones de clase.',
-    simulador:'<b>Simulador de Joran</b>, su sala de juegos y el repaso de los temas.',
-    mercado:'<b>Mercado Estelar</b>, donde se gasta.',
-    zoco:'<b>El Zoco</b>, donde se cambia con el resto de la tripulación.',
+    retos:'<b>Retos</b>: el viaje por los ocho planetas, las misiones de la Ruta y, desde Ludo, el Simulador de Joran.',
+    botin:'<b>Botín</b>, lo que llevas ganado: insignias, cromos y personajes.',
+    mercado:'<b>Mercado</b>: el Bazar, donde se gasta, y el Zoco, donde se cambia con tu tripulación.',
+    archivo:'<b>Archivo</b>, la historia en vídeo y las sesiones de clase.',
     rankings:'Y <b>Rankings</b>: tu clase de ocho maneras distintas, porque si no destacas en una, destacas en otra.'};
   var NUMERO={1:'un',2:'dos',3:'tres',4:'cuatro',5:'cinco',6:'seis',7:'siete',8:'ocho'};
   function pasoTabs(){
@@ -3389,9 +3441,9 @@
          x:'Tres adornos nuevos en el Mercado: un <b>título</b> bajo tu alias, el <b>fondo</b> de tu ficha con el planeta que elijas y el <b>marco dorado</b> de tu avatar. Y el <b>sobre grande</b>: cinco cartas en vez de tres.'},
         {t:'Dónde se ven',foco:'.nb-t[data-tab="botin"]',
          x:'Se ponen desde <b>Mi botín</b>, y se ven en tu ficha y en el <b>tablero de toda la clase</b>.'}],
-    c5:[{t:'Se abre El Zoco Estelar',foco:'.nb-t[data-tab="zoco"]',
+    c5:[{t:'Se abre El Zoco Estelar',foco:'.nb-t[data-tab="mercado"]',
          x:'Aquí se <b>cambia</b> entre reclutas, sin tienda de por medio. Pon tus héroes o cromos (repetidos o no) y los demás te ofrecen lo suyo: <b>créditos, cartas o héroes</b>.'},
-        {t:'Cómo se hace un trato',foco:'.nb-t[data-tab="zoco"]',
+        {t:'Cómo se hace un trato',foco:'.nb-t[data-tab="mercado"]',
          x:'Ofreces algo y queda <b>apartado</b> hasta que te respondan. Quien vende acepta, rechaza con un mensaje o te hace una <b>contraoferta</b> mirando lo que tienes. Tú tienes la última palabra: <b>3 pasos</b> y trato cerrado.'},
         {t:'Poner lo tuyo',foco:'.nb-t[data-tab="botin"]',
          x:'Desde tu álbum (abre una carta en grande) o desde tu vestuario (el <img class=ico src=assets/img/iconos/p/zoco.png alt> de cada héroe): «Poner en el Zoco». Sigue siendo tuyo hasta que aceptes una oferta. Y las <b>participaciones del Gran Sorteo</b> también se revenden aquí.'}],
@@ -3401,9 +3453,9 @@
          {t:'Poco tiempo y pocas unidades',foco:'.nb-t[data-tab="mercado"]',
           x:'Dura lo que dura la semana y, si es algo raro, hay pocas unidades para todo el grupo: cuando se acaban, se acabó. <b>Una por persona</b>. Tu docente también puede preparar las suyas.'}],
     // 16-sep · EL SIMULADOR DE JORAN (semana 11). 23-sep · ya no es un reto: un juego de repaso que se enseña a todos
-    c11:[{t:'La sala de Joran',foco:'.nb-t[data-tab="simulador"]',
+    c11:[{t:'La sala de Joran',foco:'.nb-t[data-tab="retos"]',
           x:'Joran convirtió el simulacro de evacuación en un juego, y ya tiene <b>su pestaña</b> en tu Nave. Dentro: <b>cinco arcade</b> y el <b>Simulador de vuelo</b> para repasar la Ruta en tres niveles. La plata de cada máquina enciende la siguiente (o la enciendes con créditos).'},
-         {t:'Hitos, Cuaderno y Galería',foco:'.nb-t[data-tab="simulador"]',
+         {t:'Hitos, Cuaderno y Galería',foco:'.nb-t[data-tab="retos"]',
           x:'Cada máquina tiene tres hitos que dan créditos <b>una vez</b>. El <b>Cuaderno de vuelo</b> guarda los grandes logros, hay ranking de tu clase y Salón de la fama, y en la <b>Galería</b> se valoran los juegos de la tripulación.'}],
     // 14-sep · el Gran Sorteo: lo cuenta con el premio y los ganadores de SU grupo (el referente
     // puede cambiarlos), por eso se arma al momento
@@ -4902,6 +4954,7 @@
     verTablero(dentro && st.tab==='rankings' && tabVisible('rankings'));
     verSimulador(dentro && st.tab==='simulador' && tabVisible('simulador'));
     verSesion(dentro && st.tab==='archivo' && st.arSub==='sesiones');
+    ayudaNebula(dentro && motorNuevo() && !DEMO && !SIMULACRO);
     Array.prototype.forEach.call(root.querySelectorAll('[data-arsub]'),function(b){ b.onclick=function(){ st.arSub=b.getAttribute('data-arsub'); render(); }; });
     Array.prototype.forEach.call(root.querySelectorAll('[data-arses]'),function(b){ b.onclick=function(){ st.arSes=b.getAttribute('data-arses'); render();
       var c=document.getElementById('nave-ses'); if(c) try{ c.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){} }; });

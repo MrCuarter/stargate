@@ -7094,3 +7094,42 @@ details.mas summary{cursor:pointer;color:var(--teal,#5ff4ff);font-weight:700;fon
 .ar-ses-b small{color:var(--mut);font-size:.8rem}
 .ar-ses-b.on{border-color:var(--teal);box-shadow:0 0 12px rgba(55,224,236,.3)}
 @media (max-width:600px){.nave-sim{padding:0 8px}.nave-sim .sim-marco{height:calc(100vh - 120px)}}
+
+/* 🔴 28-sep · SEIS PESTAÑAS QUE NO SE CONTRAEN. Norberto: «no quiero que se contraiga el menú de arriba». Con seis caben
+   con su nombre al lado; si aun así no caben (media pantalla, móvil), el icono arriba y el nombre debajo, como la barra de
+   las apps del móvil: el nombre SIEMPRE se ve. Las secciones de cada pestaña, en una tira bajo la cabecera. */
+.nb-tabs.apretada .nb-t,.nb-tabs.apretada .nb-t:not(.on){width:auto;flex-direction:column;justify-content:center;gap:1px;padding:2px 8px;height:auto;min-height:48px}
+.nb-tabs.apretada .nb-t b,.nb-tabs.apretada .nb-t:not(.on) b{display:block;font-size:.75rem;line-height:1.1}
+.nb-tabs.apretada .nb-t .i{width:22px;height:22px}
+@media(max-width:760px){
+  .nave-barra-u{height:auto;min-height:58px}
+  .nb-t{height:auto;min-height:50px;width:auto;flex-direction:column;gap:1px;padding:3px 6px}
+  .nb-t b{display:block!important;font-size:.75rem;line-height:1.1}
+  .nb-t .i{width:24px;height:24px}
+}
+@media(max-width:420px){
+  .nb-t{width:auto;min-width:44px;padding:3px 3px}
+  .nb-t b{font-size:.75rem;letter-spacing:-.01em}
+}
+.nb-secs{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 18px}
+.nb-sec{position:relative;font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--mut);border-radius:999px;padding:8px 16px;cursor:pointer}
+.nb-sec:hover{color:#fff;border-color:var(--teal2)}
+.nb-sec.on{border-color:var(--teal);color:#fff;box-shadow:0 0 12px rgba(55,224,236,.35)}
+.nb-sec.bloq{opacity:.5}
+.nb-sec .nb-candado{position:static;display:inline-block;vertical-align:middle;margin-left:6px}
+/* 28-sep · «Pregunta a NEBULA»: el botón flotante y su panel (el chat trae sus propios estilos: nebula-chat.js) */
+.neb-ayuda-b{position:fixed;right:16px;bottom:16px;z-index:900;display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:999px;border:1px solid var(--teal);background:#0b1626;color:#fff;font:inherit;font-size:.9rem;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 14px rgba(55,224,236,.35)}
+.neb-ayuda-b img{width:36px;height:36px;border-radius:50%;object-fit:cover;background:#050a14}
+.neb-ayuda-b:hover{box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 22px rgba(55,224,236,.6)}
+.neb-ayuda{position:fixed;right:16px;bottom:76px;z-index:901;width:min(420px,calc(100vw - 32px));max-height:calc(100vh - 110px);overflow:auto;border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.neb-ayuda-x{position:absolute;top:8px;right:10px;z-index:2;border:0;background:none;color:var(--mut);font-size:1.5rem;cursor:pointer;line-height:1}
+@media(max-width:600px){.neb-ayuda-b span{display:none}.neb-ayuda-b{padding:6px}}
+/* en el móvil: las seis se reparten el ancho y llevan su nombre corto («Nave», «Ranking»); la letra, nunca bajo 12 px */
+.nb-t .l-corto{display:none}
+@media(max-width:480px){
+  .nb-tabs{gap:1px;flex:1 1 auto;min-width:0}
+  .nb-t{flex:1 1 auto;min-width:0;padding:3px 2px}
+  .nb-t .l-largo{display:none}.nb-t .l-corto{display:inline}
+  .nb-t b{font-size:.75rem!important;letter-spacing:-.02em;white-space:nowrap}
+  .nb-mas{flex:0 0 auto}
+}
