@@ -36,7 +36,7 @@ c(/\.rs-grid,\.rs-grid\.par\{grid-template-columns:1fr\}/.test(CSS) && /\.rs-tro
 // 5 · el menú de la Nave: botones sólidos, iconos propios, sin emojis
 ["nave", "retos", "botin", "mercado", "zoco", "rankings", "envivo", "mas"].forEach(k =>
   c(fs.existsSync(path.join(RAIZ, "assets/img/nave/iconos", k + ".png")), "   icono «" + k + "» (Magnific, de una sola lámina)"));
-c(/function iconoTab\(k\)/.test(NAVE) && /\+iconoTab\(x\[1\]\)\+'<b>'/.test(NAVE) && /aria-label="Más opciones" title="Más opciones">'\+iconoTab\('mas'\)/.test(NAVE),
+c(/function iconoTab\(k\)/.test(NAVE) && /\+iconoTab\(x\[1\]\)\+'<b><span class="l-largo">'/.test(NAVE) && /aria-label="Más opciones" title="Más opciones">'\+iconoTab\('mas'\)/.test(NAVE),
   "🔴 las pestañas de la Nave llevan su icono (y el «···» también)");
 c(!/\['nave','🛰️'/.test(NAVE) && /\.nb-t\{height:44px/.test(CSS) && /\.nb-t::after\{display:none\}/.test(CSS), "   botones sólidos, sin subrayado ni emojis");
 const menu = NAVE.slice(NAVE.indexOf("function menuMas()"), NAVE.indexOf("function contenido()"));
