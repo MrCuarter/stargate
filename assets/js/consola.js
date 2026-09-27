@@ -1694,7 +1694,7 @@
     return '<div class="pt-cod"><span>Código de clase</span><button type="button" class="gp-cod" data-cod="' + esc(codigo) + '" ' +
         'title="Pulsa para verlo (y otra vez para taparlo)" aria-label="Mostrar el código de clase">•••••• <em>Mostrar</em></button>' +
       '<button type="button" class="btn min" data-copiado="✓ Invitación copiada" data-copiar="' + esc(invitacion({ id: per, codigo: codigo })) + '" ' +
-        'title="Copia un mensaje listo para pegar en el foro de la plataforma de UNIR o en un chat">' + ico("enlace") + ' Copiar invitación</button></div>';
+        'title="Copia el enlace para alistarse (lleva dentro el código de clase): pégalo en el foro de la plataforma de UNIR o en el chat">' + ico("enlace") + ' Copiar invitación</button></div>';
   }
   document.addEventListener("click", function (e) {
     var b = e.target && e.target.closest && e.target.closest(".gp-cod");

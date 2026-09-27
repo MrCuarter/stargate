@@ -5197,7 +5197,7 @@ const REG = {};   // cifras que se apuntan para el informe
           await rm.cerrar();
         }
       }
-      // la sesión de las semanas 1 y 2: «Únete a la clase» con el código y «Copiar la invitación para el chat»
+      // la sesión de las semanas 1 y 2: «Únete a la clase» con el código y «Copiar el enlace para alistarse»
       const rs = await nueva("Rita proyecta la semana 1");
       await rs.ir("entrar.html"); await rs.entrarComo("rita@lab.test", "Rita Referente");
       await rs.ir("sesion.html?per=lab-clase&sem=1"); await rs.hasta("!!document.querySelector('[data-sec=\"unete\"]')", 60);

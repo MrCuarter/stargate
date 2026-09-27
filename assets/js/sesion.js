@@ -439,7 +439,7 @@
       +'<div class="ll-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/gente.png alt> Primeras semanas</div><h2>Únete a la tripulación</h2>'
       +'<p class="sub">Entra en <b>'+esc(location.host)+'</b>, pulsa <b>Iniciar sesión con Google</b> y, cuando te lo pida, escribe el código de clase:</p>'
       +'<div class="un-cod" id="ses-un-cod" aria-live="polite">······</div>'
-      +'<p class="un-pie"><button type="button" class="btn primary" id="ses-un-copiar" disabled>Copiar la invitación para el chat</button> <span class="small" id="ses-un-msg"></span></p>'
+      +'<p class="un-pie"><button type="button" class="btn primary" id="ses-un-copiar" disabled>Copiar el enlace para alistarse</button> <span class="small" id="ses-un-msg"></span></p>'
       +'</div></div>', montar: conRetrato(montarUnete)};
   }
   function montarUnete(el){
@@ -453,7 +453,7 @@
       b.disabled=false;
       b.onclick=function(){
         (navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(txt):Promise.reject())
-          .then(function(){ msg.textContent='✓ Copiada: pégala en el chat.'; },function(){ msg.textContent='No he podido copiarla: selecciona el código de la pantalla.'; });
+          .then(function(){ msg.textContent='✓ Enlace copiado: pégalo en el chat.'; },function(){ msg.textContent='No he podido copiarla: selecciona el código de la pantalla.'; });
       };
     }).catch(function(){ cod.textContent='—'; msg.textContent='No he podido leer el código.'; });
     return null;

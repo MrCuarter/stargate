@@ -2234,11 +2234,10 @@ async function todosLosGrupos() {
  * Capitán del buzón (que los da al instante cuando alguien pregunta «¿cuál es el código de invitación?»):
  * si cada uno tuviera su copia del texto, un día dirían cosas distintas.
  */
+// 🔴 28-sep · SOLO EL ENLACE. Norberto: «cuando copio la invitación copia palabras de "te esperamos en STARGATE"; quiero que
+// solo se copie el link, nada más». El código de clase ya va dentro del enlace (&codigo=), así que no hace falta decirlo.
 function invitacion(p) {
-  const enlace = location.origin + "/alistarse.html?per=" + encodeURIComponent(p.id) + "&codigo=" + encodeURIComponent(p.codigo);
-  return "Te esperamos en STARGATE, el proyecto gamificado de la asignatura.\n" +
-         "Entra aquí con tu cuenta de Google y alístate: " + enlace + "\n" +
-         "Si te pide un código de clase, es " + p.codigo + ".";
+  return location.origin + "/alistarse.html?per=" + encodeURIComponent(p.id) + "&codigo=" + encodeURIComponent(p.codigo);
 }
 /** El código para insertar en Genially (Insertar → Otros → Código): llena la caja que le des. */
 function codigoGenially(ruta, titulo) {
