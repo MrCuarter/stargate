@@ -101,7 +101,8 @@ Promise.all(casos.map(([t]) => SX.comprobar("S7", t))).then(rs => {
     "🔴 la consola monta el enlace del final del escape, y su código para incrustarlo, con la llave dentro");
   c(/codigoGenially\(ruta \+ "&embed=1"/.test(CONS) && /i\.id !== "s7-llave"/.test(CONS),
     "   el código incrustado va con ?llave=…&embed=1 (el alumnado no escribe nada)");
-  c(!/llave/.test(CONS.slice(CONS.indexOf('guardarAjustes'), CONS.indexOf('guardarAjustes') + 3000)),
+  // (28-sep · ahora hay varias llamadas a guardarAjustes: ninguna lleva la llave entre lo que guarda)
+  c(!/guardarAjustes\([^;]{0,400}llave/.test(CONS),
     "🔴 y la llave NO se guarda en el grupo (el repositorio de la web es público)");
   c(/if \(EMBED\) return tarjeta\('<h3>Ábrelo en una pestaña/.test(VAL) && /function fuera\(\)/.test(VAL),
     "🔴 si el navegador no deja entrar con Google dentro del Genially, se ofrece abrirlo en una pestaña (con su llave)");

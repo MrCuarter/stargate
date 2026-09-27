@@ -48,11 +48,14 @@ c(/Comandante/.test(E) && /Media de xp/.test(E) && /Insignias de media/.test(E),
 c(/EVID_PER === PER/.test(E), "   y los avisos de enlace son los de ESTE grupo (no los del último que se miró)");
 
 // 5 · el equipo docente, persona a persona
-const Q = trozo(K, "function verEquipo", 11000);   // (17-sep · más largo: sus preguntas ya no son confirm() de una línea)
+const Q = trozo(K, "function verEquipo", 20000);   // (28-sep · y más: las sustituciones y «¿Para qué entra?»)   // (17-sep · más largo: sus preguntas ya no son confirm() de una línea)
 c(/class="eq-p/.test(Q) && /data-rol=/.test(Q) && /data-pasar=/.test(Q) && /data-quitar=/.test(Q) && /data-ver-esc=/.test(Q),
   "🔴 cada persona del equipo, con sus botones: rol, pasar su alumnado, quitar, ver su escuadrón");
 c(/refs <= 1/.test(Q) && /vital \|\| soyYo \? ""/.test(Q), "   sin dejar el grupo sin referente, ni quitarse uno mismo, ni quitar a un vitalicio");
-c(/MOTOR\.traspasar\(PER, d\.nombre, sel\.value\)[\s\S]{0,80}MOTOR\.quitarDocente\(PER, d\.correo\)/.test(Q), "   si tiene alumnado, se pasa ANTES de quitarle");
+c(/MOTOR\.pasarEscuadron\(PER, d\.nombre, sel\.value, dS\.correo\); \}\s*\n\s*await MOTOR\.quitarDocente\(PER, d\.correo\)/.test(Q), "   si tiene escuadrón y alumnado, pasan ANTES de quitarle (28-sep: el escuadrón entero)");
+// 28-sep · las sustituciones: pasar el escuadrón a cualquiera del equipo, dárselo a quien no tiene, y «¿Para qué entra?»
+c(/data-asumir-ir/.test(Q) && /name="e-para" value="sustituye"/.test(Q) && /value="apoya"/.test(Q) && /value="nuevo"/.test(Q) && /MOTOR\.apoyarEscuadron/.test(Q) && /MOTOR\.escuadronNuevo/.test(Q),
+  "🔴 sustituciones: pasar/dar escuadrón en la tarjeta y, al añadir, «¿Para qué entra?» (sustituye, apoya, escuadrón nuevo, coordina)");
 c(/También en/.test(Q) && /x\.equipo = eq\.map/.test(M), "   y en qué otros de tus grupos está");
 c(/async function quitarDocente\(perId, correo\)[\s\S]{0,200}quitar: true/.test(M), "el motor quita por el servidor (stargateEquipo con quitar)");
 const SRV = "/Users/nor/Claude/vibewebs/gamificapro/functions/stargateEquipo.js";

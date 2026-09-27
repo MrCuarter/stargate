@@ -45,7 +45,14 @@
 
   // Los Comandantes que se ofrecen: quien IMPARTE. Un referente que solo coordina no tiene escuadrón,
   // y elegirle dejaba al estudiante sin escuadrón (los grupos viejos no traen el dato: salen todos).
-  function docentes() { return ((PROY.stargate || {}).docentes || []).filter(function (d) { return d.imparte !== false; }); }
+  // 🔴 28-sep · y salen de los ESCUADRONES (su Comandante), no de la lista que se guardó al crear el grupo: así un relevo
+  // por baja, un docente que llega tarde o un escuadrón nuevo aparecen aquí al momento (Norberto: «cuando un estudiante se
+  // aliste deberán aparecer los cambios»). Sin escuadrones (grupos viejos), la lista de siempre.
+  function docentes() {
+    var vistos = {}, deEsc = (PROY.factions || []).filter(function (f) { return f.teacherName && !vistos[f.teacherName] && (vistos[f.teacherName] = 1); })
+      .map(function (f) { return { nombre: f.teacherName, imparte: true }; });
+    return deEsc.length ? deEsc : ((PROY.stargate || {}).docentes || []).filter(function (d) { return d.imparte !== false; });
+  }
 
   // 🔴 El interruptor de motor tiene que sobrevivir al salto a la Nave. Sin él, quien se alista con
   // ?motor=firestore aterriza en la Nave del motor VIEJO y se encuentra un «PER no encontrado»

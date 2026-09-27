@@ -153,12 +153,22 @@ function estadoDelPER(S) {
   let semana = null;
   // con las semanas congeladas del calendario del referente (motor/semanas.js)
   if (S.inicio) semana = window.SGSEMANAS.semanaDelCurso(S.inicio, S.pausas);
+  /**
+   * 🔴 28-sep · EL FINAL DE UN GRUPO. Norberto: «para terminarlo del todo vamos a darle 20 semanas, pero un docente debe
+   * poder recuperarlo fácilmente (hay estudiantes que suspenden y van a recuperación: pueden hacer retos en la semana 30)».
+   *   · hasta la semana total + GRACIA (la 20 en REGULAR), sigue «en marcha» (fase «prorroga»: el curso ya ha terminado);
+   *   · después, «pasado» (Grupos finalizados), salvo que su docente lo haya REABIERTO para recuperación hasta una fecha
+   *     (`stargate.recuperacion.hasta`): mientras dure, «en marcha» (fase «recuperacion»), aunque sea la semana 30.
+   */
+  const GRACIA = 5;
+  const rec = S.recuperacion && Number(S.recuperacion.hasta) > Date.now() ? Number(S.recuperacion.hasta) : 0;
   let estado;
-  if (S.archivado) estado = "pasado";
+  if (S.archivado && !rec) estado = "pasado";
   else if (semana == null) estado = "sin fecha";
   else if (semana < 1) estado = "por empezar";
-  else estado = semana > total ? "pasado" : "en marcha";
-  return { semana: semana, estado: estado, total: total, archivado: !!S.archivado };
+  else estado = rec || semana <= total + GRACIA ? "en marcha" : "pasado";
+  const fase = estado !== "en marcha" ? "" : rec && semana > total ? "recuperacion" : semana > total ? "prorroga" : "curso";
+  return { semana: semana, estado: estado, total: total, archivado: !!S.archivado, fase: fase, recuperacionHasta: rec, cierreTotal: total + GRACIA };
 }
 
 async function misPERs(correo) {
@@ -604,6 +614,52 @@ async function anularRetoViejo(perId, fichaId, retoId, motivo) {
  *
  * Cambia el Comandante y el escuadrón de un golpe: quien se queda hereda el grupo entero.
  */
+/**
+ * 🔴 28-sep · LAS SUSTITUCIONES (bajas, docentes que llegan tarde). Norberto: «si un docente se añade más adelante o coge la
+ * baja uno actual y hay que sustituirlo (algo que ocurre muchísimo), no hay manera de ajustarlo». El docente y su escuadrón
+ * solo se unen por el NOMBRE (factions[].teacherName), y nada lo cambiaba. Aquí, de un golpe:
+ *   pasarEscuadron(per, de, a, correoA) → el escuadrón (o escuadrones) de «de» pasan a «a», con todo su alumnado;
+ *   escuadronNuevo(per, a, correoA)     → «a» estrena un escuadrón del catálogo que el grupo aún no usa (para alumnado nuevo).
+ * Lo que cuelga del nombre (el ticket de salida, la sesión, el alistamiento) lo sigue solo: todo lee el Comandante de la ficha.
+ */
+async function pasarEscuadron(perId, deNombre, aNombre, aCorreo, soloId) {
+  if (!deNombre || !aNombre || deNombre === aNombre) throw new Error("Elige a quién pasa.");
+  const ref = doc(db, "projects", perId), P = (await getDoc(ref)).data() || {};
+  const correo = String(aCorreo || "").toLowerCase();
+  let tocadas = [];
+  const facc = (P.factions || []).map(function (f) {
+    if (f.teacherName !== deNombre || (soloId && f.id !== soloId)) return f;
+    tocadas.push(f.id);
+    return Object.assign({}, f, { teacherName: aNombre, assignedTeacherEmails: correo ? [correo] : [] });
+  });
+  if (tocadas.length) await updateDoc(ref, { factions: facc });
+  // su alumnado: el de su nombre (y, si se pasa un escuadrón concreto, solo el de ese escuadrón)
+  const q = await getDocs(query(collection(db, "student_profiles"), where("projectId", "==", perId), where("stargateProfe", "==", deNombre)));
+  const lote = writeBatch(db); let n = 0;
+  q.docs.forEach(function (d) { const x = d.data(); if (soloId && (x.squadId || x.factionId) !== soloId) return;
+    lote.update(d.ref, { stargateProfe: aNombre }); n++; });
+  if (n) await lote.commit();
+  return { escuadrones: tocadas.length, reclutas: n };
+}
+/** Codocencia: otra persona comparte el escuadrón de «deNombre» (entra en su lista de correos; el alumnado no cambia). */
+async function apoyarEscuadron(perId, deNombre, correo) {
+  correo = String(correo || "").toLowerCase(); if (!correo) throw new Error("Falta su correo.");
+  const ref = doc(db, "projects", perId), P = (await getDoc(ref)).data() || {};
+  const facc = (P.factions || []).map(function (f) { if (f.teacherName !== deNombre) return f;
+    const L = (f.assignedTeacherEmails || []).filter(function (x) { return x !== correo; }).concat([correo]); return Object.assign({}, f, { assignedTeacherEmails: L }); });
+  await updateDoc(ref, { factions: facc });
+}
+async function escuadronNuevo(perId, aNombre, aCorreo) {
+  const ref = doc(db, "projects", perId), P = (await getDoc(ref)).data() || {};
+  const usadas = (P.factions || []).map(function (f) { return f.id; });
+  const cat = ((window.SG_CATALOGO || {}).escuadrones) || [];
+  const e = cat.filter(function (x) { return usadas.indexOf(x.clave) < 0; })[0];
+  if (!e) throw new Error("No quedan escuadrones libres en el catálogo.");
+  const f = { id: e.clave, name: e.nombre, score: 0, assignedTeacherEmails: aCorreo ? [String(aCorreo).toLowerCase()] : [],
+              teacherName: aNombre, lema: e.lema, origen: e.origen, imageUrl: e.emblema };
+  await updateDoc(ref, { factions: (P.factions || []).concat([f]) });
+  return f;
+}
 async function traspasar(perId, deNombre, aNombre) {
   const p = await getDoc(doc(db, "projects", perId));
   const destino = (p.data().factions || []).filter(f => f.teacherName === aNombre)[0] || null;
@@ -2325,6 +2381,6 @@ window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs
                     vigilarVotaciones, vigilarEnVivo, publicarEnVivo, lanzarPregunta, cerrarPregunta, responderPregunta, vigilarRespuestas, quitarRespuesta, miRespuesta,
                     referenteGlobal, crearInvitacion, leerInvitacion, canjearInvitacion, invitaciones, referentes, ponerReferente,
                     profes, anotarConexion, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
-                    directoYo, directoCanal,
+                    directoYo, directoCanal, pasarEscuadron, escuadronNuevo, apoyarEscuadron,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

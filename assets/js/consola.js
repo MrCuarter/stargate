@@ -457,6 +457,9 @@
             (emb.nombre ? ' · escuadrón <b>' + esc(emb.nombre) + '</b>' : '') + (YO && YO.correo ? ' · <span class="muted">' + esc(YO.correo) + '</span>' : '') + '</p>' +
           '<p class="monedas"><span class="m xp" tabindex="0" data-tip="Los grupos de STARGATE en los que das clase ahora mismo. Los terminados no cuentan."><b>' + V.length + '</b> ' + (V.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span>' +
             '<span class="m cred" tabindex="0" data-tip="Todo el alumnado de esos grupos, sumado."><b>' + total + '</b> ' + (total === 1 ? "recluta a tu cargo" : "reclutas a tu cargo") + '</span>' +
+            // 28-sep · los grupos finalizados (y archivados), a un clic: se abren en tu Nave y se reabren para recuperación
+            (PERS.some(function (x) { return x.estado === "pasado"; }) ? '<button type="button" class="m fin-b" id="cn-finalizados" data-tip="Los cursos que ya han terminado: ábrelos en tu Nave o reábrelos para la recuperación">' +
+              ico("medalla") + ' <b>' + PERS.filter(function (x) { return x.estado === "pasado"; }).length + '</b> finalizados</button>' : '') +
             (emb.img ? '<span class="m emb" tabindex="0" data-tip="' + esc(emb.nombre ? "Tu escuadrón en este grupo: " + emb.nombre : "Tu escuadrón en este grupo") + '" aria-label="' + esc(emb.nombre ? "Tu escuadrón en este grupo: " + emb.nombre : "Tu escuadrón en este grupo") + '"><img src="' + esc(emb.img) + '" alt="" loading="lazy"></span>' : '') + '</p>' +
         '</div>' +
         // 🔴 23-sep · sin «Ajustes» (Norberto: «vamos a simplificar»): el comandante se cambia en el lápiz de tu avatar y las
@@ -484,7 +487,51 @@
       MOTOR.avatarEnGrupo(p.id, yo, k).then(function () { A[yo] = k; }).catch(function () {});
     });
   }
+  /**
+   * 🔴 28-sep · GRUPOS FINALIZADOS. Norberto: «añade la opción de grupos finalizados/archivados: se abre una ventana con
+   * los archivados, se selecciona el que se quiere y se abre en la Nave del docente». Y desde ahí (o desde su banner), la
+   * recuperación: el grupo vuelve a estar en marcha hasta la fecha que elijas, y su alumnado puede registrar retos.
+   */
+  function ventanaFinalizados() {
+    var F = PERS.filter(function (x) { return x.estado === "pasado"; });
+    var c = document.createElement("div"); c.className = "cn-fin-capa"; c.setAttribute("role", "dialog"); c.setAttribute("aria-label", "Grupos finalizados");
+    c.innerHTML = '<div class="cn-fin-caja"><button type="button" class="cn-fin-x" aria-label="Cerrar">×</button>' +
+      '<div class="eyebrow">' + ico("medalla") + ' Grupos finalizados</div><h3>Cursos terminados y archivados</h3>' +
+      '<p class="small muted">Ábrelo para verlo en tu Nave como estaba. Si alguien va a la recuperación, reábrelo desde su banner: su alumnado vuelve a poder registrar retos.</p>' +
+      '<ul class="cn-fin-lista">' + F.map(function (p) { var e = emblemaDe(p);
+        return '<li>' + (e.img ? '<img src="' + esc(e.img) + '" alt="">' : '<span class="cn-g-sin">◈</span>') +
+          '<span><b>' + esc(p.nombre) + '</b><em>' + esc(lineaEstado(p, true)) + (p.reclutas != null ? ' · ' + p.reclutas + (p.reclutas === 1 ? ' recluta' : ' reclutas') : '') + '</em></span>' +
+          '<a class="btn min primary" href="consola.html?per=' + esc(p.id) + '">Abrir</a></li>'; }).join("") + '</ul></div>';
+    document.body.appendChild(c);
+    var cerrar = function () { c.remove(); document.removeEventListener("keydown", tecla); };
+    var tecla = function (e) { if (e.key === "Escape") cerrar(); };
+    c.querySelector(".cn-fin-x").onclick = cerrar; c.onclick = function (e) { if (e.target === c) cerrar(); };
+    document.addEventListener("keydown", tecla);
+  }
+  /** Reabrir un curso terminado para la recuperación (hasta una fecha) o cerrar la recuperación antes de tiempo. */
+  async function recuperacion(per, abrir) {
+    var hasta = 0;
+    if (abrir) {
+      var def = new Date(Date.now() + 28 * 864e5).toISOString().slice(0, 10);
+      var r = window.prompt("¿Hasta qué día abres el curso para la recuperación? (AAAA-MM-DD)", def);
+      if (!r) return;
+      hasta = new Date(r + "T23:59:00").getTime();
+      if (!(hasta > Date.now())) { aviso("Esa fecha no vale: tiene que ser posterior a hoy."); return; }
+    }
+    try {
+      await MOTOR.guardarAjustes(per, { "stargate.recuperacion": abrir ? { hasta: hasta, desde: Date.now(), por: (YO && YO.correo) || "" } : false });
+      PERS = await MOTOR.misPERs(YO.correo);
+      aviso(abrir ? "Reabierto para la recuperación hasta el " + fechaCorta(hasta) + ": vuelve a tus grupos en marcha y su alumnado puede registrar retos." : "Recuperación cerrada.");
+      abrir(per);
+    } catch (e) { aviso("No se ha podido: " + (e.message || e)); }
+  }
   function cablearHero() {
+    var bf = $("#cn-finalizados"); if (bf) bf.onclick = ventanaFinalizados;
+    if (!window.__sgRecu) { window.__sgRecu = true;   // (cablearHero se llama varias veces: el oyente, una)
+      document.addEventListener("click", function (e) {
+        var a = e.target.closest && e.target.closest("#gr-recu-abrir, #gr-recu-cerrar"); if (!a) return;
+        recuperacion(PER, a.id === "gr-recu-abrir");
+      }); }
     var avImg = $("#doc-ava-img"), avBtn = $("#doc-ava"), avs = $("#doc-avas");
     if (MOTOR.miFichaDocente) MOTOR.miFichaDocente().then(function (f) {
       if (f && f.avatar && avImg) avImg.src = window.SG.avatarRetrato(f.avatar);
@@ -566,6 +613,17 @@
    * fatal. ¿No sería mejor un desplegable? Prueba a incorporarlo en la caja donde está el avatar del docente». Con un solo
    * grupo no hay nada que elegir: no sale (el nombre ya está en su banner, aquí abajo).
    */
+  /** 28-sep · la línea del estado de un grupo, con su fase: el curso, la prórroga hasta la 20 o la recuperación */
+  function fechaCorta(ms) { try { return new Date(ms).toLocaleDateString("es-ES", { day: "numeric", month: "short" }); } catch (e) { return ""; } }
+  function lineaEstado(p, mayus) {
+    var t = p.estado === "en marcha"
+      ? (p.fase === "recuperacion" ? "en recuperación hasta el " + fechaCorta(p.recuperacionHasta)
+        : p.fase === "prorroga" ? "curso terminado · se cierra en la semana " + p.cierreTotal
+        : "semana " + p.semana + " de " + p.total)
+      : p.estado === "por empezar" ? "empieza el " + ((p.stargate || {}).inicio ? diaC(p.stargate.inicio) : "—")
+      : p.estado === "pasado" ? ((p.stargate || {}).archivado ? "archivado" : "finalizado") : "sin fecha";
+    return mayus ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+  }
   function selectorDeGrupo() {
     var L = gruposParaElegir();
     // 28-sep · Norberto: «que el selector de grupos sea más grande: es importante que el docente vea en qué grupo está».
@@ -573,8 +631,7 @@
     if (L.length < 2) { var uno = L[0] || PERS.filter(function (p) { return p.id === PER; })[0];
       return uno ? '<div class="cn-sel cn-sel-uno"><span class="cn-sel-t">Estás en el grupo</span><b class="cn-sel-g">' + esc(uno.nombre) + '</b></div>' : ""; }
     return '<label class="cn-sel"><span class="cn-sel-t">Estás en el grupo</span><select id="cn-sel-g" aria-label="Cambiar de grupo">' + L.map(function (p) {
-      var linea = p.estado === "en marcha" ? "semana " + p.semana + " de " + p.total : p.estado === "por empezar" ? "empieza el " + ((p.stargate || {}).inicio || "—")
-                : p.estado === "pasado" ? "terminado" : "sin fecha";
+      var linea = lineaEstado(p);
       return '<option value="' + esc(p.id) + '"' + (p.id === PER ? " selected" : "") + '>' + esc(p.nombre) + ' · ' + esc(linea) +
         (p.reclutas != null ? ' · ' + p.reclutas + (p.reclutas === 1 ? ' recluta' : ' reclutas') : '') + (p.cola ? ' · ' + p.cola + ' pendiente' + (p.cola === 1 ? '' : 's') : '') + '</option>';
     }).join("") + '</select></label>';
@@ -720,7 +777,7 @@
     var sem = Number(t.semana) || 0, total = Number(t.semanas) || 15;
     var SEMS = window.SG_SEMANAS || [], tipo = t.tipo === "PUA" ? "PUA" : "REGULAR";
     var s = sem >= 1 ? (tipo === "PUA" ? SEMS.filter(function (x) { return x.tema_n === Math.min(sem, 8); })[0] : SEMS[Math.min(sem, SEMS.length) - 1]) : null;
-    var estado = sem < 1 ? "Aún no ha empezado" : sem > total ? "Curso terminado" : "Semana " + sem + " de " + total;
+    var estado = sem < 1 ? "Aún no ha empezado" : sem > total ? lineaEstado(pAqui, true) : "Semana " + sem + " de " + total;
     var yoN = miNombreAqui(), mia = yoN ? t.reclutas.filter(function (r) { return r.profe === yoN; }) : [];
     var N = (mia.length ? mia : t.reclutas).length;
     var ini = ((DATOS.proyecto || {}).stargate || {}).inicio;
@@ -742,6 +799,10 @@
         // 26-sep · la presentación de la asignatura (sesión 1), siempre a mano: en la semana 1 es la primera clase
         '<a class="gp-b gr-pres' + (sem <= 1 ? ' hoy' : '') + '" href="sesion.html?per=' + esc(PER) + '&pres=1" target="_blank" rel="noopener" title="La sesión 1: la asignatura, sus notas y sus fechas, y el embarque en STARGATE">' +
           '<img class="ico" src="assets/img/iconos/p/notas.png" alt=""> La presentación' + (sem <= 1 ? ' <em>sesión 1</em>' : '') + '</a></div>' +
+      // 28-sep · la recuperación: un curso terminado se reabre (hasta una fecha) para quien va a la recuperación
+      (sem > total ? '<div class="gr-recu">' + (pAqui.fase === "recuperacion"
+          ? ico("envivo") + ' <span>En recuperación hasta el <b>' + esc(fechaCorta(pAqui.recuperacionHasta)) + '</b>: su alumnado puede registrar retos.</span> <button type="button" class="btn min" id="gr-recu-cerrar">Cerrar la recuperación</button>'
+          : ico("medalla") + ' <span>' + (pAqui.estado === "pasado" ? 'Curso finalizado.' : 'Curso terminado: se cierra del todo en la semana ' + esc(String(pAqui.cierreTotal || 20)) + '.') + ' ¿Alguien va a la recuperación?</span> <button type="button" class="btn min primary" id="gr-recu-abrir">Reabrir para la recuperación</button>') + '</div>' : '') +
       barraEscuela(t, sem, total) +
     '</div>';
   }
@@ -1608,8 +1669,7 @@
     var FIL = [["todos", "Todos"], ["en marcha", "En marcha"], ["por empezar", "Por empezar"], ["terminado", "Terminados"], ["archivado", "Archivados"]];
     var fila = function (p) {
       var e = emblemaDe(p), est = estadoG(p), abierto = p.id === PER;
-      var estTxt = est === "en marcha" ? "Semana " + p.semana + " de " + p.total : est === "por empezar" ? "Empieza el " + ((p.stargate || {}).inicio ? diaC(p.stargate.inicio) : "—")
-                 : est === "terminado" ? "Terminado" : est === "archivado" ? "Archivado" : "Sin fecha";
+      var estTxt = est === "terminado" ? "Finalizado" : est === "archivado" ? "Archivado" : lineaEstado(p, true);
       var eq = (p.equipo || []).map(function (d) { return esc(d.nombre || d.correo) + (d.rol === "referente" ? " (ref.)" : ""); }).join(" · ");
       return '<div class="gs-fila' + (abierto ? " on" : "") + '">' +
           '<div class="gs-g">' + (e.img ? '<img src="' + esc(e.img) + '" alt="" loading="lazy">' : '<span class="cn-g-sin">◈</span>') +
@@ -2929,7 +2989,8 @@
       var correo = String(d.correo || "").toLowerCase(), f = conEsc(d.nombre);
       var n = t.reclutas.filter(function (r) { return r.profe === d.nombre; }).length, soyYo = !!correo && correo === yo;
       var vital = VITALICIOS_WEB.indexOf(correo) >= 0, esRef = d.rol === "referente", otros = enOtros(correo);
-      var destinos = docs.filter(function (x) { return x.nombre !== d.nombre && conEsc(x.nombre); });
+      // 28-sep · a quién puede pasar su escuadrón: a CUALQUIERA del equipo (también quien acaba de llegar o no tiene escuadrón)
+      var destinos = docs.filter(function (x) { return x.nombre && x.nombre !== d.nombre; });
       return '<article class="eq-p' + (esRef ? " ref" : "") + '">' +
         '<div class="eq-cab">' + (f && f.imageUrl ? '<img src="' + esc(f.imageUrl) + '" alt="" width="52" height="52" loading="lazy">' : '<span class="eq-sin" aria-hidden="true"><img class=ico src=assets/img/iconos/p/gente.png alt></span>') +
           '<div class="eq-quien"><h4>' + esc(d.nombre || correo) + (soyYo ? ' <span class="chip">tú</span>' : "") + "</h4>" +
@@ -2940,9 +3001,18 @@
           : '<span class="muted">Sin escuadrón (coordina, o se incorporó después)</span>' + (n ? " · " + n + " reclutas a su nombre" : "")) + "</p>" +
         (otros.length ? '<p class="small eq-otros">También en ' + otros.map(function (g) {
             return '<a href="consola.html?per=' + encodeURIComponent(g.id) + '&tab=equipo">' + esc(g.nombre) + "</a>" + (g.rol === "referente" ? " <img class=ico src=assets/img/iconos/p/estrella.png alt>" : ""); }).join(" · ") + "</p>" : "") +
-        (n && destinos.length ? '<div class="eq-pasar"><span>Pasar su alumnado a</span><select data-dest="' + i + '" aria-label="A quién pasa su alumnado">' +
-            destinos.map(function (x) { return "<option>" + esc(x.nombre) + "</option>"; }).join("") + "</select>" +
+        /**
+         * 🔴 28-sep · SUSTITUCIONES, EN LA TARJETA. Norberto: «un profe se coge la baja y debe sustituirle otro… si un docente
+         * se añade más adelante… no hay manera de ajustarlo». Con escuadrón: se le pasa ENTERO (con su alumnado) a quien
+         * sea del equipo. Sin escuadrón: se hace cargo del de otro, o estrena uno.
+         */
+        (f && destinos.length ? '<div class="eq-pasar"><span>Pasar su escuadrón y su alumnado a</span><select data-dest="' + i + '" aria-label="A quién pasa su escuadrón">' +
+            destinos.map(function (x) { return '<option value="' + esc(x.nombre) + '">' + esc(x.nombre) + (conEsc(x.nombre) ? "" : " (sin escuadrón)") + "</option>"; }).join("") + "</select>" +
             '<button type="button" class="btn min" data-pasar="' + i + '">Pasar</button></div>' : "") +
+        (!f && d.nombre ? '<div class="eq-pasar"><span>Darle un escuadrón</span><select data-asumir="' + i + '" aria-label="Qué escuadrón">' +
+            facc.map(function (x) { return '<option value="' + esc(x.id) + '">' + esc(x.name) + (x.teacherName ? " (ahora de " + esc(x.teacherName) + ")" : " (sin Comandante)") + "</option>"; }).join("") +
+            '<option value="__nuevo">Uno nuevo, para alumnado nuevo</option></select>' +
+            '<button type="button" class="btn min primary" data-asumir-ir="' + i + '">Dárselo</button></div>' : "") +
         '<div class="eq-acc">' +
           (vital ? "" : '<button type="button" class="btn min" data-rol="' + i + '">' + (esRef ? "Pasar a docente" : "<img class=ico src=assets/img/iconos/p/estrella.png alt> Hacer referente") + "</button>") +
           (vital || soyYo ? "" : '<button type="button" class="btn min peligro" data-quitar="' + i + '">Quitar del equipo</button>') +
@@ -2970,9 +3040,25 @@
       '<div class="eq-form"><label>Nombre<input id="e-nom" placeholder="Cómo aparece ante su clase" autocomplete="off"></label>' +
       '<label>Correo<input id="e-mail" type="email" placeholder="nombre@ejemplo.com" autocomplete="off"></label>' +
       '<label>Rol<select id="e-rol"><option value="docente">Docente (imparte)</option><option value="referente">Referente (lleva el grupo)</option></select></label></div>' +
+      /**
+       * 🔴 28-sep · ¿PARA QUÉ ENTRA? Norberto: «al añadir un docente se debe preguntar: ¿suplanta a un docente en activo? ¿se
+       * añade a apoyar a un docente? ¿liderará un escuadrón nuevo? Dependiendo, habrá un efecto u otro».
+       */
+      '<fieldset class="eq-para"><legend>¿Para qué entra?</legend>' +
+        (docs.some(function (x) { return conEsc(x.nombre); }) ?
+          '<label><input type="radio" name="e-para" value="sustituye" checked> <b>Sustituye a</b> <select id="e-sust">' + docs.filter(function (x) { return conEsc(x.nombre); }).map(function (x) {
+            return '<option value="' + esc(x.nombre) + '">' + esc(x.nombre) + ' (' + esc(conEsc(x.nombre).name) + ')</option>'; }).join("") + '</select>' +
+          '<span class="small muted">una baja o un relevo: se queda con su escuadrón y su alumnado.</span>' +
+          '<span class="eq-sub"><input type="checkbox" id="e-sust-quitar"> y quitar del equipo a quien sale</span></label>' +
+          '<label><input type="radio" name="e-para" value="apoya"> <b>Apoya a</b> <select id="e-apoya">' + docs.filter(function (x) { return conEsc(x.nombre); }).map(function (x) {
+            return '<option value="' + esc(x.nombre) + '">' + esc(x.nombre) + ' (' + esc(conEsc(x.nombre).name) + ')</option>'; }).join("") + '</select>' +
+          '<span class="small muted">comparten escuadrón: su alumnado sigue con su Comandante.</span></label>' : '') +
+        '<label><input type="radio" name="e-para" value="nuevo"' + (docs.some(function (x) { return conEsc(x.nombre); }) ? '' : ' checked') + '> <b>Lidera un escuadrón nuevo</b> <span class="small muted">para alumnado que llega: podrán elegirle al alistarse.</span></label>' +
+        '<label><input type="radio" name="e-para" value="coordina"> <b>Coordina, sin escuadrón</b> <span class="small muted">ve el grupo, pero no tiene alumnado a su nombre.</span></label>' +
+      '</fieldset>' +
       '<p><button type="button" class="btn primary" id="e-add">Añadir a este grupo</button> ' +
       '<button type="button" class="btn min" id="e-todos">Hacerle referente de TODOS mis grupos</button></p>' +
-      '<p class="small muted">Añadirle no le da escuadrón ni alumnado: si va a impartir, pásale después el alumnado de alguien desde su tarjeta.</p></div>';
+      '<p class="small muted">Después, en su tarjeta, <b>«Darle un escuadrón»</b>: el de quien sustituye (con su alumnado) o uno nuevo. Aparecerá en el alistamiento y en el ticket de salida de sus reclutas.</p></div>';
 
     var hecho = async function (b, fn, txt) {
       b.disabled = true;
@@ -2994,10 +3080,27 @@
     Array.prototype.forEach.call(app.querySelectorAll("[data-pasar]"), function (b) {
       b.onclick = async function () {
         var i = Number(b.getAttribute("data-pasar")), d = docs[i], a = app.querySelector('[data-dest="' + i + '"]').value;
-        if (!(await window.SG.preguntar({ titulo: "¿Pasar todo el alumnado de " + d.nombre + " a " + a + "?",
-          texto: "Cambian de Comandante y de escuadrón de una vez.", si: "Pasar el alumnado" }))) return;
+        var dA = docs.filter(function (x) { return x.nombre === a; })[0] || {};
+        if (!(await window.SG.preguntar({ titulo: "¿Pasar el escuadrón de " + d.nombre + " a " + a + "?",
+          texto: "Su escuadrón y todo su alumnado pasan a " + a + " de una vez: los reclutas ven a su nuevo Comandante en la Nave, en la sesión y en el ticket de salida.",
+          si: "Pasar el escuadrón" }))) return;
         b.disabled = true;
-        MOTOR.traspasar(PER, d.nombre, a).then(function (n) { return refrescar().then(function () { TAB = "equipo"; pintar(); aviso(n + " reclutas pasados a " + a + ".", true); }); })
+        MOTOR.pasarEscuadron(PER, d.nombre, a, dA.correo).then(function (r) { return refrescar().then(function () { TAB = "equipo"; pintar();
+          aviso("Hecho: " + (r.escuadrones === 1 ? "su escuadrón" : r.escuadrones + " escuadrones") + " y " + r.reclutas + (r.reclutas === 1 ? " recluta" : " reclutas") + " son ahora de " + a + ".", true); }); })
+          .catch(function (e) { b.disabled = false; aviso(e.message); });
+      };
+    });
+    Array.prototype.forEach.call(app.querySelectorAll("[data-asumir-ir]"), function (b) {
+      b.onclick = async function () {
+        var i = Number(b.getAttribute("data-asumir-ir")), d = docs[i], v = app.querySelector('[data-asumir="' + i + '"]').value;
+        var f = facc.filter(function (x) { return x.id === v; })[0];
+        if (!(await window.SG.preguntar({ titulo: v === "__nuevo" ? "¿Estrenar un escuadrón para " + d.nombre + "?" : "¿Dar «" + f.name + "» a " + d.nombre + "?",
+          texto: v === "__nuevo" ? "Un escuadrón nuevo del catálogo, a su nombre: el alumnado que se aliste podrá elegirle."
+            : (f.teacherName ? "Deja de ser de " + f.teacherName + ": el escuadrón y su alumnado pasan a " + d.nombre + " (una baja, una sustitución)." : "Pasa a " + d.nombre + " con su alumnado."),
+          si: "Dárselo" }))) return;
+        b.disabled = true;
+        (v === "__nuevo" ? MOTOR.escuadronNuevo(PER, d.nombre, d.correo) : MOTOR.pasarEscuadron(PER, f.teacherName || "—", d.nombre, d.correo, f.id))
+          .then(function () { return refrescar().then(function () { TAB = "equipo"; pintar(); aviso("Hecho: " + d.nombre + " ya tiene escuadrón.", true); }); })
           .catch(function (e) { b.disabled = false; aviso(e.message); });
       };
     });
@@ -3006,13 +3109,13 @@
         var i = Number(b.getAttribute("data-quitar")), d = docs[i], n = t.reclutas.filter(function (r) { return r.profe === d.nombre; }).length;
         if (d.rol === "referente" && refs <= 1) return aviso("Es la única persona referente de este grupo: nombra antes a otra.");
         var sel = app.querySelector('[data-dest="' + i + '"]');
-        if (n && !sel) return aviso(d.nombre + " tiene " + n + " reclutas y no hay otro docente con escuadrón a quien pasarlos.");
+        if (n && !sel) return aviso(d.nombre + " tiene " + n + " reclutas: dale antes su escuadrón a otra persona del equipo (o añade a quien le sustituye).");
         if (!(await window.SG.preguntar({ titulo: "¿Quitar a " + (d.nombre || d.correo) + " del equipo de este grupo?",
-          texto: (n ? "Antes, sus " + n + " reclutas pasan a " + sel.value + ".\n\n" : "") + "Dejará de ver el grupo. Se le puede volver a añadir cuando quieras.",
+          texto: (sel ? "Antes, su escuadrón" + (n ? " y sus " + n + " reclutas" : "") + " pasan a " + sel.value + ".\n\n" : "") + "Dejará de ver el grupo. Se le puede volver a añadir cuando quieras.",
           si: "Quitar del equipo", peligro: true }))) return;
         b.disabled = true;
         try {
-          if (n) await MOTOR.traspasar(PER, d.nombre, sel.value);
+          if (sel) { var dS = docs.filter(function (x) { return x.nombre === sel.value; })[0] || {}; await MOTOR.pasarEscuadron(PER, d.nombre, sel.value, dS.correo); }
           await MOTOR.quitarDocente(PER, d.correo);
           await refrescar(); TAB = "equipo"; pintar();
           aviso((d.nombre || d.correo) + " ya no está en el equipo" + (n ? "; su alumnado es ahora de " + sel.value : "") + ".", true);
@@ -3030,10 +3133,25 @@
     $("#e-add").onclick = async function () {
       var persona = { nombre: $("#e-nom").value, correo: $("#e-mail").value, rol: $("#e-rol").value };
       if (!persona.correo.trim()) return aviso("Escribe su correo.");
+      if (!persona.nombre.trim()) return aviso("Escribe su nombre: es como le verá su clase.");
+      var para = (app.querySelector('input[name="e-para"]:checked') || {}).value || "coordina";
+      var de = para === "sustituye" ? $("#e-sust").value : para === "apoya" ? $("#e-apoya").value : "";
+      var quitarSale = para === "sustituye" && $("#e-sust-quitar") && $("#e-sust-quitar").checked;
+      var dSale = docs.filter(function (x) { return x.nombre === de; })[0] || {};
+      if (para === "sustituye" && !(await window.SG.preguntar({ titulo: "¿" + persona.nombre + " sustituye a " + de + "?",
+        texto: "Su escuadrón y todo su alumnado pasan a " + persona.nombre + ": lo verán en su Nave, en la sesión y en el ticket de salida." + (quitarSale ? "\n\nY " + de + " sale del equipo." : "\n\n" + de + " sigue en el equipo (por si vuelve)."),
+        si: "Añadir y sustituir" }))) return;
       $("#e-add").disabled = true;
-      try { var r = await MOTOR.anadirDocente(PER, persona); await refrescar(); TAB = "equipo"; pintar();
-            aviso(r.nombre + " ya está en el equipo como " + r.rol + ".", true); }
-      catch (e) { $("#e-add").disabled = false; aviso(e.message); }
+      try {
+        var r = await MOTOR.anadirDocente(PER, persona), efecto = "";
+        if (para === "sustituye") { var x = await MOTOR.pasarEscuadron(PER, de, r.nombre || persona.nombre, persona.correo);
+          efecto = " Sustituye a " + de + ": " + x.reclutas + (x.reclutas === 1 ? " recluta" : " reclutas") + " a su nombre.";
+          if (quitarSale && dSale.correo) { await MOTOR.quitarDocente(PER, dSale.correo); efecto += " " + de + " ya no está en el equipo."; } }
+        else if (para === "apoya") { await MOTOR.apoyarEscuadron(PER, de, persona.correo); efecto = " Apoya a " + de + " en su escuadrón."; }
+        else if (para === "nuevo") { var f = await MOTOR.escuadronNuevo(PER, r.nombre || persona.nombre, persona.correo); efecto = " Lidera el escuadrón «" + f.name + "»."; }
+        await refrescar(); TAB = "equipo"; pintar();
+        aviso((r.nombre || persona.nombre) + " ya está en el equipo como " + r.rol + "." + efecto, true);
+      } catch (e) { $("#e-add").disabled = false; aviso(e.message); }
     };
     // --- referente de todos
     // 🔴 «De todos» se escribe grupo a grupo, no es una marca global: `misPERs` pregunta a Firestore

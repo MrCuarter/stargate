@@ -70,11 +70,13 @@
   // dejaria a cero y pareceria vacio. Ahi se enseñan todos.
   function soloMiosReal(){ return st.soloMios && !esDemoPer(st.per); }
   function estadoPer(p){
-    var n=(p.tipo==='PUA'?10:15);
-    if(p.archivado) return 'pasado';
+    // 28-sep · la misma cuenta que el motor (estadoDelPER): PUA 8, regular 15, y cinco semanas más antes de darlo por
+    // terminado del todo (la 20), o hasta donde lo haya reabierto su docente para recuperación
+    var n=(p.tipo==='PUA'?8:15), rec=p.recuperacion&&Number(p.recuperacion.hasta)>Date.now();
+    if(p.archivado&&!rec) return 'pasado';
     if(p.semana==null) return 'sin fecha';
     if(p.semana<1) return 'por empezar';
-    return p.semana>n ? 'pasado' : 'en marcha';
+    return rec||p.semana<=n+5 ? 'en marcha' : 'pasado';
   }
   // v3.61 · ANTES: un desplegable con los NOMBRES de todo el profesorado y cada uno elegia el suyo.
   // Eso enseñaba la plantilla entera a cualquiera con el PIN, y dejaba entrar como un companero con

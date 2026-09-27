@@ -160,6 +160,12 @@
     var f = new Date(+m[1], +m[2] - 1, +m[3]), hoy = new Date(); hoy.setHours(0, 0, 0, 0);
     return " · " + (f > hoy ? "empieza el " : "empezó el ") + (+m[3]) + " " + MESES[+m[2] - 1] + " " + m[1];
   }
+  var claveArch = function (yo) { return "sgArchivados:" + (yo && yo.uid || ""); };
+  function archivadoPorMi(yo, per) { try { return (JSON.parse(localStorage.getItem(claveArch(yo)) || "[]") || []).indexOf(per) >= 0; } catch (e) { return false; } }
+  function marcarArchivado(yo, per, si) {
+    try { var L = JSON.parse(localStorage.getItem(claveArch(yo)) || "[]") || []; L = L.filter(function (x) { return x !== per; }); if (si) L.push(per);
+      localStorage.setItem(claveArch(yo), JSON.stringify(L)); } catch (e) {}
+  }
   function elegir(yo, ps, gs, vuelta) {
     var nombreDe = function (id) {
       var p = ps.filter(function (x) { return x.id === id; })[0];
@@ -177,16 +183,27 @@
         : "") +
       // 19-sep · Norberto: «resaltado y en grande el nombre del grupo; debajo, Recluta y la fecha de inicio». El curso más
       // reciente, arriba (casi nadie verá más de uno: con un solo grupo se entra directo a la Nave)
+      // 28-sep · Norberto: «a un estudiante no le desaparece nunca el grupo hasta que lo archive él». Los terminados se
+      // pueden archivar (y recuperar) aquí; es cosa suya y de este navegador, no se borra nada.
       gs.slice().sort(function (a, b) {
         return ((a.estado === "pasado") - (b.estado === "pasado")) || String(b.inicio || "").localeCompare(String(a.inicio || ""));
-      }).map(function (g) {
+      }).filter(function (g) { return !archivadoPorMi(yo, g.per); }).map(function (g) {
         var fin = g.estado === "pasado";
-        return '<a class="camino recluta' + (fin ? ' terminado' : '') + '" href="recluta.html?per=' + encodeURIComponent(g.per) + '"><span><img src="assets/img/nave/iconos/nave.png" alt=""></span>' +
-               "<b>" + esc(g.nombreGrupo || nombreDe(g.per)) + "</b><em>Recluta" + inicioDe(g.inicio) + (fin ? " · curso terminado" : "") + "</em></a>";
+        return '<div class="camino-fila"><a class="camino recluta' + (fin ? ' terminado' : '') + '" href="recluta.html?per=' + encodeURIComponent(g.per) + '"><span><img src="assets/img/nave/iconos/nave.png" alt=""></span>' +
+               "<b>" + esc(g.nombreGrupo || nombreDe(g.per)) + "</b><em>Recluta" + inicioDe(g.inicio) + (fin ? " · curso terminado" : "") + "</em></a>" +
+               (fin ? '<button type="button" class="btn min camino-arch" data-archivar="' + esc(g.per) + '">Archivar</button>' : '') + '</div>';
       }).join("") +
       "</div>" +
+      (function () { var A = gs.filter(function (g) { return archivadoPorMi(yo, g.per); }); if (!A.length) return "";
+        return '<details class="camino-archivados"><summary>Grupos archivados (' + A.length + ')</summary>' + A.map(function (g) {
+          return '<div class="camino-fila"><a class="camino recluta terminado" href="recluta.html?per=' + encodeURIComponent(g.per) + '"><span><img src="assets/img/nave/iconos/nave.png" alt=""></span><b>' +
+            esc(g.nombreGrupo || nombreDe(g.per)) + '</b><em>Recluta' + inicioDe(g.inicio) + ' · archivado</em></a><button type="button" class="btn min camino-arch" data-recuperar="' + esc(g.per) + '">Recuperar</button></div>'; }).join("") + '</details>'; })() +
       '<p class="small muted"><a href="#" id="e-otra">Entrar con otra cuenta</a></p>'
     );
+    Array.prototype.forEach.call(document.querySelectorAll("[data-archivar],[data-recuperar]"), function (b) {
+      b.onclick = function () { var per = b.getAttribute("data-archivar") || b.getAttribute("data-recuperar");
+        marcarArchivado(yo, per, !!b.getAttribute("data-archivar")); elegir(yo, ps, gs, vuelta); };
+    });
     document.getElementById("e-otra").onclick = function (ev) {
       ev.preventDefault();
       repartiendo = false;
