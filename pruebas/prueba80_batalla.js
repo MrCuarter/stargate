@@ -127,7 +127,7 @@ const B = leer("assets/js/batalla.js"), N = leer("assets/js/recluta.js"), M = le
   c(/function simuladorAbierto\(\)/.test(K) && /capitulosAbiertos \|\| \{\}\)\.c11\) return true/.test(K) && /semanaDelTema\) \|\| \{\}\)\["6"\]/.test(K)
     && /x\[0\] === "simulador" && !simuladorAbierto\(\)\) return false/.test(K), "   y solo desde la semana del Tema 6 (o si el capítulo se abrió antes)");
   // 27-sep · la batalla de preguntas queda retirada de los menús: la sección del docente abre la SALA de Joran, en ensayo
-  c(/function verSimulador\(t\)/.test(K) && /SJ\.juego \+ "index\.html\?per=" \+ encodeURIComponent\(PER\) \+ "&ensayo=1"/.test(K), "   dentro, la sala de Joran en modo ensayo en su grupo");
+  c(/function verSimulador\(t\)/.test(K) && /SJ\.juego \+ "index\.html\?per=" \+ encodeURIComponent\(PER\) \+ "&ensayo=1(&v=" \+ SJ\.v)?/.test(K), "   dentro, la sala de Joran en modo ensayo en su grupo");
   // y el alumnado la ve la misma semana: el capítulo del Simulador (c11) cae en la semana del Tema 6
   const SD = leer("_site_data.py");
   c(/"clave": "c11"[^\n]*\n?[^\n]*"semana": 10/.test(SD) || /"clave": "c11"[\s\S]{0,400}"semana": 10/.test(SD), "🔴 el capítulo del Simulador se abre en la semana 10 (la del Tema 6), no antes");

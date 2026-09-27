@@ -38,5 +38,6 @@ export const DIRECTO = {
   "ganar_clase": 10,
   "podio": 10,
   "equipo": 10
- }
+ },
+ "v": "1b7fc6b8a5"
 };

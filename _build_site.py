@@ -33,6 +33,36 @@ _SEM_HEROE = _DESDE["Cápsula de rescate"]
 _SERIE_TIT_WEB = {k: t for k, t, _ in CROMO_SERIES}
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+# 🔴 27-sep · LOS JUEGOS, CON SU HUELLA. Lo de juegos/ no pasaba por _ver_assets: el CDN (y el navegador) guardan 7 días
+# cada fichero pedido sin ?v=, y la sala nueva se quedó colgada pidiendo a un comun.js viejo «CLASE_SRV» (Norberto: «no
+# se ven máquinas ni nada»). Ahora cada referencia relativa entre ficheros de juegos/ lleva ?v=JV (una huella de TODO
+# juegos/ y de sus datos) y los enlaces de entrada (Nave, sesión, consola) la llevan en X.v. Cambia algo → cambia todo.
+import re as _re_j
+_J_REF = _re_j.compile(r"""(['"`(])((?:\.\.?/|(?![\w-]+/))[\w./-]*?\.(?:js|html|css|json))(\?[^'"`)\s]*)?(?=['"`)])""")
+def _sin_v(txt): return _re_j.sub(r"[?&]v=[0-9a-f]{10}(?![0-9a-f])", "", txt)   # la huella va siempre la última
+def _jfiles():
+    out = []
+    for raiz, _d, fs in os.walk(os.path.join(HERE, "juegos")):
+        for f in fs:
+            if f.endswith((".js", ".html", ".css")) and f != "datos.js": out.append(os.path.join(raiz, f))
+    return sorted(out)
+_jh = hashlib.md5()
+for _f in _jfiles(): _jh.update(_sin_v(open(_f, encoding="utf-8").read()).encode())
+_jh.update(json.dumps([RUTA, SALA_JORAN, DIRECTO, ASEDIO], ensure_ascii=False, sort_keys=True).encode())
+JV = _jh.hexdigest()[:10]
+for _d in (RUTA, SALA_JORAN, DIRECTO, ASEDIO): _d["v"] = JV
+def _versionar_juegos():
+    def rep(m):
+        q = (m.group(3) or "").lstrip("?")
+        q = "&".join(x for x in q.split("&") if x and not x.startswith("v="))
+        return m.group(1) + m.group(2) + "?" + (q + "&" if q else "") + "v=" + JV
+    n = 0
+    for f in _jfiles() + [os.path.join(HERE, "juegos", d, "datos.js") for d in ("ruta", "joran", "directo", "asedio")]:
+        if not os.path.exists(f): continue
+        t = open(f, encoding="utf-8").read(); t2 = _J_REF.sub(rep, _sin_v(t))
+        if t2 != t: open(f, "w", encoding="utf-8").write(t2); n += 1
+    print("juegos/ con su huella ?v=" + JV + " (" + str(n) + " ficheros)")
+
 # 🔴 23-sep · EL CATÁLOGO SE CONGELA LO PRIMERO. Varias piezas de más abajo (las actividades, las fichas de las insignias, la
 # xp por tipo) leen motor/catalogo.json, y se regeneraba casi al final: al cambiar un reto en Datos.gs, la construcción
 # leía el catálogo VIEJO y solo acertaba a la segunda. Pasó al pasar de 27 retos a 20.
@@ -4705,6 +4735,7 @@ for _dir, _nombre, _dato in (("juegos/ruta", "RUTA", RUTA), ("juegos/joran", "SA
             "// GENERADO por _build_site.py desde _site_data.py (" + _nombre + "): no se edita a mano.\nexport const " + _nombre + " = "
             + json.dumps(_dato, ensure_ascii=False, indent=1) + ";\n")
 print("escrito: juegos/{ruta,joran,directo,asedio}/datos.js")
+_versionar_juegos()
 print("escrito: batalla.html  (el Simulador de Joran)")
 
 # ---------------------------------------------------------------- el diploma (el broche de oro)

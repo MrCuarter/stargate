@@ -32,7 +32,17 @@ c(RU.premios && ["bronce", "plata", "oro"].every((k) => Array.isArray(RU.premios
 c(JSON.stringify(global(RH, "SG_RUTA")) === JSON.stringify(RU), "   la Nave recibe la misma Ruta que la sesión");
 const datos = L("juegos/ruta/datos.js");
 c(/GENERADO por _build_site\.py/.test(datos) && datos.includes('"titulo": "La tormenta de chatarra"'), "🔴 el juego lee lo que se cuenta de datos.js, que escribe el build desde _site_data.py");
-c(/import\('\.\/datos\.js'\)/.test(L("juegos/ruta/juego.js")), "   y el juego lo importa (con plan B para el borrador)");
+c(/import\('\.\/datos\.js(\?v=[0-9a-f]{10})?'\)/.test(L("juegos/ruta/juego.js")), "   y el juego lo importa (con plan B para el borrador)");
+// 🔴 27-sep · LA HUELLA DE LOS JUEGOS: el CDN guarda 7 días lo pedido sin ?v=, y la sala nueva se colgó con un comun.js viejo.
+// Toda referencia relativa entre ficheros de juegos/ lleva ?v=JV (la misma en todos), y los enlaces de entrada, X.v.
+{
+  const JV = (global(RH, "SG_SALA_JORAN") || {}).v, sinV = [], otras = new Set();
+  const REF = /(['"`(])((?:\.\.?\/|(?![\w-]+\/))[\w./-]*?\.(?:js|html|css|json))(\?[^'"`)\s]*)?(?=['"`)])/g;
+  (function andar(d) { for (const f of fs.readdirSync(path.join(R, d))) { const r = d + "/" + f, st = fs.statSync(path.join(R, r));
+    if (st.isDirectory()) andar(r); else if (/\.(js|html|css)$/.test(f)) { const t = fs.readFileSync(path.join(R, r), "utf8"); let m;
+      while ((m = REF.exec(t))) { const v = /[?&]v=([0-9a-f]{10})$/.exec(m[3] || ""); if (!v) sinV.push(r + " → " + m[2]); else otras.add(v[1]); } } } })("juegos");
+  c(/^[0-9a-f]{10}$/.test(JV || "") && !sinV.length && otras.size === 1 && otras.has(JV), "🔴 cada fichero de juegos/ se pide con la huella ?v= del build (y la misma que llevan los enlaces de la Nave)" + (sinV.length ? ": " + sinV.slice(0, 3).join(", ") : ""));
+}
 const SJ = global(SH, "SG_SALA_JORAN") || {};
 c((SJ.maquinas || []).length === 5 && SJ.maquinas[0][3] === null && SJ.maquinas[1][3][0] === "evacuacion" && SJ.maquinas[4][0] === "vuelo" && SJ.maquinas[4][3] === null,
   "   la sala: cuatro máquinas arcade y el Simulador de vuelo; la primera y el repaso, abiertos; la segunda, con una marca de la primera");

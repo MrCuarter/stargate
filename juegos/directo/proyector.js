@@ -3,7 +3,7 @@
 // Defensa (cooperativa, en 3D), Carrera y Caza (individuales) y Duelo (dos escuadrillas al azar).
 // El proyector es quien manda: decide cuándo empieza y acaba, suma, ordena y reparte. Los móviles solo mandan lo suyo.
 // ?sesion=1&c=XXXX&tema=6 → dentro de la sesión (la sala es la de la clase y el tema de la semana viene dado).
-import { conectar, esperarMotor, conServidor, motor, PER, nuevoCodigo, imagen, AV, AVATARES, TEMAS, MODOS, DURACIONES, PREGUNTAS, FRECUENCIAS, INTENSIDAD, CFG_INICIAL, ATAJOS, EQUIPOS, VALOR, metaCarrera, BALIZA, PREMIO, EN_WEB } from './canal.js';
+import { conectar, esperarMotor, conServidor, motor, PER, nuevoCodigo, imagen, AV, AVATARES, TEMAS, MODOS, DURACIONES, PREGUNTAS, FRECUENCIAS, INTENSIDAD, CFG_INICIAL, ATAJOS, EQUIPOS, VALOR, metaCarrera, BALIZA, PREMIO, EN_WEB } from './canal.js?v=1b7fc6b8a5';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -30,7 +30,7 @@ if (PER) await esperarMotor();
 const WEB = conServidor();
 const canal = conectar(codigo, alMensaje, { docente: true });
 $('codigo').textContent = codigo;
-$('b-movil').href = `alumno.html?c=${codigo}` + (EN_SESION ? `&sesion=1&tema=${TEMA_SEMANA}` : '') + (PER ? `&per=${encodeURIComponent(PER)}` : '');
+$('b-movil').href = `alumno.html?c=${codigo}&v=1b7fc6b8a5` + (EN_SESION ? `&sesion=1&tema=${TEMA_SEMANA}` : '') + (PER ? `&per=${encodeURIComponent(PER)}` : '');
 if (EN_SESION) $('kicker').textContent = `Final de la clase · en directo · semana de ${TEMAS[TEMA_SEMANA]}`;
 $('a-dur').innerHTML = DURACIONES.map((d) => `<option value="${d}">${d / 60} minutos</option>`).join('');
 $('a-preg').innerHTML = Object.entries(PREGUNTAS).map(([k, t]) => `<option value="${k}">${esc(t)}${k === 'semana' ? ` (tema ${TEMA_SEMANA})` : k === 'vistos' ? ` (1 a ${TEMA_SEMANA})` : ''}</option>`).join('');
@@ -126,7 +126,7 @@ setInterval(emitir, 500);
 function precargarDefensa() {
   if (cargandoD) return cargandoD;
   const ruta = EN_WEB ? '../ruta/' : '../ruta-estatica/', sala = EN_WEB ? '../joran/' : '../sala-joran/';
-  cargandoD = import('./defensa3d.js').then((M) => M.montarDefensa($('lienzo3d'), { ruta, sala })).then((d) => { D = d; for (const j of dentro()) D.jugador(j.id, j.alias, AV(j.avatar)); return d; })
+  cargandoD = import('./defensa3d.js?v=1b7fc6b8a5').then((M) => M.montarDefensa($('lienzo3d'), { ruta, sala })).then((d) => { D = d; for (const j of dentro()) D.jugador(j.id, j.alias, AV(j.avatar)); return d; })
     .catch((e) => { console.error(e); aviso('No se pudo cargar la escena 3D', '#ff4d6d', 3); });
   return cargandoD;
 }

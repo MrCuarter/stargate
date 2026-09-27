@@ -2262,7 +2262,7 @@
     // 🔴 27-sep · la sala de Joran (sustituye a la batalla), el juego del final de la clase y el Asedio
     var SJ = window.SG_SALA_JORAN || { maquinas: [] }, D = window.SG_DIRECTO || {}, A = window.SG_ASEDIO || {}, gente = (t && t.reclutas) || [];
     var jugaron = gente.filter(function (r) { var m = ((r.stargateSala || {}).marcas) || {}; return Object.keys(m).some(function (k) { return Number(m[k]) > 0; }); }).length;
-    var ruta = SJ.juego + "index.html?per=" + encodeURIComponent(PER) + "&ensayo=1";
+    var ruta = SJ.juego + "index.html?per=" + encodeURIComponent(PER) + "&ensayo=1&v=" + SJ.v;
     var proy = (D.juego || "juegos/directo/") + "proyector.html?per=" + encodeURIComponent(PER);
     $("#c-cuerpo").innerHTML = '<div class="card sim-doc">' +
       '<div class="sim-doc-cab"><img src="assets/img/batalla/emblema.webp" alt="" width="64" height="64">' +
@@ -2277,7 +2277,7 @@
         '<details class="mas"><summary>Los modos</summary><p class="small">' + (D.modos || []).map(function (m) { return '<b>' + esc(m[1]) + '</b> (' + esc(m[2].toLowerCase()) + '): ' + esc(m[3]); }).join('<br>') + '</p></details>' +
         '<p><a class="btn min" href="' + esc(proy) + '" target="_blank" rel="noopener">Abrir la pantalla del juego ↗</a></p></div>' +
       (A.semana ? '<div class="card"><h3>El Asedio · semana ' + A.semana + '</h3><p class="small muted">El reto entre escuadrones: de lunes a lunes, desde la Nave. Tu sesión de la semana ' + A.semana + ' lo presenta y la de la ' + (A.semana + 1) + ' da el resultado. (En PUA no hay.)</p>' +
-        '<p><a class="btn min" href="' + esc(A.juego + 'index.html?per=' + encodeURIComponent(PER)) + '" target="_blank" rel="noopener">Ver el Asedio ↗</a></p></div>' : '');
+        '<p><a class="btn min" href="' + esc(A.juego + 'index.html?per=' + encodeURIComponent(PER) + '&v=' + A.v) + '" target="_blank" rel="noopener">Ver el Asedio ↗</a></p></div>' : '');
   }
   /**
    * 🔴 24-sep · ENLACES, EN UN SOLO SITIO. Norberto: «la página de enlaces tiene la información mal repartida. Vamos a

@@ -4,7 +4,7 @@
 // el simulador que cobró vida: un holograma gigante con tres nodos de escudo en órbita. Arcade puro: dispara solo; tú
 // esquivas. Unos 3 minutos. La lógica vive en coordenadas 0..1 (x a lo ancho, y de arriba abajo) y la escena 3D la copia.
 // Recursos libres: naves y alienígenas de Quaternius (CC0), platillos de Poly by Google (CC-BY 3.0), asteroides de la NASA.
-import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, cargar, medir, objeto, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js';
+import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, cargar, medir, objeto, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=1b7fc6b8a5';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -299,7 +299,7 @@ function acabar(gana, motivo) {
 let pausa = false;
 function pausar() {
   if (!S || S.fin) return; pausa = !pausa;
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && S && !S.fin && !pausa && !window.__sinPausa) pausar(); });
@@ -311,7 +311,7 @@ function portada() {
     <div class="teclas"><kbd>Ratón / dedo / flechas</kbd><span>Mover la nave (dispara sola)</span><kbd>Espacio</kbd><span>Bomba: borra las balas y daña a todos (tienes 3)</span></div>
     <p>Premios: <b style="color:#ffe14a">rayo</b> más potencia · <b style="color:#5ff4ff">esfera</b> escudo · <b style="color:#ff4dd8">caja</b> bomba. Derribar seguidos multiplica; los que vienen en picado valen el doble.</p>
     <p class="pista">Tu récord: <b>${(e.marcas['ruta-azul'] || 0).toLocaleString('es-ES')}</b> · Platillos: «Flying saucer» de Poly by Google (CC-BY 3.0)</p>
-    <div class="botones"><button id="b-ya">¡Insertar ficha!</button>${EMBED ? '' : '<a class="boton sec" href="index.html">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya">¡Insertar ficha!</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`);
   $('b-ya').onclick = () => { audio(); empezar(); };
 }
 

@@ -1711,7 +1711,7 @@
         var sem=semanaDeMision(m, L), ya=sem<=hoy, md=(marcas[m.id]&&marcas[m.id].medalla)||'nada';
         var nombre=m.final?'Vaeon':esc(m.de)+' → '+esc(m.a);
         return ya
-          ? '<a class="ru-m '+md+'" data-juego href="'+esc(R.juego+'?mision='+m.id+'&embed=1&per='+encodeURIComponent(per))+'"><b>'+m.n+'</b><span>'+nombre+'<small>'+med[md]+'</small></span></a>'
+          ? '<a class="ru-m '+md+'" data-juego href="'+esc(R.juego+'?mision='+m.id+'&embed=1&per='+encodeURIComponent(per)+'&v='+R.v)+'"><b>'+m.n+'</b><span>'+nombre+'<small>'+med[md]+'</small></span></a>'
           : '<span class="ru-m cerrada"><b>'+m.n+'</b><span>'+nombre+'<small>Semana '+sem+'</small></span></span>';
       }).join('')+'</div></div>';
   }
@@ -1730,7 +1730,7 @@
       + '<p class="small">' + arcade.length + ' máquinas arcade y el <b>Simulador de vuelo</b> para repasar. La plata de cada máquina enciende la siguiente; sus hitos dan créditos una vez.</p>'
       + '<details class="mas"><summary>Qué hay dentro</summary><p class="small">' + arcade.map(function(m){ return '<b>' + esc(m[1]) + '</b>'; }).join(', ')
       + '. El <b>Cuaderno de vuelo</b> (' + (SJ.cuaderno || []).length + ' hitos), el ranking de tu clase y el Salón de la fama, y la <b>Galería</b> con los juegos de la tripulación.</p></details>'
-      + '<p><a class="btn epico" data-juego href="' + esc(SJ.juego + '?per=' + encodeURIComponent(per)) + '"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Entrar en la sala</span></a></p>'
+      + '<p><a class="btn epico" data-juego href="' + esc(SJ.juego + '?per=' + encodeURIComponent(per) + '&v=' + SJ.v) + '"><span class="ep-luz"></span><span class="ep-txt"><img class=ico src=assets/img/iconos/p/diana.png alt> Entrar en la sala</span></a></p>'
       + '</div></div>';
   }
   /**
@@ -1744,14 +1744,14 @@
     return '<div class="card asedio-caja"><div class="as-txt"><div class="eyebrow amber">' + (abierto_ ? 'Reto entre escuadrones · hasta el lunes' : 'El Asedio · resultado') + '</div>'
       + '<h3>' + (abierto_ ? 'La Estática asedia la flota' : 'La nodriza ha caído') + '</h3>'
       + '<p class="small">' + (abierto_ ? 'Tu escuadrón necesita tus disparos: ataques de ' + A.minutos + ' minutos y cada día cuenta el mejor.' : 'Mira cómo quedó tu escuadrón y el salón de héroes y heroínas.') + '</p>'
-      + '<p><a class="btn ' + (abierto_ ? 'epico' : 'primary') + '" data-juego href="' + esc(A.juego + 'index.html?per=' + encodeURIComponent(per)) + '">' + (abierto_ ? '<span class="ep-luz"></span><span class="ep-txt">Atacar</span>' : 'Ver el resultado') + '</a></p></div></div>';
+      + '<p><a class="btn ' + (abierto_ ? 'epico' : 'primary') + '" data-juego href="' + esc(A.juego + 'index.html?per=' + encodeURIComponent(per) + '&v=' + A.v) + '">' + (abierto_ ? '<span class="ep-luz"></span><span class="ep-txt">Atacar</span>' : 'Ver el resultado') + '</a></p></div></div>';
   }
   /** 🔴 27-sep · EN DIRECTO: para quien no tiene la sesión abierta, la entrada con el código de la pantalla del docente. */
   function directoCaja(){
     var D = window.SG_DIRECTO; if(!D || !motorNuevo() || !st.yo || st.estado === 'antes' || !juegosVisibles()) return '';
     return '<div class="card directo-caja"><div class="eyebrow">En directo</div><h3>¿Partida en clase?</h3>'
       + '<p class="small">Si tu comandante ha abierto el juego del final, entra con el código de su pantalla.</p>'
-      + '<p><a class="btn" data-juego href="' + esc(D.juego + 'alumno.html?per=' + encodeURIComponent(per)) + '">Entrar con el código</a></p></div>';
+      + '<p><a class="btn" data-juego href="' + esc(D.juego + 'alumno.html?per=' + encodeURIComponent(per) + '&v=' + D.v) + '">Entrar con el código</a></p></div>';
   }
   /**
    * 🔴 EL RETO A6 SE REGISTRA SOLO. Si ganó en la página de la batalla y el reto no quedó registrado (cerró la

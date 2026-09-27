@@ -117,5 +117,6 @@ export const RUTA = {
    "lema": "La batalla final: sus manos, su núcleo y su cabeza.",
    "final": true
   }
- ]
+ ],
+ "v": "1b7fc6b8a5"
 };

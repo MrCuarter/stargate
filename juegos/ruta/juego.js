@@ -7,8 +7,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-import { PREMIOS, CRITERIOS, ORDEN, NIVELES } from './servidor-local.js';
-import { SERVIDOR, enEnsayo } from './servidor.js';
+import { PREMIOS, CRITERIOS, ORDEN, NIVELES } from './servidor-local.js?v=1b7fc6b8a5';
+import { SERVIDOR, enEnsayo } from './servidor.js?v=1b7fc6b8a5';
 
 const V3 = THREE.Vector3;
 const $ = (id) => document.getElementById(id);
@@ -74,7 +74,7 @@ const MISIONES = [
 
 // 🔴 En la web, lo que se CUENTA de cada misión (título, lema, cuándo) llega de _site_data.py → datos.js (lo escribe el
 // build); aquí manda solo la jugabilidad. En el borrador no hay datos.js y se queda lo de arriba.
-try { const D = await import('./datos.js'); for (const d of D.RUTA.misiones) { const m = MISIONES.find((x) => x.id === d.id); if (m) Object.assign(m, { titulo: d.titulo, lema: d.lema, cuando: d.cuando, tema: d.final ? 'final' : d.tema }); } } catch (e) { /* borrador: sin datos.js */ }
+try { const D = await import('./datos.js?v=1b7fc6b8a5'); for (const d of D.RUTA.misiones) { const m = MISIONES.find((x) => x.id === d.id); if (m) Object.assign(m, { titulo: d.titulo, lema: d.lema, cuando: d.cuando, tema: d.final ? 'final' : d.tema }); } } catch (e) { /* borrador: sin datos.js */ }
 
 // el tramo que solo existe en el repaso: preguntas de los ocho temas, rumbo a la Estática
 const VIAJE = { id: 'viaje', n: '∞', de: 0, a: 9, tema: 'todo', cuando: 'Simulador de vuelo', titulo: 'Todo el viaje',
@@ -930,7 +930,7 @@ async function fin(llego, motivo = '') {
   try { window.parent !== window && window.parent.postMessage({ sgRuta: { mision: m.id, medalla: r.medalla, puntos: Math.round(datos.puntos) } }, '*'); } catch (e) { /* sin padre */ }
   const X = M;
   if (r.repaso) { // el Simulador de vuelo: la marca va a la sala de Joran (su ranking y sus hitos)
-    try { const S = await import(SALA + 'comun.js'); S.registrarPartida('vuelo', r.total, { nivel: r.nivel, mision: m.id }); } catch (e) { console.warn('sin sala', e); }
+    try { const S = await import(SALA + 'comun.js?v=1b7fc6b8a5'); S.registrarPartida('vuelo', r.total, { nivel: r.nivel, mision: m.id }); } catch (e) { console.warn('sin sala', e); }
     setTimeout(() => {
       $('hud').classList.add('oculto');
       pantalla(`<div class="kicker">Simulador de vuelo · nivel ${esc(NIVELES[r.nivel].n)} (×${String(NIVELES[r.nivel].mult).replace('.', ',')})</div>

@@ -2,7 +2,7 @@
 // El simulacro que Joran convirtió en juego: correr por los pasillos de la Cero, de carril en carril, saltando vallas,
 // agachándose bajo las vigas y esquivando los bloques, con la Estática pegada a la espalda. A los 3 minutos llega la
 // cápsula de evacuación: si la alcanzas, te has salvado. Arcade puro: sin preguntas.
-import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js';
+import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=1b7fc6b8a5';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
 
 const V3 = THREE.Vector3;
@@ -293,7 +293,7 @@ function tick(dt) {
 let pausa = false;
 function pausar() {
   if (!P || P.fin) return; pausa = !pausa;
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && P && !P.fin && !pausa && P.cuenta <= 0 && !window.__sinPausa) pausar(); });
@@ -312,7 +312,7 @@ function portada() {
     <div class="teclas"><kbd>← →  /  A D</kbd><span>Cambiar de carril (o desliza el dedo)</span><kbd>↑  /  W  /  Espacio</kbd><span>Saltar las vallas</span><kbd>↓  /  S</kbd><span>Agacharte bajo las vigas y los drones</span></div>
     <p>Los <b>bloques</b> no se saltan: cambia de carril. Si tropiezas, la Estática se te echa encima; si vuelves a tropezar enseguida, te atrapa. Recoge <b>chispas</b>, <b>llaves</b> (+250), el <b>turbo</b> y el <b>imán</b>. A los 3 minutos llega la cápsula.</p>
     <p class="pista">Tu récord: <b>${(e.marcas.evacuacion || 0).toLocaleString('es-ES')}</b> · pilotas a <b>${e.avatar === 'barbara' ? 'Bárbara' : e.avatar === 'fernando' ? 'Fernando' : 'Finn'}</b></p>
-    <div class="botones"><button id="b-ya">¡A correr!</button>${EMBED ? '' : '<a class="boton sec" href="index.html">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya">¡A correr!</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`);
   $('b-ya').onclick = () => { audio(); empezar(); };
 }
 let antes = performance.now();

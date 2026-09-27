@@ -996,7 +996,7 @@
   function diaAsedio(s){
     var A=window.SG_ASEDIO; if(!A || !s || st.tipo==='PUA' || !juegosVisibles()) return null;
     var sem=Number(s.sem), vista=sem===A.semana?'lanza':sem===A.semana+1?'cierre':''; if(!vista) return null;
-    var u=A.juego+'index.html?vista='+vista+'&embed=1'+(st.per?'&per='+encodeURIComponent(st.per):'')+(st.alumno?'':'&docente=1');
+    var u=A.juego+'index.html?vista='+vista+'&embed=1'+(st.per?'&per='+encodeURIComponent(st.per):'')+(st.alumno?'':'&docente=1')+'&v='+A.v;
     return {k:'asedio', sec:'asedio', rot:vista==='lanza'?'El Asedio':'El Asedio: el resultado', html:
       '<div class="dia ruta asedio"><iframe class="ru-juego" src="'+esc(u)+'" title="El Asedio" loading="lazy"></iframe></div>'};
   }
@@ -1016,7 +1016,7 @@
     var q='?sesion=1&c='+salaDirecto(s)+'&tema='+encodeURIComponent(Math.max(1, temaDe(s)||1))+(st.per?'&per='+encodeURIComponent(st.per):'')
       +(tk?'&ticket='+encodeURIComponent(tk.u)+'&tk='+encodeURIComponent(tk.clave):'');
     return {k:'directo', sec:'directo', t:'ci', rot:'En directo', html:
-      '<div class="dia ruta directo"><iframe class="ru-juego" src="'+esc(D.juego+(st.alumno?'alumno.html':'proyector.html')+q)+'" title="En directo" loading="lazy" allow="autoplay; fullscreen; vibrate" allowfullscreen></iframe></div>'};
+      '<div class="dia ruta directo"><iframe class="ru-juego" src="'+esc(D.juego+(st.alumno?'alumno.html':'proyector.html')+q+'&v='+D.v)+'" title="En directo" loading="lazy" allow="autoplay; fullscreen; vibrate" allowfullscreen></iframe></div>'};
   }
 
   // ── 8 · escuadrones, por MEDIA (si fuera por suma ganaría siempre el más numeroso)
@@ -1113,7 +1113,7 @@
   function diaRuta(id){
     var R=window.SG_RUTA; if(!R || !juegosVisibles()) return null;
     var m=(R.misiones||[]).filter(function(x){ return x.id===id; })[0]; if(!m) return null;
-    var u=R.juego+'?mision='+encodeURIComponent(id)+'&embed=1'+(st.per?'&per='+encodeURIComponent(st.per):'');
+    var u=R.juego+'?mision='+encodeURIComponent(id)+'&embed=1'+(st.per?'&per='+encodeURIComponent(st.per):'')+'&v='+R.v;
     return {k:'ruta', sec:'ruta', t:'ci', rot:m.final?'Vaeon':'La Ruta', html:
       '<div class="dia ruta"><div class="ru-cab"><div class="kicker"><img class=ico src=assets/img/iconos/p/rayo.png alt> La Ruta de la Estática · misión '+m.n+' · '+esc(m.cuando)+'</div>'
       +'<h2>'+(m.final?'Vaeon · la batalla final':esc(m.de)+' → '+esc(m.a)+' · '+esc(m.titulo))+'</h2>'

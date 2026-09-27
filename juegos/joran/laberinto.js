@@ -1,7 +1,7 @@
 // EL LABERINTO DE LA CERO · máquina 2 de la sala de Joran (borrador).
 // La nave se ha apagado y la Estática ha soltado sus drones. A la luz de tu linterna: tres llaves por nivel, la
 // cápsula que se abre con ellas y un pulso que aturde a los drones. Tres niveles, cada uno más grande. Arcade: sin preguntas.
-import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js';
+import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=1b7fc6b8a5';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
 
 const V3 = THREE.Vector3;
@@ -274,7 +274,7 @@ function acabar(salvado, motivo) {
 let pausa = false;
 function pausar() {
   if (!P || P.fin) return; pausa = !pausa;
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && P && !P.fin && !pausa && !window.__sinPausa) pausar(); });
@@ -290,7 +290,7 @@ function portada() {
     <p>Encuentra las <b>tres llaves</b> de cada nivel y corre a la <b>cápsula</b>, que se enciende en verde cuando las tienes. Si un dron te ve en línea recta, te persigue: aturde a los que tengas cerca con el <b>pulso</b> (se recarga en 8 s). Tres niveles, cada uno más grande. El minimapa solo enseña lo que ya has explorado.</p>
     <div class="teclas"><kbd>Flechas / WASD</kbd><span>Moverte (en el móvil, arrastra el dedo: es un joystick)</span><kbd>Espacio</kbd><span>El pulso que aturde (en el móvil, el botón)</span></div>
     <p class="pista">Tu récord: <b>${(e.marcas.laberinto || 0).toLocaleString('es-ES')}</b></p>
-    <div class="botones"><button id="b-ya">¡Adentro!</button>${EMBED ? '' : '<a class="boton sec" href="index.html">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya">¡Adentro!</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`);
   $('b-ya').onclick = () => { audio(); empezar(); };
 }
 let antes = performance.now();

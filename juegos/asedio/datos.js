@@ -33,5 +33,6 @@ export const ASEDIO = {
   "Golpe maestro",
   "Fantasma",
   "Constancia"
- ]
+ ],
+ "v": "1b7fc6b8a5"
 };

@@ -4,7 +4,7 @@
 // solar (constante, a ráfagas o que cambia de sentido), atmósfera que frena, niebla o una plataforma que se mueve.
 // Cuanto más estrecha la plataforma, más multiplica. Se puntúa la suavidad, el centrado y el combustible que sobra.
 // Tres vidas; como mucho, unos 3-4 minutos. Arcade: sin preguntas.
-import { THREE, $, azar, elegir, estado, SON, audio, holo, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js';
+import { THREE, $, azar, elegir, estado, SON, audio, holo, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=1b7fc6b8a5';
 
 const V3 = THREE.Vector3;
 const JUEGO = JUEGOS.find((j) => j.id === 'descenso') || { id: 'descenso', n: 'El Descenso' };
@@ -283,7 +283,7 @@ function pintarHUD(vv) {
 let pausa = false;
 function pausar() {
   if (!S || S.fin) return; pausa = !pausa; if (soplido) soplido.gain.value = 0;
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && S && !S.fin && !pausa && !window.__sinPausa) pausar(); });
@@ -328,7 +328,7 @@ function portada() {
     <div class="teclas"><kbd>← →  /  A D</kbd><span>Girar el módulo</span><kbd>↑  /  W  /  Espacio</kbd><span>Propulsor (gasta combustible)</span></div>
     <p>Para posarte: caída de menos de <b>${SEGURO.vy.toLocaleString('es-ES')} m/s</b>, deriva de menos de <b>${SEGURO.vx.toLocaleString('es-ES')} m/s</b> y el módulo casi recto (lo verde del panel). Las plataformas multiplican: <b style="color:#5dffa0">×1</b> la ancha, <b style="color:#ffc24a">×2</b> la media y <b style="color:#ff4dd8">×4</b> la estrecha. Suman la suavidad, el centrado y el combustible que te sobre. Tienes tres módulos.</p>
     <p class="pista">Tu récord: <b>${(e.marcas.descenso || 0).toLocaleString('es-ES')}</b> · Módulo Lunar del Apolo: NASA (dominio público)</p>
-    <div class="botones"><button id="b-ya">¡Iniciar el descenso!</button>${EMBED ? '' : '<a class="boton sec" href="index.html">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya">¡Iniciar el descenso!</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`);
   $('b-ya').onclick = () => { audio(); empezar(); };
 }
 (async () => {
