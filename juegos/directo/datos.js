@@ -24,7 +24,7 @@ export const DIRECTO = {
    "duelo",
    "Duelo de escuadrillas",
    "Por equipos",
-   "Cian contra Ámbar, al azar: tirad de la baliza."
+   "Dos escuadrones invitados, al azar: tirad de la baliza."
   ]
  ],
  "heroes": [
@@ -39,5 +39,5 @@ export const DIRECTO = {
   "podio": 10,
   "equipo": 10
  },
- "v": "1b7fc6b8a5"
+ "v": "cdadcf2641"
 };

@@ -984,7 +984,7 @@
     if(!cols.length) return null;
     return {k:'simulador', rot:'La sala de Joran', html:
       '<div class="dia simulador"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> La sala de Joran</div><h2>Los récords de la clase</h2>'
-      +'<p class="ses-sub">Cuatro máquinas arcade y el Simulador de vuelo, en vuestra Nave. La plata de cada una enciende la siguiente.</p>'
+      +'<p class="ses-sub">Cinco máquinas arcade y el Simulador de vuelo, en vuestra Nave. La plata de cada una enciende la siguiente.</p>'
       +'<div class="col-grid">'+cols.map(function(c){ return '<div class="col-c"><h3>'+esc(c.m[1])+'</h3><ol>'+c.top.map(function(x,i){
           return '<li style="--i:'+i+'"><span class="col-pos">'+(i+1)+'</span>'+cara(x.p)+'<b>'+esc(x.p.alias)+'</b><span class="col-n">'+x.n.toLocaleString('es-ES')+'</span></li>'; }).join('')+'</ol></div>'; }).join('')
       +'</div></div>'};
@@ -1093,7 +1093,9 @@
     // 26-sep · enviado aquí, la Nave de ese navegador ya lo da por hecho (sgTicket:<grupo>:<tema>, ver ticketDelTema en recluta.js)
     return {k:'ticket_form', sec:'ticket', t:'ci', rot:'Ticket de salida', montar:function(el){
         var f=el.querySelector('iframe[data-tk]'), cargas=0; if(!f) return null;
-        f.addEventListener('load',function(){ if(++cargas>1) try{ localStorage.setItem(f.getAttribute('data-tk'),'1'); }catch(e){} });
+        // 28-sep · el ticket tiene varias páginas (grupo y tema → preguntas del tema → [la clase en directo] → envío): la 2.ª carga
+        // es solo «Siguiente». Con >2 se marca al enviar (diferido) o al llegar a la página del directo (lo menos malo).
+        f.addEventListener('load',function(){ if(++cargas>2) try{ localStorage.setItem(f.getAttribute('data-tk'),'1'); }catch(e){} });
         return null; }, html:
       '<div class="dia ticket ticket-form"><div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/ticket.png alt> '+(esPres?'Antes de ir a Fôrge':'Cerramos el tema')+'</div>'
       +'<h2>'+(esPres?'¿Qué os ha parecido el embarque?':'El ticket de salida')+'</h2><p class="sub">Anónimo y rápido'+(esPres?'. Lo que digáis, lo proyectamos la próxima semana.':': se rellena al acabar cada tema. En la próxima clase proyectaremos lo que digáis.')+'</p>'

@@ -14,9 +14,9 @@ export const SALA_JORAN = {
    null,
    0,
    [
-    1200,
-    2500,
-    5000
+    3000,
+    7500,
+    18000
    ]
   ],
   [
@@ -25,13 +25,13 @@ export const SALA_JORAN = {
    "La nave se ha apagado: tres llaves y la cápsula… a oscuras.",
    [
     "evacuacion",
-    2500
+    7500
    ],
    40,
    [
-    1500,
-    3000,
-    6000
+    2000,
+    4500,
+    12000
    ]
   ],
   [
@@ -40,13 +40,13 @@ export const SALA_JORAN = {
    "El arcade que Joran programó para entrenar pilotos: oleadas de la Estática y el jefe final.",
    [
     "laberinto",
-    3000
+    4500
    ],
    60,
    [
-    1500,
-    3000,
-    6000
+    8000,
+    18000,
+    38000
    ]
   ],
   [
@@ -55,13 +55,28 @@ export const SALA_JORAN = {
    "Posa el Módulo Lunar en los ocho planetas: cada uno con su gravedad, su viento solar y su truco.",
    [
     "ruta-azul",
-    3000
+    18000
    ],
    80,
    [
-    1200,
-    3000,
+    2000,
+    5500,
+    16000
+   ]
+  ],
+  [
+   "conquista",
+   "La conquista de Fôrge",
+   "Salta de acantilado en acantilado sobre los ríos de lava de Fôrge hasta la Puerta de la cumbre.",
+   [
+    "descenso",
     5500
+   ],
+   100,
+   [
+    2000,
+    4500,
+    8500
    ]
   ],
   [
@@ -96,7 +111,7 @@ export const SALA_JORAN = {
   [
    "probador",
    "Probador de la sala",
-   "Juega a las cuatro máquinas arcade."
+   "Juega a las cinco máquinas arcade."
   ],
   [
    "marcador",
@@ -111,7 +126,7 @@ export const SALA_JORAN = {
   [
    "oro4",
    "Maestro de la sala",
-   "Oro en las cuatro máquinas arcade."
+   "Oro en las cinco máquinas arcade."
   ],
   [
    "intocable",
@@ -137,5 +152,5 @@ export const SALA_JORAN = {
  "premio_cuaderno": "el título «As de Joran» y el marco holográfico para tu avatar",
  "galeria_reto": "B6",
  "fama": 10,
- "v": "1b7fc6b8a5"
+ "v": "cdadcf2641"
 };

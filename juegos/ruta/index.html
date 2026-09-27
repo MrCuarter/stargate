@@ -32,6 +32,20 @@ h1,h2,h3{font-family:Orbitron,sans-serif;letter-spacing:.05em}
 .progreso b{display:block;font-family:Orbitron;font-size:13px;color:var(--ambar);letter-spacing:.1em;margin-bottom:2px}
 .progreso .barra i{background:linear-gradient(90deg,#7a3cff,#ff4dd8)}
 #jefe .barra i{background:linear-gradient(90deg,#ff2e55,#ff4dd8)}
+/* 27-sep · Vaeon: dónde disparar (aro que late sobre cada punto débil, con su vida) y la barra que acusa cada impacto */
+#jefe .barra{height:18px;transition:box-shadow .1s}
+#jefe.golpe .barra{border-color:#fff;box-shadow:0 0 20px #ff4dd8}
+#jefe small{color:#ffd0f4;font-weight:700}
+.blanco{position:absolute;transform:translate(-50%,-50%);text-align:center;pointer-events:none;white-space:nowrap}
+.blanco .aro{width:64px;height:64px;margin:0 auto;border:3px solid #ff4dd8;border-radius:50%;box-shadow:0 0 14px #ff4dd8,inset 0 0 10px #ff4dd8;animation:latir .8s ease-in-out infinite}
+.blanco b{display:block;margin-top:4px;font-family:Orbitron;font-size:13px;letter-spacing:.12em;color:#ffd0f4;text-shadow:0 0 8px #ff4dd8}
+.blanco .v{display:block;width:74px;height:8px;margin:3px auto 0;background:rgba(0,0,0,.6);border:1px solid #ff4dd8;border-radius:4px;overflow:hidden}
+.blanco .v i{display:block;height:100%;background:#ff4dd8;transition:width .1s}
+.blanco.fijo .aro{border-color:var(--verde);box-shadow:0 0 20px var(--verde),inset 0 0 12px var(--verde)}
+.blanco.fijo b{color:var(--verde);text-shadow:0 0 8px var(--verde)}
+@keyframes latir{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+#mira.fijado{border-color:#ff4dd8;box-shadow:0 0 16px #ff4dd8}
+#mira.fijado::after{border-color:#ff4dd8}
 #reloj-m{position:absolute;top:14px;right:16px;background:var(--panel);border:1px solid var(--borde);border-radius:10px;padding:7px 14px;font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
 #mira{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border:2px solid var(--verde);border-radius:6px;box-shadow:0 0 12px var(--verde);opacity:.85}
 #mira::after{content:"";position:absolute;inset:12px;border:2px solid var(--verde);border-radius:3px}
@@ -160,7 +174,7 @@ button.sec{background:#0d2236;color:#e8f6ff;border:1px solid var(--borde);font-w
   </div>
   <div id="combo"></div>
   <div class="progreso" id="prog"><b id="mision-t"></b><small id="prog-t"></small><div class="barra"><i id="prog-b" style="width:0"></i></div></div>
-  <div class="progreso oculto" id="jefe"><b>MISIÓN FINAL</b><small>VAEON</small><div class="barra"><i id="jefe-b"></i></div></div>
+  <div class="progreso oculto" id="jefe"><b>VAEON</b><small id="jefe-f">FASE 1</small><div class="barra"><i id="jefe-b"></i></div></div>
   <div id="reloj-m">0:00</div>
   <div id="mira"></div>
   <div id="aviso"></div>
@@ -172,6 +186,6 @@ button.sec{background:#0d2236;color:#e8f6ff;border:1px solid var(--borde);font-w
 
 <div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
 
-<script type="module" src="juego.js?v=1b7fc6b8a5"></script>
+<script type="module" src="juego.js?v=cdadcf2641"></script>
 </body>
 </html>

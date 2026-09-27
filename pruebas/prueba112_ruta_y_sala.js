@@ -44,8 +44,11 @@ c(/import\('\.\/datos\.js(\?v=[0-9a-f]{10})?'\)/.test(L("juegos/ruta/juego.js"))
   c(/^[0-9a-f]{10}$/.test(JV || "") && !sinV.length && otras.size === 1 && otras.has(JV), "🔴 cada fichero de juegos/ se pide con la huella ?v= del build (y la misma que llevan los enlaces de la Nave)" + (sinV.length ? ": " + sinV.slice(0, 3).join(", ") : ""));
 }
 const SJ = global(SH, "SG_SALA_JORAN") || {};
-c((SJ.maquinas || []).length === 5 && SJ.maquinas[0][3] === null && SJ.maquinas[1][3][0] === "evacuacion" && SJ.maquinas[4][0] === "vuelo" && SJ.maquinas[4][3] === null,
-  "   la sala: cuatro máquinas arcade y el Simulador de vuelo; la primera y el repaso, abiertos; la segunda, con una marca de la primera");
+// 28-sep · cinco arcade: La conquista de Fôrge, tras El Descenso; cada una se enciende con la PLATA de la anterior
+const MQ = SJ.maquinas || [], ARC = MQ.filter((m) => m[0] !== "vuelo");
+c(MQ.length === 6 && MQ[0][3] === null && MQ[5][0] === "vuelo" && MQ[5][3] === null && ARC[4][0] === "conquista"
+  && ARC.slice(1).every((m, i) => m[3] && m[3][0] === ARC[i][0] && m[3][1] === ARC[i][5][1]),
+  "   la sala: cinco máquinas arcade y el Simulador de vuelo; la primera y el repaso, abiertos; cada una, con la plata de la anterior");
 // 27-sep · el equilibrio aprobado: la siguiente se enciende con la PLATA de la anterior, y los hitos pagan 5/10/15 una vez
 c(SJ.maquinas.slice(1, 4).every((m, i) => m[3][1] === SJ.maquinas[i][5][1]) && JSON.stringify(SJ.hito_cr) === '{"bronce":5,"plata":10,"oro":15}',
   "🔴 cada máquina se enciende con la plata de la anterior, y los hitos pagan 5, 10 y 15 ◈ una sola vez");

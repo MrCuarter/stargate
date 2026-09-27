@@ -2,11 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>En directo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="directo.css?v=1b7fc6b8a5">
+<link rel="stylesheet" href="directo.css?v=cdadcf2641">
 <style>
 html,body{overflow:hidden;height:100%;user-select:none;-webkit-user-select:none}
 body.juego{touch-action:none}
@@ -39,17 +39,17 @@ main.con-ticket{gap:16px}
 .ticket.hecho{border-color:var(--verde)} .ticket.hecho button{background:rgba(93,255,160,.2);color:var(--verde);border:1px solid var(--verde)}
 .nota{font-size:13px;opacity:.75;margin-top:10px}
 canvas#lienzo{position:fixed;inset:0;width:100%;height:100%}
-#hud{position:fixed;left:0;right:0;top:0;padding:10px 12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+#hud{position:fixed;left:0;right:0;top:0;padding:calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 10px calc(12px + env(safe-area-inset-left));display:flex;justify-content:space-between;gap:8px;pointer-events:none}
 #hud .c{background:var(--panel);border:1px solid var(--borde);border-radius:10px;padding:6px 10px;min-width:74px}
 #hud small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
 #hud b{font-family:Orbitron;font-size:20px;color:var(--cian);font-variant-numeric:tabular-nums}
 #hud .c.am b{color:var(--ambar)}
-#abajo{position:fixed;left:12px;right:12px;top:66px;pointer-events:none;text-align:center;font-size:14px}
+#abajo{position:fixed;left:12px;right:12px;top:calc(66px + env(safe-area-inset-top));pointer-events:none;text-align:center;font-size:14px}
 #abajo .barra{margin-top:4px}
 #abajo .barra i{background:linear-gradient(90deg,#ff9f3d,var(--ambar))}
 #abajo.escudo .barra i{background:linear-gradient(90deg,#1fb6ff,var(--cian))}
 .carta-x{}
-#carta{position:fixed;left:10px;bottom:10px;display:flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:6px 10px 6px 6px;pointer-events:none;min-width:170px}
+#carta{position:fixed;left:calc(10px + env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:6px 10px 6px 6px;pointer-events:none;min-width:170px}
 #carta img{width:48px;height:48px}
 #carta b{font-family:Orbitron;font-size:13px;display:block;margin-bottom:3px}
 #carta .barra.vida{height:10px;width:110px}
@@ -71,7 +71,18 @@ canvas#lienzo{position:fixed;inset:0;width:100%;height:100%}
 .eleccion .sab{background:linear-gradient(135deg,#ff4dd8,#8a2be2);color:#fff}
 #estatica{position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,77,216,.12) 0 2px,transparent 2px 5px);mix-blend-mode:screen}
 #conexion{position:fixed;left:50%;top:64px;transform:translateX(-50%);background:rgba(255,77,109,.9);color:#fff;font-size:13px;font-weight:700;padding:6px 12px;border-radius:14px;z-index:30}
-.eqchip{display:inline-block;padding:3px 10px;border-radius:12px;font-family:Orbitron;font-size:12px;color:#001018;margin-top:6px}
+.eqchip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 4px;border-radius:14px;font-family:Orbitron;font-size:12px;color:#001018;margin-top:6px}
+/* 🔴 27-sep · en el móvil, los avisos largos («EL COMANDANTE HA REPARADO TU NAVE») no caben en una línea: se parten */
+#aviso{white-space:normal;width:min(94vw,760px);font-size:clamp(20px,6vw,42px);line-height:1.15}
+/* los toques: botones de las preguntas cómodos para el dedo (44 px como mínimo) y sin el destello gris de iOS */
+.ops button,.eleccion button,.botones button{min-height:44px;-webkit-tap-highlight-color:transparent}
+/* el destello de la bomba del Comandante */
+#destello{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 60%,rgba(255,255,255,.85),rgba(95,244,255,.5) 35%,rgba(255,77,216,.2) 65%,transparent 85%);z-index:12}
+#destello.ya{animation:destello .8s ease-out}
+@keyframes destello{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+#b-listo.pulso{animation:pulso 1.2s ease-in-out infinite}
+@keyframes pulso{50%{box-shadow:0 0 0 6px rgba(255,194,74,.35)}}
+@media (orientation:landscape) and (max-height:500px){#hud .c{padding:3px 8px}#hud b{font-size:16px}#abajo{top:52px;font-size:12px}#carta img{width:36px;height:36px}}
 </style>
 </head>
 <body>
@@ -105,9 +116,10 @@ canvas#lienzo{position:fixed;inset:0;width:100%;height:100%}
 <div id="abajo" class="oculto"><span id="abajo-t"></span><div class="barra"><i id="abajo-b"></i></div></div>
 <div id="carta" class="oculto"><img id="carta-img" class="av" alt=""><div><b id="carta-alias"></b><div class="barra vida"><i id="carta-vida"></i></div><small id="carta-est">100 %</small></div></div>
 <div id="estatica" class="oculto"></div>
+<div id="destello"></div>
 <div id="preg" class="capa oculto"><div class="caja" id="preg-c"></div></div>
 <div id="conexion" class="oculto">Reconectando… sigue jugando: no pierdes nada</div>
 <div id="aviso"></div>
-<script type="module" src="alumno.js?v=1b7fc6b8a5"></script>
+<script type="module" src="alumno.js?v=cdadcf2641"></script>
 </body>
 </html>

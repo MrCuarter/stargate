@@ -1278,7 +1278,7 @@ Lo ofrecido queda apartado hasta que se responde, y cada trato se cierra en poco
 Tripulación Cero— <b>se ganan</b>: aparecen al completar el relámpago de su tema. Quien no lo hace, lo verá dos semanas más tarde.</p>
 <p><b>La Ruta de la Estática.</b> Al cerrar cada tema, una misión de nave de 3 minutos hasta el planeta siguiente: las preguntas se
 contestan pilotando. <b>Bronce</b> por llegar; <b>plata</b> y <b>oro</b>, por saber y por pilotar (dan xp y créditos una vez).</p>
-<p><b>La sala de Joran.</b> Desde Ludo: cuatro máquinas arcade y el <b>Simulador de vuelo</b> para repasar. Sus hitos dan créditos
+<p><b>La sala de Joran.</b> Desde Ludo: cinco máquinas arcade y el <b>Simulador de vuelo</b> para repasar. Sus hitos dan créditos
 una vez; hay Cuaderno de vuelo, ranking de la clase, Salón de la fama y la Galería con los juegos de la tripulación.</p>
 <p><b>En directo y el Asedio.</b> Al final de clase, tras el ticket, se juega todos juntos desde el móvil. Y en la semana 11, tu
 escuadrón contra los demás: el Asedio, de lunes a lunes.</p>
@@ -4570,7 +4570,7 @@ _PE = [
    ("«Mis retos»: despliega un reto y márcalo.", "La misma tarjeta que la de la semana, con su insignia. Casi todos piden el <b>enlace</b> (hay un «+» para un segundo); sin él, no se registra. Algunos traen «<img class=ico src=assets/img/iconos/p/estrella.png alt> Ver un ejemplo»."),
    ("«Mi botín».", "Tus insignias, por planetas: el tripulante y el reto de cada tema."),
    ("«Mi botín» → «<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Logros de a bordo</b>» (en el grupo de prueba ya están; en uno nuevo, desde la semana 9).", "Lo que ya has hecho, con su fecha, y lo que falta con «Ir». Registra un reto o compra un sobre: NEBULA lo celebra al momento. Al completar una cubierta llega su premio, y con las cinco, el <b>Contramaestre</b>: un héroe legendario y una carta con tu alias."),
-   ("La <b>sala de Joran</b>: pulsa «<img class=ico src=assets/img/iconos/p/diana.png alt> Entrar en la sala» (se abre con el planeta Ludo).", "Cuatro máquinas arcade y el <b>Simulador de vuelo</b> (la Ruta para repasar, en tres niveles). La plata de cada máquina enciende la siguiente; sus hitos dan créditos una vez y la sala no da xp. Dentro: el Cuaderno de vuelo, el ranking de la clase, el Salón de la fama y la Galería de juegos."),
+   ("La <b>sala de Joran</b>: pulsa «<img class=ico src=assets/img/iconos/p/diana.png alt> Entrar en la sala» (se abre con el planeta Ludo).", "Cinco máquinas arcade y el <b>Simulador de vuelo</b> (la Ruta para repasar, en tres niveles). La plata de cada máquina enciende la siguiente; sus hitos dan créditos una vez y la sala no da xp. Dentro: el Cuaderno de vuelo, el ranking de la clase, el Salón de la fama y la Galería de juegos."),
    ("Y con tu cuenta de docente, en tu Nave → <b>Simulador</b>.", "La sala en <b>modo ensayo</b>, para enseñarla en clase sin que cuente; y cómo funcionan el directo del final de la clase y el Asedio."),
    ("Al acabar el viaje (última semana), en la Nave sale «<img class=ico src=assets/img/iconos/p/libro.png alt> Tu diploma».", "Con tu alias, tu nombre, tus insignias y tus cifras, firmado por tu Comandante. Se descarga o se imprime.")
  ]),

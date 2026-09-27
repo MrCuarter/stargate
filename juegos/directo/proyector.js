@@ -3,7 +3,8 @@
 // Defensa (cooperativa, en 3D), Carrera y Caza (individuales) y Duelo (dos escuadrillas al azar).
 // El proyector es quien manda: decide cuándo empieza y acaba, suma, ordena y reparte. Los móviles solo mandan lo suyo.
 // ?sesion=1&c=XXXX&tema=6 → dentro de la sesión (la sala es la de la clase y el tema de la semana viene dado).
-import { conectar, esperarMotor, conServidor, motor, PER, nuevoCodigo, imagen, AV, AVATARES, TEMAS, MODOS, DURACIONES, PREGUNTAS, FRECUENCIAS, INTENSIDAD, CFG_INICIAL, ATAJOS, EQUIPOS, VALOR, metaCarrera, BALIZA, PREMIO, EN_WEB } from './canal.js?v=1b7fc6b8a5';
+import { conectar, esperarMotor, conServidor, motor, PER, nuevoCodigo, imagen, AV, AVATARES, TEMAS, MODOS, DURACIONES, PREGUNTAS, FRECUENCIAS, INTENSIDAD, CFG_INICIAL, ATAJOS, EQUIPOS, VALOR, metaCarrera, BALIZA, PREMIO, EN_WEB,
+  ESCUADRONES, IMG_ESC, ponerEquipos, emblema, DIFICULTAD, kDe, MANDO } from './canal.js?v=cdadcf2641';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -30,7 +31,36 @@ if (PER) await esperarMotor();
 const WEB = conServidor();
 const canal = conectar(codigo, alMensaje, { docente: true });
 $('codigo').textContent = codigo;
-$('b-movil').href = `alumno.html?c=${codigo}&v=1b7fc6b8a5` + (EN_SESION ? `&sesion=1&tema=${TEMA_SEMANA}` : '') + (PER ? `&per=${encodeURIComponent(PER)}` : '');
+$('b-movil').href = `alumno.html?c=${codigo}&v=cdadcf2641` + (EN_SESION ? `&sesion=1&tema=${TEMA_SEMANA}` : '') + (PER ? `&per=${encodeURIComponent(PER)}` : '');
+// ── EL QR de la sala de espera. En el borrador, la página del móvil con el código; en la web, la Nave del recluta (la
+// entrada «En directo» de su Nave usa la sala del grupo: no hace falta código). Se genera aquí, sin servicios de fuera.
+const urlMovil = WEB ? new URL('../../recluta.html?per=&v=cdadcf2641' + encodeURIComponent(PER), location.href).href : new URL(`alumno.html?c=${codigo}&v=cdadcf2641`, location.href).href;
+$('qr-t').innerHTML = WEB ? 'Desde el móvil: escanea, entra en <b>tu Nave</b> y pulsa <b>En directo</b>.' : `Desde el móvil: escanea o entra con el código <b>${codigo}</b>.`;
+function pintarQR() {
+  try { const q = window.qrcode(0, 'M'); q.addData(urlMovil); q.make(); $('qr').innerHTML = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }) + `<div class="qr-pie">${WEB ? 'Tu Nave → En directo' : 'Código ' + codigo}</div>`; }
+  catch (e) { $('qr').classList.add('oculto'); $('qr-t').innerHTML += `<br><small style="word-break:break-all">${esc(urlMovil)}</small>`; }
+}
+if (window.qrcode) pintarQR();
+else { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js'; sc.onload = pintarQR; sc.onerror = pintarQR; document.head.appendChild(sc); }
+$('qr').onclick = () => $('qr').classList.toggle('grande');
+$('qr').onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Escape') { ev.preventDefault(); $('qr').classList.toggle('grande', ev.key !== 'Escape' && !$('qr').classList.contains('grande')); } };
+
+// ── EL DUELO: dos escuadrones de la flota que NO son del grupo (en el borrador, dos al azar). Se eligen al abrir la sala,
+// y viajan a los móviles en el estado (eqs), así todos ven el mismo nombre y el mismo emblema.
+const barajarL = (l) => l.map((x) => [Math.random(), x]).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
+let eqs = null;
+function ponerEscuadrones(libres) { const [a, b] = barajarL(libres); eqs = { A: { k: a[0], n: a[1] }, B: { k: b[0], n: b[1] } }; ponerEquipos(eqs); }
+ponerEscuadrones(ESCUADRONES);
+if (WEB) (async () => {
+  try {
+    const M = motor(), p = await M.getDoc(M.doc(M.db, 'projects', PER)), fs = (p.exists() && p.data().factions) || [];
+    const norm = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    // del grupo = su emblema es ese fichero, o se llama igual
+    const delGrupo = ([k, n]) => fs.some((f) => String(f.imageUrl || '').includes('/' + k + '.') || norm(f.name) === norm(n));
+    const libres = ESCUADRONES.filter((e) => !delGrupo(e));
+    if (fase === 'preparar') { ponerEscuadrones(libres.length >= 2 ? libres : ESCUADRONES); pintarSala(); emitir(); }
+  } catch (e) { /* sin leer el grupo: se quedan los dos al azar */ }
+})();
 if (EN_SESION) $('kicker').textContent = `Final de la clase · en directo · semana de ${TEMAS[TEMA_SEMANA]}`;
 $('a-dur').innerHTML = DURACIONES.map((d) => `<option value="${d}">${d / 60} minutos</option>`).join('');
 $('a-preg').innerHTML = Object.entries(PREGUNTAS).map(([k, t]) => `<option value="${k}">${esc(t)}${k === 'semana' ? ` (tema ${TEMA_SEMANA})` : k === 'vistos' ? ` (1 a ${TEMA_SEMANA})` : ''}</option>`).join('');
@@ -70,11 +100,13 @@ function recolocar() { const l = dentro(); l.forEach((j, i) => { j.carril = (i +
 function equipoConMenos() { let a = 0, b = 0; for (const j of jugadores.values()) j.equipo === 'A' ? a++ : j.equipo === 'B' && b++; return a <= b ? 'A' : 'B'; }
 function barajar() { const l = [...jugadores.values()].sort(() => Math.random() - 0.5); l.forEach((j, i) => { j.equipo = i % 2 ? 'B' : 'A'; }); pintarSala(); emitir(); }
 $('b-barajar').onclick = barajar;
+const imgsEsc = {}; // los emblemas, para pintarlos en el lienzo del duelo
+const imgEsc = (x) => { const k = EQUIPOS[x].k; if (!k) return null; return imgsEsc[k] || (imgsEsc[k] = imagen(IMG_ESC(k))); };
 const fichaJ = (j) => `<div class="j${j.listo ? '' : ' espera'}" title="${j.listo ? 'Ticket hecho' : 'Con su ticket'}"><img class="av" onerror="if(!this.dataset.r){this.dataset.r=1;setTimeout(()=>{this.src+='?r=1'},400)}" src="${AV(j.avatar)}" alt="" style="border-color:${cfg.modo === 'duelo' ? EQUIPOS[j.equipo].color : ''}"><span>${j.listo ? '' : '<i>ticket</i> '}${esc(j.alias)}</span></div>`;
 function pintarSala() {
   const l = [...jugadores.values()], duelo = cfg.modo === 'duelo';
   $('jugadores').classList.toggle('oculto', duelo); $('eqs').classList.toggle('oculto', !duelo);
-  if (duelo) $('eqs').innerHTML = ['A', 'B'].map((k) => `<div class="eq" style="border-color:${EQUIPOS[k].color}"><h3 style="color:${EQUIPOS[k].color}">${EQUIPOS[k].n} · ${l.filter((j) => j.equipo === k).length}</h3><div class="lista">${l.filter((j) => j.equipo === k).map(fichaJ).join('')}</div></div>`).join('');
+  if (duelo) $('eqs').innerHTML = ['A', 'B'].map((k) => `<div class="eq" style="border-color:${EQUIPOS[k].color}"><h3 style="color:${EQUIPOS[k].color}">${emblema(k, 26)}${esc(EQUIPOS[k].n)} · ${l.filter((j) => j.equipo === k).length}</h3><div class="lista">${l.filter((j) => j.equipo === k).map(fichaJ).join('')}</div></div>`).join('');
   else $('jugadores').innerHTML = l.length ? l.map(fichaJ).join('') : '<p style="opacity:.7">Esperando a la tripulación…</p>';
   const listos = l.filter((j) => j.listo).length;
   $('b-lanzar').disabled = !listos;
@@ -116,7 +148,7 @@ function alMensaje(m) {
 }
 function emitir() {
   const o = orden();
-  canal.enviar({ t: 'estado', fase, cfg, temaSemana: TEMA_SEMANA, fin: finEn, meta, escudo: Math.round(escudo), baliza, n: jugadores.size, listos: dentro().length,
+  canal.enviar({ t: 'estado', fase, cfg, temaSemana: TEMA_SEMANA, inicio, fin: finEn, meta, eqs, bombas, escudo: Math.round(escudo), baliza, n: jugadores.size, listos: dentro().length,
     orden: o.map((j) => j.id), equipos: Object.fromEntries([...jugadores.values()].map((j) => [j.id, j.equipo])),
     medias: mediasEquipos(), jefe: D && jefeActivo ? { hp: D.jefeHp, total: D.jefeTotal } : null });
 }
@@ -126,7 +158,7 @@ setInterval(emitir, 500);
 function precargarDefensa() {
   if (cargandoD) return cargandoD;
   const ruta = EN_WEB ? '../ruta/' : '../ruta-estatica/', sala = EN_WEB ? '../joran/' : '../sala-joran/';
-  cargandoD = import('./defensa3d.js?v=1b7fc6b8a5').then((M) => M.montarDefensa($('lienzo3d'), { ruta, sala })).then((d) => { D = d; for (const j of dentro()) D.jugador(j.id, j.alias, AV(j.avatar)); return d; })
+  cargandoD = import('./defensa3d.js?v=cdadcf2641').then((M) => M.montarDefensa($('lienzo3d'), { ruta, sala })).then((d) => { D = d; for (const j of dentro()) D.jugador(j.id, j.alias, AV(j.avatar)); return d; })
     .catch((e) => { console.error(e); aviso('No se pudo cargar la escena 3D', '#ff4d6d', 3); });
   return cargandoD;
 }
@@ -137,12 +169,13 @@ $('b-lanzar').onclick = async () => {
   if (cfg.modo === 'defensa') { $('b-lanzar').textContent = 'Cargando la escena…'; await precargarDefensa(); if (!D) return; }
   for (const j of jugadores.values()) { j.puntos = 0; j.stats = nuevaStats(); j.llega = 0; j.pendientes = 0; j.x = 0; j.sigPreg = azar(3, cfg.frecuencia); }
   llegadas = []; escudo = 100; baliza = 0; jefeActivo = false; fraseOleada = '';
+  cfg.dificultad = 1; bombas = MANDO.bombas; curarListo = 0; pintarMando(); $('mando').classList.remove('oculto');
   fase = 'juego'; inicio = Date.now(); finEn = inicio + cfg.dur * 1000;
   meta = cfg.modo === 'carrera' ? metaCarrera(cfg.dur) : 0;
   $('preparar').classList.add('oculto'); $('hud').classList.remove('oculto');
   const tres = cfg.modo === 'defensa';
   $('lienzo3d').classList.toggle('oculto', !tres); $('lienzo').classList.toggle('oculto', tres);
-  if (tres) { D.limpiar(); D.velocidad = INTENSIDAD[cfg.intensidad].k; D.ponerEscudo(1); D.ajustar(); }
+  if (tres) { D.limpiar(); D.velocidad = kDe(cfg); D.ponerEscudo(1); D.ajustar(); }
   $('h-modo').textContent = `${MODOS[cfg.modo].estructura} · ${cfg.preguntas === 'no' ? 'sin preguntas' : PREGUNTAS[cfg.preguntas].toLowerCase()}`;
   $('h-tit').textContent = cfg.modo === 'carrera' ? `La carrera a ${TEMAS[Math.min(8, TEMA_SEMANA + 1)]}` : MODOS[cfg.modo].largo;
   $('top').classList.toggle('oculto', cfg.oculto || cfg.modo === 'duelo');
@@ -187,7 +220,7 @@ function terminar(gana, espera = 0) {
 // ─────────────────────────────── EL FINAL: los héroes, el podio o la escuadrilla ganadora
 function mejor(l, f, min = () => true) { const c = l.filter(min); return c.length ? c.reduce((a, b) => (f(b) > f(a) ? b : a)) : null; }
 function acabar(gana) {
-  fase = 'fin'; emitir();
+  fase = 'fin'; emitir(); $('mando').classList.add('oculto'); $('qr').classList.remove('grande');
   const l = dentro(), o = orden(), podio = o.slice(0, 3), m = mediasEquipos();
   let html = `<div class="kicker">${esc(MODOS[cfg.modo].estructura)} · ${esc(MODOS[cfg.modo].largo)}</div>`, fin = { t: 'fin', modo: cfg.modo, gana };
   const pd = (j, k) => j ? `<div class="pd p${k}"><img class="av" onerror="if(!this.dataset.r){this.dataset.r=1;setTimeout(()=>{this.src+='?r=1'},400)}" src="${AV(j.avatar)}" alt=""><b>${esc(j.alias)}</b><span>${cfg.modo === 'carrera' ? (j.llega ? 'llega ' + k + '.º' : n1(j.puntos) + ' / ' + meta) : n1(j.puntos) + ' puntos'}</span><div class="caj">${k}</div></div>` : '';
@@ -208,9 +241,9 @@ function acabar(gana) {
   } else if (cfg.modo === 'duelo') {
     const g = m.A === m.B ? null : m.A > m.B ? 'A' : 'B';
     fin.equipo = g;
-    html += `<h1 style="color:${g ? EQUIPOS[g].color : ''}">${g ? `¡Gana la ${EQUIPOS[g].n}!` : '¡Empate!'}</h1>
-      <div class="eqfin">${['A', 'B'].map((k) => { const mi = l.filter((j) => j.equipo === k), b = mejor(mi, (j) => j.puntos); return `<div style="border-color:${EQUIPOS[k].color}"><div class="kicker" style="color:${EQUIPOS[k].color}">${EQUIPOS[k].n}</div><div style="font-family:Orbitron;font-size:26px">${m[k].toFixed(1).replace('.', ',')}</div><small>de media por miembro · ${mi.length} reclutas</small><div class="miembros">${mi.map((j) => `<img class="av" onerror="if(!this.dataset.r){this.dataset.r=1;setTimeout(()=>{this.src+='?r=1'},400)}" src="${AV(j.avatar)}" alt="" title="${esc(j.alias)}">`).join('')}</div>${b ? `<div>Lo mejor de la escuadrilla: <b>${esc(b.alias)}</b> (${n1(b.puntos)})</div>` : ''}</div>`; }).join('')}</div>`;
-    if (cfg.premio) html += `<div class="premio"><b>+${PREMIO.jugar} ◈</b> por jugar · <b>+${PREMIO.equipo} ◈</b> más para la escuadrilla ganadora.</div>`;
+    html += `<h1 style="color:${g ? EQUIPOS[g].color : ''}">${g ? `${emblema(g, 54)} ¡Victoria de ${esc(EQUIPOS[g].n)}!` : '¡Empate!'}</h1>
+      <div class="eqfin">${['A', 'B'].map((k) => { const mi = l.filter((j) => j.equipo === k), b = mejor(mi, (j) => j.puntos); return `<div style="border-color:${EQUIPOS[k].color}"><div class="kicker" style="color:${EQUIPOS[k].color}">${emblema(k, 34)} ${esc(EQUIPOS[k].n)}</div><div style="font-family:Orbitron;font-size:26px">${m[k].toFixed(1).replace('.', ',')}</div><small>de media por miembro · ${mi.length} reclutas</small><div class="miembros">${mi.map((j) => `<img class="av" onerror="if(!this.dataset.r){this.dataset.r=1;setTimeout(()=>{this.src+='?r=1'},400)}" src="${AV(j.avatar)}" alt="" title="${esc(j.alias)}">`).join('')}</div>${b ? `<div>Lo mejor del escuadrón: <b>${esc(b.alias)}</b> (${n1(b.puntos)})</div>` : ''}</div>`; }).join('')}</div>`;
+    if (cfg.premio) html += `<div class="premio"><b>+${PREMIO.jugar} ◈</b> por jugar · <b>+${PREMIO.equipo} ◈</b> más para el escuadrón ganador.</div>`;
   } else {
     html += `<h1>${cfg.modo === 'carrera' ? (podio[0] && podio[0].llega ? `¡${esc(podio[0].alias)} llega primero!` : `Tiempo: ${esc(podio[0].alias)} se queda a un paso`) : `¡${esc(podio[0].alias)} gana la caza!`}</h1>
       <div class="podio">${pd(podio[1], 2)}${pd(podio[0], 1)}${pd(podio[2], 3)}</div>`;
@@ -223,7 +256,7 @@ function acabar(gana) {
   if (WEB && cfg.premio) premiarEnServidor(fin);
   $('hud').classList.add('oculto');
   $('fin').innerHTML = html; $('fin').classList.remove('oculto');
-  $('b-otra').onclick = () => { $('fin').classList.add('oculto'); $('lienzo').classList.add('oculto'); $('lienzo3d').classList.add('oculto'); fase = 'preparar'; $('preparar').classList.remove('oculto'); pintarSala(); emitir(); };
+  $('b-otra').onclick = () => { $('fin').classList.add('oculto'); cfg.dificultad = 1; $('lienzo').classList.add('oculto'); $('lienzo3d').classList.add('oculto'); fase = 'preparar'; $('preparar').classList.remove('oculto'); pintarSala(); emitir(); };
 }
 
 // 🔴 los créditos, en el servidor: él mira quién jugó de verdad (su ficha en la sala, con el ticket hecho) y paga una vez
@@ -288,7 +321,7 @@ function pintarCaza(dt, l, o) {
   });
   const total = l.reduce((a, j) => a + j.puntos, 0);
   $('meta-t').textContent = cfg.oculto ? `Marcador oculto · ${n1(total)} puntos entre todos` : `Platillo dorado +${VALOR.dorado} · acierto +${VALOR.acierto}`;
-  $('meta-b').style.width = Math.min(100, (Date.now() - inicio) / (cfg.dur * 10)) + '%';
+  $('meta-b').style.width = Math.min(100, (Date.now() - inicio) / Math.max(1, finEn - inicio) * 100) + '%';
 }
 // el duelo: las dos bases y la baliza en medio; los reclutas de cada escuadrilla, junto a su base
 function pintarDuelo(dt, l) {
@@ -296,20 +329,23 @@ function pintarDuelo(dt, l) {
   const m = mediasEquipos(), cy = H * 0.52, xa = W * 0.1, xb = W * 0.9;
   baliza = Math.max(-1, Math.min(1, (m.A - m.B) / BALIZA));
   for (const [k, x] of [['A', xa], ['B', xb]]) {
-    const c = EQUIPOS[k].color; cx.save(); cx.shadowColor = c; cx.shadowBlur = 30; cx.strokeStyle = c; cx.lineWidth = 6; cx.beginPath(); cx.arc(x, cy, 60, 0, Math.PI * 2); cx.stroke(); cx.restore();
-    cx.fillStyle = c; cx.font = '800 20px Orbitron'; cx.textAlign = 'center'; cx.fillText(EQUIPOS[k].corto.toUpperCase(), x, cy + 7);
-    cx.font = '700 16px "Exo 2"'; cx.fillText(cfg.oculto ? '? de media' : `${m[k].toFixed(1).replace('.', ',')} de media`, x, cy + 92);
+    const c = EQUIPOS[k].color, em = imgEsc(k); cx.save(); cx.shadowColor = c; cx.shadowBlur = 30; cx.strokeStyle = c; cx.lineWidth = 6; cx.beginPath(); cx.arc(x, cy, 60, 0, Math.PI * 2); cx.stroke(); cx.restore();
+    // la base es el emblema del escuadrón (y su nombre debajo); sin emblema, el nombre dentro
+    if (em && em.complete && em.naturalWidth) { cx.save(); cx.beginPath(); cx.arc(x, cy, 56, 0, Math.PI * 2); cx.clip(); cx.fillStyle = '#01040c'; cx.fillRect(x - 56, cy - 56, 112, 112); cx.drawImage(em, x - 56, cy - 56, 112, 112); cx.restore(); }
+    else { cx.fillStyle = c; cx.font = '800 20px Orbitron'; cx.textAlign = 'center'; cx.fillText(EQUIPOS[k].corto.toUpperCase(), x, cy + 7); }
+    cx.fillStyle = c; cx.font = '800 18px Orbitron'; cx.textAlign = 'center'; cx.fillText(EQUIPOS[k].n.toUpperCase(), x, cy + 70 + 22);
+    cx.font = '700 16px "Exo 2"'; cx.fillText(cfg.oculto ? '? de media' : `${m[k].toFixed(1).replace('.', ',')} de media`, x, cy + 116);
     // la escuadrilla, en rejilla sobre su base (que se vea a cada uno)
     const mi = l.filter((j) => j.equipo === k), col = Math.max(2, Math.ceil(Math.sqrt(mi.length * 1.4))), R = Math.max(14, Math.min(26, (W * 0.3) / (col * 2.6)));
     mi.forEach((j, i) => { const f = Math.floor(i / col), cI = i % col, gx = x + (k === 'A' ? 1 : -1) * (W * 0.1) + (cI - (col - 1) / 2) * R * 2.6, gy = cy - 120 - f * R * 2.7; avatar(j, gx, gy, R, c); cx.fillStyle = '#e8f6ff'; cx.font = '600 12px "Exo 2"'; cx.textAlign = 'center'; cx.fillText(j.alias, gx, gy + R + 13); });
   }
-  // el carril y la baliza (va hacia la base rival del equipo que gana: la de Cian empuja hacia la derecha)
+  // el carril y la baliza (va hacia la base rival del equipo que gana: el de la izquierda, A, empuja hacia la derecha)
   cx.strokeStyle = 'rgba(232,246,255,.25)'; cx.lineWidth = 4; cx.setLineDash([14, 10]); cx.beginPath(); cx.moveTo(xa + 70, cy); cx.lineTo(xb - 70, cy); cx.stroke(); cx.setLineDash([]);
   const bx = W / 2 + baliza * (xb - xa - 140) / 2, t = Date.now() / 300;
   const grad = cx.createRadialGradient(bx, cy, 2, bx, cy, 46); grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.35, baliza >= 0 ? '#5ff4ff' : '#ffc24a'); grad.addColorStop(1, 'rgba(255,77,216,0)');
   cx.fillStyle = grad; cx.beginPath(); cx.arc(bx, cy, 40 + Math.sin(t) * 4, 0, Math.PI * 2); cx.fill();
   for (const s of sabotajes.slice()) { s.vida -= dt; const desde = s.de === 'A' ? xa : xb, hasta = s.de === 'A' ? xb : xa; cx.strokeStyle = `rgba(255,77,216,${s.vida})`; cx.lineWidth = 3; cx.beginPath(); cx.moveTo(desde, cy - 20); for (let i = 1; i <= 8; i++) cx.lineTo(desde + (hasta - desde) * i / 8, cy - 20 + azar(-30, 30)); cx.stroke(); if (s.vida <= 0) sabotajes.splice(sabotajes.indexOf(s), 1); }
-  $('meta-t').textContent = cfg.oculto ? 'La baliza lo dice todo' : `Cian ${m.A.toFixed(1).replace('.', ',')} · Ámbar ${m.B.toFixed(1).replace('.', ',')} (media por miembro)`;
+  $('meta-t').textContent = cfg.oculto ? 'La baliza lo dice todo' : `${EQUIPOS.A.corto} ${m.A.toFixed(1).replace('.', ',')} · ${EQUIPOS.B.corto} ${m.B.toFixed(1).replace('.', ',')} (media por miembro)`;
   $('meta-b').style.width = (50 + baliza * 50) + '%'; $('meta-b').style.background = EQUIPOS.A.color; $('meta-b').parentElement.style.background = EQUIPOS.B.color;
   if (Math.abs(baliza) >= 1 && fase === 'juego') { aviso(`¡${EQUIPOS[baliza > 0 ? 'A' : 'B'].n.toUpperCase()} METE LA BALIZA!`, EQUIPOS[baliza > 0 ? 'A' : 'B'].color, 2); terminar(true, 1600); }
 }
@@ -318,7 +354,7 @@ function pintarDuelo(dt, l) {
 let acumulaEnemigos = 0;
 const OLEADAS = [[0, 'roca', 'Oleada 1 · asteroides'], [0.28, 'dron', 'Oleada 2 · drones de la Estática'], [0.5, 'platillo', 'Oleada 3 · escuadrillas'], [0.72, 'jefe', '¡El destructor!']];
 function tickDefensa(dt, l) {
-  const f = (Date.now() - inicio) / (cfg.dur * 1000), k = INTENSIDAD[cfg.intensidad].k, n = Math.max(1, l.length);
+  const f = (Date.now() - inicio) / Math.max(1, finEn - inicio), k = kDe(cfg), n = Math.max(1, l.length);
   const ol = OLEADAS.filter((x) => f >= x[0]).pop();
   if (ol[2] !== fraseOleada) { fraseOleada = ol[2]; aviso(ol[2].toUpperCase(), ol[1] === 'jefe' ? '#ff4dd8' : '#ffc24a', 2); }
   if (ol[1] === 'jefe' && !jefeActivo) { jefeActivo = true; D.activarJefe(Math.round(Math.max(40, n * 18 * k))); $('jefe').classList.remove('oculto'); }
@@ -348,9 +384,62 @@ function escudoDeLosMoviles(l) {
   }
 }
 
+// ─────────────────────────────── 🔴 27-sep · EL MANDO DEL COMANDANTE (durante la partida)
+// Norberto: botón para terminar, ±20 s, subir y bajar la dificultad en caliente, tres bombas y curar, con mensaje en los
+// móviles. Implica al docente (y la clase lo ve). Todo viaja igual que lo demás: el reloj y la dificultad, en el estado
+// (fin y cfg.dificultad); la bomba y la reparación, como eventos del docente ({t:'bomba'} y {t:'curar'}).
+let bombas = MANDO.bombas, curarListo = 0, finSeguro = 0;
+const nDif = (d) => (Math.abs(d - 1) < 0.01 ? 'normal' : '×' + d.toFixed(1).replace('.', ','));
+function pintarMando() {
+  $('m-dif').textContent = 'Dificultad ' + nDif(cfg.dificultad || 1);
+  $('m-bomba').textContent = bombas ? `Cañón de plasma · ${bombas}` : 'Sin cañón'; $('m-bomba').disabled = !bombas;
+  const falta = Math.ceil((curarListo - Date.now()) / 1000);
+  $('m-curar').textContent = falta > 0 ? `Reparar · ${falta} s` : cfg.modo === 'defensa' ? 'Reparar el escudo' : 'Reparar las naves'; $('m-curar').disabled = falta > 0;
+  const seguro = Date.now() < finSeguro; $('m-fin').textContent = seguro ? '¿Seguro? Terminar' : 'Terminar'; $('m-fin').classList.toggle('seguro', seguro);
+  document.querySelector('[data-m="facil"]').disabled = (cfg.dificultad || 1) <= DIFICULTAD.min + 0.01;
+  document.querySelector('[data-m="dificil"]').disabled = (cfg.dificultad || 1) >= DIFICULTAD.max - 0.01;
+}
+setInterval(() => { if (fase === 'juego') pintarMando(); }, 500);
+function destello() { const d = $('destello'); d.classList.remove('ya'); void d.offsetWidth; d.classList.add('ya'); }
+function mando(a) {
+  if (fase !== 'juego') return;
+  if (a === 'mas' || a === 'menos') {
+    // nunca por debajo de 5 s: quitar tiempo no acaba la partida de golpe (para eso está Terminar)
+    finEn = Math.max(Date.now() + 5000, finEn + (a === 'mas' ? 20000 : -20000));
+    aviso(a === 'mas' ? '+20 SEGUNDOS' : '−20 SEGUNDOS', '#ffc24a', 1);
+  } else if (a === 'dificil' || a === 'facil') {
+    const d = Math.round(((cfg.dificultad || 1) + (a === 'dificil' ? DIFICULTAD.paso : -DIFICULTAD.paso)) * 10) / 10;
+    cfg.dificultad = Math.min(DIFICULTAD.max, Math.max(DIFICULTAD.min, d));
+    if (D) D.velocidad = kDe(cfg);
+    aviso(a === 'dificil' ? 'LA ESTÁTICA APRIETA' : 'LA ESTÁTICA AFLOJA', a === 'dificil' ? '#ff4d6d' : '#5dffa0', 1.2);
+  } else if (a === 'bomba') {
+    if (bombas <= 0) return;
+    bombas--; destello();
+    canal.enviar({ t: 'bomba', quedan: bombas });
+    if (cfg.modo === 'defensa' && D) D.bomba(MANDO.bombaJefe);
+    aviso('¡CAÑÓN DE PLASMA DEL COMANDANTE!', '#ff4dd8', 1.8);
+  } else if (a === 'curar') {
+    if (Date.now() < curarListo) return;
+    curarListo = Date.now() + MANDO.recargaCurar * 1000;
+    if (cfg.modo === 'defensa') { escudo = Math.min(100, escudo + MANDO.curaEscudo); if (D) D.ponerEscudo(escudo / 100); }
+    canal.enviar({ t: 'curar', escudo: cfg.modo === 'defensa' ? MANDO.curaEscudo : 0 });
+    aviso(cfg.modo === 'defensa' ? 'EL COMANDANTE REPARA EL ESCUDO' : 'EL COMANDANTE REPARA LAS NAVES', '#5dffa0', 1.6);
+  } else if (a === 'fin') {
+    // dos toques (el segundo en 3 s): un clic sin querer no acaba la partida de toda la clase
+    if (Date.now() > finSeguro) { finSeguro = Date.now() + 3000; pintarMando(); return; }
+    finSeguro = 0; terminar(cfg.modo !== 'defensa');
+  }
+  pintarMando(); emitir();
+}
+document.querySelectorAll('[data-m]').forEach((b) => { b.onclick = () => mando(b.dataset.m); });
+addEventListener('keydown', (ev) => {
+  if (fase !== 'juego' || ev.target.closest && ev.target.closest('input,select,textarea')) return;
+  const a = { b: 'bomba', B: 'bomba', r: 'curar', R: 'curar' }[ev.key]; if (a) mando(a);
+});
+
 // ─────────────────────────────── los reclutas de ejemplo juegan solos (como jugaría una clase de verdad)
 function tickBots(dt, l) {
-  const k = INTENSIDAD[cfg.intensidad].k;
+  const k = kDe(cfg);
   for (const j of l) {
     if (!j.bot || j.llega) continue;
     if (Math.random() < j.ritmo * dt * k) { j.stats.derribos++; j.pendientes++; j.puntos += VALOR.asteroide; }
@@ -393,4 +482,4 @@ function bucle(ahora) {
 }
 requestAnimationFrame(bucle);
 // para probar: adelantar el reloj de la partida (como si hubieran pasado «seg» segundos)
-window.DIRECTO = { adelantar: (seg) => { inicio -= seg * 1000; finEn -= seg * 1000; }, jugadores, cfg, get fase() { return fase; }, terminar, get escudo() { return escudo; }, set escudo(v) { escudo = v; }, get D() { return D; } };
+window.DIRECTO = { mando, get bombas() { return bombas; }, get eqs() { return eqs; }, adelantar: (seg) => { inicio -= seg * 1000; finEn -= seg * 1000; }, jugadores, cfg, get fase() { return fase; }, terminar, get escudo() { return escudo; }, set escudo(v) { escudo = v; }, get D() { return D; } };

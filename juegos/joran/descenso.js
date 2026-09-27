@@ -3,8 +3,14 @@
 // Apolo (modelo de la NASA, dominio público) en los ocho planetas de la ruta, cada uno con SU física: gravedad, viento
 // solar (constante, a ráfagas o que cambia de sentido), atmósfera que frena, niebla o una plataforma que se mueve.
 // Cuanto más estrecha la plataforma, más multiplica. Se puntúa la suavidad, el centrado y el combustible que sobra.
-// Tres vidas; como mucho, unos 3-4 minutos. Arcade: sin preguntas.
-import { THREE, $, azar, elegir, estado, SON, audio, holo, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=1b7fc6b8a5';
+// Tres vidas; una partida entera, unos 5-8 minutos.
+// Arcade o DESAFÍO (desafio.js, ?modo=desafio): en el desafío el oxígeno de la cabina se gasta y se recarga acertando.
+// 27-sep (Norberto: «es imposible, necesitaría el triple de combustible»): el depósito dura 4,5 veces más (de 9 s de
+// propulsor a 42 s), el tope de tiempo pasa de 4 a 10 minutos y el viento de Reliae y Liminar baja un poco. Lo comprobé
+// con un piloto automático simulado (la misma física, 200 terrenos por planeta): posarse en la ancha pide de mediana
+// 16-26 s de propulsor y 40-65 s de vuelo; con el viento de antes, Reliae no se posaba ni el piloto automático.
+import { THREE, $, azar, elegir, estado, SON, audio, holo, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=cdadcf2641';
+import { crearDesafio, MODO, urlModo } from './desafio.js?v=cdadcf2641';
 
 const V3 = THREE.Vector3;
 const JUEGO = JUEGOS.find((j) => j.id === 'descenso') || { id: 'descenso', n: 'El Descenso' };
@@ -14,16 +20,16 @@ const PLANETAS = [
   { k: 'p1_forge', n: 'Fôrge', g: 1.6, viento: 0, rafaga: 0, rugoso: 0.7, pistas: [14, 10, 6], nota: 'Sin viento: aprende a posarte.' },
   { k: 'p2_ecos', n: 'Ecos', g: 1.1, viento: 0, rafaga: 0.9, periodo: 5, rugoso: 0.8, pistas: [12, 8, 5], nota: 'Poca gravedad y ráfagas que van y vienen, como un eco.' },
   { k: 'p3_sendara', n: 'Sendara', g: 2.2, viento: 0.2, rafaga: 0.3, periodo: 7, rugoso: 1.5, pistas: [10, 7, 4.5], nota: 'Terreno abrupto y plataformas estrechas entre las montañas.' },
-  { k: 'p4_reliae', n: 'Reliae', g: 1.4, viento: 1.1, rafaga: 0.2, periodo: 6, rugoso: 0.9, pistas: [12, 8, 5], nota: 'Viento solar constante: tendrás que ir inclinado contra él.' },
+  { k: 'p4_reliae', n: 'Reliae', g: 1.4, viento: 0.8, rafaga: 0.2, periodo: 6, rugoso: 0.9, pistas: [12, 8, 5], nota: 'Viento solar constante: tendrás que ir inclinado contra él.' },
   { k: 'p5_umbral', n: 'Umbral', g: 2.6, viento: -0.3, rafaga: 0.4, periodo: 6, rugoso: 1.0, niebla: true, pistas: [12, 8, 5], nota: 'Niebla: el suelo aparece tarde. Mira la altura.' },
   { k: 'p6_ludo', n: 'Ludo', g: 1.8, viento: 0.3, rafaga: 0.3, periodo: 5, rugoso: 0.8, movil: true, pistas: [12, 8, 5], nota: 'La plataforma buena se mueve: es un juego.' },
   { k: 'p7_vinculo', n: 'Vínculo', g: 3.4, viento: -0.2, rafaga: 0.4, periodo: 6, rugoso: 1.1, arrastre: 0.35, pistas: [12, 8, 5], nota: 'Gravedad fuerte y atmósfera espesa que frena.' },
-  { k: 'p8_liminar', n: 'Liminar', g: 2.0, viento: 0.9, rafaga: 0.6, periodo: 4, cambia: 6, rugoso: 1.2, pistas: [11, 7, 4.5], nota: 'El viento cambia de sentido cada pocos segundos.' },
+  { k: 'p8_liminar', n: 'Liminar', g: 2.0, viento: 0.7, rafaga: 0.5, periodo: 4, cambia: 6, rugoso: 1.2, pistas: [11, 7, 4.5], nota: 'El viento cambia de sentido cada pocos segundos.' },
 ];
 const MULT = [1, 2, 4];                       // la ancha, la media, la estrecha
 const SEGURO = { vy: 2.4, vx: 1.6, ang: 0.2 };  // lo que aguantan las patas
-const COMB_S = 11;                             // combustible por segundo de propulsor (el depósito es de 100)
-const TOPE_S = 240;
+const COMB_S = 2.4;                            // combustible por segundo de propulsor (el depósito es de 100: ~42 s)
+const TOPE_S = 600;                            // tope de la partida entera (s), solo por si alguien se queda flotando
 
 // ───────────────────────────────── escena
 const lienzo = $('lienzo');
@@ -170,6 +176,21 @@ for (const [id, k] of [['m-izq', 'izq'], ['m-der', 'der'], ['m-prop', 'prop']]) 
 
 // el ruido del propulsor: un soplido continuo que se abre al acelerar
 let soplido = null;
+
+// el modo desafío: el oxígeno de la cabina (el combustible ya es otra cosa aquí: es el del propulsor). Se llama DESAFIO y no
+// DES porque window.DES ya es el mando de consola de esta máquina. Solo se gasta en pleno vuelo (no en la cuenta atrás, ni
+// posado, ni estrellado). Su barra va en #des-slot, abajo a la derecha y, en el móvil, por encima de los botones táctiles.
+// Al abrir la pregunta se calla el propulsor; al cerrarla se sueltan teclas y botones (el panel se tragó el keyup/pointerup)
+// y se corre el reloj de la partida lo que duró la pregunta: el tope de 10 minutos va por reloj de pared y pensar no cuenta
+let abiertaDesde = 0;
+const DESAFIO = crearDesafio({ nombre: 'Oxígeno', segundos: 40, recarga: 40, hud: $('des-slot'),
+  alPausar: (si) => {
+    if (si) { abiertaDesde = performance.now(); if (soplido) soplido.gain.value = 0; return; }
+    for (const k in tecla) tecla[k] = false; for (const k in toque) toque[k] = false;
+    if (S && abiertaDesde) S.t0 += performance.now() - abiertaDesde; abiertaDesde = 0;
+  },
+  enJuego: () => !!S && !S.fin && !pausa && S.estado === 'vuela' && !(S.cuenta > 0) });
+if (DESAFIO.activo) DESAFIO.preparar(); // se piden las preguntas mientras lees la portada
 function prepararSoplido() {
   const a = audio(); if (!a || soplido) return;
   const n = a.sampleRate * 2, b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
@@ -251,15 +272,16 @@ function pantallita(P) {
   $('extra').textContent = P.nota;
 }
 function terminar(motivo, completo = false) {
-  if (S.fin) return; S.fin = true; if (soplido) soplido.gain.value = 0;
+  if (S.fin) return; S.fin = true; if (soplido) soplido.gain.value = 0; DESAFIO.parar();
   if (completo) { S.puntos += S.vidas * 1000; }
+  const bonus = DESAFIO.bonus(S.puntos); // el bonus de precisión del desafío (0 en arcade), sobre la marca ya completa
   setTimeout(() => {
     $('hud').classList.add('oculto');
     const seg = Math.round((performance.now() - S.t0) / 1000);
-    finDePartida({ juego: JUEGO.id, titulo: completo ? '¡Los ocho planetas!' : 'Fin del descenso', puntos: S.puntos,
+    finDePartida({ juego: JUEGO.id, titulo: completo ? '¡Los ocho planetas!' : 'Fin del descenso', puntos: S.puntos + bonus,
       texto: completo ? `Te has posado en los ocho mundos de la ruta. <b>+${(S.vidas * 1000).toLocaleString('es-ES')}</b> por los módulos que te quedan.` : motivo,
-      filas: [['Aterrizajes', `${S.aterrizajes.length}/8`], ['En la estrecha (×4)', S.aterrizajes.filter((a) => a.mult === 4).length], ['Vidas', Math.max(0, S.vidas)], ['Tiempo', `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`]],
-      alRepetir: empezar, extra: { perfecto: completo && S.vidas >= 3 } });
+      filas: [['Aterrizajes', `${S.aterrizajes.length}/8`], ['En la estrecha (×4)', S.aterrizajes.filter((a) => a.mult === 4).length], ['Vidas', Math.max(0, S.vidas)], ['Tiempo', `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`], ...DESAFIO.filas(bonus)],
+      alRepetir: empezar, extra: { ...DESAFIO.extra(), perfecto: completo && S.vidas >= 3 } });
   }, 900);
 }
 
@@ -282,16 +304,16 @@ function pintarHUD(vv) {
 // ───────────────────────────────── bucle
 let pausa = false;
 function pausar() {
-  if (!S || S.fin) return; pausa = !pausa; if (soplido) soplido.gain.value = 0;
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (!S || S.fin || DESAFIO.abierto) return; pausa = !pausa; if (soplido) soplido.gain.value = 0; // con la pregunta abierta el juego ya está parado
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=cdadcf2641">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
-document.addEventListener('visibilitychange', () => { if (document.hidden && S && !S.fin && !pausa && !window.__sinPausa) pausar(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && S && !S.fin && !pausa && !DESAFIO.abierto && !window.__sinPausa) pausar(); });
 let antes = performance.now();
 function bucle(ahora) {
   requestAnimationFrame(bucle);
   const dt = Math.min(0.04, (ahora - antes) / 1000); antes = ahora;
-  if (!pausa) tick(dt);
+  if (!pausa && !DESAFIO.abierto) { tick(dt); DESAFIO.tick(dt); } // con la pregunta abierta, nada corre
   // el módulo, la llama y la cámara
   if (S && lem) {
     lem.position.set(S.x, S.y, 0); lem.rotation.z = S.ang;
@@ -320,16 +342,25 @@ function empezar() {
   S = nueva(); window.__t0Partida = performance.now(); prepararSoplido();
   montarTerreno(PLANETAS[0]); nuevoVuelo(); pantallita(PLANETAS[0]);
   $('hud').classList.remove('oculto'); cerrarPantalla(); pausa = false;
+  DESAFIO.empezar();
 }
 function portada() {
-  const e = estado();
-  pantalla(`<div class="kicker">El simulador de Joran · máquina 4</div><h2>El Descenso</h2>
+  const e = estado(), desafio = MODO === 'desafio';
+  pantalla(`<div class="kicker">El simulador de Joran · máquina 4${desafio ? ' · modo desafío' : ''}</div><h2>El Descenso</h2>
     <p>Joran entrenaba a los pilotos para posar las cápsulas del refugio en cualquier mundo. Aquí se posa el <b>Módulo Lunar</b> en los <b>ocho planetas de la ruta</b>, y cada uno tiene su física: gravedad, <b>viento solar</b> (constante, a ráfagas o que cambia de sentido), atmósfera que frena, niebla o una plataforma que se mueve.</p>
     <div class="teclas"><kbd>← →  /  A D</kbd><span>Girar el módulo</span><kbd>↑  /  W  /  Espacio</kbd><span>Propulsor (gasta combustible)</span></div>
     <p>Para posarte: caída de menos de <b>${SEGURO.vy.toLocaleString('es-ES')} m/s</b>, deriva de menos de <b>${SEGURO.vx.toLocaleString('es-ES')} m/s</b> y el módulo casi recto (lo verde del panel). Las plataformas multiplican: <b style="color:#5dffa0">×1</b> la ancha, <b style="color:#ffc24a">×2</b> la media y <b style="color:#ff4dd8">×4</b> la estrecha. Suman la suavidad, el centrado y el combustible que te sobre. Tienes tres módulos.</p>
+    ${DESAFIO.texto()}
     <p class="pista">Tu récord: <b>${(e.marcas.descenso || 0).toLocaleString('es-ES')}</b> · Módulo Lunar del Apolo: NASA (dominio público)</p>
-    <div class="botones"><button id="b-ya">¡Iniciar el descenso!</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`);
-  $('b-ya').onclick = () => { audio(); empezar(); };
+    <div class="botones"><button id="b-ya">¡Iniciar el descenso!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=cdadcf2641">Volver a la sala</a>'}</div>`);
+  $('b-ya').onclick = async () => {
+    audio();
+    if (desafio) { // las preguntas tienen que estar antes de despegar: sin ellas, el oxígeno no se podría recargar
+      const b = $('b-ya'); b.disabled = true; b.textContent = 'Cargando preguntas…';
+      if (!(await DESAFIO.preparar())) aviso('Sin preguntas: juegas en arcade', '#ffc24a', 2.2);
+    }
+    empezar();
+  };
 }
 (async () => {
   const g = await cargar('modulo_lunar');
@@ -345,4 +376,4 @@ function portada() {
   camara.position.set(-40, S.y + 10, 60); camara.lookAt(-40, S.y - 8, 0);
   $('carga').remove(); requestAnimationFrame(bucle); portada();
 })().catch((err) => { console.error(err); $('carga').textContent = 'No se pudo cargar: ' + err.message; });
-window.DES = { get S() { return S; }, get T() { return T; }, PLANETAS, empezar, camara, irA: (n) => { S.nivel = n; siguientePlaneta(); } };
+window.DES = { get S() { return S; }, get T() { return T; }, PLANETAS, empezar, camara, desafio: DESAFIO, irA: (n) => { S.nivel = n; siguientePlaneta(); } };

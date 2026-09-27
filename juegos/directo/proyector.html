@@ -6,7 +6,7 @@
 <title>En directo · docente</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="directo.css?v=1b7fc6b8a5">
+<link rel="stylesheet" href="directo.css?v=cdadcf2641">
 <style>
 html,body{overflow:hidden;height:100%}
 main{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:14px}
@@ -93,6 +93,35 @@ canvas.lienzo{position:fixed;inset:0;width:100%;height:100%}
 .todos{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin-top:12px;font-size:14px;opacity:.9}
 .credito{font-size:12px;opacity:.6;margin-top:8px}
 #aviso{top:64%}
+/* 🔴 27-sep · el QR de la sala de espera: para entrar desde el móvil sin teclear nada (se amplía al tocarlo) */
+.entrada{display:flex;gap:12px;align-items:center}
+#qr{flex:none;background:#fff;border-radius:10px;padding:6px;line-height:0;cursor:zoom-in}
+#qr svg,#qr img{width:112px;height:112px;display:block}
+#qr-t{font-size:13px;line-height:1.4;opacity:.9}
+#qr-t b{color:var(--cian)}
+#qr.grande{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(1,4,12,.92);border-radius:0;cursor:zoom-out;line-height:1.2}
+#qr.grande svg,#qr.grande img{width:min(70vh,80vw);height:min(70vh,80vw);background:#fff;padding:14px;border-radius:14px}
+#qr .qr-pie{display:none} #qr.grande .qr-pie{display:block;font-family:Orbitron;color:var(--ambar);font-size:22px;letter-spacing:.08em}
+/* 🔴 27-sep · EL MANDO DEL COMANDANTE (durante la partida): discreto, arriba a la izquierda y medio transparente hasta que
+   se le acerca el ratón; se pliega en «Mando» para que no tape nada del juego proyectado */
+#mando{position:fixed;left:16px;top:88px;z-index:15;opacity:.5;transition:opacity .2s;max-width:186px}
+#mando:hover,#mando:focus-within{opacity:1}
+#mando summary{list-style:none;cursor:pointer;font-family:Orbitron;font-size:11px;letter-spacing:.14em;color:var(--ambar);background:var(--panel);border:1px solid var(--borde);border-radius:9px;padding:5px 9px;display:inline-block;text-transform:uppercase}
+#mando summary::-webkit-details-marker{display:none}
+#mando .cuerpo{margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:5px;background:var(--panel);border:1px solid var(--borde);border-radius:11px;padding:7px}
+#mando button{font-size:11px;padding:7px 6px;letter-spacing:.02em;background:#0d2236;color:#e8f6ff;border:1px solid var(--borde);font-weight:600;line-height:1.15}
+#mando button:hover:not(:disabled){border-color:var(--ambar)}
+#mando .ancho{grid-column:1/-1}
+#mando .m-bomba{background:linear-gradient(135deg,#ff4dd8,#8a2be2);color:#fff;border:0}
+#mando .m-curar{background:linear-gradient(135deg,#26d07c,#1a9bd6);color:#001018;border:0}
+#mando .m-fin{border-color:var(--rojo);color:#ffb3c1}
+#mando .m-fin.seguro{background:var(--rojo);color:#fff}
+#mando small{grid-column:1/-1;text-align:center;font-size:11px;opacity:.85}
+/* el destello de la bomba (sirve igual para el lienzo 2D y la escena 3D) */
+#destello{position:fixed;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 55%,rgba(255,255,255,.9),rgba(95,244,255,.55) 30%,rgba(255,77,216,.25) 60%,transparent 80%);z-index:12}
+#destello.ya{animation:destello .9s ease-out}
+@keyframes destello{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+.eq h3 img{margin-right:4px}
 @media (max-width:900px){#preparar{grid-template-columns:1fr}.ajustes{grid-template-columns:1fr 1fr}.heroes{grid-template-columns:1fr 1fr}#top{display:none}}
 </style>
 <script type="importmap">
@@ -125,6 +154,7 @@ canvas.lienzo{position:fixed;inset:0;width:100%;height:100%}
     </div>
     <div class="lado">
       <div class="codigo-l"><span>Sala de espera</span><small>desde la Nave, código</small><b id="codigo">····</b></div>
+      <div class="entrada"><div id="qr" title="Ampliar el QR" role="button" tabindex="0"></div><div id="qr-t"></div></div>
       <div id="listos" class="listos"></div>
       <div id="jugadores"></div>
       <div class="eqs oculto" id="eqs"></div>
@@ -144,7 +174,16 @@ canvas.lienzo{position:fixed;inset:0;width:100%;height:100%}
   <div id="top"><h3 id="top-t">EN CABEZA</h3><ol id="top-l"></ol></div>
   <div id="meta"><b id="meta-t"></b><div class="barra"><i id="meta-b"></i></div></div>
 </div>
+<details id="mando" class="oculto" open><summary>Mando</summary><div class="cuerpo">
+  <button data-m="menos" title="Quitar 20 segundos">−20 s</button><button data-m="mas" title="Añadir 20 segundos">+20 s</button>
+  <button data-m="facil" title="Más lento y menos daño">Más fácil</button><button data-m="dificil" title="Más rápido y más daño">Más difícil</button>
+  <small id="m-dif">Dificultad normal</small>
+  <button data-m="bomba" class="m-bomba ancho" id="m-bomba" title="Limpia la pantalla de todos (tecla B)">Cañón de plasma · 3</button>
+  <button data-m="curar" class="m-curar ancho" id="m-curar" title="Repara las naves y el escudo (tecla R)">Reparar</button>
+  <button data-m="fin" class="m-fin ancho" id="m-fin">Terminar</button>
+</div></details>
+<div id="destello"></div>
 <div id="aviso"></div>
-<script type="module" src="proyector.js?v=1b7fc6b8a5"></script>
+<script type="module" src="proyector.js?v=cdadcf2641"></script>
 </body>
 </html>

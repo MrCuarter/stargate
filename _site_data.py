@@ -1597,16 +1597,17 @@ RUTA = {
 # ser una serie de minijuegos: empieza con uno, y el resto se desbloquean al llegar a cierta puntuación o pagando
 # créditos». Sustituye a la batalla de preguntas (batalla.html): se abre con el capítulo c11 (Ludo, tema 6).
 # 🔴 EL EQUILIBRIO (aprobado): la sala NO da xp (pilotar bien no es aprender). Da créditos solo con los HITOS de cada
-# máquina (bronce, plata, oro de marca), UNA vez cada uno: 5 + 10 + 15 = 30 ◈ por máquina, 120 ◈ las cuatro. Encender las
-# tres cerradas cuesta 180 ◈. La siguiente máquina se enciende con la PLATA de la anterior. El Simulador de vuelo (la Ruta
+# máquina (bronce, plata, oro de marca), UNA vez cada uno: 5 + 10 + 15 = 30 ◈ por máquina, 150 ◈ las cinco. Encender las
+# cuatro cerradas cuesta 280 ◈. 28-sep: hitos recalibrados (a la primera se pasaba el oro) y La conquista de Fôrge. La siguiente máquina se enciende con la PLATA de la anterior. El Simulador de vuelo (la Ruta
 # para repasar, con niveles) está abierto siempre y no paga: solo su ranking.
 # [clave, nombre, lema, abre (marca en otra máquina) o None, precio ◈, hitos [bronce, plata, oro]]
 # (juegos/joran/comun.js → JUEGOS manda en la jugabilidad; lo que se cuenta, AQUÍ: el build lo lleva a juegos/joran/datos.js)
 SALA_JORAN = {"juego": "juegos/joran/", "hito_cr": {"bronce": 5, "plata": 10, "oro": 15}, "maquinas": [
-    ["evacuacion", "La Evacuación", "Corre por los pasillos de la Cero antes de que la Estática te alcance.", None, 0, [1200, 2500, 5000]],
-    ["laberinto", "El Laberinto de la Cero", "La nave se ha apagado: tres llaves y la cápsula… a oscuras.", ["evacuacion", 2500], 40, [1500, 3000, 6000]],
-    ["ruta-azul", "RUTA AZUL", "El arcade que Joran programó para entrenar pilotos: oleadas de la Estática y el jefe final.", ["laberinto", 3000], 60, [1500, 3000, 6000]],
-    ["descenso", "El Descenso", "Posa el Módulo Lunar en los ocho planetas: cada uno con su gravedad, su viento solar y su truco.", ["ruta-azul", 3000], 80, [1200, 3000, 5500]],
+    ["evacuacion", "La Evacuación", "Corre por los pasillos de la Cero antes de que la Estática te alcance.", None, 0, [3000, 7500, 18000]],
+    ["laberinto", "El Laberinto de la Cero", "La nave se ha apagado: tres llaves y la cápsula… a oscuras.", ["evacuacion", 7500], 40, [2000, 4500, 12000]],
+    ["ruta-azul", "RUTA AZUL", "El arcade que Joran programó para entrenar pilotos: oleadas de la Estática y el jefe final.", ["laberinto", 4500], 60, [8000, 18000, 38000]],
+    ["descenso", "El Descenso", "Posa el Módulo Lunar en los ocho planetas: cada uno con su gravedad, su viento solar y su truco.", ["ruta-azul", 18000], 80, [2000, 5500, 16000]],
+    ["conquista", "La conquista de Fôrge", "Salta de acantilado en acantilado sobre los ríos de lava de Fôrge hasta la Puerta de la cumbre.", ["descenso", 5500], 100, [2000, 4500, 8500]],
     ["vuelo", "Simulador de vuelo", "La Ruta de la Estática para repasar: cualquier tramo, en tres niveles, o todo el viaje de una vez.", None, 0, [2000, 4000, 7000]],
 ],
     # EL CUADERNO DE VUELO: 11 hitos entre la Ruta y la sala; con todos, un premio de ADORNO. 🔴 Fuera de los Logros de a
@@ -1615,10 +1616,10 @@ SALA_JORAN = {"juego": "juegos/joran/", "hito_cr": {"bronce": 5, "plata": 10, "o
         ["despegue", "Primer vuelo", "Termina tu primera misión de la Ruta de la Estática."],
         ["ruta", "La Ruta entera", "Medalla en las diez misiones de la Ruta."],
         ["oros", "Piloto de oro", "Oro en las diez misiones de la Ruta."],
-        ["probador", "Probador de la sala", "Juega a las cuatro máquinas arcade."],
+        ["probador", "Probador de la sala", "Juega a las cinco máquinas arcade."],
         ["marcador", "En el marcador", "Tu primer hito (bronce) en una máquina."],
         ["oro1", "Récord de Joran", "Oro en una máquina arcade."],
-        ["oro4", "Maestro de la sala", "Oro en las cuatro máquinas arcade."],
+        ["oro4", "Maestro de la sala", "Oro en las cinco máquinas arcade."],
         ["intocable", "Intocable", "Vence a RUTA AZUL sin perder una vida."],
         ["perfecto", "Ocho mundos, cero golpes", "Pósate en los ocho planetas de El Descenso sin perder un módulo."],
         ["repasoOro", "Repaso de oro", "Oro en el Simulador de vuelo en nivel difícil."],
@@ -1647,7 +1648,7 @@ DIRECTO = {"juego": "juegos/directo/", "modos": [
     ["defensa", "Simulacro de defensa", "Cooperativa", "Toda la clase contra la Estática: se gana o se pierde junta."],
     ["carrera", "La carrera al planeta", "Individual", "El primero en llegar al planeta."],
     ["caza", "La caza", "Individual", "Todos contra todos, a por puntos."],
-    ["duelo", "Duelo de escuadrillas", "Por equipos", "Cian contra Ámbar, al azar: tirad de la baliza."],
+    ["duelo", "Duelo de escuadrillas", "Por equipos", "Dos escuadrones invitados, al azar: tirad de la baliza."],
 ], "heroes": ["El Muro", "Ojo de halcón", "El Fantasma", "El Ingeniero"],
     "premio": {"jugar": 5, "ganar_clase": 10, "podio": 10, "equipo": 10}}
 

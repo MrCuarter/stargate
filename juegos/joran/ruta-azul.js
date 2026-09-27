@@ -1,19 +1,140 @@
 // RUTA AZUL · máquina 3 de la sala de Joran (borrador), AHORA EN 3D.
 // El arcade con el que Joran entrenaba a los pilotos del refugio: pilotas la nave de tu mascota contra cuatro oleadas
 // de la Estática —platillos, alienígenas que se lanzan en picado y asteroides reales de la NASA— y, al final, RUTA AZUL,
-// el simulador que cobró vida: un holograma gigante con tres nodos de escudo en órbita. Arcade puro: dispara solo; tú
-// esquivas. Unos 3 minutos. La lógica vive en coordenadas 0..1 (x a lo ancho, y de arriba abajo) y la escena 3D la copia.
+// el simulador que cobró vida: un holograma gigante con tres nodos de escudo en órbita. Dispara solo; tú esquivas.
+// Arcade o DESAFÍO (desafio.js, ?modo=desafio): en el desafío la energía del escudo se gasta y se recarga acertando.
+// Unos 3 minutos. La lógica vive en coordenadas 0..1 (x a lo ancho, y de arriba abajo) y la escena 3D la copia.
 // Recursos libres: naves y alienígenas de Quaternius (CC0), platillos de Poly by Google (CC-BY 3.0), asteroides de la NASA.
-import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, cargar, medir, objeto, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=1b7fc6b8a5';
+import { THREE, $, azar, elegir, QS, estado, audio, holo, cargar, medir, objeto, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=cdadcf2641';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { crearDesafio, MODO, urlModo } from './desafio.js?v=cdadcf2641';
 
 const V3 = THREE.Vector3;
 const JUEGO = JUEGOS[2];
 // la arena en el mundo: 40 de ancho y lo que toque de fondo (la proporción del arcade de siempre)
 const AW = 40, AD = AW / 0.72;
 const aMundo = (x, y) => new V3((x - 0.5) * AW, 0, (y - 0.5) * AD);
+
+// ───────────────────────────────── el sonido de RUTA AZUL (27-sep: «los sonidos son muy malos»)
+// Todo sintetizado con WebAudio, sin ficheros ni generadores: cada efecto son varias capas (un golpe de ruido filtrado
+// para el ataque, un grave que cae para el cuerpo, un poco de saturación para el crujido) con envolventes cortas, y
+// todo pasa por un bus con compresor y una cola de eco breve para que suene a sala de recreativas y no sature cuando
+// estallan diez platillos a la vez. Los disparos van muy bajos y variados: suenan ocho veces por segundo.
+const SR = (() => {
+  let bus = null, ruidoB = null, crujido = null;
+  const ultimo = {};
+  function preparar() {
+    const a = audio(); if (!a) return null;
+    if (bus) return a;
+    const comp = a.createDynamicsCompressor(); comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 5; comp.attack.value = 0.003; comp.release.value = 0.18;
+    const master = a.createGain(); master.gain.value = 0.9; comp.connect(master).connect(a.destination);
+    // la sala: una respuesta al impulso de ruido que se apaga en 1,2 s (reverberación barata, sin ficheros)
+    const n = Math.floor(a.sampleRate * 1.2), ir = a.createBuffer(2, n, a.sampleRate);
+    for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3); }
+    const rev = a.createConvolver(); rev.buffer = ir; const envio = a.createGain(); envio.gain.value = 0.22; envio.connect(rev).connect(comp);
+    const seco = a.createGain(); seco.connect(comp);
+    // 2 s de ruido blanco, reutilizado por todos los efectos
+    ruidoB = a.createBuffer(1, a.sampleRate * 2, a.sampleRate); const d = ruidoB.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    // la saturación (curva suave): da el crujido de las explosiones
+    crujido = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; crujido[i] = Math.tanh(x * 3.2); }
+    bus = { seco, envio };
+    return a;
+  }
+  // una capa conectada al bus (con algo de envío a la sala)
+  function salida(a, nodo, sala = 0.3) { nodo.connect(bus.seco); if (sala) { const g = a.createGain(); g.gain.value = sala; nodo.connect(g).connect(bus.envio); } }
+  function env(a, g, t, vol, ataque, dur) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + ataque); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
+  function osc(tipo, f0, f1, dur, vol, { retraso = 0, ataque = 0.004, sala = 0.3, saturar = false, detune = 0 } = {}) {
+    const a = preparar(); if (!a) return; const t = a.currentTime + retraso;
+    const o = a.createOscillator(), g = a.createGain(); o.type = tipo; o.detune.value = detune;
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t + dur);
+    env(a, g, t, vol, ataque, dur);
+    let fin = g; if (saturar) { const w = a.createWaveShaper(); w.curve = crujido; g.connect(w); fin = w; }
+    o.connect(g); salida(a, fin, sala); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function ruido(dur, vol, { tipo = 'lowpass', f0 = 2000, f1 = 200, q = 0.8, retraso = 0, ataque = 0.002, sala = 0.35, saturar = false } = {}) {
+    const a = preparar(); if (!a) return; const t = a.currentTime + retraso;
+    const s = a.createBufferSource(); s.buffer = ruidoB; s.loop = true; s.playbackRate.value = azar(0.9, 1.1);
+    const f = a.createBiquadFilter(); f.type = tipo; f.Q.value = q; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    const g = a.createGain(); env(a, g, t, vol, ataque, dur);
+    s.connect(f).connect(g); let fin = g; if (saturar) { const w = a.createWaveShaper(); w.curve = crujido; g.connect(w); fin = w; }
+    salida(a, fin, sala); s.start(t, Math.random() * 1.5); s.stop(t + dur + 0.05);
+  }
+  // que no se amontonen: el mismo efecto, como mucho cada «ms» milisegundos
+  const hueco = (k, ms) => { const a = audio(); const ahora = a ? a.currentTime * 1000 : performance.now(); if (ultimo[k] && ahora - ultimo[k] < ms) return false; ultimo[k] = ahora; return true; };
+  return {
+    // el láser propio: un «pew» corto de onda cuadrada filtrada + un clic de ruido; tono al azar para que no canse
+    disparo(nivel = 1) {
+      const f = azar(880, 1040) * (nivel === 3 ? 0.85 : 1);
+      osc('square', f, f * 0.32, 0.09, 0.022, { sala: 0.1 });
+      osc('sine', f * 0.5, f * 0.2, 0.07, 0.03, { sala: 0 });
+      ruido(0.03, 0.025, { tipo: 'highpass', f0: 5000, f1: 3000, sala: 0 });
+    },
+    // una bala que da y no mata: un «tic» metálico brillante
+    impacto() {
+      if (!hueco('impacto', 45)) return;
+      osc('triangle', azar(1900, 2300), 1300, 0.05, 0.05, { sala: 0.15 });
+      ruido(0.05, 0.08, { tipo: 'bandpass', f0: 3500, f1: 2000, q: 3, sala: 0.1 });
+    },
+    // un enemigo que estalla: chasquido + ruido que se cierra + grave que cae + crujido
+    explosion(tam = 1) {
+      if (!hueco('explosion', 35)) return;
+      ruido(0.02, 0.35 * tam, { tipo: 'highpass', f0: 3000, f1: 2500, sala: 0.1 });
+      ruido(0.45 * tam + 0.1, 0.55 * tam, { f0: 5000, f1: 120, q: 1.2, saturar: true });
+      osc('sine', 150, 38, 0.35 * tam + 0.1, 0.5 * Math.min(1.2, tam), { ataque: 0.002, sala: 0.2 });
+      osc('sawtooth', 90, 30, 0.2 * tam + 0.08, 0.08 * tam, { saturar: true, sala: 0.2 });
+    },
+    // un asteroide: más sordo y pedregoso (ruido grave a trozos)
+    roca() {
+      if (!hueco('roca', 40)) return;
+      ruido(0.35, 0.5, { f0: 1400, f1: 90, q: 2, saturar: true });
+      [0, 0.04, 0.09].forEach((r) => ruido(0.06, 0.25, { tipo: 'bandpass', f0: azar(400, 900), f1: 200, q: 4, retraso: r, sala: 0.1 }));
+      osc('sine', 90, 35, 0.3, 0.45, { sala: 0.15 });
+    },
+    // la bomba: un «whump» enorme que chupa el aire antes (subida) y luego la onda (grave largo + ruido que barre)
+    bomba() {
+      ruido(0.25, 0.25, { tipo: 'bandpass', f0: 300, f1: 4000, q: 1.5, ataque: 0.2, sala: 0.2 });
+      osc('sine', 120, 28, 1.3, 0.8, { retraso: 0.22, ataque: 0.004, sala: 0.4 });
+      osc('sawtooth', 70, 25, 0.9, 0.12, { retraso: 0.22, saturar: true, sala: 0.4 });
+      ruido(1.4, 0.7, { f0: 6000, f1: 60, q: 0.9, retraso: 0.22, saturar: true, sala: 0.6 });
+      osc('sine', 1800, 90, 0.8, 0.06, { retraso: 0.22, sala: 0.5 });
+    },
+    // un golpe a tu nave con escudo: un zumbido eléctrico que se corta
+    escudo() {
+      osc('sawtooth', 220, 110, 0.3, 0.12, { detune: 12, sala: 0.3 }); osc('sawtooth', 223, 108, 0.3, 0.12, { detune: -12, sala: 0.3 });
+      ruido(0.25, 0.3, { tipo: 'bandpass', f0: 2500, f1: 600, q: 2 });
+    },
+    // pierdes una vida: explosión grande + caída tonal triste
+    derribado() {
+      this.explosion(1.8);
+      [0, 0.18, 0.36].forEach((r, i) => osc('square', [392, 330, 262][i], [380, 320, 180][i], 0.22, 0.05, { retraso: 0.25 + r, sala: 0.4 }));
+    },
+    // un alienígena se lanza en picado: el silbido que baja (como las bombas de las películas)
+    picado() { if (!hueco('picado', 250)) return; osc('sine', 1500, 500, 0.6, 0.035, { ataque: 0.05, sala: 0.3 }); },
+    // premio: arpegio brillante con dos osciladores desafinados
+    premio() { [659, 880, 1109, 1319].forEach((f, i) => { osc('triangle', f, f, 0.14, 0.07, { retraso: i * 0.055, sala: 0.4 }); osc('square', f * 2, f * 2, 0.08, 0.012, { retraso: i * 0.055, sala: 0.3 }); }); },
+    // llega el jefe: sirena grave con dos sierras desafinadas y un golpe de sub
+    jefe() {
+      osc('sine', 60, 30, 1.8, 0.7, { ataque: 0.01, sala: 0.5 });
+      ruido(1.6, 0.35, { f0: 200, f1: 3000, q: 4, ataque: 0.3, sala: 0.6 });
+      for (let k = 0; k < 3; k++) { osc('sawtooth', 180, 120, 0.55, 0.07, { retraso: k * 0.6, detune: 15, saturar: true, sala: 0.5 }); osc('sawtooth', 182, 118, 0.55, 0.07, { retraso: k * 0.6, detune: -15, saturar: true, sala: 0.5 }); }
+    },
+    // el jefe dispara: un zumbido grave de carga
+    jefeAtaque() { if (!hueco('jefeAtaque', 300)) return; osc('sawtooth', 110, 330, 0.25, 0.05, { saturar: true, sala: 0.3 }); ruido(0.2, 0.08, { tipo: 'bandpass', f0: 800, f1: 2400, q: 3 }); },
+    // un nodo de escudo que revienta: explosión con un «cristal» agudo encima
+    nodo() { this.explosion(1.4); [2637, 3136, 3951].forEach((f, i) => osc('sine', f, f * 0.7, 0.4, 0.05, { retraso: i * 0.03, sala: 0.6 })); },
+    // bala en el núcleo del jefe (ya sin escudo): golpe sordo y corto
+    nucleo() { if (!hueco('nucleo', 60)) return; osc('sine', 180, 70, 0.08, 0.25, { sala: 0.1 }); ruido(0.06, 0.12, { f0: 1500, f1: 400 }); },
+    // el jefe cae: una ristra de explosiones durante dos segundos y un gran grave final
+    jefeCae() {
+      for (let k = 0; k < 8; k++) setTimeout(() => { ultimo.explosion = 0; this.explosion(azar(1, 1.8)); }, k * 280);
+      osc('sine', 80, 20, 3, 0.9, { retraso: 2.2, ataque: 0.01, sala: 0.7 });
+      ruido(2.5, 0.6, { f0: 3000, f1: 50, retraso: 2.2, saturar: true, sala: 0.8 });
+    },
+    victoria() { [523, 659, 784, 1047, 1319].forEach((f, i) => { osc('triangle', f, f, 0.3, 0.08, { retraso: i * 0.1, sala: 0.5 }); osc('sawtooth', f / 2, f / 2, 0.25, 0.02, { retraso: i * 0.1, sala: 0.4 }); }); },
+  };
+})();
 
 // ───────────────────────────────── escena
 const lienzo = $('lienzo');
@@ -69,6 +190,12 @@ const PUNTOS = { cubo: 100, ojo: 150, rayo: 200, roca: 60 };
 
 // ───────────────────────────────── controles
 const tecla = {}; let puntero = null;
+// el modo desafío: la energía del escudo de la nave. Solo se gasta con la partida en marcha (no en la pausa). Va en su hueco
+// (#des-slot), que en pantallas táctiles sube por encima del botón de la bomba. Al volver de la pregunta se sueltan las
+// teclas y el dedo: el panel se tragó el keyup/pointerup y la nave seguiría desplazándose sola
+const DES = crearDesafio({ nombre: 'Energía del escudo', segundos: 40, recarga: 40, hud: $('des-slot'),
+  alPausar: (si) => { if (!si) { for (const k in tecla) tecla[k] = false; puntero = null; } }, enJuego: () => !!S && !S.fin && !pausa });
+if (DES.activo) DES.preparar(); // se piden las preguntas mientras lees la portada
 addEventListener('keydown', (e) => { tecla[e.code] = true; if (e.code === 'Space') { bomba(); e.preventDefault(); } if (e.code === 'KeyP' || e.code === 'Escape') pausar(); });
 addEventListener('keyup', (e) => { tecla[e.code] = false; });
 const rayo = new THREE.Raycaster(), plano = new THREE.Plane(new V3(0, 1, 0), 0);
@@ -94,10 +221,10 @@ function lanzarOla() {
 }
 function lanzarJefe() {
   S.jefe = { x: 0.5, y: -0.25, hp: 70, max: 70, nodos: [0, 1, 2].map((i) => ({ a: i * 2.094, hp: 14, vivo: true })), t: 0, ataque: 0, patron: 0, golpe: 0, muriendo: null };
-  $('jefe').classList.remove('oculto'); SON.alarma(); aviso('¡RUTA AZUL!', '#5ff4ff', 1.8);
+  $('jefe').classList.remove('oculto'); SR.jefe(); aviso('¡RUTA AZUL!', '#5ff4ff', 1.8);
 }
 function bomba() {
-  if (!S || S.fin || S.bombas <= 0) return; S.bombas--; SON.pulso();
+  if (!S || S.fin || S.bombas <= 0) return; S.bombas--; SR.bomba();
   S.enemigas = []; S.chispas.push({ aro: true, x: S.x, y: S.y, r: 0, vida: 0.7 });
   for (const e of S.enemigos.slice()) { e.hp -= 3; if (e.hp <= 0) matar(e); }
   for (const r of S.rocas.slice()) romperRoca(r);
@@ -109,16 +236,16 @@ function matar(e) {
   const i = S.enemigos.indexOf(e); if (i < 0) return; S.enemigos.splice(i, 1);
   S.cadena = S.t - S.ultimaMuerte < 1 ? S.cadena + 1 : 1; S.ultimaMuerte = S.t;
   S.puntos += PUNTOS[e.tipo] * (e.fase === 'picado' ? 2 : 1) * Math.min(4, S.cadena); S.derribos++;
-  estallar(e.x, e.y, e.tipo === 'rayo' ? '#ffe14a' : e.tipo === 'ojo' ? '#5ff4ff' : '#ff4dd8', 22); SON.boom();
+  estallar(e.x, e.y, e.tipo === 'rayo' ? '#ffe14a' : e.tipo === 'ojo' ? '#5ff4ff' : '#ff4dd8', 22); SR.explosion(e.tipo === 'ojo' ? 1.2 : 1);
   if (S.cadena >= 3) aviso(`CADENA ×${Math.min(4, S.cadena)}`, '#5dffa0', 0.6);
   if (Math.random() < 0.12) S.premios.push({ x: e.x, y: e.y, tipo: elegir(['P', 'P', 'S', 'B']) });
 }
-function romperRoca(r) { const i = S.rocas.indexOf(r); if (i < 0) return; S.rocas.splice(i, 1); S.puntos += PUNTOS.roca; S.derribos++; estallar(r.x, r.y, '#ffb36b', 18, 0.4); SON.boom(); }
-function romperNodo(n) { n.vivo = false; estallar(S.jefe.x + Math.cos(n.a) * 0.2, S.jefe.y + Math.sin(n.a) * 0.12, '#5ff4ff', 30, 0.7); SON.boom(); S.puntos += 500; aviso('¡NODO ROTO!', '#5ff4ff', 0.8); }
+function romperRoca(r) { const i = S.rocas.indexOf(r); if (i < 0) return; S.rocas.splice(i, 1); S.puntos += PUNTOS.roca; S.derribos++; estallar(r.x, r.y, '#ffb36b', 18, 0.4); SR.roca(); }
+function romperNodo(n) { n.vivo = false; estallar(S.jefe.x + Math.cos(n.a) * 0.2, S.jefe.y + Math.sin(n.a) * 0.12, '#5ff4ff', 30, 0.7); SR.nodo(); S.puntos += 500; aviso('¡NODO ROTO!', '#5ff4ff', 0.8); }
 function perderVida() {
   if (S.inv > 0) return;
-  if (S.escudo) { S.escudo = false; S.inv = 1; SON.golpe(); aviso('ESCUDO ROTO', '#5ff4ff', 0.8); return; }
-  S.vidas--; S.nivel = Math.max(1, S.nivel - 1); SON.caida(); estallar(S.x, S.y, '#5ff4ff', 40, 0.8);
+  if (S.escudo) { S.escudo = false; S.inv = 1; SR.escudo(); aviso('ESCUDO ROTO', '#5ff4ff', 0.8); return; }
+  S.vidas--; S.nivel = Math.max(1, S.nivel - 1); SR.derribado(); estallar(S.x, S.y, '#5ff4ff', 40, 0.8);
   if (S.vidas <= 0) { acabar(false, 'La Estática te ha derribado.'); return; }
   S.inv = 2.5; S.enemigas = []; aviso(`QUEDAN ${S.vidas}`, '#ff4dd8', 1);
 }
@@ -138,7 +265,7 @@ function tick(dt) {
   S.inv = Math.max(0, S.inv - dt);
   S.cad -= dt;
   if (S.cad <= 0) {
-    S.cad = 0.13; SON.laser();
+    S.cad = 0.13; SR.disparo(S.nivel);
     const disp = S.nivel === 1 ? [0] : S.nivel === 2 ? [-0.018, 0.018] : [-0.03, 0, 0.03];
     for (const o of disp) S.balas.push({ x: S.x + o, y: S.y - 0.03, vx: S.nivel === 3 ? o * 3 : 0 });
   }
@@ -152,7 +279,7 @@ function tick(dt) {
   if (!S.jefe) { S.sigRoca -= dt; if (S.sigRoca <= 0) { S.rocas.push({ x: azar(0.08, 0.92), y: -0.08, v: azar(0.12, 0.22), hp: 2, giro: new V3(azar(-2, 2), azar(-2, 2), azar(-2, 2)), r: azar(2.4, 3.8) }); S.sigRoca = azar(2.2, 4) / (1 + S.ola * 0.25); } }
   for (const r of S.rocas.slice()) {
     r.y += r.v * dt;
-    for (const b of S.balas) if (Math.abs(b.x - r.x) < 0.06 && Math.abs(b.y - r.y) < 0.045) { b.y = -1; r.hp--; estallar(r.x, r.y, '#ffd9a8', 4, 0.2); if (r.hp <= 0) { romperRoca(r); break; } }
+    for (const b of S.balas) if (Math.abs(b.x - r.x) < 0.06 && Math.abs(b.y - r.y) < 0.045) { b.y = -1; r.hp--; estallar(r.x, r.y, '#ffd9a8', 4, 0.2); if (r.hp > 0) SR.impacto(); if (r.hp <= 0) { romperRoca(r); break; } }
     if (S.rocas.includes(r) && Math.abs(S.x - r.x) < 0.06 && Math.abs(S.y - r.y) < 0.045) { perderVida(); romperRoca(r); }
     if (r.y > 1.1) S.rocas.splice(S.rocas.indexOf(r), 1);
   }
@@ -165,13 +292,13 @@ function tick(dt) {
       if (u >= 1) e.fase = 'forma';
     } else if (e.fase === 'forma') {
       e.x = e.slot.x + Math.sin(S.t * 1.2) * 0.04; e.y = e.slot.y + Math.sin(e.osc * 2) * 0.008;
-      if ((e.tipo === 'rayo' && Math.random() < dt * 0.35) || Math.random() < dt * 0.04 * S.ola) { e.fase = 'picado'; e.vx = (S.x - e.x) * 0.7; e.vy = 0.55; SON.alarma(); }
+      if ((e.tipo === 'rayo' && Math.random() < dt * 0.35) || Math.random() < dt * 0.04 * S.ola) { e.fase = 'picado'; e.vx = (S.x - e.x) * 0.7; e.vy = 0.55; SR.picado(); }
     } else if (e.fase === 'picado') {
       e.x += e.vx * dt + Math.sin(e.t * 8) * (e.tipo === 'rayo' ? 0.6 : 0.1) * dt; e.y += e.vy * dt; e.vy += 0.2 * dt;
       if (e.y > 1.05) { e.fase = 'entra'; e.t = 0; e.curva = [e.x, -0.1, e.slot.x, -0.05]; }
     }
     if (e.tipo === 'ojo' && e.fase !== 'entra') { e.disparo -= dt; if (e.disparo <= 0) { e.disparo = azar(2, 3.6); const a = Math.atan2(S.y - e.y, S.x - e.x); S.enemigas.push({ x: e.x, y: e.y, vx: Math.cos(a) * 0.32, vy: Math.sin(a) * 0.45 }); } }
-    for (const b of S.balas) if (Math.abs(b.x - e.x) < 0.035 && Math.abs(b.y - e.y) < 0.025) { b.y = -1; e.hp--; if (e.hp <= 0) { matar(e); break; } else { estallar(e.x, e.y, '#fff', 4, 0.2); e.golpe = 0.12; } }
+    for (const b of S.balas) if (Math.abs(b.x - e.x) < 0.035 && Math.abs(b.y - e.y) < 0.025) { b.y = -1; e.hp--; if (e.hp <= 0) { matar(e); break; } else { estallar(e.x, e.y, '#fff', 4, 0.2); e.golpe = 0.12; SR.impacto(); } }
     if (S.enemigos.includes(e) && Math.abs(S.x - e.x) < 0.04 && Math.abs(S.y - e.y) < 0.03) { perderVida(); matar(e); }
   }
   const J = S.jefe;
@@ -190,14 +317,14 @@ function tick(dt) {
         if (J.patron === 0) { for (let i = 0; i < 14; i++) { const a = i / 14 * 6.283 + J.t; S.enemigas.push({ x: J.x, y: J.y, vx: Math.cos(a) * 0.22, vy: Math.sin(a) * 0.3 + 0.12 }); } J.ataque = fase2 ? 1.0 : 1.5; }
         else if (J.patron === 1) { for (let i = -3; i <= 3; i++) { const a = Math.atan2(S.y - J.y, S.x - J.x) + i * 0.16; S.enemigas.push({ x: J.x, y: J.y + 0.05, vx: Math.cos(a) * 0.38, vy: Math.sin(a) * 0.5 }); } J.ataque = fase2 ? 0.9 : 1.3; }
         else { let k = 0; const r = () => { if (!S.jefe || S.fin || k++ > 5) return; const a = Math.atan2(S.y - J.y, S.x - J.x); S.enemigas.push({ x: J.x, y: J.y + 0.05, vx: Math.cos(a) * 0.5, vy: Math.sin(a) * 0.7 }); setTimeout(r, 110); }; r(); J.ataque = fase2 ? 1.1 : 1.6; }
-        SON.alarma();
+        SR.jefeAtaque();
       }
       for (const b of S.balas) {
-        for (const n of J.nodos) { if (!n.vivo) continue; const nx = J.x + Math.cos(n.a) * 0.2, ny = J.y + Math.sin(n.a) * 0.12; if (Math.abs(b.x - nx) < 0.035 && Math.abs(b.y - ny) < 0.03) { b.y = -1; n.hp--; estallar(nx, ny, '#5ff4ff', 3, 0.2); if (n.hp <= 0) romperNodo(n); } }
+        for (const n of J.nodos) { if (!n.vivo) continue; const nx = J.x + Math.cos(n.a) * 0.2, ny = J.y + Math.sin(n.a) * 0.12; if (Math.abs(b.x - nx) < 0.035 && Math.abs(b.y - ny) < 0.03) { b.y = -1; n.hp--; estallar(nx, ny, '#5ff4ff', 3, 0.2); SR.impacto(); if (n.hp <= 0) romperNodo(n); } }
         if (b.y > 0 && Math.abs(b.x - J.x) < 0.1 && Math.abs(b.y - J.y) < 0.08) {
           b.y = -1;
           if (J.nodos.some((n) => n.vivo)) estallar(b.x, J.y + 0.08, '#5ff4ff', 2, 0.15);
-          else { J.hp--; J.golpe = 0.12; S.puntos += 20; if (J.hp <= 0) { J.muriendo = 0; S.enemigas = []; SON.caida(); aviso('¡RUTA AZUL CAE!', '#5dffa0', 2); } }
+          else { J.hp--; J.golpe = 0.12; S.puntos += 20; SR.nucleo(); if (J.hp <= 0) { J.muriendo = 0; S.enemigas = []; SR.jefeCae(); aviso('¡RUTA AZUL CAE!', '#5dffa0', 2); } }
         }
       }
       $('h-jefe').style.width = (J.nodos.filter((n) => n.vivo).length ? 100 : J.hp / J.max * 100) + '%';
@@ -205,7 +332,7 @@ function tick(dt) {
   }
   for (const b of S.enemigas) { b.x += b.vx * dt; b.y += b.vy * dt; if (Math.abs(b.x - S.x) < 0.018 && Math.abs(b.y - S.y) < 0.018) { b.y = 9; perderVida(); } }
   S.enemigas = S.enemigas.filter((b) => b.y < 1.05 && b.y > -0.1 && b.x > -0.1 && b.x < 1.1);
-  for (const p of S.premios) { p.y += 0.25 * dt; if (Math.abs(p.x - S.x) < 0.05 && Math.abs(p.y - S.y) < 0.04) { p.y = 9; SON.bien();
+  for (const p of S.premios) { p.y += 0.25 * dt; if (Math.abs(p.x - S.x) < 0.05 && Math.abs(p.y - S.y) < 0.04) { p.y = 9; SR.premio();
     if (p.tipo === 'P') { S.nivel = Math.min(3, S.nivel + 1); aviso('¡MÁS POTENCIA!', '#ffe14a', 0.8); } else if (p.tipo === 'S') { S.escudo = true; aviso('¡ESCUDO!', '#5ff4ff', 0.8); } else { S.bombas++; aviso('+1 BOMBA', '#ff4dd8', 0.8); } } }
   S.premios = S.premios.filter((p) => p.y < 1.05);
   for (const c of S.chispas) { if (c.aro) c.r += dt * 1.6; else { c.x += c.vx * dt; c.y += c.vy * dt; } c.vida -= dt; }
@@ -286,33 +413,42 @@ function sincronizar(dt) {
 }
 
 function acabar(gana, motivo) {
-  if (S.fin) return; S.fin = true;
-  if (gana) SON.bien();
+  if (S.fin) return; S.fin = true; DES.parar();
+  if (gana) setTimeout(() => SR.victoria(), 400);
   setTimeout(() => {
     $('hud').classList.add('oculto');
     const seg = Math.round((performance.now() - S.t0) / 1000);
-    finDePartida({ juego: JUEGO.id, titulo: gana ? '¡Has vencido a RUTA AZUL!' : 'Fin de la partida', puntos: S.puntos, texto: motivo,
-      filas: [['Oleada', S.jefe ? 'Jefe' : `${S.ola}/${OLAS.length}`], ['Derribos', S.derribos], ['Vidas', S.vidas], ['Tiempo', `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`]],
-      alRepetir: empezar, extra: { intocable: gana && S.vidas >= 3 } });
+    const bonus = DES.bonus(S.puntos); // el bonus de precisión del desafío (0 en arcade)
+    finDePartida({ juego: JUEGO.id, titulo: gana ? '¡Has vencido a RUTA AZUL!' : 'Fin de la partida', puntos: S.puntos + bonus, texto: motivo,
+      filas: [['Oleada', S.jefe ? 'Jefe' : `${S.ola}/${OLAS.length}`], ['Derribos', S.derribos], ['Vidas', S.vidas], ['Tiempo', `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`], ...DES.filas(bonus)],
+      alRepetir: empezar, extra: { ...DES.extra(), intocable: gana && S.vidas >= 3 } });
   }, gana ? 800 : 1300);
 }
 let pausa = false;
 function pausar() {
-  if (!S || S.fin) return; pausa = !pausa;
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (!S || S.fin || DES.abierto) return; pausa = !pausa; // con la pregunta abierta el juego ya está parado
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=cdadcf2641">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
-document.addEventListener('visibilitychange', () => { if (document.hidden && S && !S.fin && !pausa && !window.__sinPausa) pausar(); });
-function empezar() { S = nueva(); pausa = false; window.__t0Partida = performance.now(); $('hud').classList.remove('oculto'); $('jefe').classList.add('oculto'); cerrarPantalla(); $('b-bomba').classList.toggle('oculto', !matchMedia('(pointer: coarse)').matches); }
+document.addEventListener('visibilitychange', () => { if (document.hidden && S && !S.fin && !pausa && !DES.abierto && !window.__sinPausa) pausar(); });
+function empezar() { S = nueva(); pausa = false; window.__t0Partida = performance.now(); DES.empezar(); $('hud').classList.remove('oculto'); $('jefe').classList.add('oculto'); cerrarPantalla(); $('b-bomba').classList.toggle('oculto', !matchMedia('(pointer: coarse)').matches); }
 function portada() {
-  const e = estado();
-  pantalla(`<div class="kicker">El simulador de Joran · máquina 3</div><h2>RUTA AZUL</h2>
+  const e = estado(), desafio = MODO === 'desafio';
+  pantalla(`<div class="kicker">El simulador de Joran · máquina 3${desafio ? ' · modo desafío' : ''}</div><h2>RUTA AZUL</h2>
     <p>El arcade con el que Joran entrenaba a los pilotos del refugio. Pilotas la nave de tu mascota contra cuatro oleadas de la Estática —platillos, cruceros que disparan, alienígenas que se lanzan en picado y asteroides— y al final, <b>RUTA AZUL</b>: rompe sus <b>tres nodos de escudo</b> y después dale en el núcleo.</p>
     <div class="teclas"><kbd>Ratón / dedo / flechas</kbd><span>Mover la nave (dispara sola)</span><kbd>Espacio</kbd><span>Bomba: borra las balas y daña a todos (tienes 3)</span></div>
     <p>Premios: <b style="color:#ffe14a">rayo</b> más potencia · <b style="color:#5ff4ff">esfera</b> escudo · <b style="color:#ff4dd8">caja</b> bomba. Derribar seguidos multiplica; los que vienen en picado valen el doble.</p>
+    ${DES.texto()}
     <p class="pista">Tu récord: <b>${(e.marcas['ruta-azul'] || 0).toLocaleString('es-ES')}</b> · Platillos: «Flying saucer» de Poly by Google (CC-BY 3.0)</p>
-    <div class="botones"><button id="b-ya">¡Insertar ficha!</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`);
-  $('b-ya').onclick = () => { audio(); empezar(); };
+    <div class="botones"><button id="b-ya">¡Insertar ficha!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=cdadcf2641">Volver a la sala</a>'}</div>`);
+  $('b-ya').onclick = async () => {
+    audio();
+    if (desafio) { // las preguntas tienen que estar antes de despegar: sin ellas, el escudo no se podría recargar
+      const b = $('b-ya'); b.disabled = true; b.textContent = 'Cargando preguntas…';
+      if (!(await DES.preparar())) aviso('Sin preguntas: juegas en arcade', '#ffc24a', 2.2);
+    }
+    empezar();
+  };
 }
 
 // ── las imágenes del holograma, con un fundido ovalado (el fondo de la foto no se ve como un rectángulo)
@@ -331,7 +467,7 @@ function geoRoca(g0) {
 }
 
 let antes = performance.now();
-function bucle(ahora) { requestAnimationFrame(bucle); const dt = Math.min(0.05, (ahora - antes) / 1000); antes = ahora; if (!pausa) tick(dt); sincronizar(pausa ? 0 : dt); render.render(escena, camara); }
+function bucle(ahora) { requestAnimationFrame(bucle); const dt = Math.min(0.05, (ahora - antes) / 1000); antes = ahora; const quieto = pausa || DES.abierto; if (!quieto) { tick(dt); DES.tick(dt); } sincronizar(quieto ? 0 : dt); render.render(escena, camara); } // con la pregunta abierta, nada corre
 (async () => {
   const e = estado(); const av = ['finn', 'barbara', 'fernando'].includes(QS.get('avatar')) ? QS.get('avatar') : e.avatar;
   // la nave de tu mascota (mira hacia arriba de la pantalla)
@@ -369,4 +505,4 @@ function bucle(ahora) { requestAnimationFrame(bucle); const dt = Math.min(0.05, 
   jefe3d.add(cara, esc, ...nodos); jefe3d.userData = { cara, escudo: esc, nodos, img: 'rival' }; jefe3d.visible = false; escena.add(jefe3d);
   requestAnimationFrame(bucle); portada();
 })().catch((err) => { console.error(err); pantalla(`<h2>No se pudo cargar</h2><p>${err.message}</p>`); });
-window.RA = { get S() { return S; }, empezar, lanzarJefe, camara };
+window.RA = { get S() { return S; }, empezar, lanzarJefe, camara, DES };

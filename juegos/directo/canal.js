@@ -60,24 +60,47 @@ export const MODOS = {
     que: 'Cada asteroide y cada acierto te acercan al planeta. Gana quien llega antes, o quien más cerca esté al acabar el tiempo.' },
   caza: { breve: 'Todos contra todos, a por puntos.', n: 'Caza', largo: 'La caza', estructura: 'Individual',
     que: 'Todos contra todos: el máximo de puntos en el tiempo. Los platillos dorados valen más. El más arcade.' },
-  duelo: { breve: 'Cian contra Ámbar: tirad de la baliza.', n: 'Duelo', largo: 'Duelo de escuadrillas', estructura: 'Por equipos',
-    que: 'Dos escuadrillas al azar, Cian y Ámbar, tiran de una baliza. Tras un acierto: empujar fuerte o sabotear al rival. Cuenta la media por miembro, así que da igual que un equipo tenga uno más.' },
+  duelo: { breve: 'Dos escuadrones invitados, al azar: tirad de la baliza.', n: 'Duelo', largo: 'Duelo de escuadrillas', estructura: 'Por equipos',
+    que: 'La clase se parte al azar en dos escuadrones invitados (dos de la flota que no son el vuestro) y tira de una baliza. Tras un acierto: empujar fuerte o sabotear al rival. Cuenta la media por miembro, así que da igual que un equipo tenga uno más.' },
 };
 // 🔴 en la web, los nombres y la línea de cada modo salen de _site_data.py → DIRECTO (el build escribe datos.js)
-try { const D = (await import('./datos.js?v=1b7fc6b8a5')).DIRECTO; for (const [k, largo, estructura, breve] of D.modos) if (MODOS[k]) Object.assign(MODOS[k], { largo, estructura, breve }); } catch (e) { /* borrador: sin datos.js */ }
+try { const D = (await import('./datos.js?v=cdadcf2641')).DIRECTO; for (const [k, largo, estructura, breve] of D.modos) if (MODOS[k]) Object.assign(MODOS[k], { largo, estructura, breve }); } catch (e) { /* borrador: sin datos.js */ }
 // ── LOS AJUSTES (lo que el docente puede tocar antes de lanzar)
 export const DURACIONES = [120, 180, 240, 300];
 export const PREGUNTAS = { no: 'Sin preguntas (solo reflejos)', semana: 'El tema de la semana', vistos: 'Los temas ya vistos', todo: 'Todo el viaje' };
 export const FRECUENCIAS = [10, 15, 20]; // segundos entre pregunta y pregunta
 export const INTENSIDAD = { suave: { n: 'Suave', k: 0.75 }, normal: { n: 'Normal', k: 1 }, tormenta: { n: 'Tormenta', k: 1.3 } };
-export const CFG_INICIAL = { modo: 'defensa', dur: 180, preguntas: 'semana', frecuencia: 15, intensidad: 'normal', potenciadores: true, oculto: false, premio: true };
+// 🔴 27-sep · la DIFICULTAD EN CALIENTE: el docente la sube o la baja durante la partida (más/menos velocidad y daño de lo
+// que cae). Va en cfg.dificultad (un factor sobre la intensidad elegida), así llega a los móviles con el estado.
+export const DIFICULTAD = { min: 0.6, max: 1.8, paso: 0.2 };
+export const kDe = (c) => (INTENSIDAD[c && c.intensidad] ? INTENSIDAD[c.intensidad].k : 1) * (Number(c && c.dificultad) || 1);
+// lo que tiene el Comandante en cada partida: tres bombas (limpian la pantalla) y la reparación, que se recarga
+export const MANDO = { bombas: 3, recargaCurar: 20, curaEscudo: 30, bombaJefe: 0.15 };
+export const CFG_INICIAL = { modo: 'defensa', dur: 180, preguntas: 'semana', frecuencia: 15, intensidad: 'normal', dificultad: 1, potenciadores: true, oculto: false, premio: true };
 // tres atajos para no pensar en clase
 export const ATAJOS = [
   { k: 'rapido', n: 'Rápido', que: 'Caza, 2 min, sin preguntas', cfg: { modo: 'caza', dur: 120, preguntas: 'no', intensidad: 'normal' } },
   { k: 'clasico', n: 'Clásico', que: 'Defensa, 3 min, el tema de la semana', cfg: { modo: 'defensa', dur: 180, preguntas: 'semana', intensidad: 'normal' } },
   { k: 'final', n: 'Gran final', que: 'Duelo, 4 min, todo el viaje', cfg: { modo: 'duelo', dur: 240, preguntas: 'todo', intensidad: 'tormenta' } },
 ];
-export const EQUIPOS = { A: { n: 'Escuadrilla Cian', corto: 'Cian', color: '#5ff4ff' }, B: { n: 'Escuadrilla Ámbar', corto: 'Ámbar', color: '#ffc24a' } };
+export const EQUIPOS = { A: { n: 'Escuadrilla Cian', corto: 'Cian', color: '#5ff4ff', k: '' }, B: { n: 'Escuadrilla Ámbar', corto: 'Ámbar', color: '#ffc24a', k: '' } };
+// 🔴 27-sep · el Duelo, con DOS ESCUADRONES DE LA FLOTA que no son los del grupo (Norberto: mejor que «Cian» y «Ámbar»).
+// La lista es la del Asedio (borradores/asedio → ESC). El color sigue siendo cian/ámbar: es lo que distingue los dos lados
+// en la pantalla; el nombre y el emblema son del escuadrón. Lo elige la pantalla del docente y viaja en el estado (eqs).
+export const ESCUADRONES = [['esc_yunques', 'Los Yunques'], ['esc_eco_largo', 'Eco Largo'], ['esc_cartografos', 'Los Cartógrafos'], ['esc_senal', 'Señal Abierta'],
+  ['esc_faro', 'Faro Umbral'], ['esc_ruta_azul', 'Ruta Azul'], ['esc_porques', 'Los Porqués'], ['esc_capa', 'Capa Liminar'], ['esc_copistas', 'Los Copistas'], ['esc_guardia', 'Guardia Cero']];
+export const IMG_ESC = (k) => (EN_WEB ? '../../assets/img/escuadrones/' : 'img/esc/') + k + '.png';
+// «Los Yunques» → «Yunques» (para los sitios pequeños: el marcador del móvil, la base del duelo)
+const sinArticulo = (n) => n.replace(/^(Los|Las|La|El)\s+/, '');
+export function ponerEquipos(eqs) {
+  for (const x of ['A', 'B']) {
+    const e = eqs && eqs[x]; if (!e || !e.k || EQUIPOS[x].k === e.k) continue;
+    const f = ESCUADRONES.find((z) => z[0] === e.k); const n = f ? f[1] : String(e.n || '').slice(0, 30);
+    Object.assign(EQUIPOS[x], { k: e.k, n, corto: sinArticulo(n) });
+  }
+}
+// el emblema, pequeño y en línea (sala de espera, final, móvil)
+export const emblema = (x, tam = 28) => (EQUIPOS[x].k ? `<img src="${IMG_ESC(EQUIPOS[x].k)}" alt="" width="${tam}" height="${tam}" style="width:${tam}px;height:${tam}px;vertical-align:middle;object-fit:contain">` : '');
 
 // ── cuánto vale cada cosa (lo mismo en todos los modos: cambia la META, no la mecánica)
 export const VALOR = { asteroide: 1, dorado: 5, acierto: 8, reparacion: 6, empuje: 12 };

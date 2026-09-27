@@ -7,8 +7,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-import { PREMIOS, CRITERIOS, ORDEN, NIVELES } from './servidor-local.js?v=1b7fc6b8a5';
-import { SERVIDOR, enEnsayo } from './servidor.js?v=1b7fc6b8a5';
+import { PREMIOS, CRITERIOS, ORDEN, NIVELES } from './servidor-local.js?v=cdadcf2641';
+import { SERVIDOR, enEnsayo } from './servidor.js?v=cdadcf2641';
 
 const V3 = THREE.Vector3;
 const $ = (id) => document.getElementById(id);
@@ -74,7 +74,7 @@ const MISIONES = [
 
 // 🔴 En la web, lo que se CUENTA de cada misión (título, lema, cuándo) llega de _site_data.py → datos.js (lo escribe el
 // build); aquí manda solo la jugabilidad. En el borrador no hay datos.js y se queda lo de arriba.
-try { const D = await import('./datos.js?v=1b7fc6b8a5'); for (const d of D.RUTA.misiones) { const m = MISIONES.find((x) => x.id === d.id); if (m) Object.assign(m, { titulo: d.titulo, lema: d.lema, cuando: d.cuando, tema: d.final ? 'final' : d.tema }); } } catch (e) { /* borrador: sin datos.js */ }
+try { const D = await import('./datos.js?v=cdadcf2641'); for (const d of D.RUTA.misiones) { const m = MISIONES.find((x) => x.id === d.id); if (m) Object.assign(m, { titulo: d.titulo, lema: d.lema, cuando: d.cuando, tema: d.final ? 'final' : d.tema }); } } catch (e) { /* borrador: sin datos.js */ }
 
 // el tramo que solo existe en el repaso: preguntas de los ocho temas, rumbo a la Estática
 const VIAJE = { id: 'viaje', n: '∞', de: 0, a: 9, tema: 'todo', cuando: 'Simulador de vuelo', titulo: 'Todo el viaje',
@@ -156,12 +156,88 @@ const SON = {
   tonel: () => tono(300, 900, 0.35, 'sine', 0.06),
   blindado: () => tono(2200, 1800, 0.05, 'triangle', 0.025),
   escuadrilla: () => { [784, 988, 1175].forEach((f, i) => setTimeout(() => tono(f, f * 1.01, 0.12, 'square', 0.05), i * 70)); },
+  // Vaeon: el impacto en un cristal se tiene que OÍR (antes era el «blindado», casi mudo)
+  impacto: () => { tono(1800, 700, 0.07, 'square', 0.05); ruido(0.08, 0.18, 4000); },
+  carga: () => tono(120, 720, 1.1, 'sawtooth', 0.05),
+  rayo: () => { ruido(0.6, 0.35, 2500); tono(90, 40, 0.6, 'sawtooth', 0.1); },
+  rugido: () => { ruido(1.4, 0.45, 300); tono(70, 35, 1.4, 'sawtooth', 0.12); },
 };
-let musica = null;
-function ponerMusica(on) {
-  if (!musica) { musica = new Audio('tex/crawl_epica.mp3'); musica.loop = true; musica.volume = 0.35; }
-  if (on) { musica.currentTime = 0; musica.play().catch(() => {}); } else musica.pause();
-}
+// ───────────────────────────────────────── LA BANDA SONORA DE VAEON (sintetizada con WebAudio: 0 ficheros, 0 licencias)
+// 27-sep · Norberto: «genera una banda sonora de batalla más épica». Sin generadores de pago: se compone aquí, nota a
+// nota, y suena igual en cualquier navegador. Re menor, progresión Rem – Si♭ – Sol m – La (la dominante mayor da la
+// tensión), bajo en semicorcheas, bombo, caja, charles, cuerdas de fondo y, por fases, metales y melodía:
+//   fase 1: bajo + batería + cuerdas · fase 2: +metales, +taikos, más rápido · fase 3: +melodía, charles a 16, un
+//   semitono más arriba. Al romperse el último cristal, fanfarria en Re mayor.
+// Programador con margen (lookahead de 0,15 s): las notas se encolan en el reloj del audio, no en el de la pantalla.
+const BATALLA = (() => {
+  let on = false, timer = null, sig = 0, paso = 0, fase = 1, master = null, ruidoB = null;
+  const ACORDES = [[62, 65, 69], [58, 62, 65], [55, 58, 62], [57, 61, 64]]; // Rem, Si♭, Solm, La (MIDI)
+  const RAIZ = [38, 34, 31, 33];
+  const BAJO = [0, 0, 12, 0, 0, 0, 12, 0, 0, 0, 12, 0, 0, 12, 7, 12]; // el ostinato (semitonos sobre la raíz)
+  // la melodía de la fase 3: 4 compases × 8 corcheas (null = silencio)
+  const MELODIA = [74, null, 74, 77, 76, null, 74, 72, 70, null, 70, 74, 72, null, 69, null, 67, null, 70, 74, 72, 70, 69, 67, 69, null, 73, null, 76, null, 81, null];
+  const hz = (n) => 440 * Math.pow(2, (n - 69 + (fase >= 3 ? 1 : 0)) / 12);
+  const bpm = () => 128 + fase * 10;
+  function ruidoBuf(a) { if (ruidoB) return ruidoB; const n = a.sampleRate, b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; return (ruidoB = b); }
+  function env(a, g, t, vol, at, dur) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + at); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); }
+  function osc(a, tipo, f, t, dur, vol, corte = 0, at = 0.005, det = 0) {
+    const o = a.createOscillator(), g = a.createGain(); o.type = tipo; o.frequency.setValueAtTime(f, t); o.detune.value = det;
+    let n = o; if (corte) { const fl = a.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.setValueAtTime(corte, t); fl.Q.value = 3; o.connect(fl); n = fl; }
+    n.connect(g).connect(master); env(a, g, t, vol, at, dur); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function golpeRuido(a, t, dur, vol, tipo, f) {
+    const s = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain(); s.buffer = ruidoBuf(a);
+    fl.type = tipo; fl.frequency.value = f; s.connect(fl).connect(g).connect(master); env(a, g, t, vol, 0.002, dur); s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.02);
+  }
+  function bombo(a, t, vol = 0.9) { const o = a.createOscillator(), g = a.createGain(); o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(38, t + 0.18); o.connect(g).connect(master); env(a, g, t, vol, 0.002, 0.35); o.start(t); o.stop(t + 0.4); }
+  function taiko(a, t) { const o = a.createOscillator(), g = a.createGain(); o.frequency.setValueAtTime(95, t); o.frequency.exponentialRampToValueAtTime(52, t + 0.3); o.connect(g).connect(master); env(a, g, t, 0.7, 0.004, 0.6); o.start(t); o.stop(t + 0.65); golpeRuido(a, t, 0.12, 0.25, 'lowpass', 900); }
+  function nota(a, t, s16) {
+    const c = Math.floor(paso / 16) % 4, i = paso % 16, raiz = RAIZ[c];
+    // batería
+    const bombos = fase === 1 ? [0, 8, 10] : fase === 2 ? [0, 6, 8, 10, 14] : [0, 4, 6, 8, 10, 12, 14];
+    if (bombos.includes(i)) bombo(a, t);
+    if (i === 4 || i === 12) { golpeRuido(a, t, 0.2, 0.45, 'bandpass', 1800); osc(a, 'triangle', 190, t, 0.12, 0.2); }
+    if (fase >= 2 && i === 15 && c % 2 === 1) golpeRuido(a, t, 0.18, 0.3, 'bandpass', 1800); // redoble de entrada
+    if (fase >= 3 || i % 2 === 0) golpeRuido(a, t, 0.04, i % 4 === 2 ? 0.16 : 0.09, 'highpass', 7000);
+    if (fase >= 2 && c === 3 && (i === 12 || i === 14 || i === 15)) taiko(a, t);
+    // bajo ostinato (sierra filtrada, dos osciladores un pelín desafinados)
+    const fb = hz(raiz + BAJO[i]);
+    osc(a, 'sawtooth', fb, t, s16 * 0.9, 0.2, 420 + fase * 120); osc(a, 'sawtooth', fb, t, s16 * 0.9, 0.12, 420 + fase * 120, 0.005, 9);
+    // cuerdas de fondo: el acorde entero, una vez por compás
+    if (i === 0) for (const n of ACORDES[c]) for (const det of [-8, 8]) osc(a, 'sawtooth', hz(n - 12), t, s16 * 16, 0.035, 1400, 0.25, det);
+    // metales: golpes del acorde (fase 2+)
+    if (fase >= 2 && (i === 0 || i === 3 || i === 6 || (fase >= 3 && i === 10))) for (const n of ACORDES[c]) osc(a, 'sawtooth', hz(n), t, s16 * 2.2, 0.05, 2400, 0.01);
+    // melodía (fase 3): una octava de brillo, con un eco suave
+    if (fase >= 3 && i % 2 === 0) { const m = MELODIA[c * 8 + i / 2]; if (m) { osc(a, 'square', hz(m), t, s16 * 1.9, 0.06, 3200, 0.01); osc(a, 'triangle', hz(m + 12), t + s16 * 3, s16 * 1.5, 0.025); } }
+  }
+  function programar() {
+    const a = actx; if (!a || !on) return;
+    while (sig < a.currentTime + 0.15) { const s16 = 60 / bpm() / 4; nota(a, sig, s16); sig += s16; paso++; }
+  }
+  return {
+    empezar() {
+      const a = audio(); if (!a) return; this.parar(true);
+      master = a.createGain(); master.gain.value = 0.0001; const comp = a.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 4;
+      master.connect(comp).connect(a.destination); master.gain.exponentialRampToValueAtTime(0.5, a.currentTime + 1.5);
+      on = true; fase = 1; paso = 0; sig = a.currentTime + 0.1; timer = setInterval(programar, 25);
+    },
+    parar(ya = false) {
+      on = false; clearInterval(timer); timer = null;
+      if (master && actx) { const m = master; try { m.gain.cancelScheduledValues(actx.currentTime); m.gain.setValueAtTime(m.gain.value, actx.currentTime); m.gain.linearRampToValueAtTime(0, actx.currentTime + (ya ? 0.05 : 1.2)); } catch (e) { /* ya parado */ } setTimeout(() => m.disconnect(), ya ? 100 : 1400); }
+      master = null;
+    },
+    // al subir de fase: redoble y subida de ruido (la tensión), y el patrón cambia en el siguiente compás
+    fase(n) { fase = n; const a = actx; if (!a || !on) return; const t = a.currentTime; for (let i = 0; i < 8; i++) golpeRuido(a, t + i * 0.07, 0.1, 0.2 + i * 0.04, 'bandpass', 1500); paso = Math.ceil(paso / 16) * 16; },
+    // durante las preguntas, más baja (hay que leer)
+    suave(si) { if (master && actx) master.gain.setTargetAtTime(si ? 0.2 : 0.5, actx.currentTime, 0.3); },
+    victoria() {
+      const a = actx; if (!a || !on) return this.parar(); on = false; clearInterval(timer);
+      const t = a.currentTime + 0.1; fase = 1;
+      [[62, 66, 69, 0], [62, 66, 69, 0.25], [64, 67, 71, 0.5], [66, 69, 74, 0.75], [62, 66, 69, 1.1]].forEach(([x, y, z, d], k) => { for (const n of [x, y, z, x + 12]) osc(a, 'sawtooth', hz(n), t + d, k === 4 ? 2.4 : 0.22, 0.06, 3000, 0.01); bombo(a, t + d, 0.7); });
+      const m = master; setTimeout(() => { if (m === master) this.parar(); }, 3800);
+    },
+  };
+})();
 
 // ───────────────────────────────────────── NEBULA en su ventanita
 const comRender = new THREE.WebGLRenderer({ canvas: $('com-lienzo'), antialias: true, alpha: true });
@@ -349,7 +425,7 @@ async function entrarMapa() {
   escena.fog.near = 260; escena.fog.far = 700;
   $('hud').classList.add('oculto'); $('mapa-ui').classList.remove('oculto'); $('pantalla').classList.add('oculto');
   camara.position.set(0, 1.2, 12); camara.lookAt(0, 0, -2);
-  ponerMusica(false);
+  BATALLA.parar();
   marcasMapa = await SERVIDOR.marcas(); if (REPASO) repasoMapa = await SERVIDOR.repaso(); pintarEtiquetas();
   // la nave espera en la primera misión sin medalla
   const sig = MISIONES.find((m) => medDe(m.id) === 'nada') || MISIONES[9];
@@ -446,7 +522,7 @@ function nuevaMision(m) {
   return {
     m, tipo: m.final ? 'final' : 'ruta', t: 0, juego: 0, lenta: 1, lentaObj: 1, escudo: 100, saber: 0, pericia: 0, combo: 0, maxCombo: 0,
     disparos: 0, impactos: 0, derribos: 0, anillos: 0, daño: 0, aciertos: 0, preguntas: 0, racha: 0, maxRacha: 0,
-    doble: 0, tonel: -1, cadencia: 0, sigSpawn: 2, pregunta: null, fin: false, pos: new V3(0, 0, 0), velN: new V3(),
+    doble: 0, tonel: -1, cadencia: 0, sigSpawn: 2, pregunta: null, fin: false, pos: new V3(0, 0, 0), velN: new V3(), velK: new V3(), sacudida: 0,
     preguntasCola: [], partida: null, momentos: m.final ? [] : momentosDe(m), duracion: m.tema === 'todo' ? 130 : 112, guion: m.tutorial ? GUION_TUTORIAL.slice() : [],
     escuadrillas: {}, inicio: performance.now(), llegando: null,
   };
@@ -485,8 +561,8 @@ async function empezar(mis) {
   const d = NODOS[mis.a];
   if (mis.final) {
     M.destino = esfera('estatica', 260); M.destino.position.set(-120, 60, -1500); sinNiebla(M.destino); escena.add(M.destino);
-    montarVaeon(); ponerMusica(true);
-    decir('Es Vaeon. Sus manos brillan: ese cristal es su punto débil. ¡Rompe los dos!', 6);
+    montarVaeon(); BATALLA.empezar();
+    decir('Es Vaeon. Los cristales de sus manos son su punto débil: apunta al aro rosa y, cuando la mira se ponga rosa, dispara sin parar.', 8);
   } else {
     M.destino = d.glb ? modelos.forge.clone() : esfera(d.k, 1);
     M.destinoBase = d.glb ? 60 : 55; M.destino.scale.setScalar(M.destinoBase);
@@ -506,7 +582,8 @@ function limpiarMision() {
   for (const b of balas.splice(0)) escena.remove(b.obj);
   for (const c of chispas.splice(0)) escena.remove(c.obj);
   if (M && M.destino) escena.remove(M.destino);
-  if (M && M.vaeon) escena.remove(M.vaeon.piv);
+  if (M && M.vaeon) { escena.remove(M.vaeon.piv); for (const o of M.vaeon.extras) escena.remove(o); for (const p of Object.values(M.vaeon.puntos)) p.div.remove(); }
+  BATALLA.parar();
   if (nave) escena.remove(nave);
   $('pregunta').classList.add('oculto');
   M = null;
@@ -558,18 +635,29 @@ function oleada() {
 function tonel() { if (!M || M.tonel > -0.4 || modo !== 'mision' || M.fin) return; M.tonel = 0.7; SON.tonel(); }
 function disparar() {
   const n = M.doble > 0 ? [-1.1, 1.1] : [0];
-  for (const dx of n) { const l = new THREE.Mesh(geoLaser, matLaser); l.position.copy(nave.position).add(new V3(dx, 0.1, -2.5)); escena.add(l); laseres.push(l); }
+  const fijo = M.vaeon ? blancoVaeon() : null;
+  for (const dx of n) { const l = new THREE.Mesh(geoLaser, matLaser); l.position.copy(nave.position).add(new V3(dx, 0.1, -2.5)); l.userData.blanco = fijo && fijo.k; escena.add(l); laseres.push(l); }
   M.disparos++; SON.laser();
 }
 function moverNave(dt) {
-  let tx = M.pos.x, ty = M.pos.y;
-  const k = 26 * dt;
-  if (teclas.KeyA || teclas.ArrowLeft) tx -= k; if (teclas.KeyD || teclas.ArrowRight) tx += k;
-  if (teclas.KeyW || teclas.ArrowUp) ty += k; if (teclas.KeyS || teclas.ArrowDown) ty -= k;
-  if (raton && reloj - ratonVisto < 3) { tx = raton.x * LIM.x * 1.1; ty = raton.y * (LIM.yMax - LIM.yMin) * 0.55 + (LIM.yMax + LIM.yMin) / 2; }
-  tx = THREE.MathUtils.clamp(tx, -LIM.x, LIM.x); ty = THREE.MathUtils.clamp(ty, LIM.yMin, LIM.yMax);
   const antes = M.pos.clone();
-  M.pos.x += (tx - M.pos.x) * Math.min(1, dt * 7); M.pos.y += (ty - M.pos.y) * Math.min(1, dt * 7);
+  if (raton && reloj - ratonVisto < 3) { // ratón y dedo: la nave persigue el puntero (sin cambios)
+    let tx = raton.x * LIM.x * 1.1, ty = raton.y * (LIM.yMax - LIM.yMin) * 0.55 + (LIM.yMax + LIM.yMin) / 2;
+    tx = THREE.MathUtils.clamp(tx, -LIM.x, LIM.x); ty = THREE.MathUtils.clamp(ty, LIM.yMin, LIM.yMax);
+    M.pos.x += (tx - M.pos.x) * Math.min(1, dt * 7); M.pos.y += (ty - M.pos.y) * Math.min(1, dt * 7);
+    M.velK.set(0, 0, 0);
+  } else {
+    // 27-sep · Norberto: «con el teclado la nave va muy lenta». Antes la tecla movía un objetivo que la nave perseguía
+    // con retardo (≈ 3 u/s de verdad). Ahora el teclado da VELOCIDAD: cruza la pantalla en algo más de medio segundo,
+    // acelera en un suspiro y frena casi en seco al soltar (si no, patina y no se puede apuntar).
+    const kx = (teclas.KeyD || teclas.ArrowRight ? 1 : 0) - (teclas.KeyA || teclas.ArrowLeft ? 1 : 0);
+    const ky = (teclas.KeyW || teclas.ArrowUp ? 1 : 0) - (teclas.KeyS || teclas.ArrowDown ? 1 : 0);
+    const vmax = LIM.x * 3.2; // 48 u/s en la ruta, 67 contra Vaeon (su escenario es más ancho)
+    const f = Math.min(1, dt * ((kx || ky) ? 14 : 18));
+    M.velK.x += (kx * vmax - M.velK.x) * f; M.velK.y += (ky * vmax * 0.85 - M.velK.y) * f;
+    M.pos.x = THREE.MathUtils.clamp(M.pos.x + M.velK.x * dt, -LIM.x, LIM.x);
+    M.pos.y = THREE.MathUtils.clamp(M.pos.y + M.velK.y * dt, LIM.yMin, LIM.yMax);
+  }
   M.velN.copy(M.pos).sub(antes).divideScalar(Math.max(dt, 1e-4));
   nave.position.copy(M.pos);
   if (M.llegando != null) nave.position.z = -M.llegando * M.llegando * 60;
@@ -580,9 +668,15 @@ function moverNave(dt) {
   if (motores) motores.children.forEach((s) => s.scale.setScalar(0.55 + Math.random() * 0.25 + (M.llegando != null ? 1.2 : 0)));
   camara.position.lerp(new V3(M.pos.x * 0.55, M.pos.y * 0.5 + 3.2, M.tipo === 'final' ? 16 : 13), Math.min(1, dt * 4));
   camara.lookAt(M.pos.x * 0.7, M.pos.y * 0.6 + 0.8, -30);
-  const m = M.pos.clone().add(new V3(0, 0.1, -45)).project(camara);
+  if (M.sacudida > 0) { M.sacudida = Math.max(0, M.sacudida - dt * 2.5); const s = M.sacudida * 0.9; camara.position.x += azar(-s, s); camara.position.y += azar(-s, s); }
+  camara.updateMatrixWorld();
+  // contra Vaeon la mira se dibuja a SU distancia: el láser vuela recto y, con la cámara por encima, la mira a 45 u
+  // señalaba un sitio que no era donde el láser lo alcanza (27-sep · «no sé dónde disparar»)
+  const zMira = M.vaeon ? M.vaeon.piv.position.z : -45;
+  const m = new V3(M.pos.x, M.pos.y + 0.1, zMira).project(camara);
   const mira = $('mira'); mira.style.left = (m.x * 0.5 + 0.5) * innerWidth + 'px'; mira.style.top = (-m.y * 0.5 + 0.5) * innerHeight + 'px';
   mira.classList.toggle('oculto', !!M.pregunta || M.fin);
+  mira.classList.toggle('fijado', !!(M.vaeon && blancoVaeon()));
 }
 
 // ── explosiones
@@ -652,6 +746,13 @@ function ponerPuertas(P) {
   });
   $('pregunta').innerHTML = panelPregunta(P);
   $('pregunta').classList.remove('oculto');
+  // la cámara lenta se calcula para que las puertas tarden en llegar lo que se tarda en LEER la pregunta y las
+  // opciones que quedan (27-sep · Norberto: «en difícil no da tiempo a leer»). Los segundos base, por nivel, están en
+  // NIVELES.lectura; aquí se suma lo largo del texto. La segunda tanda ya tiene el enunciado leído: menos tiempo.
+  const letras = P.q.enunciado.length + libres.reduce((n, i) => n + String(P.q.opciones[i]).length, 0) + (P.q.visual ? 80 : 0);
+  const base = jefe ? 14 : NIVEL ? NIVELES[NIVEL].lectura : 15;
+  const seg = THREE.MathUtils.clamp((base + letras * 0.05) * (P.elegidas.length ? 0.6 : 1), 8, 26);
+  M.lentaObj = Math.min(1, -z / (VEL * seg));
 }
 function lanzarPregunta(alAcabar) {
   // sin preguntas (la web sin servidor todavía): Vaeon no se queda regenerándose para siempre, se abre la fase siguiente
@@ -660,8 +761,9 @@ function lanzarPregunta(alAcabar) {
   for (const c of cosas.slice()) if (!c.anillo && !c.puerta) { explotar(c.obj.position, 0x5ff4ff, 16, 0.6); quitar(c); }
   for (const b of balas.splice(0)) escena.remove(b.obj);
   M.pregunta = { q, t: 0, alAcabar, puertas: [], elegidas: [] };
+  M.lenta = Math.min(M.lenta, 0.35); // el frenazo, de golpe: si no, las puertas se comen segundos de lectura al llegar
   ponerPuertas(M.pregunta);
-  M.lentaObj = M.tipo === 'final' ? 0.16 : NIVEL ? NIVELES[NIVEL].lenta : 0.3;
+  if (M.tipo === 'final') BATALLA.suave(true);
 }
 async function resolverPregunta(i) {
   const P = M.pregunta; if (!P) return;
@@ -674,6 +776,7 @@ async function resolverPregunta(i) {
   }
   if (i != null) P.elegidas.push(i);
   M.pregunta = null; M.lentaObj = 1; M.preguntas++;
+  if (M.tipo === 'final') BATALLA.suave(false);
   $('pregunta').classList.add('oculto');
   const r = await SERVIDOR.responder(M.partida, P.q.id, P.q.pasos > 1 ? P.elegidas : i);
   if (!M) return;
@@ -696,6 +799,17 @@ async function resolverPregunta(i) {
 function quitar(c) { const i = cosas.indexOf(c); if (i >= 0) cosas.splice(i, 1); escena.remove(c.obj); }
 
 // ───────────────────────────────────────── VAEON
+// 27-sep · Norberto: «no le quito nada de vida, no sé dónde disparar… es muy estático». Lo que pasaba: el daño SÍ
+// entraba, pero (1) la mira se pintaba a 45 u y Vaeon está a 85: con la cámara por encima, apuntar con la mira era
+// fallar; (2) cada cristal pedía 22 impactos y la barra bajaba un 0,75 % por impacto (no se veía); (3) nada decía
+// dónde disparar. Ahora: marcadores sobre cada punto débil con su vida, la mira a su distancia y que se pone rosa
+// cuando lo tienes fijado (el láser va solo al cristal), la barra suma la vida de todos los cristales y parpadea con
+// cada impacto, y Vaeon entra, flota, embiste, retrocede al romperse un cristal y ataca AVISANDO (carga, rayos).
+const VIDA_V = { izq: 14, der: 14, nucleo: 24, cabeza: 28 };
+const NOMBRE_V = { izq: 'MANO', der: 'MANO', nucleo: 'NÚCLEO', cabeza: 'CABEZA' };
+const FASE_V = { 1: 'FASE 1 · ROMPE SUS MANOS', 2: 'FASE 2 · DISPARA AL NÚCLEO', 3: 'FASE 3 · SU CABEZA' };
+const ASISTE = 6.5; // la ayuda de puntería: a menos de esto (en el plano de la pantalla) el láser busca el cristal
+const matRayo = () => new THREE.MeshBasicMaterial({ color: 0xff2e7a, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
 function montarVaeon() {
   const piv = pivotar(modelos.vaeonFresco(), 52, 'y', -Math.PI / 2);
   piv.position.set(0, -9, -85);
@@ -717,79 +831,191 @@ function montarVaeon() {
   }
   const cristal = (hueso, r, color) => {
     const m = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshStandardMaterial({ color: 0x2a0030, emissive: color, emissiveIntensity: 2.2, flatShading: true }));
-    const halo = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 12), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false }));
+    const halo = new THREE.Mesh(new THREE.SphereGeometry(1.7, 16, 12), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false }));
     m.add(halo);
     const s = new V3(); hueso.getWorldScale(s); m.scale.setScalar(r / s.x);
-    hueso.add(m); return { m, halo, r, hp: 0, max: 0, vivo: false, hueso };
+    hueso.add(m);
+    // el marcador en pantalla: un aro que late, el nombre y la vida de ese cristal
+    const div = document.createElement('div'); div.className = 'blanco oculto';
+    div.innerHTML = '<div class="aro"></div><b></b><span class="v"><i></i></span>'; $('hud').appendChild(div);
+    return { m, halo, r, hp: 0, max: 0, vivo: false, roto: false, hueso, s0: m.scale.x, flash: 0, div };
   };
   const raiz = huesos.find((b) => /Root/.test(b.name)) || huesos[0];
   const nucleoH = new THREE.Object3D();
   const pc = w(raiz).lerp(w(cabeza), 0.62); pc.z += 52 * 0.1; piv.worldToLocal(pc); nucleoH.position.copy(pc); piv.add(nucleoH);
   const V = {
-    piv, cabeza, fase: 1, t: 0, disparo: 2, girar, hI, hD, sI: 1,
+    piv, cabeza, fase: 1, t: 0, disparo: 4, girar, hI, hD, sI: 1,
+    entrada: 0, retroceso: 0, embestida: 0, ataque: null, sigAtaque: 5.5, extras: [], golpeHasta: 0,
     puntos: { izq: cristal(izq, 2.4, 0xff2ea6), der: cristal(der, 2.4, 0xff2ea6), nucleo: cristal(nucleoH, 3.2, 0xffb02e), cabeza: cristal(cabeza, 2.6, 0x5ff4ff) },
   };
   girar(hI, 0.6); piv.updateMatrixWorld(true); const yA = w(izq).y; girar(hI, -0.6); piv.updateMatrixWorld(true); const yB = w(izq).y;
   V.sI = yA < yB ? 1 : -1;
+  piv.position.z = -190; // entra desde el fondo (tickVaeon lo acerca)
   M.vaeon = V;
   activar(['izq', 'der']);
   ['nucleo', 'cabeza'].forEach((k) => { V.puntos[k].m.visible = false; });
+  $('jefe-f').textContent = FASE_V[1];
 }
-function activar(ks, hp = 22) {
+function activar(ks) {
   const V = M.vaeon;
-  for (const k of ks) { const p = V.puntos[k]; p.vivo = true; p.hp = p.max = k === 'nucleo' ? 30 : k === 'cabeza' ? 34 : hp; p.m.visible = true; }
+  for (const k of ks) { const p = V.puntos[k]; p.vivo = true; p.roto = false; p.hp = p.max = VIDA_V[k]; p.m.visible = true; p.flash = 1; }
 }
+// la barra: la vida que le queda sumando TODOS los cristales (los rotos no cuentan; los que aún no se han abierto, enteros)
 function vidaJefe() {
-  const V = M.vaeon; const fases = { 1: 3, 2: 2, 3: 1 };
-  const vivos = Object.values(V.puntos).filter((p) => p.vivo);
-  const parte = vivos.reduce((s, p) => s + p.hp / p.max, 0) / Math.max(1, vivos.length);
-  return Math.max(0, ((fases[V.fase] || 0) - 1 + (vivos.length ? parte : 0)) / 3);
+  const V = M.vaeon; let queda = 0, total = 0;
+  for (const [k, p] of Object.entries(V.puntos)) { total += VIDA_V[k]; queda += p.roto ? 0 : p.vivo ? p.hp : VIDA_V[k]; }
+  return queda / total;
+}
+// el punto débil que tienes fijado (el más cerca de tu línea de tiro), o null
+function blancoVaeon() {
+  const V = M && M.vaeon; if (!V || M.pregunta || V.muriendo != null || V.entrada < 1) return null;
+  let mejor = null;
+  for (const [k, p] of Object.entries(V.puntos)) {
+    if (!p.vivo) continue; const wp = p.m.getWorldPosition(new V3());
+    const d = Math.hypot(wp.x - M.pos.x, wp.y - M.pos.y);
+    if (d < ASISTE + p.r && (!mejor || d < mejor.d)) mejor = { k, p, d };
+  }
+  return mejor;
+}
+function golpearVaeon(k, pos) {
+  const V = M.vaeon, p = V.puntos[k];
+  p.hp--; M.impactos++; p.flash = 1; V.golpeHasta = reloj + 0.12;
+  SON.impacto(); explotar(pos, k === 'nucleo' ? 0xffc46b : k === 'cabeza' ? 0x9ff8ff : 0xff9ee0, 14, 0.8);
+  if (p.hp <= 0) cristalRoto(k);
+}
+function quitarExtra(V, o) { escena.remove(o); const i = V.extras.indexOf(o); if (i >= 0) V.extras.splice(i, 1); }
+function cancelarAtaque(V) { if (V.ataque && V.ataque.obj) quitarExtra(V, V.ataque.obj); V.ataque = null; }
+function empezarAtaque(V) {
+  const tipos = V.fase === 1 ? ['rafaga', 'barrido', 'rafaga'] : V.fase === 2 ? ['rafaga', 'barrido', 'lluvia', 'barridoV'] : ['rafaga', 'barrido', 'barridoV', 'lluvia'];
+  const tipo = elegir(tipos), A = { tipo, t: 0, aviso: tipo === 'lluvia' ? 1 : 1.35 - V.fase * 0.1, hecho: false };
+  if (tipo === 'rafaga') {
+    const vivos = Object.values(V.puntos).filter((p) => p.vivo);
+    A.org = vivos.length ? elegir(vivos).m : V.cabeza;
+    A.obj = new THREE.Sprite(new THREE.SpriteMaterial({ map: texChispa, color: 0xff4dd8, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false }));
+    escena.add(A.obj); V.extras.push(A.obj);
+    aviso('¡CARGA!', '#ff4dd8', 1); SON.carga();
+  } else if (tipo === 'barrido' || tipo === 'barridoV') {
+    // el rayo avisa: una franja que parpadea donde estás; cuando se enciende, hace daño si sigues dentro
+    const h = tipo === 'barrido';
+    A.eje = h ? M.pos.y : M.pos.x;
+    A.obj = new THREE.Mesh(h ? new THREE.PlaneGeometry(LIM.x * 2 + 30, 3.2) : new THREE.PlaneGeometry(3.4, LIM.yMax - LIM.yMin + 30), matRayo());
+    A.obj.position.set(h ? 0 : A.eje, h ? A.eje : (LIM.yMax + LIM.yMin) / 2, -3); escena.add(A.obj); V.extras.push(A.obj);
+    aviso(h ? '¡RAYO! SUBE O BAJA' : '¡RAYO! APÁRTATE', '#ff4dd8', 1.2); SON.carga();
+  } else { aviso('¡ESCOMBROS!', '#ff8a3c', 1.2); V.embestida = 1; SON.carga(); }
+  V.ataque = A;
+}
+function tickAtaque(V, dt) {
+  const A = V.ataque; A.t += dt;
+  const tele = Math.min(1, A.t / A.aviso);
+  if (A.tipo === 'rafaga') {
+    A.obj.position.copy(A.org.getWorldPosition(new V3())); A.obj.scale.setScalar(3 + tele * 16 + Math.sin(reloj * 30) * 1.5);
+    if (A.t >= A.aviso) {
+      const org = A.obj.position.clone(), n = 3 + V.fase * 2;
+      for (let i = 0; i < n; i++) {
+        const obj = new THREE.Mesh(geoBala, matBala); obj.position.copy(org); escena.add(obj);
+        const meta = M.pos.clone().add(new V3((i - (n - 1) / 2) * 3.2, azar(-1.5, 1.5), 0));
+        balas.push({ obj, vel: meta.sub(org).normalize().multiplyScalar(40 + V.fase * 5) });
+      }
+      V.embestida = 0.6; M.sacudida = Math.max(M.sacudida, 0.35); SON.golpe();
+      cancelarAtaque(V);
+    }
+  } else if (A.tipo === 'barrido' || A.tipo === 'barridoV') {
+    const h = A.tipo === 'barrido';
+    if (A.t < A.aviso) A.obj.material.opacity = 0.1 + (Math.sin(A.t * 26) > 0 ? 0.22 : 0.04);
+    else {
+      A.obj.material.opacity = 0.85; A.obj.scale.set(h ? 1 : 1 + Math.sin(reloj * 40) * 0.1, h ? 1 + Math.sin(reloj * 40) * 0.1 : 1, 1);
+      if (!A.hecho) {
+        A.hecho = true; SON.rayo(); M.sacudida = Math.max(M.sacudida, 0.5);
+        if (Math.abs((h ? M.pos.y : M.pos.x) - A.eje) < 2.2) { if (!recibirDaño(12)) aviso('¡ESQUIVADO!', '#5ff4ff', 0.6); }
+      }
+      if (A.t > A.aviso + 0.45) cancelarAtaque(V);
+    }
+  } else if (A.tipo === 'lluvia' && A.t >= A.aviso) {
+    for (let i = 0; i < 4 + V.fase * 2; i++) poner(Math.random() < 0.3 ? 'chatarra' : 'roca', THREE.MathUtils.clamp(M.pos.x + azar(-9, 9), -LIM.x, LIM.x), THREE.MathUtils.clamp(M.pos.y + azar(-6, 6), LIM.yMin, LIM.yMax), -200 - i * 14);
+    cancelarAtaque(V);
+  }
+}
+function marcadores(V) {
+  const fijo = blancoVaeon();
+  for (const [k, p] of Object.entries(V.puntos)) {
+    const ver = p.vivo && !M.pregunta && V.muriendo == null && V.entrada >= 1 && !M.fin;
+    p.div.classList.toggle('oculto', !ver); if (!ver) continue;
+    const s = p.m.getWorldPosition(new V3()).project(camara);
+    p.div.style.left = (s.x * 0.5 + 0.5) * innerWidth + 'px'; p.div.style.top = (-s.y * 0.5 + 0.5) * innerHeight + 'px';
+    p.div.classList.toggle('fijo', !!fijo && fijo.k === k);
+    p.div.querySelector('b').textContent = (fijo && fijo.k === k ? '¡FIJADO! ' : 'DISPARA · ') + NOMBRE_V[k];
+    p.div.querySelector('i').style.width = (p.hp / p.max) * 100 + '%';
+  }
 }
 function tickVaeon(dt) {
   const V = M.vaeon; if (!V) return;
   V.t += dt;
-  V.piv.position.x = Math.sin(V.t * 0.5) * 4; V.piv.position.y = -9 + Math.sin(V.t * 0.9) * 1.2;
-  V.piv.rotation.y = Math.sin(V.t * 0.35) * 0.18;
-  const a = 1.05 + Math.sin(V.t * 1.3) * 0.15;
+  const f = V.fase;
+  // entra desde el fondo, flota, se mece más cuanto más herido, embiste al atacar y retrocede al perder un cristal
+  if (V.entrada < 1) { V.entrada = Math.min(1, V.entrada + dt / 3); if (V.entrada === 1) { aviso('¡DISPARA A SUS MANOS!', '#ff4dd8', 2); M.sacudida = 0.6; } }
+  V.retroceso = Math.max(0, V.retroceso - dt * 6); V.embestida = Math.max(0, V.embestida - dt * 1.4);
+  const ent = 1 - Math.pow(1 - V.entrada, 3);
+  const amp = 3 + f * 2.2, vx = 0.45 + f * 0.18;
+  V.piv.position.x = Math.sin(V.t * vx) * amp + Math.sin(V.t * vx * 2.3) * 1.2;
+  V.piv.position.y = -9 + Math.sin(V.t * 0.9) * 1.5 + (f >= 2 ? Math.sin(V.t * 1.7) * 1.1 : 0);
+  V.piv.position.z = THREE.MathUtils.lerp(-190, -85, ent) - V.retroceso + Math.sin(Math.min(1, V.embestida) * Math.PI) * 14;
+  V.piv.rotation.y = Math.sin(V.t * 0.35) * 0.22; V.piv.rotation.z = Math.sin(V.t * 0.6) * 0.05;
+  if (V.muriendo == null) V.piv.scale.setScalar(1 + Math.sin(V.t * 1.6) * 0.015);
+  const carga = V.ataque && V.ataque.tipo === 'rafaga' ? Math.min(1, V.ataque.t / V.ataque.aviso) * 0.45 : 0;
+  const a = 1.05 + Math.sin(V.t * (1.3 + f * 0.4)) * (0.15 + f * 0.04) + carga;
   V.girar(V.hI, V.sI * a); V.girar(V.hD, -V.sI * a);
-  if (Math.random() < 0.04) { V.piv.position.x += azar(-1.2, 1.2); V.piv.position.y += azar(-0.6, 0.6); }
-  for (const p of Object.values(V.puntos)) if (p.vivo) { p.halo.scale.setScalar(1 + Math.sin(reloj * 6) * 0.12); p.m.rotation.y += dt * 2; }
+  if (Math.random() < 0.02 + f * 0.01) { V.piv.position.x += azar(-1.2, 1.2); V.piv.position.y += azar(-0.6, 0.6); }
+  for (const p of Object.values(V.puntos)) if (p.vivo) {
+    p.flash = Math.max(0, p.flash - dt * 7);
+    p.halo.scale.setScalar(1 + Math.sin(reloj * 6) * 0.15 + p.flash * 0.6); p.m.rotation.y += dt * 2;
+    p.m.material.emissiveIntensity = 2.2 + p.flash * 7; p.m.scale.setScalar(p.s0 * (1 + p.flash * 0.35));
+  }
+  $('jefe').classList.toggle('golpe', reloj < V.golpeHasta);
+  $('jefe-b').style.width = vidaJefe() * 100 + '%';
+  marcadores(V);
   if (V.muriendo != null) {
     V.muriendo += dt;
     if (Math.random() < 0.3) explotar(V.piv.position.clone().add(new V3(azar(-12, 12), azar(-16, 18), azar(-3, 6))), Math.random() < 0.5 ? 0xff2ea6 : 0x5ff4ff, 30, 2);
     V.piv.traverse((o) => { if (o.material && o.material.opacity != null) { o.material.transparent = true; o.material.opacity = Math.max(0, 1 - V.muriendo / 3.5); } });
-    V.piv.scale.setScalar(1 + V.muriendo * 0.03); V.piv.position.x += azar(-2, 2);
+    V.piv.scale.setScalar(1 + V.muriendo * 0.03); V.piv.position.x += azar(-2, 2); M.sacudida = Math.max(M.sacudida, 0.3);
     if (V.muriendo > 3.6 && !M.fin) { escena.remove(V.piv); victoria(); }
     return;
   }
-  if (M.pregunta) return;
+  if (M.pregunta) { cancelarAtaque(V); return; }
+  if (V.entrada < 1) return;
+  // los ataques con aviso
+  if (V.ataque) tickAtaque(V, dt);
+  else if ((V.sigAtaque -= dt) <= 0) { empezarAtaque(V); V.sigAtaque = azar(4.2, 5.4) - f * 0.7; }
+  // y el goteo de siempre (más suave que antes: ahora los golpes fuertes van avisados)
   V.disparo -= dt;
-  if (V.disparo <= 0) {
+  if (V.disparo <= 0 && !V.ataque) {
     const vivos = Object.values(V.puntos).filter((p) => p.vivo);
     const org = (vivos.length ? elegir(vivos).m : V.cabeza).getWorldPosition(new V3());
-    for (let i = 0; i < V.fase + 1; i++) {
+    for (let i = 0; i < f; i++) {
       const obj = new THREE.Mesh(geoBala, matBala); obj.position.copy(org); escena.add(obj);
-      balas.push({ obj, vel: M.pos.clone().add(new V3(azar(-3, 3), azar(-2, 2), 0)).sub(org).normalize().multiplyScalar(46 + V.fase * 6) });
+      balas.push({ obj, vel: M.pos.clone().add(new V3(azar(-3, 3), azar(-2, 2), 0)).sub(org).normalize().multiplyScalar(44 + f * 6) });
     }
-    V.disparo = Math.max(0.6, 1.7 - V.fase * 0.35);
+    V.disparo = Math.max(1, 2.3 - f * 0.4);
   }
-  if (Math.random() < dt * 0.35) poner(Math.random() < 0.5 ? 'roca' : 'chatarra', azar(-LIM.x, LIM.x), azar(LIM.yMin, LIM.yMax), -260);
-  $('jefe-b').style.width = vidaJefe() * 100 + '%';
+  if (Math.random() < dt * 0.3) poner(Math.random() < 0.5 ? 'roca' : 'chatarra', azar(-LIM.x, LIM.x), azar(LIM.yMin, LIM.yMax), -260);
 }
 function cristalRoto(k) {
   const V = M.vaeon, p = V.puntos[k];
-  p.vivo = false; p.m.visible = false; explotar(p.m.getWorldPosition(new V3()), 0xff2ea6, 70, 2); SON.grande();
-  sumarPericia(400);
-  if (Object.values(V.puntos).some((x) => x.vivo)) { decir('¡Uno menos! Ahora el otro.', 3); return; }
-  if (V.fase === 3) { V.muriendo = 0; aviso('¡VAEON CAE!', '#5dffa0', 3); decir('¡Lo has conseguido! La Estática se deshace…', 6); ponerMusica(false); return; }
+  p.vivo = false; p.roto = true; p.m.visible = false; p.div.classList.add('oculto');
+  explotar(p.m.getWorldPosition(new V3()), 0xff2ea6, 90, 2.4); SON.grande();
+  sumarPericia(400); V.retroceso = 12; M.sacudida = 0.9; cancelarAtaque(V);
+  if (Object.values(V.puntos).some((x) => x.vivo)) { aviso('¡CRISTAL ROTO!', '#5dffa0', 1.4); decir('¡Uno menos! Ahora la otra mano: busca el aro rosa.', 4); return; }
+  if (V.fase === 3) { V.muriendo = 0; aviso('¡VAEON CAE!', '#5dffa0', 3); decir('¡Lo has conseguido! La Estática se deshace…', 6); BATALLA.victoria(); return; }
+  aviso('¡VAEON SE TAMBALEA!', '#5dffa0', 2);
   decir('Vaeon se tambalea. Responde bien y se abrirá su ' + (V.fase === 1 ? 'núcleo.' : 'cabeza.'), 5);
   setTimeout(() => M && M.vaeon === V && lanzarPregunta((ok) => {
     if (!M || M.vaeon !== V) return;
     if (ok) {
-      V.fase++;
-      if (V.fase === 2) { activar(['nucleo']); aviso('¡NÚCLEO ABIERTO!', '#ffb02e', 2); decir('¡El núcleo está al descubierto! ¡Dispara al pecho!', 5); }
-      else { activar(['cabeza']); aviso('¡LA CABEZA!', '#5ff4ff', 2); decir('Último punto débil: su cabeza. ¡Ahora!', 5); }
-    } else { activar(V.fase === 1 ? [elegir(['izq', 'der'])] : ['nucleo']); aviso('SE REGENERA', '#ff4d6d', 2); }
+      V.fase++; BATALLA.fase(V.fase); M.sacudida = 1.1; V.sigAtaque = 3; SON.rugido();
+      $('jefe-f').textContent = FASE_V[V.fase];
+      if (V.fase === 2) { activar(['nucleo']); aviso('¡NÚCLEO ABIERTO!', '#ffb02e', 2); decir('¡El núcleo está al descubierto! ¡Dispara al pecho, al aro naranja!', 5); }
+      else { activar(['cabeza']); aviso('¡LA CABEZA!', '#5ff4ff', 2); decir('Último punto débil: su cabeza. ¡Ahora! Y ojo: está furioso.', 5); }
+    } else { activar(V.fase === 1 ? [elegir(['izq', 'der'])] : ['nucleo']); aviso('SE REGENERA', '#ff4d6d', 2); decir('Se ha regenerado: la barra vuelve a subir. Rómpelo otra vez.', 5); }
   }), 900);
 }
 
@@ -832,7 +1058,14 @@ function tickMision(dtReal) {
 
   // láseres
   for (const l of laseres.slice()) {
-    l.position.z -= 260 * dtReal;
+    const antes = l.position.clone(), paso = 260 * dtReal;
+    // contra Vaeon, el láser que sale con un cristal fijado va a por él (la ayuda de puntería)
+    const fk = M.vaeon && l.userData.blanco, fp = fk && M.vaeon.puntos[fk];
+    if (fp && fp.vivo && !M.pregunta) {
+      const wp = fp.m.getWorldPosition(new V3()), dir = wp.clone().sub(l.position), dist = dir.length();
+      if (dist <= paso + fp.r) { escena.remove(l); laseres.splice(laseres.indexOf(l), 1); golpearVaeon(fk, wp); continue; }
+      l.position.addScaledVector(dir.divideScalar(dist), paso); l.lookAt(wp);
+    } else l.position.z -= paso;
     let dio = false;
     for (const c of cosas) {
       if (c.anillo || c.puerta || c.hp <= 0) continue;
@@ -840,7 +1073,9 @@ function tickMision(dtReal) {
     }
     if (!dio && M.vaeon) for (const [k, pc] of Object.entries(M.vaeon.puntos)) {
       if (!pc.vivo) continue; const wp = pc.m.getWorldPosition(new V3());
-      if (l.position.distanceTo(wp) < pc.r * 1.6) { dio = true; pc.hp--; M.impactos++; SON.blindado(); explotar(l.position, 0xff9ee0, 8, 0.5); if (pc.hp <= 0) cristalRoto(k); break; }
+      // distancia al TRAMO recorrido en este fotograma (a 260 u/s un láser puede saltarse un cristal entre dos fotogramas)
+      const seg = new THREE.Line3(antes, l.position), cerca = seg.closestPointToPoint(wp, true, new V3());
+      if (cerca.distanceTo(wp) < pc.r * 1.6) { dio = true; golpearVaeon(k, cerca); break; }
     }
     if (dio || l.position.z < -480) { escena.remove(l); laseres.splice(laseres.indexOf(l), 1); }
   }
@@ -863,12 +1098,25 @@ function tickMision(dtReal) {
     if (c.tipo === 'chatarra') o.userData.luz.visible = Math.sin(reloj * 7 + o.id) > 0;
     if (c.anillo) o.rotation.z += dt;
     if (M.m.glitch && !c.puerta && !c.anillo && Math.random() < 0.012) { o.position.x += elegir([-3, 3]); explotar(o.position, 0xb15cff, 6, 0.4); }
+    // ANILLOS · 27-sep · Norberto: «para activar los anillos tengo que usar el botón de esquivar». Se miraba una sola
+    // vez (en z = -1,5) y con radio 3: con la cámara por encima, la nave «dentro» del aro a la vista quedaba fuera por
+    // centímetros. Ahora cuenta la MENOR distancia de todo el cruce, con el grosor del aro y la envergadura de la nave,
+    // y el aro se enciende en verde cuando vas a pasar por él (así se ve antes de llegar).
+    if (c.anillo && !c.pasado) {
+      const d = Math.hypot(o.position.x - M.pos.x, o.position.y - M.pos.y);
+      if (o.position.z > -6) c.minD = Math.min(c.minD ?? Infinity, d);
+      const va = o.position.z > -160 && d < 4.4;
+      o.material.color.set(va ? 0x5dffa0 : 0xffc24a); o.material.emissive.set(va ? 0x22ff88 : 0xffa800);
+      if (o.position.z > 3) {
+        c.pasado = true;
+        if (c.minD < 4.4) { M.anillos++; M.escudo = Math.min(100, M.escudo + 10); sumarPericia(200); SON.anillo(); aviso('+ ANILLO', '#ffc24a', 0.9); explotar(o.position, 0xffc24a, 18, 0.6); o.visible = false; }
+      }
+    }
     // cruce con la nave
-    if (o.position.z > -1.5 && !c.pasado) {
+    if (!c.anillo && o.position.z > -1.5 && !c.pasado) {
       c.pasado = true;
       const dx = o.position.x - M.pos.x, dy = o.position.y - M.pos.y, d = Math.hypot(dx, dy);
-      if (c.anillo) { if (d < 3) { M.anillos++; M.escudo = Math.min(100, M.escudo + 10); sumarPericia(200); SON.anillo(); aviso('+ ANILLO', '#ffc24a', 0.9); } }
-      else if (c.puerta) {
+      if (c.puerta) {
         if (M.pregunta && c === M.pregunta.puertas[0]) {
           const P = M.pregunta, cerca = P.puertas.reduce((a, b) => Math.abs(b.obj.position.x - M.pos.x) < Math.abs(a.obj.position.x - M.pos.x) ? b : a);
           resolverPregunta(Math.abs(M.pos.y - cerca.obj.position.y) < cerca.H / 2 + 1.5 ? cerca.i : null);
@@ -884,7 +1132,7 @@ function tickMision(dtReal) {
     }
     if (o.position.z > 30) { if (c.tipo === 'dron' || c.tipo === 'mini') M.combo = 0; quitar(c); }
   }
-  if (M.pregunta && M.pregunta.puertas.length) { const rest = Math.max(0, (-M.pregunta.puertas[0].obj.position.z) / (VEL * Math.max(M.lenta, 0.05))); const r = $('p-reloj'); if (r) r.textContent = `Las puertas llegan en ${rest.toFixed(0)} s · vuela hacia la tuya`; }
+  if (M.pregunta && M.pregunta.puertas.length) { const rest = Math.max(0, (-M.pregunta.puertas[0].obj.position.z) / (VEL * Math.max(M.lentaObj, 0.02))); const r = $('p-reloj'); if (r) r.textContent = `Las puertas llegan en ${rest.toFixed(0)} s · lee con calma y vuela hacia la tuya`; }
 
   // balas enemigas
   for (const b of balas.slice()) {
@@ -919,10 +1167,12 @@ function golpear(c) {
 // ───────────────────────────────────────── final de misión
 function victoria() { if (M.fin) return; M.fin = true; fin(true); }
 function derrota() {
-  if (M.fin) return; M.fin = true; explotar(M.pos, 0x5ff4ff, 90, 2); SON.grande(); nave.visible = false; ponerMusica(false);
+  if (M.fin) return; M.fin = true; explotar(M.pos, 0x5ff4ff, 90, 2); SON.grande(); nave.visible = false; BATALLA.parar();
   fin(false, 'Tu nave ha caído. NEBULA te recoge en la cápsula.');
 }
 async function fin(llego, motivo = '') {
+  if (!llego) BATALLA.parar(); // (con victoria, la fanfarria de BATALLA.victoria() acaba sola)
+  for (const p of M.vaeon ? Object.values(M.vaeon.puntos) : []) p.div.classList.add('oculto');
   const prec = M.disparos ? M.impactos / M.disparos : 0;
   if (llego) M.pericia += Math.round(M.escudo * 10) + Math.round(prec * 1000);
   const m = M.m, datos = { llego, precision: prec, escudo: M.escudo, puntos: M.saber + M.pericia };
@@ -930,7 +1180,7 @@ async function fin(llego, motivo = '') {
   try { window.parent !== window && window.parent.postMessage({ sgRuta: { mision: m.id, medalla: r.medalla, puntos: Math.round(datos.puntos) } }, '*'); } catch (e) { /* sin padre */ }
   const X = M;
   if (r.repaso) { // el Simulador de vuelo: la marca va a la sala de Joran (su ranking y sus hitos)
-    try { const S = await import(SALA + 'comun.js?v=1b7fc6b8a5'); S.registrarPartida('vuelo', r.total, { nivel: r.nivel, mision: m.id }); } catch (e) { console.warn('sin sala', e); }
+    try { const S = await import(SALA + 'comun.js?v=cdadcf2641'); S.registrarPartida('vuelo', r.total, { nivel: r.nivel, mision: m.id }); } catch (e) { console.warn('sin sala', e); }
     setTimeout(() => {
       $('hud').classList.add('oculto');
       pantalla(`<div class="kicker">Simulador de vuelo · nivel ${esc(NIVELES[r.nivel].n)} (×${String(NIVELES[r.nivel].mult).replace('.', ',')})</div>
@@ -972,6 +1222,7 @@ async function fin(llego, motivo = '') {
 function pausar() {
   if (modo !== 'mision' || !M || M.fin) return;
   pausa = !pausa;
+  try { if (actx) pausa ? actx.suspend() : actx.resume(); } catch (e) { /* sin audio */ } // la música se congela con el juego
   if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<button class="sec" id="b-mapa">Abandonar</button>'}</div>`); $('b-seg').onclick = pausar; if ($('b-mapa')) $('b-mapa').onclick = () => { pausa = false; entrarMapa(); }; }
   else $('pantalla').classList.add('oculto');
 }

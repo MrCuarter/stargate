@@ -2,7 +2,7 @@
 // el navegador solo recibe el enunciado y las opciones barajadas, nunca cuál es la buena; responde por POSICIÓN y el
 // servidor la traduce (como hoy hace stargateBatalla). La medalla y el premio también los decide el servidor.
 // Aquí se imita con el banco local y la marca se guarda en el navegador (localStorage).
-import { PREGUNTAS } from './preguntas.js?v=1b7fc6b8a5';
+import { PREGUNTAS } from './preguntas.js?v=cdadcf2641';
 
 const barajar = (xs) => { const a = xs.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
@@ -19,10 +19,12 @@ export const CRITERIOS = {
 };
 // EL SIMULADOR DE VUELO (el repaso de la sala de Joran): tres niveles. Sin xp ni créditos (repetir no puede ser una
 // máquina de premios): solo la marca, que va al ranking de la sala. El multiplicador es el de la batalla antigua.
+// `lectura` = segundos que tardan en llegar las puertas de una pregunta (solo el cliente: la cámara lenta se calcula
+// para que dé tiempo a leer; 27-sep · Norberto: «en difícil no da tiempo a leer»). No toca puntos ni multiplicadores.
 export const NIVELES = {
-  facil: { n: 'Fácil', mult: 0.85, lenta: 0.2, daño: 0.7, ritmo: 0.8, que: 'Preguntas fáciles, más escudo y más cámara lenta en las puertas.' },
-  media: { n: 'Media', mult: 1, lenta: 0.3, daño: 1, ritmo: 1, que: 'La Ruta tal cual: preguntas medias.' },
-  dificil: { n: 'Difícil', mult: 1.35, lenta: 0.55, daño: 1.3, ritmo: 1.3, que: 'Medias y difíciles (también las de varias correctas), más rápido y casi sin cámara lenta.' },
+  facil: { n: 'Fácil', mult: 0.85, lectura: 17, daño: 0.7, ritmo: 0.8, que: 'Preguntas fáciles, más escudo y mucho tiempo para leer en las puertas.' },
+  media: { n: 'Media', mult: 1, lectura: 15, daño: 1, ritmo: 1, que: 'La Ruta tal cual: preguntas medias.' },
+  dificil: { n: 'Difícil', mult: 1.35, lectura: 14, daño: 1.3, ritmo: 1.3, que: 'Medias y difíciles (también las de varias correctas), más enemigos y más daño.' },
 };
 
 // Qué preguntas se pueden volar. Una respuesta y completar huecos, siempre (un hueco = una tanda de puertas); las de

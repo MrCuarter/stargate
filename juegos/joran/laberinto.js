@@ -1,18 +1,35 @@
 // EL LABERINTO DE LA CERO · máquina 2 de la sala de Joran (borrador).
 // La nave se ha apagado y la Estática ha soltado sus drones. A la luz de tu linterna: tres llaves por nivel, la
-// cápsula que se abre con ellas y un pulso que aturde a los drones. Tres niveles, cada uno más grande. Arcade: sin preguntas.
-import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=1b7fc6b8a5';
+// cápsula que se abre con ellas y un pulso que aturde a los drones. Tres niveles, cada uno más grande.
+// Arcade o DESAFÍO (desafio.js, ?modo=desafio): en el desafío la batería de la linterna se gasta y se recarga acertando.
+// 27-sep, MODO COMECOCOS (Norberto: «si no me muevo no pasa nada; los puedo sobrepasar por el borde»): los drones ya no
+// se paran en el centro de la casilla, se echan encima; el choque se mide en el plano y es más ancho que lo que te deja
+// apartarte un pasillo, así que un dron no se esquiva de frente. Se turnan entre dispersarse (cada uno a su esquina) y
+// cazar, cada uno a su manera, como los fantasmas. Y las CÉLULAS DE ENERGÍA dan unos segundos de sobrecarga: los
+// drones se vuelven azules, huyen, y si los tocas los desactivas (200, 400, 800, 1.600). El pulso sigue: aturde a los
+// cercanos, pero se recarga más despacio (es el salvavidas, no el arma).
+import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=cdadcf2641';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
+import { crearDesafio, MODO, urlModo } from './desafio.js?v=cdadcf2641';
 
 const V3 = THREE.Vector3;
 const JUEGO = JUEGOS[1];
 const C = 4, ALTO = 2.4;                    // tamaño de la celda y alto de las paredes
 const NIVELES = [
-  { n: 7, drones: 2, tiempo: 60, vel: 2.4 },
-  { n: 9, drones: 3, tiempo: 70, vel: 2.8 },
-  { n: 11, drones: 5, tiempo: 80, vel: 3.1 },
+  { n: 7, drones: 2, tiempo: 60, vel: 2.6, celulas: 2, sobre: 7 },
+  { n: 9, drones: 3, tiempo: 70, vel: 3.0, celulas: 2, sobre: 6.5 },
+  { n: 11, drones: 5, tiempo: 80, vel: 3.3, celulas: 3, sobre: 6 },
 ];
 const VEL_JUGADOR = 5.2, RADIO = 0.45;
+// el choque, en el plano: más que lo que te puedes apartar del centro de un pasillo (C/2 − media pared − RADIO = 1,4),
+// así que no hay hueco para colarse junto a un dron
+const GOLPE = 1.5;
+const PULSO_RECARGA = 12, PULSO_RADIO = 7, ATURDE = 2.5;
+// los turnos de los drones (s): dispersión, caza, dispersión, caza, dispersión… y a partir de ahí, caza hasta el final
+const CICLO = [5, 15, 5, 15, 4];
+const VALOR_DRON = [200, 400, 800, 1600];   // los desactivados seguidos en la misma sobrecarga
+const dist2 = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+const hacia = (ops, t) => ops.reduce((a, b) => (dist2(b, t) < dist2(a, t) ? b : a)).slice();
 
 // ───────────────────────────────── escena
 const lienzo = $('lienzo');
@@ -96,6 +113,18 @@ function montarNivel(k) {
   const salida = celdas[0], elegidas = [];
   for (const c of celdas.slice(1)) { if (elegidas.length >= 3) break; if (d[c[0]][c[1]] < n * 0.6) continue; if (elegidas.every((e) => Math.abs(e[0] - c[0]) + Math.abs(e[1] - c[1]) > n * 0.5) && Math.abs(salida[0] - c[0]) + Math.abs(salida[1] - c[1]) > 2) elegidas.push(c); }
   while (elegidas.length < 3) { const c = elegir(celdas.slice(1, Math.floor(celdas.length / 2))); if (!elegidas.includes(c)) elegidas.push(c); }
+  // las células de energía: a media distancia, separadas entre sí y fuera de las llaves y de la cápsula
+  const celCeldas = [];
+  for (const c of celdas.slice().sort(() => Math.random() - 0.5)) {
+    if (celCeldas.length >= cfg.celulas) break;
+    if (c === salida || elegidas.includes(c) || d[c[0]][c[1]] < 3) continue;
+    if (celCeldas.every((e) => Math.abs(e[0] - c[0]) + Math.abs(e[1] - c[1]) > n * 0.6)) celCeldas.push(c);
+  }
+  const celulas = celCeldas.map((c) => {
+    const o = new THREE.Group(); o.position.copy(centro(n, ...c)).setY(1.0);
+    o.add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.42, 0), new THREE.MeshBasicMaterial({ color: 0xc8ffe0 })), brillo(0x5dffa0, 2.8, false));
+    grupo.add(o); return { c, o, cogida: false };
+  });
   const llaves = elegidas.map((c) => { const o = modelos.llave.clone(); o.position.copy(centro(n, ...c)).setY(1.1); o.add(brillo(0xffc24a, 3.2, false)); grupo.add(o); return { c, o, cogida: false }; });
   // la cápsula de salida (apagada hasta tener las tres llaves)
   const cap = new THREE.Group(); cap.position.copy(centro(n, ...salida));
@@ -103,14 +132,18 @@ function montarNivel(k) {
   const haz = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 1.1, 30, 20, 1, true), new THREE.MeshBasicMaterial({ color: 0x5dffa0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false })); haz.position.y = 15; cap.add(haz);
   const halo = brillo(0xff2e55, 4, false); halo.position.y = 1.4; cap.add(halo);
   grupo.add(cap);
-  // los drones, lejos de ti
+  // los drones, lejos de ti. Cada uno caza a su manera (tipo): 0 cazador (el camino más corto hasta ti), 1 emboscada
+  // (apunta por delante de ti), 2 tímido (te caza de lejos y de cerca se va a su esquina), 3 errante (a por ti, pero tuerce)
+  const casas = [[n - 1, 0], [0, n - 1], [n - 1, n - 1], [Math.floor(n / 2), Math.floor(n / 2)]];
   const drones = [];
   for (let k2 = 0; k2 < cfg.drones; k2++) {
     const c = elegir(celdas.slice(0, Math.floor(celdas.length * 0.6)));
     const dr = modelos.dronFab(); dr.obj.position.copy(centro(n, ...c)).setY(1.2); grupo.add(dr.obj);
-    drones.push({ ...dr, c: c.slice(), prev: null, obj: dr.obj, meta: c.slice(), persigue: 0, aturdido: 0 });
+    drones.push({ ...dr, tipo: k2 % 4, casa: casas[k2 % 4], c: c.slice(), prev: null, obj: dr.obj, meta: c.slice(), persigue: 0, aturdido: 0, fuera: 0, inmune: false });
   }
-  L = { k, cfg, n, M, grupo, paredes, llaves, salida, cap, cuerpo, haz, halo, drones, visto: Array.from({ length: n }, () => Array(n).fill(false)), cogidas: 0, t: cfg.tiempo };
+  L = { k, cfg, n, M, grupo, paredes, llaves, celulas, salida, cap, cuerpo, haz, halo, drones, visto: Array.from({ length: n }, () => Array(n).fill(false)), cogidas: 0, t: cfg.tiempo,
+    fase: 0, modo: 'dispersion', tModo: CICLO[0], tregua: 0 };
+  P.sobre = 0; P.cadena = 0;
   P.pos.copy(centro(n, 0, 0)); P.inv = 1.5;
   aviso(`NIVEL ${k + 1}`, '#5ff4ff', 1.2);
 }
@@ -119,13 +152,20 @@ function montarNivel(k) {
 let P = null, jugador = null;
 const modelos = {};
 const efectos = [];
-function nuevaPartida() { return { pos: new V3(), dir: new V3(), vidas: 3, puntos: 0, pulso: 0, inv: 0, fin: false, cuenta: 2.2, aturdidos: 0, llavesTot: 0, t0: performance.now() }; }
+function nuevaPartida() { return { pos: new V3(), dir: new V3(0, 0, -1), vidas: 3, puntos: 0, pulso: 0, inv: 0, fin: false, cuenta: 2.2, aturdidos: 0, desactivados: 0, sobre: 0, cadena: 0, llavesTot: 0, t0: performance.now() }; }
 
 // ── controles: teclado y joystick del dedo
 const tecla = {};
 addEventListener('keydown', (e) => { tecla[e.code] = true; if (e.code === 'Space') { pulso(); e.preventDefault(); } if (e.code === 'KeyP' || e.code === 'Escape') pausar(); });
 addEventListener('keyup', (e) => { tecla[e.code] = false; });
 let stick = null;
+// el modo desafío: la batería de la linterna. Solo se gasta con el nivel en marcha (no en la cuenta atrás ni en la pausa).
+// Va en su hueco (#des-slot), encima del minimapa, para no tapar el minimapa ni el botón del pulso. Al volver de la pregunta
+// se sueltan las teclas y el joystick: el panel se tragó el keyup/pointerup y el piloto seguiría andando solo
+const DES = crearDesafio({ nombre: 'Batería de la linterna', segundos: 40, recarga: 40, hud: $('des-slot'),
+  alPausar: (si) => { if (!si) { for (const k in tecla) tecla[k] = false; stick = null; $('stick').classList.add('oculto'); $('stick').firstElementChild.style.transform = ''; } },
+  enJuego: () => !!P && !P.fin && P.cuenta <= 0 && !pausa });
+if (DES.activo) DES.preparar(); // se piden las preguntas mientras lees la portada
 lienzo.addEventListener('pointerdown', (e) => { audio(); stick = { x0: e.clientX, y0: e.clientY, dx: 0, dy: 0, id: e.pointerId }; const s = $('stick'); s.style.left = e.clientX + 'px'; s.style.top = e.clientY + 'px'; s.classList.remove('oculto'); });
 addEventListener('pointermove', (e) => { if (!stick || e.pointerId !== stick.id) return; let dx = e.clientX - stick.x0, dy = e.clientY - stick.y0; const d = Math.hypot(dx, dy), m = 50; if (d > m) { dx *= m / d; dy *= m / d; } stick.dx = dx / m; stick.dy = dy / m; $('stick').firstElementChild.style.transform = `translate(${dx}px,${dy}px)`; });
 addEventListener('pointerup', (e) => { if (stick && e.pointerId === stick.id) { stick = null; $('stick').classList.add('oculto'); $('stick').firstElementChild.style.transform = ''; } });
@@ -133,11 +173,11 @@ $('b-pulso').addEventListener('pointerdown', (e) => { e.stopPropagation(); pulso
 
 function pulso() {
   if (!P || P.fin || P.cuenta > 0 || P.pulso > 0) return;
-  P.pulso = 8; SON.pulso();
+  P.pulso = PULSO_RECARGA; SON.pulso();
   const aro = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.9, 48), new THREE.MeshBasicMaterial({ color: 0x5ff4ff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false }));
   aro.rotation.x = -Math.PI / 2; aro.position.copy(P.pos).setY(0.3); escena.add(aro); efectos.push({ o: aro, vida: 0.6, crece: 14 });
   let n = 0;
-  for (const d of L.drones) if (d.obj.position.distanceTo(P.pos) < 8.5) { d.aturdido = 3.2; d.persigue = 0; n++; }
+  for (const d of L.drones) if (!d.fuera && d.obj.position.distanceTo(P.pos) < PULSO_RADIO) { d.aturdido = ATURDE; d.persigue = 0; n++; }
   if (n) { P.aturdidos += n; P.puntos += 50 * n; aviso(`¡${n} ATURDIDO${n > 1 ? 'S' : ''}!`, '#5ff4ff', 0.9); }
 }
 function chocaPared(x, z) { for (const w of L.paredes) if (x + RADIO > w.x0 && x - RADIO < w.x1 && z + RADIO > w.z0 && z - RADIO < w.z1) return true; return false; }
@@ -146,6 +186,20 @@ function seVen(a, b) {
   if (a[0] !== b[0] && a[1] !== b[1]) return false;
   const paso = a[0] === b[0] ? [0, Math.sign(b[1] - a[1])] : [Math.sign(b[0] - a[0]), 0];
   let c = a.slice(); while (c[0] !== b[0] || c[1] !== b[1]) { const s = [c[0] + paso[0], c[1] + paso[1]]; if (!abiertoEntre(L.M, c, s)) return false; c = s; } return true;
+}
+
+// al llegar al centro de una casilla, el dron elige la siguiente (como los fantasmas: sin dar media vuelta si puede)
+function decidir(d, yo, asustado, cazan) {
+  const vs = vecinos(L.M, L.n, d.c);
+  const sinVuelta = vs.filter((v) => !d.prev || v[0] !== d.prev[0] || v[1] !== d.prev[1]);
+  const ops = sinVuelta.length ? sinVuelta : vs;
+  if (!ops.length) return d.c.slice();
+  if (asustado) return Math.random() < 0.3 ? elegir(ops).slice() : ops.reduce((a, b) => (dist2(b, yo) > dist2(a, yo) ? b : a)).slice();
+  if (d.persigue > 0 || (cazan && d.tipo === 0)) { const { padre } = bfs(L.M, L.n, yo); const p = padre[d.c]; return p ? p.slice() : hacia(ops, yo); }
+  if (!cazan) return hacia(ops, d.casa);
+  if (d.tipo === 1) return hacia(ops, [yo[0] + Math.round(P.dir.x) * 3, yo[1] + Math.round(P.dir.z) * 3]);
+  if (d.tipo === 2) return hacia(ops, dist2(d.c, yo) > 16 ? yo : d.casa);
+  return Math.random() < 0.3 ? elegir(ops).slice() : hacia(ops, yo);
 }
 
 function tick(dt) {
@@ -165,6 +219,7 @@ function tick(dt) {
     const nx = P.pos.x + mx * v, nz = P.pos.z + mz * v;
     if (!chocaPared(nx, P.pos.z)) P.pos.x = nx;
     if (!chocaPared(P.pos.x, nz)) P.pos.z = nz;
+    P.dir.set(mx, 0, mz).normalize();   // (hacia dónde vas: el dron de la emboscada apunta por delante)
     const ang = Math.atan2(mx, mz); jugador.obj.rotation.y += ((ang - jugador.obj.rotation.y + Math.PI * 3) % (Math.PI * 2) - Math.PI) * Math.min(1, dt * 12);
     if (jugando) jugador.poner('Run', { fundido: 0.12 });
   } else if (jugando) jugador.poner('Idle', { fundido: 0.2 });
@@ -193,6 +248,23 @@ function tick(dt) {
       else aviso(`LLAVE ${L.cogidas}/3`, '#ffc24a', 1);
     }
   }
+  // las células de energía: sobrecarga
+  for (const cel of L.celulas) {
+    if (cel.cogida) continue; cel.o.rotation.y += dt * 2.5; cel.o.scale.setScalar(1 + Math.sin(performance.now() / 180) * 0.15);
+    if (jugando && cel.o.position.distanceTo(P.pos.clone().setY(1.0)) < 1.2) {
+      cel.cogida = true; L.grupo.remove(cel.o); P.puntos += 50; P.sobre = L.cfg.sobre; P.cadena = 0; SON.turbo();
+      aviso('¡SOBRECARGA! DESACTIVA LOS DRONES', '#5dffa0', 1.4);
+      // como los fantasmas: todos dan media vuelta y huyen (también los que ya estaban en su casa)
+      for (const d of L.drones) { d.inmune = false; if (!d.fuera && d.meta) { const t = d.meta; d.meta = d.c; d.c = t; d.prev = null; } }
+    }
+  }
+  if (jugando) P.sobre = Math.max(0, P.sobre - dt);
+  // los turnos de los drones (el reloj se para durante la sobrecarga, como en el comecocos)
+  if (jugando && P.sobre <= 0) {
+    if (L.tregua > 0) L.tregua -= dt;
+    L.tModo -= dt;
+    if (L.tModo <= 0) { L.fase++; L.modo = L.fase % 2 ? 'caza' : 'dispersion'; L.tModo = CICLO[L.fase] ?? Infinity; if (L.modo === 'caza' && L.tregua <= 0) SON.alarma(); }
+  }
   // la cápsula
   L.halo.scale.setScalar(4 + Math.sin(performance.now() / 250) * 0.4);
   if (jugando && L.cogidas === 3 && L.cap.position.distanceTo(P.pos) < 1.4) {
@@ -201,28 +273,55 @@ function tick(dt) {
     else { P.puntos += P.vidas * 500; acabar(true, `Has salido de la Cero con ${P.vidas} vida${P.vidas === 1 ? '' : 's'} (+${P.vidas * 500}).`); }
   }
   // drones de la Estática
+  const cazan = L.modo === 'caza' && L.tregua <= 0;
   for (const d of L.drones) {
     d.mezcla.update(dt);
     const o = d.obj; o.position.y = 1.2 + Math.sin(performance.now() / 200 + o.id) * 0.12;
+    // desactivado: vuelve a su esquina al rato, ya inmune a la sobrecarga que lo tumbó
+    if (d.fuera > 0) {
+      o.visible = false; if (!jugando) continue;
+      d.fuera -= dt;
+      if (d.fuera <= 0) { d.fuera = 0; d.c = d.casa.slice(); d.meta = d.casa.slice(); d.prev = null; d.inmune = P.sobre > 0; o.position.copy(centro(L.n, ...d.casa)).setY(1.2); o.visible = true; }
+      continue;
+    }
+    const asustado = P.sobre > 0 && !d.inmune;
+    d.halo.material.color.set(asustado ? (P.sobre < 2 && Math.floor(performance.now() / 150) % 2 ? 0xffffff : 0x3d6bff) : 0xff2ea6);
+    d.halo.scale.setScalar(asustado ? 3.2 : 2.4);
     if (d.aturdido > 0) { d.aturdido -= dt; o.rotation.z = Math.sin(performance.now() / 60) * 0.4; o.visible = Math.random() > 0.2; continue; }
     o.rotation.z = 0; o.visible = true;
     if (!jugando) continue;
-    const dc = celdaDe(L.n, o.position);
-    if (seVen(dc, yo) && Math.abs(dc[0] - yo[0]) + Math.abs(dc[1] - yo[1]) <= 4 || o.position.distanceTo(P.pos) < C * 1.2) { if (d.persigue <= 0) SON.alarma(); d.persigue = 3.5; }
+    const dc = celdaDe(L.n, o.position), lejosDeTi = Math.abs(dc[0] - yo[0]) + Math.abs(dc[1] - yo[1]);
+    if (!asustado && (seVen(dc, yo) && lejosDeTi <= 5 || o.position.distanceTo(P.pos) < C * 1.2)) { if (d.persigue <= 0) SON.alarma(); d.persigue = 3.5; }
     d.persigue -= dt;
-    const meta = centro(L.n, ...d.meta);
-    if (o.position.distanceTo(meta.clone().setY(o.position.y)) < 0.15) {
-      d.prev = d.c; d.c = d.meta.slice();
-      if (d.persigue > 0) { const { padre } = bfs(L.M, L.n, yo); d.meta = padre[d.c] ? padre[d.c].slice() : d.c.slice(); }
-      else { const vs = vecinos(L.M, L.n, d.c).filter((v) => !d.prev || v[0] !== d.prev[0] || v[1] !== d.prev[1]); d.meta = (vs.length ? elegir(vs) : d.prev || d.c).slice(); }
+    // en tu casilla o en la de al lado (sin pared entre medias) ya no sigue la rejilla: se te echa encima.
+    // Por eso quedarse quieto ya no sirve, ni apartarse al borde del pasillo.
+    const encima = !asustado && P.inv <= 0 && (lejosDeTi === 0 || (lejosDeTi === 1 && abiertoEntre(L.M, dc, yo)));
+    let destino;
+    if (encima) { destino = P.pos.clone(); d.c = dc; d.meta = dc.slice(); d.prev = null; }
+    else {
+      if (o.position.distanceTo(centro(L.n, ...d.meta).setY(o.position.y)) < 0.15) { d.prev = d.c; d.c = d.meta.slice(); d.meta = decidir(d, yo, asustado, cazan); }
+      destino = centro(L.n, ...d.meta);
     }
-    const vel = (d.persigue > 0 ? L.cfg.vel * 1.35 : L.cfg.vel) * dt, dir = meta.clone().setY(o.position.y).sub(o.position);
+    const base = L.cfg.vel * (asustado ? 0.55 : d.persigue > 0 || cazan ? 1.35 : 1);
+    const vel = base * dt, dir = destino.setY(o.position.y).sub(o.position);
     if (dir.length() > vel) dir.setLength(vel); o.position.add(dir);
     if (dir.lengthSq() > 1e-6) o.rotation.y = Math.atan2(dir.x, dir.z);
-    if (P.inv <= 0 && o.position.distanceTo(P.pos.clone().setY(1.2)) < 1.0) {
-      P.vidas--; SON.golpe(); jugador.poner('HitReact', { una: true });
-      if (P.vidas <= 0) { acabar(false, 'Los drones de la Estática te han atrapado.'); return; }
-      aviso(`¡TE HA ATRAPADO! QUEDAN ${P.vidas}`, '#ff4dd8', 1.4); P.pos.copy(centro(L.n, 0, 0)); P.inv = 2.2;
+    // el choque, en el plano (la altura del dron no cuenta)
+    if (Math.hypot(o.position.x - P.pos.x, o.position.z - P.pos.z) < GOLPE) {
+      if (asustado) {
+        const pts = VALOR_DRON[Math.min(P.cadena, VALOR_DRON.length - 1)]; P.cadena++; P.puntos += pts; P.desactivados++;
+        d.fuera = 4; d.persigue = 0; o.visible = false; SON.llave();
+        const aro = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.7, 40), new THREE.MeshBasicMaterial({ color: 0x3d6bff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false }));
+        aro.rotation.x = -Math.PI / 2; aro.position.copy(o.position).setY(0.4); escena.add(aro); efectos.push({ o: aro, vida: 0.6, crece: 10 });
+        aviso(`DRON DESACTIVADO +${pts}`, '#8fb0ff', 0.9);
+      } else if (P.inv <= 0) {
+        P.vidas--; SON.golpe(); jugador.poner('HitReact', { una: true });
+        if (P.vidas <= 0) { acabar(false, 'Los drones de la Estática te han atrapado.'); return; }
+        aviso(`¡TE HA ATRAPADO! QUEDAN ${P.vidas}`, '#ff4dd8', 1.4); P.pos.copy(centro(L.n, 0, 0)); P.inv = 2.5;
+        // como al perder una vida en el comecocos: un respiro, todos a su esquina unos segundos
+        for (const x of L.drones) x.persigue = 0;
+        L.tregua = 4;
+      }
     }
   }
   for (const f of efectos.slice()) { f.vida -= dt; f.o.scale.multiplyScalar(1 + dt * f.crece * 0.3); f.o.material.opacity = Math.max(0, f.vida / 0.6); if (f.vida <= 0) { escena.remove(f.o); efectos.splice(efectos.indexOf(f), 1); } }
@@ -232,9 +331,9 @@ function tick(dt) {
   $('h-lla').textContent = `${L.cogidas}/3`;
   $('h-vid').innerHTML = [0, 1, 2].map((i) => `<i class="${i < P.vidas ? '' : 'no'}"></i>`).join('');
   $('h-t').style.width = Math.max(0, L.t / L.cfg.tiempo * 100) + '%'; $('h-t').parentElement.classList.toggle('peligro', L.t < 15);
-  $('extra').textContent = P.pulso > 0 ? `Pulso recargando · ${Math.ceil(P.pulso)} s` : 'Pulso listo (Espacio)';
+  $('extra').textContent = (P.sobre > 0 ? `SOBRECARGA · ${Math.ceil(P.sobre)} s: ¡tócalos! · ` : '') + (P.pulso > 0 ? `Pulso recargando · ${Math.ceil(P.pulso)} s` : 'Pulso listo (Espacio)');
   $('b-pulso').disabled = P.pulso > 0;
-  document.body.style.setProperty('--peligro', L.drones.some((d) => d.persigue > 0 && d.aturdido <= 0) ? 0.6 : 0);
+  document.body.style.setProperty('--peligro', P.sobre <= 0 && L.drones.some((d) => !d.fuera && d.persigue > 0 && d.aturdido <= 0) ? 0.6 : 0);
   pintarMini(yo);
 }
 
@@ -256,45 +355,56 @@ function pintarMini(yo) {
   const punto = (c, color, r) => { mini.fillStyle = color; mini.beginPath(); mini.arc((c[0] + 0.5) * s, (c[1] + 0.5) * s, r, 0, 7); mini.fill(); };
   for (const k of L.llaves) if (!k.cogida && L.visto[k.c[0]][k.c[1]]) punto(k.c, '#ffc24a', s * 0.25);
   if (L.cogidas === 3 || L.visto[L.salida[0]][L.salida[1]]) punto(L.salida, L.cogidas === 3 ? '#5dffa0' : '#ff2e55', s * 0.3);
-  for (const d of L.drones) { const c = celdaDe(n, d.obj.position); if (L.visto[c[0]][c[1]] && Math.abs(c[0] - yo[0]) + Math.abs(c[1] - yo[1]) < 4) punto(c, '#ff4dd8', s * 0.2); }
+  for (const cel of L.celulas) if (!cel.cogida && L.visto[cel.c[0]][cel.c[1]]) punto(cel.c, '#5dffa0', s * 0.18);
+  for (const d of L.drones) { if (d.fuera) continue; const c = celdaDe(n, d.obj.position); if (L.visto[c[0]][c[1]] && Math.abs(c[0] - yo[0]) + Math.abs(c[1] - yo[1]) < 4) punto(c, P.sobre > 0 && !d.inmune ? '#3d6bff' : '#ff4dd8', s * 0.2); }
   punto(yo, '#e8f6ff', s * 0.28);
 }
 
 function acabar(salvado, motivo) {
-  if (P.fin) return; P.fin = true;
+  if (P.fin) return; P.fin = true; DES.parar();
   if (!salvado) { SON.caida(); jugador.poner('Death', { una: true }); } else { SON.bien(); }
   setTimeout(() => {
     $('hud').classList.add('oculto');
     const seg = Math.round((performance.now() - P.t0) / 1000);
-    finDePartida({ juego: JUEGO.id, titulo: salvado ? '¡Has salido de la Cero!' : 'Se acabó', puntos: P.puntos, texto: motivo,
-      filas: [['Nivel', `${L.k + 1}/${NIVELES.length}`], ['Llaves', P.llavesTot], ['Drones aturdidos', P.aturdidos], ['Vidas', P.vidas], ['Tiempo', `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`]],
-      alRepetir: empezar });
+    const bonus = DES.bonus(P.puntos); // el bonus de precisión del desafío (0 en arcade)
+    finDePartida({ juego: JUEGO.id, titulo: salvado ? '¡Has salido de la Cero!' : 'Se acabó', puntos: P.puntos + bonus, texto: motivo,
+      filas: [['Nivel', `${L.k + 1}/${NIVELES.length}`], ['Llaves', P.llavesTot], ['Drones desactivados', P.desactivados], ['Drones aturdidos', P.aturdidos], ['Vidas', P.vidas], ['Tiempo', `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`], ...DES.filas(bonus)],
+      alRepetir: empezar, extra: DES.extra() });
   }, 1200);
 }
 let pausa = false;
 function pausar() {
-  if (!P || P.fin) return; pausa = !pausa;
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (!P || P.fin || DES.abierto) return; pausa = !pausa; // con la pregunta abierta el juego ya está parado
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=cdadcf2641">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
-document.addEventListener('visibilitychange', () => { if (document.hidden && P && !P.fin && !pausa && !window.__sinPausa) pausar(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && P && !P.fin && !pausa && !DES.abierto && !window.__sinPausa) pausar(); });
 function empezar() {
   P = nuevaPartida(); pausa = false; window.__t0Partida = performance.now(); montarNivel(0);
+  DES.empezar();
   $('hud').classList.remove('oculto'); cerrarPantalla(); jugador.poner('Idle');
   $('b-pulso').classList.toggle('oculto', !matchMedia('(pointer: coarse)').matches);
 }
 function portada() {
-  const e = estado();
-  pantalla(`<div class="kicker">El simulador de Joran · máquina 2</div><h2>El Laberinto de la Cero</h2>
+  const e = estado(), desafio = MODO === 'desafio';
+  pantalla(`<div class="kicker">El simulador de Joran · máquina 2${desafio ? ' · modo desafío' : ''}</div><h2>El Laberinto de la Cero</h2>
     <p>La nave se ha quedado a oscuras y la Estática ha soltado sus drones por los pasillos. Solo tienes tu linterna.</p>
-    <p>Encuentra las <b>tres llaves</b> de cada nivel y corre a la <b>cápsula</b>, que se enciende en verde cuando las tienes. Si un dron te ve en línea recta, te persigue: aturde a los que tengas cerca con el <b>pulso</b> (se recarga en 8 s). Tres niveles, cada uno más grande. El minimapa solo enseña lo que ya has explorado.</p>
-    <div class="teclas"><kbd>Flechas / WASD</kbd><span>Moverte (en el móvil, arrastra el dedo: es un joystick)</span><kbd>Espacio</kbd><span>El pulso que aturde (en el móvil, el botón)</span></div>
+    <p>Encuentra las <b>tres llaves</b> de cada nivel y corre a la <b>cápsula</b>, que se enciende en verde cuando las tienes. Los drones patrullan y, a ratos, salen a cazarte: <b>si te tocan, pierdes una vida</b>, y de frente no se esquivan. Coge una <b>célula de energía</b> (verde) y durante unos segundos se vuelven azules y huyen: tócalos y los desactivas. El <b>pulso</b> aturde a los que tengas cerca (se recarga en ${PULSO_RECARGA} s). Tres niveles, cada uno más grande. El minimapa solo enseña lo que ya has explorado.</p>
+    <div class="teclas"><kbd>Flechas / WASD</kbd><span>Moverte (en el móvil, arrastra el dedo: es un joystick)</span><kbd>Espacio</kbd><span>El pulso que aturde (en el móvil, el botón)</span><kbd>Célula verde</kbd><span>Sobrecarga: los drones huyen y se desactivan al tocarlos</span></div>
+    ${DES.texto()}
     <p class="pista">Tu récord: <b>${(e.marcas.laberinto || 0).toLocaleString('es-ES')}</b></p>
-    <div class="botones"><button id="b-ya">¡Adentro!</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`);
-  $('b-ya').onclick = () => { audio(); empezar(); };
+    <div class="botones"><button id="b-ya">¡Adentro!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=cdadcf2641">Volver a la sala</a>'}</div>`);
+  $('b-ya').onclick = async () => {
+    audio();
+    if (desafio) { // las preguntas tienen que estar antes de entrar: sin ellas, la batería no se podría recargar
+      const b = $('b-ya'); b.disabled = true; b.textContent = 'Cargando preguntas…';
+      if (!(await DES.preparar())) aviso('Sin preguntas: juegas en arcade', '#ffc24a', 2.2);
+    }
+    empezar();
+  };
 }
 let antes = performance.now();
-function bucle(ahora) { requestAnimationFrame(bucle); const dt = Math.min(0.05, (ahora - antes) / 1000); antes = ahora; if (!pausa) tick(dt); render.render(escena, camara); }
+function bucle(ahora) { requestAnimationFrame(bucle); const dt = Math.min(0.05, (ahora - antes) / 1000); antes = ahora; if (!pausa && !DES.abierto) { tick(dt); DES.tick(dt); } render.render(escena, camara); } // con la pregunta abierta, nada corre
 (async () => {
   const e = estado();
   const av = ['finn', 'barbara', 'fernando'].includes(QS.get('avatar')) ? QS.get('avatar') : e.avatar;
@@ -307,7 +417,8 @@ function bucle(ahora) { requestAnimationFrame(bucle); const dt = Math.min(0.05, 
     const s = clone(gd.scene); s.traverse((o) => { if (o.isMesh) o.frustumCulled = false; });
     const t = medir(s).getSize(new V3()); s.scale.setScalar(1.2 / t.y); holo(s, 0xff2ea6, 1.4);
     const m = new THREE.AnimationMixer(s); const clip = gd.animations.find((a) => /Fast_Flying/.test(a.name)) || gd.animations[0]; if (clip) m.clipAction(clip).play();
-    const g = new THREE.Group(); g.add(s); const h = brillo(0xff2ea6, 2.4); h.position.y = 0.4; g.add(h); return { obj: g, mezcla: m };
+    // (cada dron, su propio halo: se vuelve azul en la sobrecarga)
+    const g = new THREE.Group(); g.add(s); const h = brillo(0xff2ea6, 2.4); h.position.y = 0.4; g.add(h); return { obj: g, mezcla: m, halo: h };
   };
   $('carga').remove();
   // un laberinto de fondo detrás de la portada
@@ -316,4 +427,4 @@ function bucle(ahora) { requestAnimationFrame(bucle); const dt = Math.min(0.05, 
   portada();
 })().catch((err) => { $('carga').textContent = 'No se pudo cargar: ' + err.message; console.error(err); });
 
-window.LAB = { get P() { return P; }, get L() { return L; }, empezar, pulso, camara, THREE };
+window.LAB = { get P() { return P; }, get L() { return L; }, empezar, pulso, camara, THREE, DES };

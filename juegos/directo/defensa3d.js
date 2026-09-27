@@ -9,7 +9,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
-import { imagen } from './canal.js?v=1b7fc6b8a5';
+import { imagen } from './canal.js?v=cdadcf2641';
 
 const azar = (a, b) => a + Math.random() * (b - a);
 const V3 = THREE.Vector3;
@@ -193,11 +193,23 @@ export async function montarDefensa(lienzo, { ruta, sala }) {
     render.render(escena, camara);
     return llegados;
   }
+  // 🔴 27-sep · EL CAÑÓN DE PLASMA DEL COMANDANTE (una de sus tres bombas): revienta todo lo que viene y le quita al
+  // destructor una parte de su vida (fr), repartida entre los cristales que le quedan. No lo mata: eso es de la clase.
+  function bomba(fr = 0.15) {
+    let n = 0;
+    for (const e of enemigos.splice(0)) { explotar(e.obj.position, e.tipo === 'roca' ? 0xffa24a : 0x5ff4ff, 34, 1.3); escena.remove(e.obj); n++; }
+    if (jefe && jefe.hp > 1 && jefe.cae < 0) {
+      const vivos = jefe.puntos.filter((pt) => pt.hp > 0), quita = Math.min(jefe.hp - 1, Math.max(1, Math.round(jefe.total * fr)));
+      for (let i = 0; i < quita; i++) { const pt = vivos.filter((x) => x.hp > 1)[0] || vivos.filter((x) => x.hp > 0)[0]; if (!pt) break; pt.hp--; jefe.hp--; }
+      for (const pt of vivos) { const w = pt.m.getWorldPosition(new V3()); explotar(w, 0x5ff4ff, 40, 1.8); if (pt.hp <= 0) pt.m.visible = false; }
+    }
+    return n;
+  }
   function jefeCae() { if (jefe) { jefe.cae = 0; explotar(jefe.obj.position, 0xff2ea6, 200, 4); } }
   function limpiar() { for (const e of enemigos.splice(0)) escena.remove(e.obj); if (jefe) { escena.remove(jefe.obj); jefe = null; } }
   function caeLaCero() { explotar(ceroG.position.clone().add(new V3(0, 6, 0)), 0x5ff4ff, 220, 4); escudo.visible = false; }
   return {
-    jugador, colocar, enemigo, disparo, activarJefe, jefeCae, ponerEscudo, tick, limpiar, caeLaCero, ajustar,
+    jugador, colocar, enemigo, disparo, activarJefe, jefeCae, bomba, ponerEscudo, tick, limpiar, caeLaCero, ajustar,
     get vivos() { return enemigos.length; }, get jefeHp() { return jefe ? jefe.hp : 0; }, get jefeTotal() { return jefe ? jefe.total : 0; },
     set velocidad(k) { vel = k; },
   };

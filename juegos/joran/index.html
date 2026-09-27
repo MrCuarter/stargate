@@ -6,7 +6,7 @@
 <title>El Simulador de Joran</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="comun.css?v=1b7fc6b8a5">
+<link rel="stylesheet" href="comun.css?v=cdadcf2641">
 <style>
 html,body{overflow:auto}
 body{background:#01040c url(img/sala.jpg) center/cover fixed}
@@ -31,13 +31,36 @@ p.intro{margin:0 0 10px;font-size:15px;opacity:.88;line-height:1.45}
 .av b{font-family:Orbitron;font-size:15px;display:block}
 .av span{font-size:14px;opacity:.85;font-weight:400}
 .av.si{border-color:var(--cian);box-shadow:0 0 18px rgba(95,244,255,.35)}
-.maquinas{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+/* las máquinas: un carrusel 3D. La del frente, grande y nítida; las demás, giradas, más atrás y en penumbra.
+   OJO: .escena recorta por los lados (overflow:hidden): las cartas de los lados nunca crean scroll horizontal en el móvil */
+.carrusel{position:relative;outline:none;--ancho:min(380px,calc(100vw - 88px))}
+.carrusel:focus-visible .escena{outline:2px solid var(--cian);outline-offset:-4px;border-radius:18px}
+.escena{position:relative;margin:0 -16px;padding:14px 0 18px;overflow:hidden;perspective:1300px;perspective-origin:50% 30%;touch-action:pan-y}
+.pista{position:relative;height:var(--alto,640px);transform-style:preserve-3d}
+.pista .maq{position:absolute;left:50%;top:0;width:var(--ancho);margin-left:calc(var(--ancho) / -2);transition:transform .55s cubic-bezier(.2,.8,.2,1),opacity .55s,filter .55s;backface-visibility:hidden;will-change:transform}
+.pista .maq:not(.frente){cursor:pointer}
+.pista .maq:not(.frente) *{pointer-events:none}
+.pista .maq.frente{box-shadow:0 0 0 1px var(--cian),0 18px 50px rgba(0,0,0,.6),0 0 44px rgba(95,244,255,.28)}
+.flecha{position:absolute;top:calc(14px + var(--ancho) * 9 / 32);transform:translateY(-50%);z-index:20;width:48px;height:48px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(1,4,12,.8);border:1px solid var(--borde);color:var(--cian)}
+.flecha.izq{left:max(6px,calc(50% - var(--ancho) / 2 - 62px))}
+.flecha.der{right:max(6px,calc(50% - var(--ancho) / 2 - 62px))}
+.flecha svg{width:24px;height:24px}
+.flecha:hover{border-color:var(--ambar);color:var(--ambar)}
+.pie-car{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.puntos{display:flex;gap:2px}
+.puntos button{width:28px;height:28px;padding:0;background:none;border:0;display:flex;align-items:center;justify-content:center}
+.puntos button::before{content:"";width:12px;height:12px;border-radius:50%;background:#0d2236;border:1px solid var(--borde)}
+.puntos button.apagada::before{border-color:var(--ambar);border-style:dashed}
+.puntos button.si::before{background:var(--cian);border-color:var(--cian);box-shadow:0 0 10px var(--cian)}
+#c-nombre{font-family:Orbitron;font-size:14px;letter-spacing:.06em;color:var(--cian)}
+@media (prefers-reduced-motion:reduce){.pista .maq{transition:none}}
 .maq{background:var(--panel);border:1px solid var(--borde);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
 .maq.repaso{border-color:rgba(255,194,74,.7)}
 .maq .foto{position:relative;aspect-ratio:16/9;background:#000}
 .maq .foto img{width:100%;height:100%;object-fit:cover;display:block}
 .maq.cerrada .foto img{filter:grayscale(1) brightness(.45)}
-.maq .candado{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Orbitron;font-size:15px;letter-spacing:.1em;color:var(--ambar);text-shadow:0 0 10px #000}
+.maq .candado{position:absolute;inset:0;display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;font-family:Orbitron;font-size:15px;letter-spacing:.1em;color:var(--ambar);text-shadow:0 0 10px #000;background:radial-gradient(circle,rgba(1,4,12,.1),rgba(1,4,12,.55))}
+.maq .candado svg{width:56px;height:56px;filter:drop-shadow(0 0 10px rgba(255,194,74,.65))}
 .maq .etq{position:absolute;left:10px;top:10px;font-family:Orbitron;font-size:11px;letter-spacing:.12em;padding:4px 8px;border-radius:12px;background:rgba(1,4,12,.8);border:1px solid var(--ambar);color:var(--ambar)}
 .maq .txt{padding:10px 14px 12px}
 .maq h3{margin:0 0 4px;font-size:18px;color:var(--cian)}
@@ -59,7 +82,10 @@ p.intro{margin:0 0 10px;font-size:15px;opacity:.88;line-height:1.45}
 .top3 img,.rk img,.gj .quien img{width:26px;height:26px;border-radius:50%;object-fit:cover;border:1px solid var(--borde)}
 .top3 .pts{margin-left:auto;font-variant-numeric:tabular-nums}
 .maq .botones{margin-top:10px}
+.maq .botones{gap:8px}
 .maq .botones .boton,.maq .botones button{padding:10px 14px;font-size:13px}
+.maq .botones .boton.des{background:linear-gradient(135deg,#ffc24a,#ff8a3d);color:#1a0a00}
+.maq .pronto{font-size:13px;opacity:.75;margin-top:6px}
 /* el cuaderno */
 .cuad{background:var(--panel);border:1px solid var(--borde);border-radius:16px;padding:14px 16px}
 .cuad .cab2{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
@@ -112,8 +138,8 @@ p.intro{margin:0 0 10px;font-size:15px;opacity:.88;line-height:1.45}
 .form label{font-size:14px;display:grid;gap:4px}
 .form input,.form select,.form textarea{font:inherit;font-size:15px;color:#e8f6ff;background:#0d2236;border:1px solid var(--borde);border-radius:8px;padding:8px 10px;user-select:text;-webkit-user-select:text}
 .nota{margin-top:22px;font-size:14px;opacity:.85;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
-@media (max-width:1000px){.maquinas,.gal,.podio{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:700px){nav.sub{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}nav.sub a{white-space:nowrap;flex:none}.maquinas,.gal,.podio{grid-template-columns:1fr}.rk{columns:1}.joran{grid-template-columns:110px 1fr}.joran p{font-size:15px}.avatares{grid-template-columns:1fr}}
+@media (max-width:1000px){.gal,.podio{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:700px){nav.sub{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}nav.sub a{white-space:nowrap;flex:none}.gal,.podio{grid-template-columns:1fr}.rk{columns:1}.joran{grid-template-columns:110px 1fr}.joran p{font-size:15px}.avatares{grid-template-columns:1fr}}
 </style>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
@@ -132,8 +158,15 @@ p.intro{margin:0 0 10px;font-size:15px;opacity:.88;line-height:1.45}
   <div class="avatares" id="avatares"></div>
 
   <h2 class="sec" id="maquinas">Las máquinas</h2>
-  <p class="intro">Cada máquina tiene tres hitos de marca. Cada uno se cobra <b>una sola vez</b>: bronce +5 ◈, plata +10 ◈ y oro +15 ◈. Las máquinas no dan xp: la xp es lo que aprendes en el viaje.</p>
-  <div class="maquinas" id="lista-maq"></div>
+  <p class="intro">Cada máquina tiene tres hitos de marca. Cada uno se cobra <b>una sola vez</b>: bronce +5 ◈, plata +10 ◈ y oro +15 ◈. Las máquinas no dan xp: la xp es lo que aprendes en el viaje. Se juegan en <b>Arcade</b> (solo pilotar) o en <b>Desafío</b>: la energía se gasta y solo la recargas acertando preguntas del curso (mismo récord, y un bonus por tu precisión).</p>
+  <div class="carrusel" id="carrusel" tabindex="0" role="region" aria-roledescription="carrusel" aria-label="Las máquinas de la sala (flechas del teclado para cambiar)">
+    <div class="escena" id="escena">
+      <div class="pista" id="lista-maq"></div>
+      <button class="flecha izq" id="c-izq" type="button" aria-label="Máquina anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button class="flecha der" id="c-der" type="button" aria-label="Máquina siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+    <div class="pie-car"><div class="puntos" id="c-puntos"></div><span id="c-nombre" aria-live="polite"></span></div>
+  </div>
 
   <h2 class="sec" id="cuaderno">Cuaderno de vuelo</h2>
   <p class="intro">Once hitos entre la Ruta de la Estática y la sala. Con todos, el premio de Joran para tu Nave.</p>
@@ -156,8 +189,8 @@ p.intro{margin:0 0 10px;font-size:15px;opacity:.88;line-height:1.45}
 <div id="aviso"></div>
 <div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
 <script type="module">
-import { $, esc, JUEGOS, ARCADE, AVATARES, ESCALONES, HITO_CR, estado, guardar, abierto, comprar, pantalla, cerrarPantalla, SON, audio, aviso, cuaderno, galeria, PREMIO_CUADERNO, WEB, alServidor, sincronizar, CLASE_SRV } from './comun.js?v=1b7fc6b8a5';
-import * as EJ from './ejemplo.js?v=1b7fc6b8a5';
+import { $, esc, JUEGOS, ARCADE, AVATARES, ESCALONES, HITO_CR, estado, guardar, abierto, comprar, pantalla, cerrarPantalla, SON, audio, aviso, cuaderno, galeria, PREMIO_CUADERNO, WEB, alServidor, sincronizar, CLASE_SRV } from './comun.js?v=cdadcf2641';
+import * as EJ from './ejemplo.js?v=cdadcf2641';
 // 🔴 EN LA WEB (la sala dentro de la Nave, con ?per=): tu clase, el Salón de la fama y la Galería, del servidor. Fuera, de ejemplo.
 const EN_WEB = location.pathname.includes('/juegos/');
 const AV = (k) => { k = String(k || ''); if (/^https?:\/\//.test(k)) return k; if (k.includes('/')) return (EN_WEB ? '../../' : '') + k; return EJ.AV(k || 'p3f_r2'); };
@@ -185,18 +218,83 @@ function pintarMaquinas(e) {
     const top = ranking(j.id, 'clase').slice(0, 3);
     const top3 = top.length ? `<ol class="top3">${top.map((p, k) => `<li class="${p.yo ? 'yo' : ''}"><span class="pos">${k + 1}</span><img src="${AV(p.avatar)}" alt=""><span>${esc(p.alias)}${p.yo ? ' (tú)' : ''}</span><span class="pts">${n(p.puntos)}</span></li>`).join('')}</ol>` : '';
     let pie;
-    if (ok) pie = `<div class="botones"><a class="boton" href="${j.url}">${j.repaso ? 'Repasar' : 'Jugar'}</a><button class="sec" data-rk="${j.id}">Ranking</button></div>`;
+    // Arcade y Desafío (el modo va por ?modo=desafio). El desafío solo se ofrece donde la máquina ya sabe jugarlo (j.desafio)
+    const des = j.desafio ? `<a class="boton des" href="${j.url}${j.url.includes('?') ? '&' : '?'}modo=desafio">Desafío</a>` : '<button class="sec" disabled>Desafío</button>';
+    if (ok && j.repaso) pie = `<div class="botones"><a class="boton" href="${j.url}">Repasar</a><button class="sec" data-rk="${j.id}">Ranking</button></div>`;
+    else if (ok) pie = `<div class="botones"><a class="boton" href="${j.url}">Arcade</a>${des}<button class="sec" data-rk="${j.id}">Ranking</button></div>${j.desafio ? '' : '<div class="pronto">El modo desafío llega pronto a esta máquina.</div>'}`;
     else {
       const prev = JUEGOS.find((x) => x.id === j.abre.juego), llevo = e.marcas[prev.id] || 0, pc = Math.min(100, llevo / j.abre.puntos * 100);
       pie = `<div class="req">Se enciende con la <b>plata</b> de ${esc(prev.n)}: <b>${n(j.abre.puntos)}</b> puntos (tu récord: ${n(llevo)})</div><div class="barra"><i style="width:${pc}%"></i></div>
         <div class="botones"><button data-comprar="${j.id}" ${e.creditos < j.precio ? 'disabled' : ''}>Encender por ${j.precio} ◈</button><button class="sec" data-rk="${j.id}">Ranking</button></div>`;
     }
     const num = j.repaso ? '' : `MÁQUINA ${ARCADE.indexOf(j) + 1} · APAGADA`;
-    return `<div class="maq${ok ? '' : ' cerrada'}${j.repaso ? ' repaso' : ''}"><div class="foto"><img src="${j.img}" alt="">${j.repaso ? '<span class="etq">REPASO · SIN PREMIO</span>' : ''}${ok ? '' : `<div class="candado">${num}</div>`}</div>
+    return `<div class="maq${ok ? '' : ' cerrada'}${j.repaso ? ' repaso' : ''}"><div class="foto"><img src="${j.img}" alt="" draggable="false">${j.repaso ? '<span class="etq">REPASO · SIN PREMIO</span>' : ''}${ok ? '' : `<div class="candado">${CANDADO}${num}</div>`}</div>
       <div class="txt"><h3>${esc(j.n)}</h3><p>${esc(j.lema)}</p><div class="ctl">${esc(j.controles)}</div>
       ${ok ? `<div class="rec">Tu récord: <b>${n(rec)}</b></div>` : ''}${hitos}${top3}${pie}</div></div>`;
   }).join('');
+  if (frente == null) frente = JUEGOS.reduce((k, j, i) => (!j.repaso && abierto(e, j) ? i : k), 0); // la última que has encendido
+  colocar();
 }
+// el candado de las apagadas (icono propio, sin emojis)
+const CANDADO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2.5"/></svg>';
+
+// ── EL CARRUSEL 3D. Las cartas están en anillo (tras la última viene la primera); se mueve con las flechas, los puntos,
+// el teclado (con el carrusel enfocado), deslizando el dedo o pulsando una de los lados. La del frente se recuerda en este
+// navegador (solo comodidad: si falla el almacenamiento, se empieza por la última encendida).
+let frente = null;
+try { const g = localStorage.getItem('sgJoranCarrusel'); if (g != null && Number(g) >= 0 && Number(g) < JUEGOS.length) frente = Number(g); } catch (x) { /* sin almacenamiento */ }
+function colocar() {
+  const cartas = [...$('lista-maq').children], total = cartas.length; if (!total) return;
+  const ancho = cartas[0].offsetWidth, paso = ancho * (innerWidth < 640 ? 0.8 : 0.66), e = estado();
+  cartas.forEach((el, i) => {
+    let d = i - frente; if (d > total / 2) d -= total; if (d < -total / 2) d += total;
+    const a = Math.abs(d), s = Math.sign(d), x = s * (paso * Math.min(a, 1) + paso * 0.5 * Math.max(0, a - 1));
+    el.style.transform = `translateX(${x}px) translateZ(${-a * 170}px) rotateY(${-s * Math.min(a, 1) * 38}deg) scale(${a ? 0.86 : 1})`;
+    el.style.opacity = a > 2 ? 0 : a > 1 ? 0.55 : 1;
+    el.style.visibility = a > 2 ? 'hidden' : 'visible';
+    el.style.filter = a ? `brightness(${a > 1 ? 0.45 : 0.62}) saturate(.75) blur(${a > 1 ? 2 : 1}px)` : 'none';
+    el.style.zIndex = String(10 - a);
+    el.classList.toggle('frente', a === 0);
+    el.setAttribute('aria-hidden', a ? 'true' : 'false');
+    el.querySelectorAll('a,button').forEach((b) => { if (a) b.setAttribute('tabindex', '-1'); else b.removeAttribute('tabindex'); });
+  });
+  $('lista-maq').style.setProperty('--alto', Math.max(...cartas.map((el) => el.offsetHeight)) + 'px');
+  $('c-puntos').innerHTML = JUEGOS.map((j, i) => `<button type="button" data-ir="${i}" class="${i === frente ? 'si' : ''}${abierto(e, j) ? '' : ' apagada'}" aria-label="${esc(j.n)}${abierto(e, j) ? '' : ' (apagada)'}"></button>`).join('');
+  $('c-nombre').textContent = `${frente + 1} / ${total} · ${JUEGOS[frente].n}`;
+}
+function ir(i) {
+  const total = JUEGOS.length; frente = ((i % total) + total) % total;
+  try { localStorage.setItem('sgJoranCarrusel', String(frente)); } catch (x) { /* nada */ }
+  colocar(); audio(); SON.carril();
+}
+$('c-izq').onclick = () => ir(frente - 1);
+$('c-der').onclick = () => ir(frente + 1);
+$('c-puntos').addEventListener('click', (ev) => { const b = ev.target.closest('[data-ir]'); if (b) ir(Number(b.dataset.ir)); });
+$('carrusel').addEventListener('keydown', (ev) => {
+  const k = { ArrowLeft: frente - 1, ArrowRight: frente + 1, Home: 0, End: JUEGOS.length - 1 }[ev.key];
+  if (k == null || /^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName)) return;
+  ev.preventDefault(); ir(k);
+});
+// pulsar una carta de los lados la trae al frente (y no activa lo que tenga dentro)
+$('lista-maq').addEventListener('click', (ev) => {
+  const el = ev.target.closest('.maq'); if (!el || el.classList.contains('frente')) return;
+  ev.preventDefault(); ev.stopPropagation(); ir([...$('lista-maq').children].indexOf(el));
+}, true);
+// deslizar el dedo (o arrastrar el ratón): solo si el gesto es claramente horizontal; lo vertical sigue siendo scroll
+{
+  const esc0 = $('escena'); let x0 = null, y0 = 0, arrastre = false;
+  esc0.addEventListener('pointerdown', (ev) => { if (ev.button) return; x0 = ev.clientX; y0 = ev.clientY; arrastre = false; });
+  esc0.addEventListener('pointermove', (ev) => { if (x0 != null && Math.abs(ev.clientX - x0) > 12 && Math.abs(ev.clientX - x0) > Math.abs(ev.clientY - y0)) arrastre = true; });
+  esc0.addEventListener('pointerup', (ev) => {
+    if (x0 == null) return; const dx = ev.clientX - x0, dy = ev.clientY - y0; x0 = null;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.2) ir(frente + (dx < 0 ? 1 : -1));
+  });
+  esc0.addEventListener('pointercancel', () => { x0 = null; });
+  // el clic que llega al soltar tras deslizar no debe abrir la máquina que quedó debajo
+  esc0.addEventListener('click', (ev) => { if (arrastre) { ev.preventDefault(); ev.stopPropagation(); arrastre = false; } }, true);
+}
+addEventListener('resize', colocar);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(colocar); // con la letra buena, las cartas miden otra cosa
 function pintarCuaderno() {
   const c = cuaderno(), e = estado(), todo = c.hechos === c.total;
   $('cuad').innerHTML = `<div class="cab2"><span><b>${c.hechos} / ${c.total}</b> hitos</span><div class="barra" style="flex:1;min-width:180px;max-width:420px"><i style="width:${c.hechos / c.total * 100}%"></i></div></div>

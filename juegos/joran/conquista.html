@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>La conquista de Fôrge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="comun.css?v=cdadcf2641">
+<style>
+/* la barra del modo desafío va abajo a la izquierda (los botones táctiles la empujan hacia arriba) */
+#des-slot .des-hud{left:16px;right:auto;bottom:16px}
+body.tactil #des-slot .des-hud{bottom:124px}
+#b-pausa{pointer-events:auto;padding:8px 12px;font-size:12px}
+.mandos{position:fixed;left:0;right:0;bottom:14px;display:none;justify-content:space-between;align-items:flex-end;padding:0 14px;pointer-events:none}
+.mandos .par{display:flex;gap:12px}
+.mandos button{pointer-events:auto;width:86px;height:86px;border-radius:50%;padding:0;background:rgba(13,34,54,.78);color:var(--cian);border:1px solid var(--borde);display:flex;align-items:center;justify-content:center;touch-action:none}
+.mandos button svg{width:38px;height:38px}
+.mandos button.saltar{width:112px;height:112px;font-size:14px;background:linear-gradient(135deg,#ffb347,#ff6a3d);color:#1a0600;border:0}
+.mandos button.activo{filter:brightness(1.35);transform:scale(.96)}
+body.tactil .mandos{display:flex}
+@media (max-width:760px){.hud .meta{top:70px}}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+</script>
+</head>
+<body class="juego">
+<canvas id="lienzo" class="lienzo"></canvas>
+<div class="escaner"></div>
+<div id="carga">Encendiendo Fôrge…</div>
+<div class="hud oculto" id="hud">
+  <div class="cifras">
+    <div class="cif am"><small>Puntos</small><b id="h-pts">0</b></div>
+    <div class="cif"><small>Metros</small><b id="h-m">0</b></div>
+    <div class="cif"><small>Vidas</small><b id="h-vid">3</b></div>
+    <div class="cif"><small>Tiempo</small><b id="h-t">0:00</b></div>
+  </div>
+  <div class="meta"><small id="h-tramo">Hasta la Puerta de la cumbre</small><div class="barra"><i id="h-prog"></i></div></div>
+  <div class="der"><button class="sec" id="b-pausa" type="button">Pausa</button></div>
+  <div id="des-slot"></div>
+</div>
+<div class="mandos" id="mandos">
+  <div class="par">
+    <button id="m-izq" type="button" aria-label="Correr a la izquierda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button id="m-der" type="button" aria-label="Correr a la derecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+  <button id="m-salto" class="saltar" type="button">SALTAR</button>
+</div>
+<div id="aviso"></div>
+<div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
+<script type="module" src="conquista.js?v=cdadcf2641"></script>
+</body>
+</html>

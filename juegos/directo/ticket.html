@@ -5,38 +5,147 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ticket de salida (ensayo)</title>
 <style>
-/* Copia de ENSAYO del ticket de salida (no envía nada). En la web, en su lugar va el formulario anónimo de Google de
-   siempre, incrustado (SG_TICKET_URL + «&embedded=true»). Por eso el fondo es blanco: así se verá el de Google. */
+/* Copia de ENSAYO del ticket de salida (no envía nada). En la web, en su lugar va el formulario anónimo de Google
+   («STARGATE · Contacta con NEBULA», SG_TICKET_URL + «&embedded=true»). Por eso el fondo es el de Google.
+   🔴 27-sep · Norberto: «el ticket no es el que tenemos, ¿no? Debería salir por defecto el tema que estamos y todas las
+   preguntas». Ahora es el mismo formulario: las mismas preguntas, las mismas secciones y los mismos saltos, y se
+   rellena igual que el de verdad, por la dirección (?usp=pp_url&entry.489397158=GRUPO&entry.856117988=COMANDANTE&
+   entry.240809630=TEMA, con el texto EXACTO de la opción, como en _site_data.py → TICKET_TEMAS). Copiado del formulario
+   publicado el 27-sep: si se tocan sus preguntas, se toca esto. */
 body{margin:0;font-family:Roboto,system-ui,sans-serif;background:#f0ebf8;color:#202124}
-.f{max-width:520px;margin:0 auto;padding:12px}
+.f{max-width:560px;margin:0 auto;padding:12px}
 .c{background:#fff;border-radius:8px;padding:14px 16px;margin-bottom:10px;border:1px solid #dadce0}
 .c.tit{border-top:8px solid #0b7a8a}
+.c.sec{border-top:6px solid #0b7a8a}
 h1{font-size:22px;margin:0 0 6px;font-weight:500}
-p{margin:0;font-size:14px;color:#5f6368}
-label{display:block;font-size:15px;margin-bottom:8px}
-.esc{display:flex;gap:6px}
-.esc button{flex:1;padding:10px 0;border:1px solid #dadce0;background:#fff;border-radius:6px;font-size:15px;cursor:pointer}
+h2{font-size:18px;margin:0 0 4px;font-weight:500}
+p{margin:0;font-size:14px;color:#5f6368;line-height:1.45}
+label.q{display:block;font-size:15px;margin-bottom:8px;line-height:1.4}
+label.q i{color:#d93025;font-style:normal}
+input[type=text],textarea{width:100%;box-sizing:border-box;font:inherit;font-size:15px;border:0;border-bottom:1px solid #dadce0;padding:6px 0;background:transparent}
+textarea{resize:vertical;min-height:44px}
+select{font:inherit;font-size:15px;padding:8px;border:1px solid #dadce0;border-radius:4px;max-width:100%}
+.esc{display:flex;gap:6px;align-items:center}
+.esc button{flex:1;padding:10px 0;border:1px solid #dadce0;background:#fff;border-radius:6px;font-size:15px;cursor:pointer;min-height:44px}
 .esc button.si{background:#0b7a8a;color:#fff;border-color:#0b7a8a}
-textarea{width:100%;box-sizing:border-box;font:inherit;font-size:15px;border:0;border-bottom:1px solid #dadce0;padding:6px 0;resize:vertical;min-height:44px}
-.enviar{background:#0b7a8a;color:#fff;border:0;border-radius:4px;padding:10px 22px;font-size:15px;cursor:pointer}
+.extremos{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#5f6368;margin-top:4px}
+.extremos span:last-child{text-align:right}
+.ops label{display:flex;gap:8px;align-items:center;font-size:15px;padding:6px 0;cursor:pointer}
+.ops input[type=radio]{width:18px;height:18px;accent-color:#0b7a8a}
+.ops input[type=text]{flex:1}
+.pie{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:4px}
+.pie button{border:0;border-radius:4px;padding:10px 22px;font-size:15px;cursor:pointer;min-height:44px}
+.enviar{background:#0b7a8a;color:#fff}
+.atras{background:#fff;color:#0b7a8a;border:1px solid #dadce0!important}
+.pie small{color:#5f6368;font-size:12px}
+.falta{border-color:#d93025}
+.falta .aviso{display:block}
+.aviso{display:none;color:#d93025;font-size:13px;margin-top:6px}
 .gracias{text-align:center;padding:30px 16px}
+.ensayo{font-size:12px;color:#5f6368;text-align:center;margin:6px 0 14px}
 </style>
 </head>
 <body>
-<div class="f" id="f">
-  <div class="c tit"><h1>Ticket de salida</h1><p>Anónimo. Un minuto. Tu docente solo ve el resumen de la clase.</p></div>
-  <div class="c"><label>¿Cómo te vas de la clase de hoy? (1 = perdido, 5 = lo tengo)</label><div class="esc" id="esc">1 2 3 4 5</div></div>
-  <div class="c"><label>Lo que más te ha servido</label><textarea rows="2"></textarea></div>
-  <div class="c"><label>Una duda o algo que cambiarías</label><textarea rows="2"></textarea></div>
-  <button class="enviar" id="enviar">Enviar</button>
-</div>
+<div class="f" id="f"></div>
 <script>
-var e = document.getElementById('esc'); e.innerHTML = [1, 2, 3, 4, 5].map(function (n) { return '<button type="button">' + n + '</button>'; }).join('');
-e.querySelectorAll('button').forEach(function (b) { b.onclick = function () { e.querySelectorAll('button').forEach(function (x) { x.classList.toggle('si', x === b); }); }; });
-document.getElementById('enviar').onclick = function () {
-  document.getElementById('f').innerHTML = '<div class="c gracias"><h1>Respuesta registrada</h1><p>Gracias. (Ensayo: no se ha enviado nada.)</p></div>';
+// Las piezas del formulario: t = texto corto, l = párrafo, e = escala 1-5 (con sus extremos), o = opción única,
+// d = desplegable (el tema: de él sale la sección siguiente, como en Google), s = página nueva.
+// `a` = a qué sección salta cada opción (FIN = enviar). `r` = obligatoria.
+var FIN = 'fin';
+var PAGINAS = [
+  { id: 'inicio', piezas: [
+    { t: 't', id: 'entry.489397158', q: 'Grupo', ayuda: 'Lo rellena tu Nave sola. Si está vacío, escribe el identificador que te dio tu profe.' },
+    { t: 't', id: 'entry.856117988', q: 'El profesor o profesora que imparte tu clase...' },
+    { t: 'd', id: 'entry.240809630', r: true, q: 'Selecciona el tema que hemos trabajado y sobre el que quieres hacer una pregunta', ops: [
+      ['Presentación de la asignatura', 'presentacion'], ['Tema 1: Creación de contenido multimedia (Fôrge)', 'tema'], ['Tema 2: El vídeo como recurso (Ecos)', 'tema'],
+      ['Tema 3: Contenidos interactivos (Sendara)', 'tema'], ['Tema 4: M-learning (Reliae)', 'tema'], ['Tema 5: Evaluación y ePortfolio (Umbral)', 'tema'],
+      ['Tema 6: Aprendizaje Basado en el Juego (Ludo)', 'tema'], ['Tema 7: Gamificación (Vínculo)', 'tema'], ['Tema 8: Realidad Aumentada y Virtual (Liminar)', 'tema'],
+      ['Repaso / balance final', 'resumen']] } ] },
+  { id: 'presentacion', tit: 'Sobre la presentación de la asignatura', sub: 'Dudas, inquietudes u opiniones, de manera anónima. Todos los campos son opcionales.', sigue: FIN, piezas: [
+    { t: 'e', q: '¿Qué vibraciones te ha transmitido la presentación?', x: ['¡Horrible!', 'Buenísimas, ya tengo ganas de empezar'] },
+    { t: 'e', q: 'Valora la utilidad que percibes del temario de la asignatura', x: ['Poco útil', 'Muy útil'] },
+    { t: 'e', q: '¿Cómo valorarías tus conocimientos iniciales sobre herramientas TIC?', x: ['¿TIC? ¿Eso no es cuando parpadeas muy rápido?', 'Yo inventé el concepto de TIC'] },
+    { t: 'l', q: '¿Qué esperas de la asignatura? ¿Qué te gustaría aprender?' },
+    { t: 'o', q: '¿Cómo prefieres que transcurran las clases en directo?', otra: true, ops: [['Que el docente resuelva los casos prácticos'], ['Que resolvamos los alumnos los casos prácticos en grupos'],
+      ['Que resolvamos los alumnos los casos prácticos individualmente'], ['Cada clase de una forma']] } ] },
+  { id: 'tema', tit: 'Sobre el tema escogido', sub: 'Dudas, inquietudes u opiniones sobre el tema visto en clase, de manera anónima. Todos los campos son opcionales.', sigue: FIN, piezas: [
+    { t: 'l', q: '¿Alguna duda? ¿Te ha quedado alguna duda o quieres hacernos llegar algún comentario?' },
+    { t: 'e', q: 'Valora la utilidad de las herramientas o estrategias vistas en clase', x: ['Poco útiles', 'Muy útiles'] },
+    { t: 'e', q: 'Valora la satisfacción general del desarrollo de la clase', x: ['Muy insatisfecho/a', 'Muy satisfecho/a'] },
+    { t: 'e', q: 'Valora la satisfacción con los contenidos teóricos vistos en clase sobre este tema', x: ['Muy insatisfecho/a', 'Muy satisfecho/a'] },
+    { t: 'e', q: 'Valora la satisfacción con las estrategias prácticas vistas en clase sobre este tema', x: ['Muy insatisfecho/a', 'Muy satisfecho/a'] },
+    { t: 'e', q: 'Valora tu grado de participación en clase', x: ['No he participado en absoluto', 'He participado en todo lo que he podido'] },
+    { t: 'o', r: true, q: '¿Cómo has seguido esta clase?', ops: [['La he seguido EN DIRECTO', 'directo'], ['La he visto en diferido (la grabación)', FIN]] } ] },
+  { id: 'directo', tit: 'Sobre la clase en directo', sub: 'Solo para quien estuvo en la clase en directo. Anónimo, como todo lo demás.', sigue: FIN, piezas: [
+    { t: 'e', q: 'STARGATE · En esta clase se ha hablado de la misión (ranking, insignias, planetas)', x: ['Ni se ha mencionado', 'Ha estado muy presente'] },
+    { t: 'e', q: 'STARGATE · Se ha mostrado el tablero o el ranking durante la clase', x: ['No se ha mostrado', 'Sí, lo hemos visto'] },
+    { t: 'e', q: 'STARGATE · Se ha reconocido en público el avance de alguien de la clase', x: ['No', 'Sí, varias veces'] } ] },
+  { id: 'resumen', tit: 'Resumen global de la asignatura', sub: 'Tu balance al terminar. Anónimo.', sigue: FIN, piezas: [
+    { t: 'e', q: 'Considero que la forma de seguir esta asignatura...', x: ['no ha ayudado a mejorar mis competencias digitales', 'ha ayudado a mejorar mis competencias digitales considerablemente'] },
+    { t: 'e', q: 'Grado de satisfacción con la asignatura', x: ['Muy insatisfecho/a', 'Muy satisfecho/a'] },
+    { t: 'e', q: 'Comparada con otras asignaturas que cursas ahora mismo, estas clases han sido', x: ['Mucho peor', 'Mucho mejor'] },
+    { t: 'e', q: 'Grado de satisfacción con tu profesor/a', x: ['El peor / La peor hasta la fecha', 'El mejor / La mejor hasta la fecha'] },
+    { t: 'l', q: '¿Qué ha sido lo mejor de la asignatura?' },
+    { t: 'l', q: '¿Y lo peor?' },
+    { t: 'l', q: 'Deja un comentario a tu profesor/a' } ] },
+];
+var DESC = 'En este cuestionario encontrarás un espacio donde formular todas las dudas que tengas sobre la clase. También puedes indicarnos tu grado de satisfacción sobre las herramientas, metodología y progreso. Responde con sinceridad: es ANÓNIMO y nos sirve para ayudarte a mejorar.';
+
+var qs = new URLSearchParams(location.search), resp = {}, historia = ['inicio'];
+// lo que viene rellenado por la dirección, como en Google (y, como en Google, una opción que no existe se ignora)
+PAGINAS[0].piezas.forEach(function (p) { var v = qs.get(p.id); if (v != null && (p.t !== 'd' || p.ops.some(function (o) { return o[0] === v; }))) resp[p.id] = v; });
+var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+var pag = function (id) { return PAGINAS.filter(function (x) { return x.id === id; })[0]; };
+function clave(pg, i) { return pg.piezas[i].id || pg.id + '.' + i; }
+
+function pintar() {
+  var pg = pag(historia[historia.length - 1]), h = '';
+  if (pg.id === 'inicio') h += '<div class="c tit"><h1>STARGATE · Contacta con NEBULA (ticket de salida)</h1><p>' + esc(DESC) + '</p></div>';
+  else h += '<div class="c sec"><h2>' + esc(pg.tit) + '</h2><p>' + esc(pg.sub) + '</p></div>';
+  pg.piezas.forEach(function (p, i) {
+    var k = clave(pg, i), v = resp[k] == null ? '' : resp[k];
+    h += '<div class="c" data-k="' + esc(k) + '"><label class="q">' + esc(p.q) + (p.r ? ' <i>*</i>' : '') + '</label>' + (p.ayuda ? '<p style="margin:-4px 0 8px">' + esc(p.ayuda) + '</p>' : '');
+    if (p.t === 't') h += '<input type="text" data-in="' + esc(k) + '" value="' + esc(v) + '">';
+    if (p.t === 'l') h += '<textarea rows="2" data-in="' + esc(k) + '">' + esc(v) + '</textarea>';
+    if (p.t === 'd') h += '<select data-in="' + esc(k) + '"><option value="">Elegir</option>' + p.ops.map(function (o) { return '<option' + (o[0] === v ? ' selected' : '') + '>' + esc(o[0]) + '</option>'; }).join('') + '</select>';
+    if (p.t === 'e') h += '<div class="esc">' + [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" data-esc="' + esc(k) + '" data-v="' + n + '" class="' + (String(v) === String(n) ? 'si' : '') + '">' + n + '</button>'; }).join('') + '</div><div class="extremos"><span>' + esc(p.x[0]) + '</span><span>' + esc(p.x[1]) + '</span></div>';
+    if (p.t === 'o') h += '<div class="ops">' + p.ops.map(function (o) { return '<label><input type="radio" name="' + esc(k) + '" data-in="' + esc(k) + '" value="' + esc(o[0]) + '"' + (o[0] === v ? ' checked' : '') + '>' + esc(o[0]) + '</label>'; }).join('')
+      + (p.otra ? '<label><input type="radio" name="' + esc(k) + '" data-in="' + esc(k) + '" value="__otra"' + (v === '__otra' ? ' checked' : '') + '>Otra: <input type="text" data-in="' + esc(k) + '.otra" value="' + esc(resp[k + '.otra'] || '') + '"></label>' : '') + '</div>';
+    h += '<span class="aviso">Esta pregunta es obligatoria</span></div>';
+  });
+  var final = destino(pg) === FIN;
+  h += '<div class="pie">' + (historia.length > 1 ? '<button type="button" class="atras" id="atras">Atrás</button>' : '<span></span>')
+    + '<button type="button" class="enviar" id="seguir">' + (final ? 'Enviar' : 'Siguiente') + '</button></div>'
+    + '<p class="ensayo">Copia de ensayo del ticket: no envía nada. En la web, el formulario de Google de siempre.</p>';
+  document.getElementById('f').innerHTML = h;
+  document.querySelectorAll('[data-in]').forEach(function (el) {
+    var f = function () { if (el.type === 'radio' && !el.checked) return; resp[el.getAttribute('data-in')] = el.value; if (el.tagName === 'SELECT' || el.type === 'radio') repintarPie(); };
+    el.addEventListener('input', f); el.addEventListener('change', f);
+  });
+  document.querySelectorAll('[data-esc]').forEach(function (b) { b.onclick = function () {
+    resp[b.getAttribute('data-esc')] = b.getAttribute('data-v');
+    b.parentNode.querySelectorAll('button').forEach(function (x) { x.classList.toggle('si', x === b); });
+  }; });
+  if (document.getElementById('atras')) document.getElementById('atras').onclick = function () { historia.pop(); pintar(); scrollTo(0, 0); };
+  document.getElementById('seguir').onclick = seguir;
+}
+// adónde lleva esta página: la opción elegida que salta a otra sección (el tema, «¿Cómo has seguido esta clase?») o su «sigue»
+function destino(pg) {
+  var d = pg.sigue || null;
+  pg.piezas.forEach(function (p, i) { if (!p.ops) return; var v = resp[clave(pg, i)], o = p.ops.filter(function (x) { return x[0] === v; })[0]; if (o && o[1]) d = o[1]; });
+  return d || FIN;
+}
+function repintarPie() { var b = document.getElementById('seguir'); if (b) b.textContent = destino(pag(historia[historia.length - 1])) === FIN ? 'Enviar' : 'Siguiente'; }
+function seguir() {
+  var pg = pag(historia[historia.length - 1]), falta = null;
+  pg.piezas.forEach(function (p, i) { var c = document.querySelector('[data-k="' + clave(pg, i) + '"]'); var mal = p.r && !resp[clave(pg, i)]; c.classList.toggle('falta', mal); if (mal && !falta) falta = c; });
+  if (falta) { falta.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  var d = destino(pg);
+  if (d !== FIN) { historia.push(d); pintar(); scrollTo(0, 0); return; }
+  document.getElementById('f').innerHTML = '<div class="c tit gracias"><h1>STARGATE · Contacta con NEBULA (ticket de salida)</h1><p>Se ha registrado tu respuesta.</p><p class="ensayo">(Ensayo: no se ha enviado nada.)</p></div>';
   try { parent.postMessage({ sgTicket: 'hecho' }, '*'); } catch (x) { /* nada */ }
-};
+}
+pintar();
 </script>
 </body>
 </html>

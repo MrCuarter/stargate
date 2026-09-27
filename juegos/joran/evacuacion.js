@@ -1,14 +1,19 @@
 // LA EVACUACIÓN · el primer juego de la sala de Joran (borrador).
 // El simulacro que Joran convirtió en juego: correr por los pasillos de la Cero, de carril en carril, saltando vallas,
 // agachándose bajo las vigas y esquivando los bloques, con la Estática pegada a la espalda. A los 3 minutos llega la
-// cápsula de evacuación: si la alcanzas, te has salvado. Arcade puro: sin preguntas.
-import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=1b7fc6b8a5';
+// cápsula de evacuación: si la alcanzas, te has salvado.
+// Arcade o DESAFÍO (desafio.js, ?modo=desafio): en el desafío se te acaba el aliento y solo lo recuperas acertando.
+import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=cdadcf2641';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
+import { crearDesafio, MODO, urlModo } from './desafio.js?v=cdadcf2641';
 
 const V3 = THREE.Vector3;
 const CARRILES = [-2.4, 0, 2.4];
 const DURACION = 180;            // segundos hasta la cápsula
-const V0 = 15, VMAX = 31;        // m/s al empezar y al final
+// 27-sep (Norberto superó el oro a la primera): más velocidad al final, tramos más juntos y la Estática tarda más en
+// soltarte tras un tropiezo. Así, llegar a la cápsula ya es una marca y el oro pide una carrera limpia.
+const V0 = 15, VMAX = 36;        // m/s al empezar y al final (se llega al tope a los 150 s)
+const RESPIRO = 8;               // s que tarda la Estática en soltarte tras un tropiezo (otro tropiezo antes: atrapado)
 const SEG = 24, NSEG = 7;        // tramos del pasillo que se reciclan
 const JUEGO = JUEGOS[0];
 
@@ -127,11 +132,17 @@ function patron(z) {
   else if (r < 0.74) { poner('dron', elegir([0, 1, 2]), z); if (f > 0.4) poner('bloque', elegir([0, 1, 2]), z - 12); }
   else if (r < 0.88) { const t = ['valla', 'viga', 'bloque'].sort(() => Math.random() - 0.5); [0, 1, 2].forEach((c, i) => poner(t[i], c, z)); }
   else { otros.forEach((c, i) => poner(i ? 'valla' : 'viga', c, z)); poner('bloque', libre, z - 14); filaChispas(otros[0], z - 16, 5); }
-  if (f > 0.55 && Math.random() < 0.35) poner(elegir(['valla', 'viga']), elegir([0, 1, 2]), z - 9);
+  // a partir del minuto, un segundo obstáculo pegado al tramo, cada vez más a menudo (siempre saltable o agachable:
+  // nunca un bloque, que dejaría el carril sin salida)
+  if (f > 0.35 && Math.random() < 0.15 + f * 0.4) poner(elegir(['valla', 'viga', f > 0.6 ? 'dron' : 'valla']), elegir([0, 1, 2]), z - 9);
 }
 
 // ───────────────────────────────── controles
 const tecla = {};
+// el modo desafío: el aliento del corredor. Solo se gasta corriendo (ni en la cuenta atrás ni en la pausa); al volver de la
+// pregunta se sueltan las teclas, porque el keyup se lo tragó el panel y la tecla se quedaría «pulsada» (no cambiarías de carril)
+const DES = crearDesafio({ nombre: 'Aliento', segundos: 40, recarga: 40, alPausar: (si) => { if (!si) { for (const k in tecla) tecla[k] = false; toqueIni = null; } }, enJuego: () => !!P && !P.fin && P.cuenta <= 0 && !pausa });
+if (DES.activo) DES.preparar(); // se piden las preguntas mientras lees la portada
 addEventListener('keydown', (e) => {
   if (!P || P.fin || P.cuenta > 0 || pausa) { if (e.code === 'KeyP' || e.code === 'Escape') pausar(); return; }
   if (tecla[e.code]) return; tecla[e.code] = true;
@@ -177,13 +188,15 @@ function atrapado(motivo) {
   setTimeout(() => terminar(false, motivo), 1400);
 }
 function terminar(salvado, motivo) {
-  const puntos = P.puntos + (salvado ? 3000 : 0);
+  DES.parar();
+  let puntos = P.puntos + (salvado ? 3000 : 0);
+  const bonus = DES.bonus(puntos); puntos += bonus; // el bonus de precisión, sobre la marca ya completa (con la cápsula)
   $('hud').classList.add('oculto');
   finDePartida({
     juego: JUEGO.id, titulo: salvado ? '¡Has llegado a la cápsula!' : 'Te ha alcanzado la Estática', puntos,
     texto: salvado ? 'Como los niños del refugio aquella noche: por una ruta que ya conocías de memoria. <b>+3.000</b> por salvarte.' : motivo,
-    filas: [['Metros', Math.round(P.metros).toLocaleString('es-ES')], ['Chispas', P.chispas], ['Llaves', P.llaves], ['Tropiezos', P.tropiezos], ['Tiempo', `${Math.floor(P.t / 60)}:${String(Math.floor(P.t % 60)).padStart(2, '0')}`], ['Velocidad final', `${Math.round(P.v * 3.6)} km/h`]],
-    alRepetir: empezar,
+    filas: [['Metros', Math.round(P.metros).toLocaleString('es-ES')], ['Chispas', P.chispas], ['Llaves', P.llaves], ['Tropiezos', P.tropiezos], ['Tiempo', `${Math.floor(P.t / 60)}:${String(Math.floor(P.t % 60)).padStart(2, '0')}`], ['Velocidad final', `${Math.round(P.v * 3.6)} km/h`], ...DES.filas(bonus)],
+    alRepetir: empezar, extra: DES.extra(),
   });
 }
 
@@ -214,7 +227,7 @@ function tick(dt) {
   camara.lookAt(P.x * 0.65, 1.2 + P.y * 0.2, -9);
 
   // la Estática detrás
-  P.peligro = Math.max(0, P.peligro - dt / 5.5);
+  P.peligro = Math.max(0, P.peligro - dt / RESPIRO);
   velo.material.opacity = P.fin && !P.vivo ? 0.8 : P.peligro * 0.55;
   velo.position.x = P.x * 0.5; velo.position.z = 4.2 - P.peligro * 1.4;
   document.body.style.setProperty('--peligro', (P.fin && !P.vivo ? 1 : P.peligro).toFixed(2));
@@ -227,7 +240,7 @@ function tick(dt) {
   // aparecen cosas
   if (corriendo && P.t < DURACION) {
     P.siguiente -= avance;
-    if (P.siguiente <= 0) { patron(-150); P.siguiente = Math.max(15, 30 - P.t * 0.09); }
+    if (P.siguiente <= 0) { patron(-150); P.siguiente = Math.max(13, 30 - P.t * 0.11); }
     P.sigPremio -= dt;
     if (P.sigPremio <= 0) { poner(elegir(['llave', 'llave', 'rayo', 'iman']), elegir([0, 1, 2]), -150); P.sigPremio = azar(12, 22); }
   }
@@ -292,34 +305,43 @@ function tick(dt) {
 // ───────────────────────────────── arranque, pausa y bucle
 let pausa = false;
 function pausar() {
-  if (!P || P.fin) return; pausa = !pausa;
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (!P || P.fin || DES.abierto) return; pausa = !pausa; // con la pregunta abierta el juego ya está parado
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=cdadcf2641">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
-document.addEventListener('visibilitychange', () => { if (document.hidden && P && !P.fin && !pausa && P.cuenta <= 0 && !window.__sinPausa) pausar(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && P && !P.fin && !pausa && P.cuenta <= 0 && !DES.abierto && !window.__sinPausa) pausar(); });
 async function empezar() {
   for (const c of cosas.slice()) quitar(c);
   P = nuevaPartida(); pausa = false; window.__t0Partida = performance.now();
+  DES.empezar();
   velo.material.opacity = 0;
   jugador.poner('Idle', { fundido: 0 });
   $('hud').classList.remove('oculto'); cerrarPantalla();
   poner('chispa', 1, -20); filaChispas(1, -24, 6);
 }
 function portada() {
-  const e = estado();
-  pantalla(`<div class="kicker">El simulador de Joran · máquina 1</div><h2>La Evacuación</h2>
+  const e = estado(), desafio = MODO === 'desafio';
+  pantalla(`<div class="kicker">El simulador de Joran · máquina 1${desafio ? ' · modo desafío' : ''}</div><h2>La Evacuación</h2>
     <p>Joran convirtió el simulacro de evacuación del refugio en un juego. Aquella noche, los niños escaparon riendo por una ruta que conocían de memoria. <b>Ahora te toca a ti.</b></p>
     <div class="teclas"><kbd>← →  /  A D</kbd><span>Cambiar de carril (o desliza el dedo)</span><kbd>↑  /  W  /  Espacio</kbd><span>Saltar las vallas</span><kbd>↓  /  S</kbd><span>Agacharte bajo las vigas y los drones</span></div>
-    <p>Los <b>bloques</b> no se saltan: cambia de carril. Si tropiezas, la Estática se te echa encima; si vuelves a tropezar enseguida, te atrapa. Recoge <b>chispas</b>, <b>llaves</b> (+250), el <b>turbo</b> y el <b>imán</b>. A los 3 minutos llega la cápsula.</p>
+    <p>Los <b>bloques</b> no se saltan: cambia de carril. Si tropiezas, la Estática se te echa encima unos segundos; si vuelves a tropezar antes de que se aleje, te atrapa. Cada vez corres más. Recoge <b>chispas</b>, <b>llaves</b> (+250), el <b>turbo</b> y el <b>imán</b>. A los 3 minutos llega la cápsula.</p>
+    ${DES.texto()}
     <p class="pista">Tu récord: <b>${(e.marcas.evacuacion || 0).toLocaleString('es-ES')}</b> · pilotas a <b>${e.avatar === 'barbara' ? 'Bárbara' : e.avatar === 'fernando' ? 'Fernando' : 'Finn'}</b></p>
-    <div class="botones"><button id="b-ya">¡A correr!</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1b7fc6b8a5">Volver a la sala</a>'}</div>`);
-  $('b-ya').onclick = () => { audio(); empezar(); };
+    <div class="botones"><button id="b-ya">¡A correr!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=cdadcf2641">Volver a la sala</a>'}</div>`);
+  $('b-ya').onclick = async () => {
+    audio();
+    if (desafio) { // las preguntas tienen que estar antes de salir: sin ellas, el aliento no se podría recuperar
+      const b = $('b-ya'); b.disabled = true; b.textContent = 'Cargando preguntas…';
+      if (!(await DES.preparar())) aviso('Sin preguntas: juegas en arcade', '#ffc24a', 2.2);
+    }
+    empezar();
+  };
 }
 let antes = performance.now();
 function bucle(ahora) {
   requestAnimationFrame(bucle);
   const dt = Math.min(0.05, (ahora - antes) / 1000); antes = ahora;
-  if (!pausa) tick(dt);
+  if (!pausa && !DES.abierto) { tick(dt); DES.tick(dt); } // con la pregunta abierta, nada corre
   if (!P && jugador) { jugador.mezcla.update(dt); camara.position.set(0, 3.3, 6.6); camara.lookAt(0, 1.2, -9); }
   render.render(escena, camara);
 }
@@ -345,4 +367,4 @@ function bucle(ahora) {
   portada();
 })().catch((err) => { $('carga').textContent = 'No se pudo cargar: ' + err.message; console.error(err); });
 
-window.EVAC = { get P() { return P; }, get jugador() { return jugador; }, cosas, empezar, poner, camara, THREE };
+window.EVAC = { get P() { return P; }, get jugador() { return jugador; }, cosas, empezar, poner, camara, THREE, DES };

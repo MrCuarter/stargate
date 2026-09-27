@@ -1719,7 +1719,7 @@
   function juegosVisibles(){ var J=window.SG_JUEGOS||{}; return !!J.listos || (J.prueba||[]).indexOf(per)>=0; }
   function simuladorCaja(){
     if(!motorNuevo() || !st.yo || !juegosVisibles()) return '';
-    // 🔴 27-sep · el Simulador de Joran es su SALA: cuatro máquinas arcade y el Simulador de vuelo (la Ruta para repasar,
+    // 🔴 27-sep · el Simulador de Joran es su SALA: cinco máquinas arcade y el Simulador de vuelo (la Ruta para repasar,
     // con niveles). Se abre con su capítulo (c11, el tema 6). La batalla de preguntas (batalla.html) queda retirada.
     var SJ = window.SG_SALA_JORAN;
     if(!SJ || !abierto('simulador')) return '';
@@ -3330,7 +3330,7 @@
           x:'Dura lo que dura la semana y, si es algo raro, hay pocas unidades para todo el grupo: cuando se acaban, se acabó. <b>Una por persona</b>. Tu docente también puede preparar las suyas.'}],
     // 16-sep · EL SIMULADOR DE JORAN (semana 11). 23-sep · ya no es un reto: un juego de repaso que se enseña a todos
     c11:[{t:'La sala de Joran',foco:'.nb-t[data-tab="nave"]',
-          x:'Joran convirtió el simulacro de evacuación en un juego, y aquí están sus máquinas: <b>cuatro arcade</b> y el <b>Simulador de vuelo</b> para repasar la Ruta en tres niveles. La plata de cada máquina enciende la siguiente (o la enciendes con créditos).'},
+          x:'Joran convirtió el simulacro de evacuación en un juego, y aquí están sus máquinas: <b>cinco arcade</b> y el <b>Simulador de vuelo</b> para repasar la Ruta en tres niveles. La plata de cada máquina enciende la siguiente (o la enciendes con créditos).'},
          {t:'Hitos, Cuaderno y Galería',foco:'.nb-t[data-tab="nave"]',
           x:'Cada máquina tiene tres hitos que dan créditos <b>una vez</b>. El <b>Cuaderno de vuelo</b> guarda los grandes logros, hay ranking de tu clase y Salón de la fama, y en la <b>Galería</b> se valoran los juegos de la tripulación.'}],
     // 14-sep · el Gran Sorteo: lo cuenta con el premio y los ganadores de SU grupo (el referente
@@ -4287,7 +4287,8 @@
     var d=ev.target; if(!d||!d.classList||!d.classList.contains('tk-nave')||!d.open) return;
     var f=d.querySelector('iframe[data-src]'); if(!f||f.getAttribute('src')) return;
     var cargas=0;
-    f.addEventListener('load',function(){ if(++cargas>1){ try{ localStorage.setItem(d.getAttribute('data-tk'),'1'); }catch(e){} d.classList.add('hecho'); } });
+    // 28-sep · el ticket tiene varias páginas: la 2.ª carga es solo «Siguiente» (ver sesion.js, diaTicketForm)
+    f.addEventListener('load',function(){ if(++cargas>2){ try{ localStorage.setItem(d.getAttribute('data-tk'),'1'); }catch(e){} d.classList.add('hecho'); } });
     f.src=f.getAttribute('data-src');
   }, true);
 

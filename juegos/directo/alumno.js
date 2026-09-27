@@ -5,7 +5,7 @@
 //   · Duelo (por equipos): acertar deja elegir: EMPUJAR la baliza o SABOTEAR a la otra escuadrilla (una tormenta de estática).
 // ?sesion=1 → dentro de la sesión: entras solo, con tu alias y tu personaje (en la Nave salen de tu ficha), y la sala de espera
 // trae el ticket de salida. Sin ?sesion, la pantalla de «Únete» (desde la Nave, con el código).
-import { conectar, esperarMotor, conServidor, motor, PER, preguntasDelServidor, responderAlServidor, imagen, EN_WEB, AV, AVATARES, TEMAS, MODOS, EQUIPOS, VALOR, INTENSIDAD, temasDe } from './canal.js?v=1b7fc6b8a5';
+import { conectar, esperarMotor, conServidor, motor, PER, preguntasDelServidor, responderAlServidor, imagen, EN_WEB, AV, AVATARES, TEMAS, MODOS, EQUIPOS, VALOR, temasDe, kDe, ponerEquipos, emblema } from './canal.js?v=cdadcf2641';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -78,11 +78,18 @@ let cargasTicket = 0, ticketAbierto = false;
 function abrirTicket(abrir = true) {
   $('panel-ticket').classList.toggle('oculto', !abrir); document.querySelector('main').classList.toggle('con-ticket', abrir);
   $('b-ticket').textContent = abrir ? 'Abierto' : $('ticket').classList.contains('hecho') ? 'Hecho' : 'Abrir';
-  if (abrir && !$('marco-t').getAttribute('src')) $('marco-t').src = TICKET + (/docs\.google\.com/.test(TICKET) ? '&embedded=true' : '');
+  // (Google sirve sus formularios dentro de otra página con «embedded=true»: sin su cabecera ni su pie)
+  if (abrir && !$('marco-t').getAttribute('src')) $('marco-t').src = TICKET + (GOOGLE && !/[?&]embedded=true/.test(TICKET) ? (TICKET.includes('?') ? '&' : '?') + 'embedded=true' : '');
 }
+const GOOGLE = /docs\.google\.com/.test(TICKET);
 $('b-ticket').onclick = () => abrirTicket(true);
 $('b-cerrar-t').onclick = () => abrirTicket(false);
-$('marco-t').addEventListener('load', () => { if (++cargasTicket > 1) ticketHecho(); });
+// 🔴 27-sep · el ticket de verdad tiene VARIAS PÁGINAS (grupo, comandante y tema → las preguntas del tema → «sobre la clase
+// en directo» si la siguió en directo → enviado), y cada página es otra carga del marco: contar cargas no dice si se ha
+// enviado (con «> 1», se daba por hecho al pasar de la primera página). Desde fuera no se puede leer el formulario, así
+// que: al pasar de página, el botón «Ya he hecho mi ticket» se ilumina y el recluta lo confirma. La copia de ensayo sí
+// avisa al enviarse (postMessage), y entonces se marca sola.
+$('marco-t').addEventListener('load', () => { if (++cargasTicket > 1 && !listo) { $('b-listo').classList.add('pulso'); $('b-listo').textContent = cargasTicket > 2 ? '2 · Ya lo he enviado: a jugar' : '2 · Ya he hecho mi ticket'; } });
 addEventListener('message', (ev) => { if (ev.data && ev.data.sgTicket === 'hecho') ticketHecho(); });
 function ticketHecho() { try { if (TK) localStorage.setItem(TK, '1'); } catch (e) { /* nada */ } $('ticket').classList.add('hecho'); $('b-ticket').textContent = 'Hecho'; setTimeout(() => abrirTicket(false), 1400); marcarListo(); }
 function marcarListo() {
@@ -91,7 +98,8 @@ function marcarListo() {
   if (canal) canal.enviar({ t: 'hola', ...yo, listo: true });
   if (est && est.fase === 'juego' && !jugando) { abrirTicket(false); empezar(); } else pintarEspera();
 }
-$('b-listo').onclick = marcarListo;
+// al confirmarlo tras haber pasado al menos dos páginas del formulario, la Nave de este navegador ya lo da por hecho
+$('b-listo').onclick = () => { if (GOOGLE && cargasTicket > 2) try { if (TK) localStorage.setItem(TK, '1'); } catch (e) { /* nada */ } $('b-listo').classList.remove('pulso'); marcarListo(); };
 
 function pintarEspera() {
   if (!est) return;
@@ -103,12 +111,19 @@ function pintarEspera() {
   $('hoy').classList.remove('oculto');
   if ($('hoy').dataset.k !== c.modo) { $('hoy').dataset.k = c.modo; $('hoy').innerHTML = `<b>Hoy: ${esc(m.largo)}</b><span>${esc(m.breve)}</span><details><summary>Cómo se juega</summary><span>${esc(m.que)}</span></details>`; }
   const e = miEquipo();
-  $('mi-eq').innerHTML = c.modo === 'duelo' && e ? `<span class="eqchip" style="background:${EQUIPOS[e].color}">${EQUIPOS[e].n}</span>` : '';
+  $('mi-eq').innerHTML = c.modo === 'duelo' && e ? `<span class="eqchip" style="background:${EQUIPOS[e].color}">${emblema(e, 24)}${esc(EQUIPOS[e].n)}</span>` : '';
 }
 function alMensaje(m) {
   if (!m) return;
   if (m.t === 'estado') {
     const antes = est; est = m; ultimoEstado = performance.now(); $('conexion').classList.add('oculto');
+    ponerEquipos(m.eqs); // el Duelo: los dos escuadrones invitados que ha elegido la pantalla
+    // lo que el Comandante toca en caliente se cuenta aquí también (la dificultad y el reloj llegan con el estado)
+    if (jugando && antes && antes.fase === 'juego' && m.fase === 'juego' && !SOLO) {
+      const d0 = Number(antes.cfg && antes.cfg.dificultad) || 1, d1 = Number(m.cfg && m.cfg.dificultad) || 1;
+      if (d1 > d0 + 0.01) aviso('EL COMANDANTE SUBE LA DIFICULTAD', '#ff4d6d', 1.3); else if (d1 < d0 - 0.01) aviso('EL COMANDANTE BAJA LA DIFICULTAD', '#5dffa0', 1.3);
+      if (Math.abs((m.fin || 0) - (antes.fin || 0)) > 10000) aviso(m.fin > antes.fin ? '+20 SEGUNDOS' : '−20 SEGUNDOS', '#ffc24a', 1);
+    }
     if (m.fase === 'juego' && !jugando && listo && (!antes || antes.fase !== 'juego' || !ultimoFin)) empezar();
     if (!listo) pintarEspera();
     if (m.fase === 'preparar' && !jugando) { if (!$('fin').classList.contains('oculto') && antes && antes.fase === 'fin') { /* se queda el final hasta que lance */ } pintarEspera(); if (antes && antes.fase !== 'preparar') { $('fin').classList.add('oculto'); $('espera').classList.remove('oculto'); ultimoFin = null; if (ticketAbierto) abrirTicket(true); } }
@@ -116,6 +131,19 @@ function alMensaje(m) {
   if (m.t === 'fin') acabar(m);
   // al volver (o al llegar tarde), la pantalla del docente te devuelve lo que llevabas
   if (m.t === 'retoma' && m.id === yo.id) { retoma = m; if (jugando && stats) aplicarRetoma(); }
+  // 🔴 27-sep · el MANDO DEL COMANDANTE: su cañón de plasma limpia la pantalla (sin puntos: no cambia el marcador) y su
+  // reparación deja la nave como nueva
+  if (m.t === 'bomba' && jugando && !SOLO) {
+    for (const r of rocas.splice(0)) sumar(0, r.x, r.y); balas.length = 0; tormenta = 0; $('estatica').classList.add('oculto');
+    const d = $('destello'); d.classList.remove('ya'); void d.offsetWidth; d.classList.add('ya');
+    aviso('¡CAÑÓN DE PLASMA DEL COMANDANTE!', '#ff4dd8', 1.8); vibrar([40, 30, 120]);
+  }
+  if (m.t === 'curar' && jugando && !SOLO) {
+    nave.vida = 100; nave.repara = 0; nave.flash = 0; pintarCarta();
+    aviso(cfg().modo === 'defensa' ? 'EL COMANDANTE HA REPARADO TU NAVE Y EL ESCUDO' : 'EL COMANDANTE HA REPARADO TU NAVE', '#5dffa0', 1.8);
+    for (let i = 0; i < 24; i++) { const a = azar(0, 6.3), v = azar(60, 200); chispas.push({ x: nave.x * W, y: H - 120, vx: Math.cos(a) * v, vy: Math.sin(a) * v, vida: azar(0.4, 0.8) }); }
+    vibrar(60);
+  }
   if (m.t === 'sabotaje' && jugando && m.contra === miEquipo()) { tormenta = 5; $('estatica').classList.remove('oculto'); aviso(`¡SABOTAJE DE ${m.de.toUpperCase()}!`, '#ff4dd8', 1.4); try { navigator.vibrate && navigator.vibrate([60, 40, 60]); } catch (e) { /* nada */ } }
 }
 
@@ -127,7 +155,7 @@ async function empezar() {
   const temas = temasDe(c, est.temaSemana); temasJuego = temas;
   if (WEB) banco = await pedirPreguntas(temas);
   if (WEB && SOLO && !ataque) setTimeout(finSolo, 50); // el Asedio no está abierto (o no hay sesión): se dice y ya
-  else if (temas.length) try { const { PREGUNTAS } = await import(EN_WEB ? '../ruta/preguntas.js?v=1b7fc6b8a5' : '../ruta-estatica/preguntas.js?v=1b7fc6b8a5'); banco = temas.flatMap((t) => PREGUNTAS[t] || []).filter((q) => q.tipo === 'una' && !q.visual).sort(() => Math.random() - 0.5); } catch (e) { banco = []; }
+  else if (temas.length) try { const { PREGUNTAS } = await import(EN_WEB ? '../ruta/preguntas.js?v=cdadcf2641' : '../ruta-estatica/preguntas.js?v=cdadcf2641'); banco = temas.flatMap((t) => PREGUNTAS[t] || []).filter((q) => q.tipo === 'una' && !q.visual).sort(() => Math.random() - 0.5); } catch (e) { banco = []; }
   document.body.classList.add('juego');
   ticketAbierto = !$('panel-ticket').classList.contains('oculto');
   for (const id of ['espera', 'fin', 'entrar', 'panel-ticket']) $(id).classList.add('oculto'); document.querySelector('main').classList.remove('con-ticket');
@@ -207,6 +235,8 @@ function elegir() {
 const naveImg = imagen('img/nave.png');
 const nave = { x: 0.5, obj: 0.5, vida: 100, repara: 0, flash: 0, cad: 0 };
 const laseres = [], balas = [];
+// el daño de lo que te da, con la dificultad que haya puesto el Comandante (la intensidad ya cuenta en la velocidad)
+const dano = () => Number(cfg().dificultad) || 1;
 function vibrar(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) { /* nada */ } }
 function pintarCarta() {
   $('carta-vida').style.width = Math.max(0, nave.vida) + '%';
@@ -224,7 +254,7 @@ function golpe(n, motivo) {
 function dispararEstatica() {
   const desde = rocas.filter((r) => r.tipo !== 'roca' && r.y > 20 && r.y < H * 0.5);
   const o = desde.length ? desde[Math.floor(Math.random() * desde.length)] : { x: azar(40, W - 40), y: 10 };
-  const tx = nave.x * W, ty = H - 120, d = Math.hypot(tx - o.x, ty - o.y) || 1, v = 250 * (INTENSIDAD[cfg().intensidad] ? INTENSIDAD[cfg().intensidad].k : 1);
+  const tx = nave.x * W, ty = H - 120, d = Math.hypot(tx - o.x, ty - o.y) || 1, v = 250 * kDe(cfg());
   balas.push({ x: o.x, y: o.y, vx: (tx - o.x) / d * v, vy: (ty - o.y) / d * v });
 }
 
@@ -239,13 +269,13 @@ function acabar(m) {
     sub = h.length ? `<p style="text-align:center;font-size:18px;color:var(--ambar)">Eres ${h.join(' y ')} de la defensa</p>` : '';
     sub += `<p style="text-align:center">Has derribado <b>${stats.derribos}</b>, esquivado <b>${stats.esquivas}</b> y acertado <b>${stats.aciertos}</b> de ${stats.respondidas}.</p>`;
   } else if (m.modo === 'duelo') {
-    tit = !m.equipo ? '¡Empate!' : m.equipo === e ? '¡Gana tu escuadrilla!' : `Gana la ${EQUIPOS[m.equipo].n}`;
-    sub = `<p style="text-align:center">Has aportado <b>${puntos}</b> puntos a la ${e ? EQUIPOS[e].n : 'escuadrilla'}${stats.sabotajes ? ` y ${stats.sabotajes} sabotaje${stats.sabotajes > 1 ? 's' : ''}` : ''}.</p>`;
+    tit = !m.equipo ? '¡Empate!' : m.equipo === e ? `¡Gana tu escuadrón, ${esc(EQUIPOS[e].n)}!` : `Victoria de ${esc(EQUIPOS[m.equipo].n)}`;
+    sub = `<p style="text-align:center">${e ? emblema(e, 56) + '<br>' : ''}Has aportado <b>${puntos}</b> puntos a ${e ? esc(EQUIPOS[e].n) : 'tu escuadrón'}${stats.sabotajes ? ` y ${stats.sabotajes} sabotaje${stats.sabotajes > 1 ? 's' : ''}` : ''}.</p>`;
   } else {
     tit = pos && pos <= 3 ? `¡Podio! Puesto ${pos}` : `Puesto ${pos}`;
     sub = `<p style="text-align:center;font-size:17px">Has sumado <b style="color:var(--ambar)">${puntos}</b> puntos.</p>`;
   }
-  $('fin').innerHTML = `<div class="yo"><img class="av" onerror="if(!this.dataset.r){this.dataset.r=1;setTimeout(()=>{this.src+='?r=1'},400)}" src="${AV(yo.avatar)}" alt=""><b>${esc(yo.alias)}</b></div><h1 style="text-align:center">${tit}</h1>${sub}<p class="nota" style="text-align:center">Mira la pantalla de tu comandante.</p>${$('ticket').classList.contains('hecho') ? '' : '<div class="botones" style="justify-content:center"><button class="sec" id="b-ticket2">Tu ticket de salida</button></div>'}`;
+  $('fin').innerHTML = `<div class="yo"><img class="av" onerror="if(!this.dataset.r){this.dataset.r=1;setTimeout(()=>{this.src+='?r=1'},400)}" src="${AV(yo.avatar)}" alt=""><b>${esc(yo.alias)}</b></div><h1 style="text-align:center">${tit}</h1>${sub}<p class="nota" style="text-align:center">Mira la pantalla de tu comandante.</p>${!EN_SESION || !TICKET || $('ticket').classList.contains('hecho') ? '' : '<div class="botones" style="justify-content:center"><button class="sec" id="b-ticket2">Tu ticket de salida</button></div>'}`;
   $('fin').classList.remove('oculto');
   if ($('b-ticket2')) $('b-ticket2').onclick = () => abrirTicket(true);
 }
@@ -257,17 +287,26 @@ function ajustar() { const r = Math.min(devicePixelRatio, 2); W = innerWidth; H 
 addEventListener('resize', ajustar); ajustar();
 const rocas = [], chispas = [], flotan = [], disparos = [];
 const estrellas = Array.from({ length: 90 }, () => ({ x: Math.random(), y: Math.random(), v: azar(0.05, 0.25) }));
+// 🔴 27-sep · LOS ASTEROIDES DE LA NASA (Norberto: «los asteroides son muy cutres, ¿no teníamos cuerpos de la NASA?»). Los
+// mismos seis de la Defensa 3D y de la Ruta (Golevka, Toutatis, Kleopatra, Geographos, Mithra y 1998 HW1; NASA 3D
+// Resources, dominio público), renderizados a una lámina de 12 sprites de 128 px con su luz y el borde magenta de la
+// Estática: img/asteroides.png. Así el móvil no carga three.js ni los modelos. Si la lámina no llega, la roca dibujada.
+const LAMINA = imagen('img/asteroides.png'), MARCOS = 12;
 // qué cae, según el modo: en la defensa, lo que manda la Estática; en la caza, alguno dorado
+// (la velocidad se guarda SIN la dificultad: se aplica al moverse, así lo que ya cae también nota el cambio del Comandante)
 function nuevaRoca() {
-  const c = cfg(), k = INTENSIDAD[c.intensidad] ? INTENSIDAD[c.intensidad].k : 1;
+  const c = cfg();
   let tipo = 'roca';
-  if (c.modo === 'defensa') { const f = (Date.now() - (est.fin - c.dur * 1000)) / (c.dur * 1000); tipo = f < 0.28 ? 'roca' : f < 0.5 ? (Math.random() < 0.6 ? 'dron' : 'roca') : (Math.random() < 0.6 ? 'platillo' : 'dron'); }
+  if (c.modo === 'defensa') { const ini = est.inicio || (est.fin - c.dur * 1000), f = (Date.now() - ini) / Math.max(1, est.fin - ini); tipo = f < 0.28 ? 'roca' : f < 0.5 ? (Math.random() < 0.6 ? 'dron' : 'roca') : (Math.random() < 0.6 ? 'platillo' : 'dron'); }
   if (c.modo === 'caza' && Math.random() < 0.07) tipo = 'dorado';
-  return { tipo, x: azar(30, W - 30), y: -30, vy: azar(70, 150) * k * (tipo === 'dorado' ? 1.7 : 1), vx: azar(-25, 25) * (tipo === 'dron' ? 3 : 1), r: tipo === 'roca' ? azar(20, 34) : 24, rot: azar(0, 6), vr: azar(-2, 2), forma: Array.from({ length: 9 }, () => azar(0.72, 1.12)), color: `hsl(${azar(18, 38)},${azar(20, 40)}%,${azar(35, 52)}%)` };
+  return { tipo, x: azar(30, W - 30), y: -30, vy: azar(70, 150) * (tipo === 'dorado' ? 1.7 : 1), marco: Math.floor(Math.random() * MARCOS), vx: azar(-25, 25) * (tipo === 'dron' ? 3 : 1), r: tipo === 'roca' ? azar(20, 34) : 24, rot: azar(0, 6), vr: azar(-1.2, 1.2), forma: Array.from({ length: 9 }, () => azar(0.72, 1.12)), color: `hsl(${azar(18, 38)},${azar(20, 40)}%,${azar(35, 52)}%)` };
 }
 function dibujar(r) {
   cx.save(); cx.translate(r.x, r.y);
-  if (r.tipo === 'roca') {
+  if (r.tipo === 'roca' && LAMINA.complete && LAMINA.naturalWidth) {
+    // el sprite ocupa ≈ el 94 % de su casilla: un poco más grande que el radio de choque, que se vea entero
+    const t = LAMINA.naturalHeight, lado = r.r * 2.35; cx.rotate(r.rot); cx.drawImage(LAMINA, r.marco * t, 0, t, t, -lado / 2, -lado / 2, lado, lado);
+  } else if (r.tipo === 'roca') {
     cx.rotate(r.rot); cx.beginPath(); r.forma.forEach((k, i) => { const a = i / r.forma.length * Math.PI * 2; cx[i ? 'lineTo' : 'moveTo'](Math.cos(a) * r.r * k, Math.sin(a) * r.r * k); }); cx.closePath();
     const g = cx.createRadialGradient(-r.r * 0.3, -r.r * 0.3, 1, 0, 0, r.r * 1.2); g.addColorStop(0, '#d9c3a8'); g.addColorStop(0.5, r.color); g.addColorStop(1, '#241a14');
     cx.fillStyle = g; cx.fill(); cx.strokeStyle = 'rgba(255,77,216,.4)'; cx.lineWidth = 1.5; cx.stroke();
@@ -285,10 +324,14 @@ function dibujar(r) {
   cx.restore();
 }
 let sigRoca = 0, tocando = false;
+// 🔴 27-sep · Norberto: «no se mueve la nave con el ratón». El lienzo está DEBAJO de <main> (fijo y a pantalla completa,
+// aunque sus cajas estén ocultas), así que el ratón y el dedo nunca le llegaban: solo iban las flechas. Se escucha en la
+// ventana entera: el ratón (o el lápiz) mueve la nave con solo pasar; el dedo, al tocar y arrastrar. Con una pregunta en
+// pantalla no se mueve (los toques son para las respuestas).
 const moverA = (ev) => { if (jugando && !pregunta) nave.obj = Math.min(0.95, Math.max(0.05, ev.clientX / W)); };
-lienzo.addEventListener('pointerdown', (ev) => { tocando = true; moverA(ev); });
-lienzo.addEventListener('pointermove', (ev) => { if (tocando || ev.pointerType === 'mouse') moverA(ev); });
-addEventListener('pointerup', () => { tocando = false; });
+addEventListener('pointerdown', (ev) => { if (!jugando || pregunta) return; tocando = true; moverA(ev); });
+addEventListener('pointermove', (ev) => { if (tocando || ev.pointerType !== 'touch') moverA(ev); });
+addEventListener('pointerup', () => { tocando = false; }); addEventListener('pointercancel', () => { tocando = false; });
 const teclas = {};
 addEventListener('keydown', (ev) => { teclas[ev.key] = true; }); addEventListener('keyup', (ev) => { teclas[ev.key] = false; });
 
@@ -301,13 +344,13 @@ function bucle(ahora) {
   tormenta = Math.max(0, tormenta - dt);
   if (ultimoEstado && ahora - ultimoEstado > 3000) $('conexion').classList.remove('oculto'); if (!tormenta) $('estatica').classList.add('oculto');
   if (banco.length && !pregunta && (sigPreg -= dt) <= 0) { sigPreg = c.frecuencia; lanzarPregunta(); }
-  const kI = INTENSIDAD[c.intensidad] ? INTENSIDAD[c.intensidad].k : 1;
+  const kI = kDe(c);
   if (!pregunta && (sigEsq -= dt) <= 0) { sigEsq = (c.modo === 'defensa' ? azar(2.2, 4) : azar(5, 8)) / kI; dispararEstatica(); }
   if (!pregunta && (sigRoca -= dt) <= 0) { rocas.push(nuevaRoca()); sigRoca = azar(0.35, 0.8) / (tormenta ? 1.6 : 1); }
   cx.fillStyle = '#01040c'; cx.fillRect(0, 0, W, H);
   for (const s of estrellas) { s.y += s.v * dt; if (s.y > 1) s.y -= 1; cx.fillStyle = 'rgba(207,233,255,.7)'; cx.fillRect(s.x * W, s.y * H, 1.5, 1.5); }
   for (const r of rocas.slice()) {
-    if (!pregunta) { const t = tormenta ? 1.8 : 1; r.y += r.vy * dt * t; r.x += r.vx * dt * t + (tormenta ? azar(-3, 3) : 0); r.rot += r.vr * dt; if (r.x < 20 || r.x > W - 20) r.vx *= -1; }
+    if (!pregunta) { const t = (tormenta ? 1.8 : 1) * kI; r.y += r.vy * dt * t; r.x += r.vx * dt * t + (tormenta ? azar(-3, 3) : 0); r.rot += r.vr * dt; if (r.x < 20 || r.x > W - 20) r.vx *= -1; }
     if (r.y > H + 40) { rocas.splice(rocas.indexOf(r), 1); if (SOLO && r.tipo !== 'roca') golpeSolo(3); continue; }
     dibujar(r);
   }
@@ -329,12 +372,12 @@ function bucle(ahora) {
   // los disparos de la Estática: si pasan de largo, esquivado; si te dan, pierdes vida
   for (const b of balas.slice()) {
     if (!pregunta) { b.x += b.vx * dt; b.y += b.vy * dt; }
-    if (Math.abs(b.x - nx) < NW * 0.38 && Math.abs(b.y - ny) < NH * 0.45) { balas.splice(balas.indexOf(b), 1); golpe(20, '¡IMPACTO!'); continue; }
+    if (Math.abs(b.x - nx) < NW * 0.38 && Math.abs(b.y - ny) < NH * 0.45) { balas.splice(balas.indexOf(b), 1); golpe(20 * dano(), '¡IMPACTO!'); continue; }
     if (b.y > ny + NH) { balas.splice(balas.indexOf(b), 1); if (nave.repara === 0) { stats.esquivas++; flotan.push({ x: b.x, y: ny - 40, t: 'esquivado', vida: 0.8, color: '95,244,255' }); } continue; }
     cx.fillStyle = '#ff3d6b'; cx.shadowColor = '#ff3d6b'; cx.shadowBlur = 14; cx.beginPath(); cx.arc(b.x, b.y, 7, 0, Math.PI * 2); cx.fill(); cx.shadowBlur = 0;
   }
   // chocar con lo que cae también hace daño (y lo rompe, sin puntos)
-  for (const r of rocas.slice()) if (Math.abs(r.x - nx) < r.r * 0.8 + NW * 0.35 && Math.abs(r.y - ny) < r.r * 0.8 + NH * 0.4) { rocas.splice(rocas.indexOf(r), 1); sumar(0, r.x, r.y); golpe(12, '¡CHOQUE!'); }
+  for (const r of rocas.slice()) if (Math.abs(r.x - nx) < r.r * 0.8 + NW * 0.35 && Math.abs(r.y - ny) < r.r * 0.8 + NH * 0.4) { rocas.splice(rocas.indexOf(r), 1); sumar(0, r.x, r.y); golpe(12 * dano(), '¡CHOQUE!'); }
   cx.save(); cx.globalAlpha = nave.repara > 0 ? 0.35 + 0.25 * Math.sin(ahora / 80) : 1;
   if (naveImg.complete && naveImg.naturalWidth) cx.drawImage(naveImg, nx - NW / 2, ny - NH / 2, NW, NH);
   if (nave.flash > 0) { cx.globalCompositeOperation = 'lighter'; cx.fillStyle = `rgba(255,61,107,${nave.flash})`; cx.beginPath(); cx.ellipse(nx, ny, NW * 0.5, NH * 0.6, 0, 0, Math.PI * 2); cx.fill(); }
@@ -355,7 +398,7 @@ function bucle(ahora) {
     $('abajo-b').style.width = est.escudo + '%';
   } else if (c.modo === 'duelo') {
     $('h-2').textContent = e ? EQUIPOS[e].corto : '–'; $('h-2').style.color = e ? EQUIPOS[e].color : '';
-    $('abajo-t').textContent = c.oculto ? 'La baliza: mira la pantalla' : `La baliza: ${est.baliza > 0.05 ? 'va ganando Cian' : est.baliza < -0.05 ? 'va ganando Ámbar' : 'en el centro'}`;
+    $('abajo-t').textContent = c.oculto ? 'La baliza: mira la pantalla' : `La baliza: ${est.baliza > 0.05 ? 'va ganando ' + EQUIPOS.A.n : est.baliza < -0.05 ? 'va ganando ' + EQUIPOS.B.n : 'en el centro'}`;
     $('abajo-b').style.width = (50 + est.baliza * 50) + '%';
   } else {
     $('h-2').textContent = c.oculto ? '?' : pos ? pos + '.º' : '–';

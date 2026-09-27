@@ -6,7 +6,7 @@
 <title>El Descenso</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="comun.css?v=1b7fc6b8a5">
+<link rel="stylesheet" href="comun.css?v=cdadcf2641">
 <style>
 .instr{position:absolute;right:16px;top:14px;display:grid;grid-template-columns:auto auto;gap:3px 12px;background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:10px 14px;font-size:14px;min-width:210px}
 .instr span{opacity:.8}
@@ -26,6 +26,9 @@
 .mandos button.prop{width:120px;border-radius:44px;font-size:13px;background:linear-gradient(135deg,#ffb347,#ff6a3d);color:#1a0600}
 body.tactil .mandos{display:flex}
 body.tactil .comb{bottom:120px}
+/* la barra del modo desafío (Oxígeno): abajo a la derecha; en el móvil, por encima de los botones táctiles (88 px + 14) */
+#des-slot .des-hud{right:16px;bottom:16px;width:min(320px,42vw)}
+body.tactil #des-slot .des-hud{bottom:120px}
 body.tactil #extra{bottom:170px!important}
 @media (max-width:760px){.instr{top:120px;min-width:0;font-size:13px}#viento{top:262px;min-width:0}}
 </style>
@@ -52,10 +55,11 @@ body.tactil #extra{bottom:170px!important}
   <div id="viento"><span>Viento solar</span><span class="flecha"><i id="h-vi"></i></span><b id="h-vf">0</b></div>
   <div class="comb"><small>Combustible</small><div class="barra" id="h-cb"><i id="h-c"></i></div></div>
   <div id="extra"></div>
+  <div id="des-slot"></div>
 </div>
 <div class="mandos" id="mandos"><button id="m-izq" aria-label="Girar a la izquierda">⟲</button><button id="m-prop" class="prop">PROPULSOR</button><button id="m-der" aria-label="Girar a la derecha">⟳</button></div>
 <div id="aviso"></div>
 <div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
-<script type="module" src="descenso.js?v=1b7fc6b8a5"></script>
+<script type="module" src="descenso.js?v=cdadcf2641"></script>
 </body>
 </html>
