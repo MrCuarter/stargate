@@ -376,7 +376,7 @@ window.SG_NEBULA_FAQ = [
   // ───────────────────────────── LA RUTA DE LA ESTÁTICA ─────────────────────────────
   { id: "ruta", p: ["qué es la ruta de la estática", "dónde está la ruta", "misiones de nave"],
     claves: ["ruta", "estatica", "misiones", "mision", "pilotar"],
-    r: "Diez misiones de nave de unos 3 minutos: la primera tras la presentación y una al cerrar cada tema, hasta el planeta siguiente. Las preguntas se contestan <b>pilotando</b>. Está en <b>Retos → La Ruta</b>. No es obligatoria.", ir: "ruta" },
+    r: "Diez misiones de nave de unos 5 minutos (una decena de preguntas cada una): la primera tras la presentación y una al cerrar cada tema, hasta el planeta siguiente. Las preguntas se contestan <b>pilotando</b>. Está en <b>Retos → La Ruta</b>. No es obligatoria.", ir: "ruta" },
   { id: "ruta_medallas", p: ["cómo consigo el oro en la ruta", "medallas de la ruta", "cuánto da la ruta", "bronce plata oro ruta"],
     claves: ["medalla", "medallas", "oro", "plata", "bronce", "premio"],
     r: "Bronce por llegar (15 xp y 5 ◈); plata (10 xp y 5 ◈ más) y oro (5 xp y 10 ◈ más), por saber y por pilotar. Cada escalón se cobra una vez por misión.", ir: "ruta" },

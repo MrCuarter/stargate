@@ -34,5 +34,5 @@ export const ASEDIO = {
   "Fantasma",
   "Constancia"
  ],
- "v": "ff69e3ea03"
+ "v": "4eafd61012"
 };

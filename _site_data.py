@@ -945,7 +945,7 @@ SESION_EMBARQUE = [
     ("llamada", "", "ap", "**La llamada a filas**: su primer fichaje"),
     ("ticket", "p", "ap", "**El ticket de la presentación**, dentro de la diapositiva: lo rellenan ahí mismo"),
     # 27-sep · el primer vuelo de la Ruta de la Estática: de la Cero a Fôrge, con preguntas de la asignatura (borrador)
-    ("ruta", "m0", "ap", "**La Ruta · primer vuelo**: la misión de nave hasta Fôrge, con preguntas de la asignatura (3 minutos)"),
+    ("ruta", "m0", "ap", "**La Ruta · primer vuelo**: la misión de nave hasta Fôrge, con una decena de preguntas de la asignatura (unos 5 minutos)"),
     ("hasta", "forge", "ap", "**Nos vemos en Fôrge**: tu comandante se despide hasta la sesión 2"),
 ]
 # 26-sep · LA ASIGNATURA EN TRES BLOQUES (la presentación). Los títulos de cada tema son los de la programación oficial
@@ -1004,7 +1004,7 @@ SESION_SECCIONES = [
     ("simulador", "La sala de Joran", "Los récords de la clase en las máquinas de Joran."),
     ("votacion", "Votación", "La votación de la semana, si la hay."),
     # 27-sep · la misión de nave al cerrar cada tema (y tras la presentación, y Vaeon en la última clase) · borrador
-    ("ruta", "La Ruta de la Estática", "Al cerrar cada tema: la misión de nave hasta el planeta siguiente (3 minutos). Tras la presentación, el primer vuelo; en la última clase, Vaeon."),
+    ("ruta", "La Ruta de la Estática", "Al cerrar cada tema: la misión de nave hasta el planeta siguiente (unos 5 minutos, una decena de preguntas). Tras la presentación, el primer vuelo; en la última clase, Vaeon."),
     ("ticket", "Ticket de salida", "Lo que dijisteis al salir (o el ticket para rellenar)."),
     # 27-sep · el juego del final de cada clase: tú lo configuras y lo lanzas; la clase, desde el móvil (borrador)
     ("directo", "En directo", "El juego del final: cada recluta desde su móvil, con su personaje. Tras el ticket."),

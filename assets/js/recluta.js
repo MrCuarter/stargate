@@ -502,22 +502,22 @@
      * así no se recarga cada vez que la Nave se repinta.
      */
     var sub=st.arSub==='sesiones'?'sesiones':'narrativa';
-    var pesta='<div class="ar-subtabs" role="tablist">'
-      +'<button type="button" role="tab" class="ar-sub'+(sub==='narrativa'?' on':'')+'" data-arsub="narrativa" aria-selected="'+(sub==='narrativa')+'">Narrativa y vídeos</button>'
-      +(per&&!SIMULACRO?'<button type="button" role="tab" class="ar-sub'+(sub==='sesiones'?' on':'')+'" data-arsub="sesiones" aria-selected="'+(sub==='sesiones')+'">Sesiones de clase</button>':'')
+    var pesta='<div class="ar-subtabs bt-puertas" role="tablist">'
+      +puertaSec('narrativa', 'Narrativa y vídeos', sub==='narrativa', 'data-arsub="narrativa"').replace('class="bt-puerta','class="ar-sub bt-puerta')
+      +(per&&!SIMULACRO?puertaSec('sesiones', 'Sesiones de clase', sub==='sesiones', 'data-arsub="sesiones"').replace('class="bt-puerta','class="ar-sub bt-puerta'):'')
       +'</div>';
     if(sub==='sesiones'){
       var ses=sesionesArchivo(), sel=st.arSes||(ses.length?ses[ses.length-1].u:'');
       if(!st.arSes) st.arSes=sel;
-      return '<section class="archivo"><div class="ar-cab"><div><div class="eyebrow teal">El Archivo</div><h2>Las sesiones de clase</h2>'
+      return '<section class="archivo">'+pesta+'<div class="ar-cab"><div><div class="eyebrow teal">El Archivo</div><h2>Las sesiones de clase</h2>'
         +'<p class="lead">Todas en un sitio: la presentación de la asignatura, cada semana tal como se vio en clase y la sesión de cada actividad. Por si no pudiste estar, o para repasar.</p></div></div>'
-        +pesta+'<div class="ar-ses-lista">'+ses.map(function(x){ return '<button type="button" class="ar-ses-b'+(x.u===sel?' on':'')+'" data-arses="'+esc(x.u)+'"><b>'+esc(x.t)+'</b><small>'+esc(x.s)+'</small></button>'; }).join('')+'</div></section>';
+        +'<div class="ar-ses-lista">'+ses.map(function(x){ return '<button type="button" class="ar-ses-b'+(x.u===sel?' on':'')+'" data-arses="'+esc(x.u)+'"><b>'+esc(x.t)+'</b><small>'+esc(x.s)+'</small></button>'; }).join('')+'</div></section>';
     }
-    return '<section class="archivo"><div class="ar-cab"><div><div class="eyebrow teal">El Archivo</div>'
+    // las puertas, arriba del todo: en el mismo sitio que en Retos y en el Mercado
+    return '<section class="archivo">'+pesta+'<div class="ar-cab"><div><div class="eyebrow teal">El Archivo</div>'
       +'<h2>La historia, fragmento a fragmento</h2>'
       +'<p class="lead">Todo lo que ha grabado NEBULA, en orden. Los <b>fragmentos</b> de cada personaje solo los ve quien registra su reto: la historia se colecciona ganándola.</p></div>'
       +'<div class="ar-marcador"><b>'+fr7+'</b><span>de '+FRAGS.length+' fragmentos<br>desbloqueados</span></div></div>'
-      +pesta
       +(filas||'<div class="card"><p class="muted">Todavía no hay vídeos que enseñar.</p></div>')+'</section>';
   }
   // las sesiones que ya se pueden ver: la presentación, las semanas llegadas y las actividades abiertas (en su semana)
@@ -1774,7 +1774,7 @@
     var abiertas=R.misiones.filter(function(m){ return semanaDeMision(m, L)<=hoy; });
     if(!abiertas.length) return '';
     return '<div class="card ruta-caja"><div class="ru-txt"><div class="eyebrow amber">Misiones de nave</div><h3>La Ruta de la Estática</h3>'
-      +'<p class="small">Cuando se cierra un tema, tomas los mandos hasta el planeta siguiente: 3 minutos de vuelo, puertas con preguntas y drones de la Estática. <b>Bronce</b> por llegar; <b>plata</b> y <b>oro</b>, por saber y por pilotar.</p></div>'
+      +'<p class="small">Cuando se cierra un tema, tomas los mandos hasta el planeta siguiente: unos 5 minutos de vuelo, una decena de puertas con preguntas y drones de la Estática. <b>Bronce</b> por llegar; <b>plata</b> y <b>oro</b>, por saber y por pilotar.</p></div>'
       +'<div class="ru-lista">'+R.misiones.map(function(m){
         var sem=semanaDeMision(m, L), ya=sem<=hoy, md=(marcas[m.id]&&marcas[m.id].medalla)||'nada';
         var nombre=m.final?'Vaeon':esc(m.de)+' → '+esc(m.a);
@@ -2277,14 +2277,30 @@
   function grupoDe(k){ return BARRA.filter(function(g){ return g[3].indexOf(k)>=0; })[0]||BARRA[0]; }
   function grupoAbierto(g){ return g[3].some(function(k){ return tabVisible(k); }); }
   // la tira de secciones del grupo (solo si tiene más de una); las cerradas, apagadas como en la barra
+  /**
+   * 🔴 28-sep · LAS SECCIONES, PUERTAS GRANDES. Norberto: «haz mucho más visual el selector de secciones (en Retos, Archivo
+   * y Mercado)… es poco intuitivo. Debería parecerse al Botín: aparecen en grande con su icono». Eran pastillas de texto
+   * que no se veían como botones. Ahora son las mismas puertas del Botín (.bt-puerta): icono, nombre y qué hay dentro.
+   * Una sola función para las tres pestañas (puertaSec) y la misma en el Archivo.
+   */
+  var SEC_PUERTA={ retos:['retos','Los retos de cada planeta: aquí se registran'], ruta:['cohete','Misiones de nave con preguntas del temario'],
+    simulador:['dados','Máquinas arcade, repaso y récords'], mercado:['mercado','Gasta tus créditos: sobres, cápsulas y adornos'],
+    zoco:['zoco','El trueque con tu tripulación'], narrativa:['video','La historia y los fragmentos que ganas'], sesiones:['clase','Cada clase, para verla en diferido'] };
+  function puertaSec(k, tit, on, attr, extra, cerrada){
+    var m=SEC_PUERTA[k]||['estrella',''];
+    return '<button type="button" role="tab" class="bt-puerta'+(on?' on':'')+(cerrada?' bloq':'')+'" aria-selected="'+on+'" '+attr+'>'
+      +'<img class="bt-p-img" src="assets/img/iconos/p/'+m[0]+'.png" alt="">'
+      +'<span class="bt-p-t"><b>'+esc(tit)+(cerrada?'<span class="nb-candado" aria-label="(cerrado)"></span>':'')+'</b><small>'+esc(m[1])+'</small></span>'
+      +(extra||'')+'</button>';
+  }
   function seccionesDe(){
     var g=grupoDe(st.tab); if(g[3].length<2) return '';
-    return '<div class="nb-secs" role="tablist" aria-label="'+esc(g[2])+'">'+g[3].map(function(k){
+    return '<div class="nb-secs bt-puertas" role="tablist" aria-label="'+esc(g[2])+'">'+g[3].map(function(k){
       var x=TABS.filter(function(t){ return t[0]===k; })[0], on=st.tab===k, cerrada=!tabVisible(k);
-      return '<button type="button" role="tab" class="nb-sec'+(on?' on':'')+(cerrada?' bloq':'')+'" aria-selected="'+on+'" data-tab="'+k+'">'+esc(x[2])
-        +(cerrada?'<span class="nb-candado" aria-label="(cerrado)"></span>':'')
-        +(k==='simulador'&&simNuevo()&&!on?'<span class="nb-badge nuevo">NUEVO</span>':'')
-        +(k==='zoco'&&zocoPendientes().length?'<span class="nb-badge">'+zocoPendientes().length+'</span>':'')+'</button>';
+      return puertaSec(k, x[2], on, 'data-tab="'+k+'"',
+        (k==='simulador'&&simNuevo()&&!on?'<span class="bt-p-aviso">NUEVO</span>':'')
+        +(k==='zoco'&&zocoPendientes().length?'<span class="bt-p-aviso">'+zocoPendientes().length+(zocoPendientes().length===1?' oferta':' ofertas')+'</span>':''), cerrada)
+        .replace('class="bt-puerta','class="nb-sec bt-puerta');
     }).join('')+'</div>';
   }
   function iconoTab(k){ return '<img class="i" src="'+(k==='simulador'?'assets/img/iconos/diana.png':'assets/img/nave/iconos/'+k+'.png')+'" alt="" width="26" height="26" aria-hidden="true">'; }

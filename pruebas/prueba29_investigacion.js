@@ -127,7 +127,35 @@ tk.setCollectEmail(true).setLimitOneResponsePerUser(true).setShowLinkToRespondAg
 G.ajustesTicket_(tk);
 igual(tk.recogeCorreo, false, "🔴 el ticket vuelve a ser ANÓNIMO aunque alguien lo tocara");
 igual(tk.unaRespuesta, false, "🔴 y vuelve a admitir una respuesta por TEMA, no una por curso");
-igual(tk.otraVez, true, "y vuelve a ofrecer el enlace para responder otra vez");
+// 🔴 28-sep · Norberto: «si pulso Enviar otra respuesta no aparecen los campos rellenos del grupo y docente». Ese enlace
+// de Google abre el formulario limpio: se quita, y la confirmación dice cómo mandar otro (desde la Nave o la sesión).
+igual(tk.otraVez, false, "🔴 y SIN «Enviar otra respuesta» (abría el ticket sin grupo ni docente)");
+igual(/desde tu Nave o desde la sesión/.test(tk.getConfirmationMessage()), true, "y la confirmación dice cómo mandar otro, ya relleno");
+
+// ---------------------------------------------------------------- d2) 28-sep · STARGATE EN EL BALANCE FINAL (tesis)
+// «¿Has participado en el proyecto gamificado STARGATE? Si la respuesta es sí, otra sección con preguntas orientadas a
+// conocer el impacto… Esto es importante de cara al doctorado».
+const tc = G.FormApp.create("ticket compartido");
+G.construirTicket_(tc, "", "", "*");
+const tit = () => tc.getItems().map(i => i.getTitle());
+igual(tc.otraVez, false, "el ticket nuevo nace ya sin «Enviar otra respuesta»");
+const iRes = tit().indexOf("Resumen global de la asignatura"), iPart = tit().indexOf(G.TIT_PARTICIPO);
+const iSi = tit().indexOf(G.TIT_PAG_STARGATE), iNo = tit().indexOf(G.TIT_PAG_NO_STARGATE);
+igual(iRes >= 0 && iPart > iRes && iPart < iSi && iSi < iNo, true, "«¿Has participado en STARGATE?» cierra el balance final, y detrás van la página del sí y la del no");
+const part = tc.getItems().filter(i => i.getTitle() === G.TIT_PARTICIPO)[0];
+igual(part.isRequired(), true, "es obligatoria: de ella sale el camino");
+igual(part.getChoices().map(o => (o.getGotoPage() || {}).titulo), [G.TIT_PAG_STARGATE, G.TIT_PAG_STARGATE, G.TIT_PAG_NO_STARGATE],
+      "«Sí» (activa o poca) → «STARGATE y tu aprendizaje»; «No» → por qué no");
+const entre = tc.getItems().slice(iSi + 1, iNo);
+igual(entre.filter(i => i.tipo === "SCALE").map(i => i.getTitle()), G.IMPACTO_STARGATE, "las diez escalas de impacto, en orden");
+igual(G.IMPACTO_STARGATE.some(t => /carga o una distracción/.test(t)), true, "con un ítem en negativo, para no medir solo aquiescencia");
+igual(entre.some(i => i.getTitle() === G.TIT_PARTES_STARGATE && i.tipo === "CHECKBOX"), true, "qué partes ayudaron más, con casillas");
+igual(tc.getItems()[iNo].getPageNavigationType(), "SUBMIT", "🔴 al acabar la página del sí se ENVÍA (no pasa a la del no)");
+const n0 = tc.getItems().length;
+igual(G.balanceStargate_(tc), 0, "idempotente: la segunda vez no toca nada");
+igual(tc.getItems().length, n0, "y no duplica ni una pregunta");
+const viejoTk = G.FormApp.create("ticket sin balance"); viejoTk.addParagraphTextItem().setTitle("nada");
+igual(G.balanceStargate_(viejoTk), 0, "un formulario sin «Resumen global» se deja en paz");
 
 // ---------------------------------------------------------------- e) la bifurcación directo/diferido
 // Sin esto, los tres ítems de arriba los responde también quien vio la grabación —que no puede

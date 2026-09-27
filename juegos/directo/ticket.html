@@ -49,7 +49,7 @@ select{font:inherit;font-size:15px;padding:8px;border:1px solid #dadce0;border-r
 <div class="f" id="f"></div>
 <script>
 // Las piezas del formulario: t = texto corto, l = párrafo, e = escala 1-5 (con sus extremos), o = opción única,
-// d = desplegable (el tema: de él sale la sección siguiente, como en Google), s = página nueva.
+// d = desplegable (el tema: de él sale la sección siguiente, como en Google), c = casillas (varias), s = página nueva.
 // `a` = a qué sección salta cada opción (FIN = enviar). `r` = obligatoria.
 var FIN = 'fin';
 var PAGINAS = [
@@ -87,7 +87,29 @@ var PAGINAS = [
     { t: 'e', q: 'Grado de satisfacción con tu profesor/a', x: ['El peor / La peor hasta la fecha', 'El mejor / La mejor hasta la fecha'] },
     { t: 'l', q: '¿Qué ha sido lo mejor de la asignatura?' },
     { t: 'l', q: '¿Y lo peor?' },
-    { t: 'l', q: 'Deja un comentario a tu profesor/a' } ] },
+    { t: 'l', q: 'Deja un comentario a tu profesor/a' },
+    { t: 'o', r: true, q: '¿Has participado en el proyecto gamificado STARGATE?', ayuda: 'Participar era voluntario y no cambia tu nota. Tu respuesta nos ayuda a saber qué funciona.',
+      ops: [['Sí, de forma activa (retos, juegos, clases…)', 'stargate'], ['Sí, pero poco', 'stargate'], ['No', 'nostargate']] } ] },
+  // 28-sep · para la tesis: el impacto de STARGATE (espejo de balanceStargate_ en apps-script/Code.gs)
+  { id: 'stargate', tit: 'STARGATE y tu aprendizaje', sub: 'Lo que ha supuesto STARGATE para ti como estudiante. Anónimo. De 1 (totalmente en desacuerdo) a 5 (totalmente de acuerdo).', sigue: FIN, piezas: [
+    'Con STARGATE he aprendido más que en una asignatura sin gamificar',
+    'STARGATE ha hecho que me implique más en la asignatura',
+    'STARGATE me ha motivado a llevar la asignatura al día (clases, temas, actividades)',
+    'Los retos de STARGATE me han ayudado a entender y aplicar los contenidos',
+    'STARGATE ha mejorado mis resultados (actividades, tests, examen)',
+    'He participado más en las clases en directo gracias a STARGATE',
+    'En algún momento STARGATE me ha resultado una carga o una distracción',
+    'Repetiría una experiencia como STARGATE',
+    'Me gustaría que otras asignaturas del máster usaran un sistema así',
+    'Después de vivirlo, usaría la gamificación con mi futuro alumnado'].map(function (q) { return { t: 'e', q: q, x: ['Totalmente en desacuerdo', 'Totalmente de acuerdo'] }; }).concat([
+    { t: 'c', q: '¿Qué partes de STARGATE te han ayudado más a aprender?', otra: true, ops: [['Los retos prácticos (en clase y en casa)'], ['La Ruta de la Estática y el Simulador de vuelo'],
+      ['Los juegos de la sala de Joran'], ['Los juegos en las clases en directo'], ['Rankings y escuadrones'], ['Insignias, cromos y héroes'], ['El Mercado y el Zoco'],
+      ['La historia, los vídeos y los personajes'], ['NEBULA (la ayuda)']] },
+    { t: 'o', q: '¿Cuánto tiempo a la semana le has dedicado a STARGATE, más o menos?', ops: [['Menos de 30 minutos'], ['Entre 30 minutos y 1 hora'], ['Entre 1 y 2 horas'], ['Más de 2 horas']] },
+    { t: 'l', q: 'Con tus palabras: ¿qué ha supuesto STARGATE en tu forma de estudiar esta asignatura?' },
+    { t: 'l', q: '¿Qué cambiarías o mejorarías de STARGATE?' } ]) },
+  { id: 'nostargate', tit: 'Si no has participado en STARGATE', sub: 'Anónimo y opcional. Nos ayuda a mejorarlo.', sigue: FIN, piezas: [
+    { t: 'c', q: '¿Por qué no has participado?', otra: true, ops: [['No me interesaba'], ['No tenía tiempo'], ['No entendí cómo funcionaba'], ['No sabía que existía'], ['Prefiero no competir con mis compañeros']] } ] },
 ];
 var DESC = 'En este cuestionario encontrarás un espacio donde formular todas las dudas que tengas sobre la clase. También puedes indicarnos tu grado de satisfacción sobre las herramientas, metodología y progreso. Responde con sinceridad: es ANÓNIMO y nos sirve para ayudarte a mejorar.';
 
@@ -109,6 +131,8 @@ function pintar() {
     if (p.t === 'l') h += '<textarea rows="2" data-in="' + esc(k) + '">' + esc(v) + '</textarea>';
     if (p.t === 'd') h += '<select data-in="' + esc(k) + '"><option value="">Elegir</option>' + p.ops.map(function (o) { return '<option' + (o[0] === v ? ' selected' : '') + '>' + esc(o[0]) + '</option>'; }).join('') + '</select>';
     if (p.t === 'e') h += '<div class="esc">' + [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" data-esc="' + esc(k) + '" data-v="' + n + '" class="' + (String(v) === String(n) ? 'si' : '') + '">' + n + '</button>'; }).join('') + '</div><div class="extremos"><span>' + esc(p.x[0]) + '</span><span>' + esc(p.x[1]) + '</span></div>';
+    if (p.t === 'c') { var marc = String(v).split('|'); h += '<div class="ops">' + p.ops.map(function (o) { return '<label><input type="checkbox" data-cas="' + esc(k) + '" value="' + esc(o[0]) + '"' + (marc.indexOf(o[0]) >= 0 ? ' checked' : '') + '>' + esc(o[0]) + '</label>'; }).join('')
+      + (p.otra ? '<label><input type="checkbox" data-cas="' + esc(k) + '" value="__otra"' + (marc.indexOf('__otra') >= 0 ? ' checked' : '') + '>Otra: <input type="text" data-in="' + esc(k) + '.otra" value="' + esc(resp[k + '.otra'] || '') + '"></label>' : '') + '</div>'; }
     if (p.t === 'o') h += '<div class="ops">' + p.ops.map(function (o) { return '<label><input type="radio" name="' + esc(k) + '" data-in="' + esc(k) + '" value="' + esc(o[0]) + '"' + (o[0] === v ? ' checked' : '') + '>' + esc(o[0]) + '</label>'; }).join('')
       + (p.otra ? '<label><input type="radio" name="' + esc(k) + '" data-in="' + esc(k) + '" value="__otra"' + (v === '__otra' ? ' checked' : '') + '>Otra: <input type="text" data-in="' + esc(k) + '.otra" value="' + esc(resp[k + '.otra'] || '') + '"></label>' : '') + '</div>';
     h += '<span class="aviso">Esta pregunta es obligatoria</span></div>';
@@ -122,6 +146,9 @@ function pintar() {
     var f = function () { if (el.type === 'radio' && !el.checked) return; resp[el.getAttribute('data-in')] = el.value; if (el.tagName === 'SELECT' || el.type === 'radio') repintarPie(); };
     el.addEventListener('input', f); el.addEventListener('change', f);
   });
+  document.querySelectorAll('[data-cas]').forEach(function (el) { el.addEventListener('change', function () {
+    var k = el.getAttribute('data-cas'); resp[k] = [].slice.call(document.querySelectorAll('[data-cas="' + k + '"]:checked')).map(function (x) { return x.value; }).join('|');
+  }); });
   document.querySelectorAll('[data-esc]').forEach(function (b) { b.onclick = function () {
     resp[b.getAttribute('data-esc')] = b.getAttribute('data-v');
     b.parentNode.querySelectorAll('button').forEach(function (x) { x.classList.toggle('si', x === b); });
@@ -142,7 +169,7 @@ function seguir() {
   if (falta) { falta.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
   var d = destino(pg);
   if (d !== FIN) { historia.push(d); pintar(); scrollTo(0, 0); return; }
-  document.getElementById('f').innerHTML = '<div class="c tit gracias"><h1>STARGATE · Contacta con NEBULA (ticket de salida)</h1><p>Se ha registrado tu respuesta.</p><p class="ensayo">(Ensayo: no se ha enviado nada.)</p></div>';
+  document.getElementById('f').innerHTML = '<div class="c tit gracias"><h1>STARGATE · Contacta con NEBULA (ticket de salida)</h1><p>Recibido, recluta. NEBULA toma nota y lo resolvemos en la próxima clase. ¿Quieres enviar otro? Ábrelo de nuevo desde tu Nave o desde la sesión: así llega con tu grupo y tu docente ya puestos.</p><p class="ensayo">(Ensayo: no se ha enviado nada.)</p></div>';
   try { parent.postMessage({ sgTicket: 'hecho' }, '*'); } catch (x) { /* nada */ }
 }
 pintar();

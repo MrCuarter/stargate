@@ -7094,9 +7094,8 @@ details.mas summary{cursor:pointer;color:var(--teal,#5ff4ff);font-weight:700;fon
 .nave-sim{margin:0 auto 24px;max-width:1280px;padding:0 16px}
 .nave-sim .sim-marco{display:block;width:100%;height:calc(100vh - 150px);min-height:520px;border:1px solid var(--line);border-radius:14px;background:#050a14}
 .nave-ses .sim-marco{height:calc(100vh - 120px);aspect-ratio:auto}
-.ar-subtabs{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 16px}
-.ar-sub{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--mut);border-radius:999px;padding:8px 16px;cursor:pointer}
-.ar-sub.on{border-color:var(--teal);color:#fff;box-shadow:0 0 12px rgba(55,224,236,.35)}
+/* 28-sep · las secciones del Archivo, puertas como las del Botín (.bt-puerta) */
+.ar-subtabs.bt-puertas{margin:6px 0 16px}
 .ar-ses-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
 .ar-ses-b{font:inherit;text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:12px;padding:10px 12px;cursor:pointer;display:flex;flex-direction:column;gap:3px}
 .ar-ses-b small{color:var(--mut);font-size:.8rem}
@@ -7119,12 +7118,17 @@ details.mas summary{cursor:pointer;color:var(--teal,#5ff4ff);font-weight:700;fon
   .nb-t{width:auto;min-width:44px;padding:3px 3px}
   .nb-t b{font-size:.75rem;letter-spacing:-.01em}
 }
-.nb-secs{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 18px}
-.nb-sec{position:relative;font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--mut);border-radius:999px;padding:8px 16px;cursor:pointer}
-.nb-sec:hover{color:#fff;border-color:var(--teal2)}
-.nb-sec.on{border-color:var(--teal);color:#fff;box-shadow:0 0 12px rgba(55,224,236,.35)}
-.nb-sec.bloq{opacity:.5}
-.nb-sec .nb-candado{position:static;display:inline-block;vertical-align:middle;margin-left:6px}
+/* 28-sep · las secciones de Retos y Mercado, puertas como las del Botín (.bt-puerta); en el móvil, en fila y con el icono encima */
+.nb-secs.bt-puertas{margin:4px 0 18px}
+.bt-puertas .bt-puerta.bloq{opacity:.55;filter:grayscale(.6)}
+.bt-puertas .bt-puerta .nb-candado{position:static;display:inline-block;vertical-align:middle;margin-left:8px}
+@media (max-width:600px){
+  .nb-secs.bt-puertas,.ar-subtabs.bt-puertas{grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px}
+  .nb-secs .bt-puerta,.ar-subtabs .bt-puerta{flex-direction:column;justify-content:center;text-align:center;gap:6px;padding:12px 6px}
+  .nb-secs .bt-p-img,.ar-subtabs .bt-p-img{width:40px;height:40px}
+  .nb-secs .bt-p-t b,.ar-subtabs .bt-p-t b{font-size:.92rem}
+  .nb-secs .bt-p-t small,.ar-subtabs .bt-p-t small{display:none}
+}
 /* 28-sep · «Pregunta a NEBULA»: el botón flotante y su panel (el chat trae sus propios estilos: nebula-chat.js) */
 .neb-ayuda-b{position:fixed;right:16px;bottom:16px;z-index:900;display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:999px;border:1px solid var(--teal);background:#0b1626;color:#fff;font:inherit;font-size:.9rem;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 14px rgba(55,224,236,.35)}
 .neb-ayuda-b img{width:36px;height:36px;border-radius:50%;object-fit:cover;background:#050a14}

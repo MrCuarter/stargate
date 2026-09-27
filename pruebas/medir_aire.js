@@ -39,6 +39,9 @@
     if (/^(IMG|SVG|VIDEO|IFRAME|CANVAS|PICTURE|TEXTAREA|INPUT|SELECT|BUTTON|SUMMARY|P|UL|OL|LI|SPAN|B|EM|A|LABEL|FIGURE)$/.test(e.tagName)) return;
     var r = visible(e); if (!r || r.height < 90 || r.width < 100) return;
     if (e.closest("[aria-hidden='true'],.tour,.tour-invite,.sgp-capa,.cfg-capa,.nb-menu") || !dentroDeCaja(e)) return;   // (las ventanas flotantes, no)
+    // 28-sep · las tarjetas de reto del Puente, SIEMPRE a la misma altura (Norberto: «haz que los retos se ajusten al ancho
+    // de la caja… SIEMPRE, la misma altura»): la más corta se estira hasta la más alta y su pie va abajo. Ese hueco es a propósito.
+    if (e.closest(".ht-retos")) return;
     var s = getComputedStyle(e);
     if (s.overflowY === "auto" || s.overflowY === "scroll") return;
     var t = [];

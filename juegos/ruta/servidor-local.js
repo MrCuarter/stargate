@@ -2,7 +2,7 @@
 // el navegador solo recibe el enunciado y las opciones barajadas, nunca cuál es la buena; responde por POSICIÓN y el
 // servidor la traduce (como hoy hace stargateBatalla). La medalla y el premio también los decide el servidor.
 // Aquí se imita con el banco local y la marca se guarda en el navegador (localStorage).
-import { PREGUNTAS } from './preguntas.js?v=ff69e3ea03';
+import { PREGUNTAS } from './preguntas.js?v=4eafd61012';
 
 const barajar = (xs) => { const a = xs.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
@@ -59,7 +59,7 @@ export const SERVIDOR = {
   async empezar(mision, op = {}) {
     const nivel = op.nivel && NIVELES[op.nivel] ? op.nivel : null;
     const lista = nivel ? candidatas(mision, nivel) : barajar(candidatas(mision, null));
-    const n = mision.final ? 6 : mision.tema === 'todo' ? 6 : nivel ? 4 : 3;
+    const n = mision.final ? 14 : mision.tema === 'todo' ? 12 : 10; // 🔴 espejo de RUTA.PREGUNTAS… (stargateRutaLogica.js?v=4eafd61012)
     const qs = lista.slice(0, n);
     const id = 'p' + Date.now().toString(36);
     const buenas = {};

@@ -1623,12 +1623,18 @@
     if(st.tipo==='PUA'||!(window.SG&&window.SG.entregaDe)||!st.inicio) return '';
     var e=window.SG.entregaDe(a, st.inicio, st.pausas, lunesDe(1)); return e?e.texto:'';
   }
+  function semanasEnLetra(){
+    var n=Number((window.SG_SEMANAS_PER||{})[st.tipo==='PUA'?'PUA':'REGULAR'])||0;
+    var L={6:'Seis',7:'Siete',8:'Ocho',9:'Nueve',10:'Diez',11:'Once',12:'Doce',13:'Trece',14:'Catorce',15:'Quince',16:'Dieciséis'};
+    return n?(L[n]||String(n))+' semanas':'Unas semanas';
+  }
   function diaAsignatura(){
     return {k:'asig_portada', sec:'embarque', rot:'La asignatura', montar:conRetrato(montarPortada), html:
       '<div class="dia portada asig-portada con-fondo">'+capaEscena('ocho_mundos')+cmdCuerpo('saludo', 'pt-cmd')
       +'<div class="txt"><div class="kicker">Sesión 1 · Presentación de la asignatura'+(st.nombre?' · '+esc(st.nombre):'')+'</div>'
       +'<h1>'+esc(window.SG_ASIGNATURA||'La asignatura')+'</h1>'
-      +'<p class="sub">Quince semanas, <b>ocho temas</b> en tres bloques y <b>dos actividades</b>. Hoy, cómo funciona todo; en la sesión 2 empezamos.</p>'
+      // 28-sep · las semanas, del tipo de grupo (SEMANAS_PER): un PUA no dura quince
+      +'<p class="sub">'+semanasEnLetra()+', <b>ocho temas</b> en tres bloques y <b>dos actividades</b>. Hoy, cómo funciona todo; en la sesión 2 empezamos.</p>'
       +(!st.alumno&&st.per&&st.yo?'<p class="pt-chat"><button type="button" class="btn min" id="ses-chat">Copiar el enlace para el chat</button> <span class="small" id="ses-chat-m">Entran con su cuenta, fichan solos y ven esta presentación.</span></p>':'')
       +'</div></div>'};
   }
@@ -1667,7 +1673,7 @@
       +'<p class="sub">En la <b>plataforma de UNIR</b>: lo que preguntas ayuda a toda la clase, y la respuesta se queda para quien venga detrás.</p>'
       +'<ol class="emb-pasos asig-dudas">'
       +'<li><b>De la asignatura</b><span>Los temas, las actividades, las fechas, las notas: <b>el foro de UNIR</b>.</span></li>'
-      +'<li><b>De STARGATE</b><span>Tu Nave, un reto que no se registra, algo que no funciona: el menú <b>«···»</b> de tu Nave.</span></li>'
+      +'<li><b>De STARGATE</b><span>Tu Nave, un reto que no se registra, algo que no funciona: el botón <b>«Pregunta a NEBULA»</b> de tu Nave, abajo a la derecha. Contesta al momento y, si no lo sabe, se lo pasa al Mando.</span></li>'
       +'</ol></div>'};
   }
   function diaVoluntario(){

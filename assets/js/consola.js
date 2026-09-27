@@ -3046,14 +3046,14 @@
        */
       '<fieldset class="eq-para"><legend>¿Para qué entra?</legend>' +
         (docs.some(function (x) { return conEsc(x.nombre); }) ?
-          '<label><input type="radio" name="e-para" value="sustituye" checked> <b>Sustituye a</b> <select id="e-sust">' + docs.filter(function (x) { return conEsc(x.nombre); }).map(function (x) {
+          '<label><input type="radio" name="e-para" value="sustituye"> <b>Sustituye a</b> <select id="e-sust">' + docs.filter(function (x) { return conEsc(x.nombre); }).map(function (x) {
             return '<option value="' + esc(x.nombre) + '">' + esc(x.nombre) + ' (' + esc(conEsc(x.nombre).name) + ')</option>'; }).join("") + '</select>' +
           '<span class="small muted">una baja o un relevo: se queda con su escuadrón y su alumnado.</span>' +
           '<span class="eq-sub"><input type="checkbox" id="e-sust-quitar"> y quitar del equipo a quien sale</span></label>' +
           '<label><input type="radio" name="e-para" value="apoya"> <b>Apoya a</b> <select id="e-apoya">' + docs.filter(function (x) { return conEsc(x.nombre); }).map(function (x) {
             return '<option value="' + esc(x.nombre) + '">' + esc(x.nombre) + ' (' + esc(conEsc(x.nombre).name) + ')</option>'; }).join("") + '</select>' +
           '<span class="small muted">comparten escuadrón: su alumnado sigue con su Comandante.</span></label>' : '') +
-        '<label><input type="radio" name="e-para" value="nuevo"' + (docs.some(function (x) { return conEsc(x.nombre); }) ? '' : ' checked') + '> <b>Lidera un escuadrón nuevo</b> <span class="small muted">para alumnado que llega: podrán elegirle al alistarse.</span></label>' +
+        '<label><input type="radio" name="e-para" value="nuevo"> <b>Lidera un escuadrón nuevo</b> <span class="small muted">para alumnado que llega: podrán elegirle al alistarse.</span></label>' +
         '<label><input type="radio" name="e-para" value="coordina"> <b>Coordina, sin escuadrón</b> <span class="small muted">ve el grupo, pero no tiene alumnado a su nombre.</span></label>' +
       '</fieldset>' +
       '<p><button type="button" class="btn primary" id="e-add">Añadir a este grupo</button> ' +
@@ -3134,7 +3134,9 @@
       var persona = { nombre: $("#e-nom").value, correo: $("#e-mail").value, rol: $("#e-rol").value };
       if (!persona.correo.trim()) return aviso("Escribe su correo.");
       if (!persona.nombre.trim()) return aviso("Escribe su nombre: es como le verá su clase.");
-      var para = (app.querySelector('input[name="e-para"]:checked') || {}).value || "coordina";
+      // sin opción marcada de serie (sustituir pasa un escuadrón entero): hay que decirlo
+      var para = (app.querySelector('input[name="e-para"]:checked') || {}).value;
+      if (!para) return aviso("Elige para qué entra: si sustituye a alguien, si le apoya, si lidera un escuadrón nuevo o si coordina.");
       var de = para === "sustituye" ? $("#e-sust").value : para === "apoya" ? $("#e-apoya").value : "";
       var quitarSale = para === "sustituye" && $("#e-sust-quitar") && $("#e-sust-quitar").checked;
       var dSale = docs.filter(function (x) { return x.nombre === de; })[0] || {};

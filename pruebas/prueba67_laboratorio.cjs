@@ -3454,7 +3454,11 @@ const REG = {};   // cifras que se apuntan para el informe
       const rita = await nueva("Rita añade a alguien al equipo");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       await aGestion(rita, P, "equipo"); await rita.hasta("!!document.getElementById('e-add')", 15);
+      // 28-sep · el alta pregunta «¿Para qué entra?» y no trae ninguna marcada: sin elegir, no se añade a nadie
       await rita.js("document.getElementById('e-nom').value='Nuria Nueva'; document.getElementById('e-mail').value='Nuria@Lab.test'; document.getElementById('e-rol').value='docente'; document.getElementById('e-add').click(); 1");
+      c("equipo · sin decir para qué entra, no se añade: lo pregunta",
+        await rita.hasta("/Elige para qué entra/.test((document.getElementById('c-aviso')||{}).innerText||'') && !document.querySelector('input[name=\"e-para\"]:checked')", 10));
+      await rita.js("document.querySelector('input[name=\"e-para\"][value=\"coordina\"]').click(); document.getElementById('e-add').click(); 1");
       c("equipo · la referente (que no es la dueña) añade a Nuria desde «Equipo docente»",
         await rita.hasta("/ya está en el equipo/.test((document.getElementById('c-aviso')||{}).innerText||'')", 30), await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
       const pr = await leerDoc("projects/" + P), pv = await leerDoc("projects/" + P + "/privado/stargate");
@@ -3911,7 +3915,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.js("document.querySelector('.gs-panel .pest[data-tab=\"equipo\"]').click(); 1"); await rita.hasta("!!document.querySelector('.eq-p')", 15);
       c("consola · Equipo docente: una tarjeta por persona, con sus botones", await rita.js("document.querySelectorAll('.eq-p').length>=2 && !!document.querySelector('.eq-p [data-rol]') && !!document.querySelector('.eq-p .eq-lnk')"));
       await rita.foto(FOTOS + "/36-equipo.png");
-      await rita.js("document.getElementById('e-nom').value='Quique Temporal'; document.getElementById('e-mail').value='quique@lab.test'; document.getElementById('e-rol').value='docente'; document.getElementById('e-add').click(); 1");
+      await rita.js("document.getElementById('e-nom').value='Quique Temporal'; document.getElementById('e-mail').value='quique@lab.test'; document.getElementById('e-rol').value='docente'; document.querySelector('input[name=\"e-para\"][value=\"coordina\"]').click(); document.getElementById('e-add').click(); 1");
       await rita.hasta("/ya está en el equipo/.test((document.getElementById('c-aviso')||{}).innerText||'')", 30);
       const idxQ = await rita.js("(function(){var l=[].slice.call(document.querySelectorAll('.eq-p')); for(var i=0;i<l.length;i++) if(/quique@lab\\.test/.test(l[i].textContent)) return i; return -1;})()");
       c("consola · Quique entra en el equipo y sale su tarjeta", idxQ >= 0, idxQ);
@@ -4459,7 +4463,9 @@ const REG = {};   // cifras que se apuntan para el informe
         const s = await fs.collection("projects").doc(P).collection("voting_events").get();
         return s.docs.map(d => Object.assign({ _id: d.id }, d.data())).filter(v => v.isActive === activa);
       };
-      const V = (await votacionesDe(true))[0] || {};
+      // la pantalla la enseña antes de que acabe de escribirse: se espera a que esté (hasta 10 s)
+      let V = {};
+      for (let i = 0; i < 20 && !V._id; i++) { V = (await votacionesDe(true))[0] || {}; if (!V._id) await dormir(500); }
       c("🔴 votación · queda abierta, con el voto extra y la semana en que se resuelve",
         !!V.title && V.isActive === true && Number(V.costPerVote) > 0 && Number(V.maxPaidVotesPerPerson) > 0 && Number(V.stargateResuelve) > 0,
         JSON.stringify({ c: V.costPerVote, m: V.maxPaidVotesPerPerson, r: V.stargateResuelve }));

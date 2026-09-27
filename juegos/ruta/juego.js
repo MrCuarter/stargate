@@ -7,8 +7,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-import { PREMIOS, CRITERIOS, ORDEN, NIVELES } from './servidor-local.js?v=ff69e3ea03';
-import { SERVIDOR, enEnsayo } from './servidor.js?v=ff69e3ea03';
+import { PREMIOS, CRITERIOS, ORDEN, NIVELES } from './servidor-local.js?v=4eafd61012';
+import { SERVIDOR, enEnsayo } from './servidor.js?v=4eafd61012';
 
 const V3 = THREE.Vector3;
 const $ = (id) => document.getElementById(id);
@@ -74,7 +74,7 @@ const MISIONES = [
 
 // 🔴 En la web, lo que se CUENTA de cada misión (título, lema, cuándo) llega de _site_data.py → datos.js (lo escribe el
 // build); aquí manda solo la jugabilidad. En el borrador no hay datos.js y se queda lo de arriba.
-try { const D = await import('./datos.js?v=ff69e3ea03'); for (const d of D.RUTA.misiones) { const m = MISIONES.find((x) => x.id === d.id); if (m) Object.assign(m, { titulo: d.titulo, lema: d.lema, cuando: d.cuando, tema: d.final ? 'final' : d.tema }); } } catch (e) { /* borrador: sin datos.js */ }
+try { const D = await import('./datos.js?v=4eafd61012'); for (const d of D.RUTA.misiones) { const m = MISIONES.find((x) => x.id === d.id); if (m) Object.assign(m, { titulo: d.titulo, lema: d.lema, cuando: d.cuando, tema: d.final ? 'final' : d.tema }); } } catch (e) { /* borrador: sin datos.js */ }
 
 // el tramo que solo existe en el repaso: preguntas de los ocho temas, rumbo a la Estática
 const VIAJE = { id: 'viaje', n: '∞', de: 0, a: 9, tema: 'todo', cuando: 'Simulador de vuelo', titulo: 'Todo el viaje',
@@ -492,7 +492,7 @@ async function briefing(m) {
     pantalla(`<div class="kicker">Misión ${m.n} · ${esc(m.cuando)}</div>
     <h2>${esc(titMision(m))}</h2>
     <p><b>${esc(m.titulo)}.</b> ${esc(m.lema)}</p>
-    <p>${m.final ? 'Rompe los cristales de sus manos. Cada vez que caiga un punto débil, una pregunta: si aciertas se abre el siguiente (núcleo y cabeza); si fallas, se regenera.' : 'Tres veces el tiempo se ralentiza y llegan puertas con respuestas: <b>atraviesa la correcta</b> (si hay dos huecos, dos tandas de puertas). Llegar ya es medalla de bronce.'}</p>
+    <p>${m.final ? 'Rompe los cristales de sus manos. Cada vez que caiga un punto débil, una pregunta: si aciertas se abre el siguiente (núcleo y cabeza, y el golpe final); si fallas, se regenera. Y cada pocos segundos lanza una descarga de la Estática: otra pregunta (acertar recarga el escudo).' : 'Unas diez veces el tiempo se ralentiza y llegan puertas con respuestas: <b>atraviesa la correcta</b> (si hay dos huecos, dos tandas de puertas). La puerta que se ilumina en blanco es la que vas a cruzar, no la buena. Llegar ya es medalla de bronce.'}</p>
     ${teclasHTML()}
     <p style="font-size:15px"><b style="color:var(--ambar)">SABER</b> da xp y <b style="color:var(--cian)">PERICIA</b> da créditos; el oro pide las dos. Cada medalla se cobra una vez: ${tabla}</p>
     <div class="botones"><button id="b-ya">¡Despegar!</button>${EMBED ? '' : '<button class="sec" id="b-mapa">Volver al mapa</button>'}</div>`);
@@ -523,23 +523,25 @@ function nuevaMision(m) {
     m, tipo: m.final ? 'final' : 'ruta', t: 0, juego: 0, lenta: 1, lentaObj: 1, escudo: 100, saber: 0, pericia: 0, combo: 0, maxCombo: 0,
     disparos: 0, impactos: 0, derribos: 0, anillos: 0, daño: 0, aciertos: 0, preguntas: 0, racha: 0, maxRacha: 0,
     doble: 0, tonel: -1, cadencia: 0, sigSpawn: 2, pregunta: null, fin: false, pos: new V3(0, 0, 0), velN: new V3(), velK: new V3(), sacudida: 0,
-    preguntasCola: [], partida: null, momentos: m.final ? [] : momentosDe(m), duracion: m.tema === 'todo' ? 130 : 112, guion: m.tutorial ? GUION_TUTORIAL.slice() : [],
+    preguntasCola: [], partida: null, momentos: [], duracion: duracionDe(m, m.tema === 'todo' ? 12 : 10), guion: m.tutorial ? GUION_TUTORIAL.slice() : [],
     escuadrillas: {}, inicio: performance.now(), llegando: null,
   };
 }
-// cuándo llegan las puertas (en segundos de vuelo): tres en la misión; cuatro en el repaso; seis en todo el viaje
-function momentosDe(m) {
-  const n = m.tema === 'todo' ? 6 : NIVEL ? 4 : 3;
-  return n === 3 ? [28, 60, 92] : Array.from({ length: n }, (_, i) => Math.round(18 + i * (m.tema === 'todo' ? 96 : 78) / (n - 1)));
-}
+// Cuándo llegan las puertas (en segundos de vuelo). 28-sep · Norberto: «un estudiante debería responder entre 6 y 14
+// preguntas por partida; lo ideal, 10». CUÁNTAS las decide el servidor (RUTA.PREGUNTAS…: 10, 12 en todo el viaje);
+// aquí solo se reparten, una cada HUECO_PREG segundos de vuelo, y el vuelo dura lo que haga falta para todas.
+const HUECO_PREG = 11;
+const primeraPregunta = (m) => (m.tutorial ? 24 : 14);
+function momentosDe(m, n) { return Array.from({ length: n }, (_, i) => primeraPregunta(m) + i * HUECO_PREG); }
+function duracionDe(m, n) { return primeraPregunta(m) + Math.max(0, n - 1) * HUECO_PREG + 14; }
 const GUION_TUTORIAL = [
   { t: 1, txt: 'Aquí NEBULA. Es tu primer vuelo: mueve el ratón (o el dedo) y la nave te sigue.' },
   { t: 7, txt: 'Mantén pulsado el clic, o Espacio, para disparar. Rompe esas rocas.' },
   { t: 15, txt: '¿Ves los anillos dorados? Crúzalos: recargan tu escudo y suman pericia.' },
   { t: 22, txt: 'Viene una pregunta. El tiempo se frena: vuela hacia la puerta de la respuesta buena.' },
-  { t: 40, txt: 'Truco de piloto: Mayús, Q o doble clic hacen un tonel. Esquivas los disparos.' },
+  { t: 31, txt: 'Truco de piloto: Mayús, Q o doble clic hacen un tonel. Esquivas los disparos.' },
   { t: 75, txt: 'Los drones de la Estática disparan. Si destruyes varios seguidos, sube tu combo.' },
-  { t: 100, txt: 'Fôrge a la vista. ¡Ya casi estamos!' },
+  { t: 128, txt: 'Fôrge a la vista. ¡Ya casi estamos!' },
 ];
 async function empezar(mis) {
   limpiarMision(); mapa.visible = false; $('mapa-ui').classList.add('oculto');
@@ -575,6 +577,7 @@ async function empezar(mis) {
   const r = await SERVIDOR.empezar(mis, { nivel: NIVEL });
   if (!M || M.m !== mis) return;
   M.partida = r.partida; M.preguntasCola = r.preguntas;
+  if (!mis.final) { const n = r.preguntas.length; M.momentos = momentosDe(mis, n).filter((t) => t > M.juego); M.duracion = duracionDe(mis, n); }
 }
 function limpiarMision() {
   for (const c of cosas.splice(0)) escena.remove(c.obj);
@@ -845,7 +848,7 @@ function montarVaeon() {
   const pc = w(raiz).lerp(w(cabeza), 0.62); pc.z += 52 * 0.1; piv.worldToLocal(pc); nucleoH.position.copy(pc); piv.add(nucleoH);
   const V = {
     piv, cabeza, fase: 1, t: 0, disparo: 4, girar, hI, hD, sI: 1,
-    entrada: 0, retroceso: 0, embestida: 0, ataque: null, sigAtaque: 5.5, extras: [], golpeHasta: 0,
+    entrada: 0, retroceso: 0, embestida: 0, ataque: null, sigAtaque: 5.5, sigPregunta: 9, extras: [], golpeHasta: 0,
     puntos: { izq: cristal(izq, 2.4, 0xff2ea6), der: cristal(der, 2.4, 0xff2ea6), nucleo: cristal(nucleoH, 3.2, 0xffb02e), cabeza: cristal(cabeza, 2.6, 0x5ff4ff) },
   };
   girar(hI, 0.6); piv.updateMatrixWorld(true); const yA = w(izq).y; girar(hI, -0.6); piv.updateMatrixWorld(true); const yB = w(izq).y;
@@ -983,6 +986,13 @@ function tickVaeon(dt) {
   }
   if (M.pregunta) { cancelarAtaque(V); return; }
   if (V.entrada < 1) return;
+  // 28-sep · Norberto: «entre 6 y 14 preguntas por partida». Además de las que abren cada punto débil, cada ~12 s Vaeon
+  // lanza una DESCARGA DE LA ESTÁTICA: otra pregunta (acertar recarga escudo y da láser doble; fallar, daño). Siempre se
+  // guardan las que hacen falta para las fases que quedan (4 − fase) y nunca con todos los cristales rotos: entonces
+  // está a punto de salir la pregunta de la fase.
+  if ((V.sigPregunta -= dt) <= 0 && !V.ataque && M.preguntasCola.length > 4 - V.fase && Object.values(V.puntos).some((p) => p.vivo)) {
+    V.sigPregunta = 12; aviso('DESCARGA DE LA ESTÁTICA', '#ff4dd8', 1.4); decir('¡Una descarga de la Estática! Acierta y tu escudo aguanta.', 4); lanzarPregunta(); return;
+  }
   // los ataques con aviso
   if (V.ataque) tickAtaque(V, dt);
   else if ((V.sigAtaque -= dt) <= 0) { empezarAtaque(V); V.sigAtaque = azar(4.2, 5.4) - f * 0.7; }
@@ -1005,7 +1015,15 @@ function cristalRoto(k) {
   explotar(p.m.getWorldPosition(new V3()), 0xff2ea6, 90, 2.4); SON.grande();
   sumarPericia(400); V.retroceso = 12; M.sacudida = 0.9; cancelarAtaque(V);
   if (Object.values(V.puntos).some((x) => x.vivo)) { aviso('¡CRISTAL ROTO!', '#5dffa0', 1.4); decir('¡Uno menos! Ahora la otra mano: busca el aro rosa.', 4); return; }
-  if (V.fase === 3) { V.muriendo = 0; aviso('¡VAEON CAE!', '#5dffa0', 3); decir('¡Lo has conseguido! La Estática se deshace…', 6); BATALLA.victoria(); return; }
+  if (V.fase === 3) { // el golpe final también se gana respondiendo
+    aviso('¡VAEON SE TAMBALEA!', '#5dffa0', 2); decir('¡Tocado en la cabeza! Una respuesta más y cae.', 4);
+    setTimeout(() => M && M.vaeon === V && lanzarPregunta((ok) => {
+      if (!M || M.vaeon !== V) return;
+      if (ok) { V.muriendo = 0; aviso('¡VAEON CAE!', '#5dffa0', 3); decir('¡Lo has conseguido! La Estática se deshace…', 6); BATALLA.victoria(); }
+      else { activar(['cabeza']); aviso('SE REGENERA', '#ff4d6d', 2); decir('Se ha regenerado la cabeza. Rómpela otra vez.', 5); }
+    }), 900);
+    return;
+  }
   aviso('¡VAEON SE TAMBALEA!', '#5dffa0', 2);
   decir('Vaeon se tambalea. Responde bien y se abrirá su ' + (V.fase === 1 ? 'núcleo.' : 'cabeza.'), 5);
   setTimeout(() => M && M.vaeon === V && lanzarPregunta((ok) => {
@@ -1128,11 +1146,11 @@ function tickMision(dtReal) {
     if (c.puerta && M.pregunta) {
       const cerca = M.pregunta.puertas.reduce((a, b) => Math.abs(b.obj.position.x - M.pos.x) < Math.abs(a.obj.position.x - M.pos.x) ? b : a);
       const dentro = cerca === c && Math.abs(o.position.y - M.pos.y) < c.H / 2 + 1.5;
-      c.velo.material.opacity = dentro ? 0.32 : 0.06; c.marco.color.set(dentro ? 0xffc24a : 0x5ff4ff);
+      c.velo.material.opacity = dentro ? 0.22 : 0.06; c.marco.color.set(dentro ? 0xffffff : 0x5ff4ff);
     }
     if (o.position.z > 30) { if (c.tipo === 'dron' || c.tipo === 'mini') M.combo = 0; quitar(c); }
   }
-  if (M.pregunta && M.pregunta.puertas.length) { const rest = Math.max(0, (-M.pregunta.puertas[0].obj.position.z) / (VEL * Math.max(M.lentaObj, 0.02))); const r = $('p-reloj'); if (r) r.textContent = `Las puertas llegan en ${rest.toFixed(0)} s · lee con calma y vuela hacia la tuya`; }
+  if (M.pregunta && M.pregunta.puertas.length) { const rest = Math.max(0, (-M.pregunta.puertas[0].obj.position.z) / (VEL * Math.max(M.lentaObj, 0.02))); const r = $('p-reloj'); if (r) r.textContent = `Las puertas llegan en ${rest.toFixed(0)} s · la que se ilumina en blanco es la que vas a cruzar`; }
 
   // balas enemigas
   for (const b of balas.slice()) {
@@ -1180,7 +1198,7 @@ async function fin(llego, motivo = '') {
   try { window.parent !== window && window.parent.postMessage({ sgRuta: { mision: m.id, medalla: r.medalla, puntos: Math.round(datos.puntos) } }, '*'); } catch (e) { /* sin padre */ }
   const X = M;
   if (r.repaso) { // el Simulador de vuelo: la marca va a la sala de Joran (su ranking y sus hitos)
-    try { const S = await import(SALA + 'comun.js?v=ff69e3ea03'); S.registrarPartida('vuelo', r.total, { nivel: r.nivel, mision: m.id }); } catch (e) { console.warn('sin sala', e); }
+    try { const S = await import(SALA + 'comun.js?v=4eafd61012'); S.registrarPartida('vuelo', r.total, { nivel: r.nivel, mision: m.id }); } catch (e) { console.warn('sin sala', e); }
     setTimeout(() => {
       $('hud').classList.add('oculto');
       pantalla(`<div class="kicker">Simulador de vuelo · nivel ${esc(NIVELES[r.nivel].n)} (×${String(NIVELES[r.nivel].mult).replace('.', ',')})</div>

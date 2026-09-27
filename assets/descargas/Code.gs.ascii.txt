@@ -80,6 +80,7 @@ function menuStargate_() {
     // Los grupos se crean ya desde la web; esta entrada solo crea su ticket y devuelve el enlace.
     .addItem("Crear el ticket de salida COMPARTIDO (una sola vez)...", "crearTicketUnico")
     .addItem("Ver los datos del ticket compartido", "verTicketUnico")
+    .addItem("Poner al d\u00eda el ticket compartido (STARGATE en el balance final)", "actualizarTicketUnico")
     .addItem("Publicar y abrir formularios del PER seleccionado", "publicarFormulariosPER")
     .addItem("Documento de enlaces y embeds del PER seleccionado", "documentoPERSeleccionado")
     .addItem("Dossier del profesorado (TODOS los grupos)", "crearDossierProfesorado")
@@ -1024,8 +1025,13 @@ function bifurcarTicket_(ft) {
   return 1;
 }
 
+//  28-sep - SIN "ENVIAR OTRA RESPUESTA". Norberto: "si pulso Enviar otra respuesta no aparecen los campos rellenos del
+// grupo y docente". Es de Google: ese enlace abre el formulario limpio, sin lo que traia la direccion (?entry.N=...), y no
+// se puede cambiar. Asi que se quita, y la confirmacion explica como mandar otro: desde la Nave o la sesion, que lo
+// abren con el grupo, el docente y el tema ya puestos.
+var CONFIRMACION_TICKET = "Recibido, recluta. NEBULA toma nota y lo resolvemos en la pr\u00f3xima clase. \u00bfQuieres enviar otro? \u00c1brelo de nuevo desde tu Nave o desde la sesi\u00f3n: as\u00ed llega con tu grupo y tu docente ya puestos.";
 function ajustesTicket_(ft) {
-  try { ft.setCollectEmail(false).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true); }
+  try { ft.setCollectEmail(false).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(false).setConfirmationMessage(CONFIRMACION_TICKET); }
   catch (e) { Logger.log("ajustesTicket_: " + e); }
   return ft;
 }
@@ -1119,7 +1125,7 @@ function actualizarFormularios_() {
     }
     if (pr.fase === 2) {
       if (!cabe()) break;
-      try { var ftx = formDelPER_(perObj_(v), "T"); if (ftx) { ajustesTicket_(ftx); anadirPuestaEnEscena_(ftx); bifurcarTicket_(ftx); } }
+      try { var ftx = formDelPER_(perObj_(v), "T"); if (ftx) { ajustesTicket_(ftx); anadirPuestaEnEscena_(ftx); bifurcarTicket_(ftx); balanceStargate_(ftx); } }
       catch (e) { pr.fallos.push(String(v[1]) + " (ticket): " + e.message); }
       pr.fase = 3; hecho = true; t.marcar(); apuntar();
       if (!t.puedo()) break;
@@ -1639,7 +1645,7 @@ function escala_(f, titulo, a, b) { f.addScaleItem().setTitle(titulo).setBounds(
 function construirTicket_(ft, referente, profesores, perId) {
   ft.setDescription("En este cuestionario encontrar\u00e1s un espacio donde formular todas las dudas que tengas sobre la clase. Tambi\u00e9n puedes indicarnos tu grado de satisfacci\u00f3n sobre las herramientas, metodolog\u00eda y progreso. " +
     "Responde con sinceridad: es AN\u00d3NIMO y nos sirve para ayudarte a mejorar.");
-  ft.setCollectEmail(false).setLimitOneResponsePerUser(false).setShowLinkToRespondAgain(true).setConfirmationMessage("Recibido, recluta. NEBULA toma nota y lo resolvemos en la pr\u00f3xima clase.");
+  ajustesTicket_(ft);
   //  EL TICKET COMPARTIDO. Con perId === "*" el formulario no es de un grupo: es el de TODOS, para
   // siempre. Entonces estas dos preguntas dejan de ser desplegables -que tendrian que cambiar cada
   // vez que naciera un grupo- y pasan a ser texto, porque las rellena la Nave por la direccion
@@ -1702,7 +1708,10 @@ function construirTicket_(ft, referente, profesores, perId) {
   }
   ch.push(sel.createChoice("Repaso / balance final", pRep));
   sel.setChoices(ch);
+  balanceStargate_(ft);
 }
+
+// (28-sep - balanceStargate_ y actualizarTicketUnico viven en Bonus.gs, con el ticket compartido: Code.gs ya no cabia)
 
 // ================= DOCUMENTO DE ENLACES (Google Docs) =================
 // v3.36 - Un enlace dentro de un ui.alert() NO se puede pulsar: Apps Script lo pinta como texto y

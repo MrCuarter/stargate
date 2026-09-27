@@ -4,7 +4,7 @@
 // El proyector es quien manda: decide cuándo empieza y acaba, suma, ordena y reparte. Los móviles solo mandan lo suyo.
 // ?sesion=1&c=XXXX&tema=6 → dentro de la sesión (la sala es la de la clase y el tema de la semana viene dado).
 import { conectar, esperarMotor, conServidor, motor, PER, nuevoCodigo, imagen, AV, AVATARES, TEMAS, MODOS, DURACIONES, PREGUNTAS, FRECUENCIAS, INTENSIDAD, CFG_INICIAL, ATAJOS, EQUIPOS, VALOR, metaCarrera, BALIZA, PREMIO, EN_WEB,
-  ESCUADRONES, IMG_ESC, ponerEquipos, emblema, DIFICULTAD, kDe, MANDO } from './canal.js?v=ff69e3ea03';
+  ESCUADRONES, IMG_ESC, ponerEquipos, emblema, DIFICULTAD, kDe, MANDO } from './canal.js?v=4eafd61012';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -31,10 +31,10 @@ if (PER) await esperarMotor();
 const WEB = conServidor();
 const canal = conectar(codigo, alMensaje, { docente: true });
 $('codigo').textContent = codigo;
-$('b-movil').href = `alumno.html?c=${codigo}&v=ff69e3ea03` + (EN_SESION ? `&sesion=1&tema=${TEMA_SEMANA}` : '') + (PER ? `&per=${encodeURIComponent(PER)}` : '');
+$('b-movil').href = `alumno.html?c=${codigo}&v=4eafd61012` + (EN_SESION ? `&sesion=1&tema=${TEMA_SEMANA}` : '') + (PER ? `&per=${encodeURIComponent(PER)}` : '');
 // ── EL QR de la sala de espera. En el borrador, la página del móvil con el código; en la web, la Nave del recluta (la
 // entrada «En directo» de su Nave usa la sala del grupo: no hace falta código). Se genera aquí, sin servicios de fuera.
-const urlMovil = WEB ? new URL('../../recluta.html?per=&v=ff69e3ea03' + encodeURIComponent(PER), location.href).href : new URL(`alumno.html?c=${codigo}&v=ff69e3ea03`, location.href).href;
+const urlMovil = WEB ? new URL('../../recluta.html?per=&v=4eafd61012' + encodeURIComponent(PER), location.href).href : new URL(`alumno.html?c=${codigo}&v=4eafd61012`, location.href).href;
 $('qr-t').innerHTML = WEB ? 'Desde el móvil: escanea, entra en <b>tu Nave</b> y pulsa <b>En directo</b>.' : `Desde el móvil: escanea o entra con el código <b>${codigo}</b>.`;
 function pintarQR() {
   try { const q = window.qrcode(0, 'M'); q.addData(urlMovil); q.make(); $('qr').innerHTML = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }) + `<div class="qr-pie">${WEB ? 'Tu Nave → En directo' : 'Código ' + codigo}</div>`; }
@@ -158,7 +158,7 @@ setInterval(emitir, 500);
 function precargarDefensa() {
   if (cargandoD) return cargandoD;
   const ruta = EN_WEB ? '../ruta/' : '../ruta-estatica/', sala = EN_WEB ? '../joran/' : '../sala-joran/';
-  cargandoD = import('./defensa3d.js?v=ff69e3ea03').then((M) => M.montarDefensa($('lienzo3d'), { ruta, sala })).then((d) => { D = d; for (const j of dentro()) D.jugador(j.id, j.alias, AV(j.avatar)); return d; })
+  cargandoD = import('./defensa3d.js?v=4eafd61012').then((M) => M.montarDefensa($('lienzo3d'), { ruta, sala })).then((d) => { D = d; for (const j of dentro()) D.jugador(j.id, j.alias, AV(j.avatar)); return d; })
     .catch((e) => { console.error(e); aviso('No se pudo cargar la escena 3D', '#ff4d6d', 3); });
   return cargandoD;
 }

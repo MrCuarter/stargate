@@ -5,7 +5,7 @@
 //   · Duelo (por equipos): acertar deja elegir: EMPUJAR la baliza o SABOTEAR a la otra escuadrilla (una tormenta de estática).
 // ?sesion=1 → dentro de la sesión: entras solo, con tu alias y tu personaje (en la Nave salen de tu ficha), y la sala de espera
 // trae el ticket de salida. Sin ?sesion, la pantalla de «Únete» (desde la Nave, con el código).
-import { conectar, esperarMotor, conServidor, motor, PER, preguntasDelServidor, responderAlServidor, imagen, EN_WEB, AV, AVATARES, TEMAS, MODOS, EQUIPOS, VALOR, temasDe, kDe, ponerEquipos, emblema } from './canal.js?v=ff69e3ea03';
+import { conectar, esperarMotor, conServidor, motor, PER, preguntasDelServidor, responderAlServidor, imagen, EN_WEB, AV, AVATARES, TEMAS, MODOS, EQUIPOS, VALOR, temasDe, kDe, ponerEquipos, emblema } from './canal.js?v=4eafd61012';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -155,7 +155,7 @@ async function empezar() {
   const temas = temasDe(c, est.temaSemana); temasJuego = temas;
   if (WEB) banco = await pedirPreguntas(temas);
   if (WEB && SOLO && !ataque) setTimeout(finSolo, 50); // el Asedio no está abierto (o no hay sesión): se dice y ya
-  else if (temas.length) try { const { PREGUNTAS } = await import(EN_WEB ? '../ruta/preguntas.js?v=ff69e3ea03' : '../ruta-estatica/preguntas.js?v=ff69e3ea03'); banco = temas.flatMap((t) => PREGUNTAS[t] || []).filter((q) => q.tipo === 'una' && !q.visual).sort(() => Math.random() - 0.5); } catch (e) { banco = []; }
+  else if (temas.length) try { const { PREGUNTAS } = await import(EN_WEB ? '../ruta/preguntas.js?v=4eafd61012' : '../ruta-estatica/preguntas.js?v=4eafd61012'); banco = temas.flatMap((t) => PREGUNTAS[t] || []).filter((q) => q.tipo === 'una' && !q.visual).sort(() => Math.random() - 0.5); } catch (e) { banco = []; }
   document.body.classList.add('juego');
   ticketAbierto = !$('panel-ticket').classList.contains('oculto');
   for (const id of ['espera', 'fin', 'entrar', 'panel-ticket']) $(id).classList.add('oculto'); document.querySelector('main').classList.remove('con-ticket');

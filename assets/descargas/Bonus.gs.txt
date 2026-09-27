@@ -1096,6 +1096,86 @@ function crearTicketUnico() {
     ui.ButtonSet.OK);
 }
 
+// 🔴 28-sep · STARGATE EN EL BALANCE FINAL (para la tesis). Norberto: «en el ticket de salida, balance final de la
+// asignatura, debes añadir una pregunta: ¿has participado en el proyecto gamificado STARGATE? Si la respuesta es sí,
+// otra sección con preguntas orientadas a conocer el impacto que ha tenido en su desempeño como estudiante: ¿creen que
+// han aprendido más que en otra asignatura sin gamificar? ¿su implicación es mayor? ¿repetirían?… Esto es importante de
+// cara al doctorado».
+//   · La pregunta va al final de «Resumen global de la asignatura» y es la única obligatoria (de ella sale el camino).
+//   · «Sí» (activa o poca) → «STARGATE y tu aprendizaje»: escalas de acuerdo 1-5, un ítem en negativo (la carga) para
+//     no leer solo aquiescencia, qué partes ayudaron, tiempo semanal y dos abiertas.
+//   · «No» → una página corta con el porqué (también es dato: quién se queda fuera y por qué).
+// 🔬 Los títulos son la clave de la hoja de respuestas: si se cambian, cambian las columnas. Idempotente.
+var TIT_PARTICIPO = "¿Has participado en el proyecto gamificado STARGATE?";
+var OPC_PARTICIPO = ["Sí, de forma activa (retos, juegos, clases…)", "Sí, pero poco", "No"];
+var TIT_PAG_STARGATE = "STARGATE y tu aprendizaje";
+var TIT_PAG_NO_STARGATE = "Si no has participado en STARGATE";
+var ACUERDO = ["Totalmente en desacuerdo", "Totalmente de acuerdo"];
+var IMPACTO_STARGATE = [
+  "Con STARGATE he aprendido más que en una asignatura sin gamificar",
+  "STARGATE ha hecho que me implique más en la asignatura",
+  "STARGATE me ha motivado a llevar la asignatura al día (clases, temas, actividades)",
+  "Los retos de STARGATE me han ayudado a entender y aplicar los contenidos",
+  "STARGATE ha mejorado mis resultados (actividades, tests, examen)",
+  "He participado más en las clases en directo gracias a STARGATE",
+  "En algún momento STARGATE me ha resultado una carga o una distracción",
+  "Repetiría una experiencia como STARGATE",
+  "Me gustaría que otras asignaturas del máster usaran un sistema así",
+  "Después de vivirlo, usaría la gamificación con mi futuro alumnado"];
+var TIT_PARTES_STARGATE = "¿Qué partes de STARGATE te han ayudado más a aprender?";
+var PARTES_STARGATE = ["Los retos prácticos (en clase y en casa)", "La Ruta de la Estática y el Simulador de vuelo",
+  "Los juegos de la sala de Joran", "Los juegos en las clases en directo", "Rankings y escuadrones",
+  "Insignias, cromos y héroes", "El Mercado y el Zoco", "La historia, los vídeos y los personajes", "NEBULA (la ayuda)"];
+function balanceStargate_(ft) {
+  var items = ft.getItems();
+  if (items.filter(function(i){ return i.getTitle() === TIT_PARTICIPO; }).length) return 0;
+  var iRes = -1;
+  for (var k = 0; k < items.length; k++)
+    if (items[k].getType() === FormApp.ItemType.PAGE_BREAK && items[k].getTitle() === "Resumen global de la asignatura") { iRes = k; break; }
+  if (iRes < 0) return 0;   // un ticket sin balance final (viejo o ajeno): nada que hacer
+  var iFin = items.length;  // donde acaba la página del balance: el siguiente salto de página, o el final
+  for (var j = iRes + 1; j < items.length; j++) if (items[j].getType() === FormApp.ItemType.PAGE_BREAK) { iFin = j; break; }
+
+  var part = ft.addMultipleChoiceItem().setTitle(TIT_PARTICIPO).setRequired(true)
+    .setHelpText("Participar era voluntario y no cambia tu nota. Tu respuesta nos ayuda a saber qué funciona.");
+  ft.moveItem(part.getIndex(), iFin);
+  // las dos páginas nuevas, al final del formulario (se llega a ellas solo por la respuesta)
+  var pSi = ft.addPageBreakItem().setTitle(TIT_PAG_STARGATE)
+    .setHelpText("Lo que ha supuesto STARGATE para ti como estudiante. Anónimo. De 1 (totalmente en desacuerdo) a 5 (totalmente de acuerdo).");
+  IMPACTO_STARGATE.forEach(function(t){ escala_(ft, t, ACUERDO[0], ACUERDO[1]); });
+  ft.addCheckboxItem().setTitle(TIT_PARTES_STARGATE).setChoiceValues(PARTES_STARGATE).showOtherOption(true);
+  ft.addMultipleChoiceItem().setTitle("¿Cuánto tiempo a la semana le has dedicado a STARGATE, más o menos?")
+    .setChoiceValues(["Menos de 30 minutos", "Entre 30 minutos y 1 hora", "Entre 1 y 2 horas", "Más de 2 horas"]);
+  ft.addParagraphTextItem().setTitle("Con tus palabras: ¿qué ha supuesto STARGATE en tu forma de estudiar esta asignatura?");
+  ft.addParagraphTextItem().setTitle("¿Qué cambiarías o mejorarías de STARGATE?");
+  var pNo = ft.addPageBreakItem().setTitle(TIT_PAG_NO_STARGATE).setHelpText("Anónimo y opcional. Nos ayuda a mejorarlo.");
+  ft.addCheckboxItem().setTitle("¿Por qué no has participado?")
+    .setChoiceValues(["No me interesaba", "No tenía tiempo", "No entendí cómo funcionaba", "No sabía que existía",
+                      "Prefiero no competir con mis compañeros"]).showOtherOption(true);
+  pNo.setGoToPage(FormApp.PageNavigationType.SUBMIT);   // al acabar la página del «sí», se envía (no pasa a la del «no»)
+  part.setChoices([part.createChoice(OPC_PARTICIPO[0], pSi), part.createChoice(OPC_PARTICIPO[1], pSi),
+                   part.createChoice(OPC_PARTICIPO[2], pNo)]);
+  return 1;
+}
+
+/**
+ * 28-sep · Pone al día el ticket COMPARTIDO (el de TICKET_URL): sin «Enviar otra respuesta» y con STARGATE en el
+ * balance final. El formulario se encuentra por su hoja de respuestas (TICKET_UNICO_HOJA), que es la que lo sabe.
+ * Se puede repetir sin miedo: si ya está hecho, no toca nada.
+ */
+function actualizarTicketUnico() {
+  var ui = SpreadsheetApp.getUi(), P = PropertiesService.getScriptProperties(), hoja = P.getProperty("TICKET_UNICO_HOJA");
+  if (!hoja) { ui.alert("Todavía no se ha creado el ticket compartido."); return; }
+  var url = SpreadsheetApp.openById(hoja).getFormUrl();
+  if (!url) { ui.alert("La hoja de tickets no tiene formulario enganchado."); return; }
+  var ft = FormApp.openByUrl(url);
+  ajustesTicket_(ft);
+  var n = balanceStargate_(ft);
+  ui.alert("Ticket compartido al día",
+    "· «Enviar otra respuesta»: quitado (la confirmación explica cómo mandar otro desde la Nave o la sesión).\n" +
+    "· STARGATE en el balance final: " + (n ? "añadido ahora." : "ya estaba.") + "\n\n" + ft.getEditUrl(), ui.ButtonSet.OK);
+}
+
 /** Vuelve a enseñar los datos del ticket compartido, por si se pierde la ventana. */
 function verTicketUnico() {
   var P = PropertiesService.getScriptProperties();
