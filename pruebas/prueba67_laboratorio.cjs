@@ -126,9 +126,10 @@ const REG = {};   // cifras que se apuntan para el informe
         // 19-sep · +1 para todos: «Portada», la primera (el grupo de un vistazo)
         // 🔴 20-sep · LA NAVE DEL COMANDANTE: ocho secciones con iconos (Puente, Reclutas, Rankings, Calendario, El Zoco,
         // Premios, Enlaces y Contacto) en mando manual; el equipo, los escuadrones y los ajustes, en «Gestionar grupos»
-        ["rita@lab.test", "Rita Referente", 8, "referente que imparte"],
-        ["dani@lab.test", "Dani Docente", 8, "docente raso"],
-        ["sol@lab.test", "Sol Coordina", 8, "referente que NO imparte"],
+        // 28-sep · y diez: + Retos y Simulador (la sala de Joran en ensayo, el directo y el Asedio)
+        ["rita@lab.test", "Rita Referente", 10, "referente que imparte"],
+        ["dani@lab.test", "Dani Docente", 10, "docente raso"],
+        ["sol@lab.test", "Sol Coordina", 10, "referente que NO imparte"],
       ];
       for (const [correo, nombre, pestanas, quien] of casos) {
         const p = await nueva(quien);
@@ -145,7 +146,7 @@ const REG = {};   // cifras que se apuntan para el informe
         c("docentes · el banner dice en qué semana va y cuántos tiene a su nombre (" + quien + ")", /Semana 10 de 15/.test(pg) && /reclutas/.test(pg), pg);
         c("docentes · y el planeta del tema, de fondo (" + quien + ")", await p.js("!!document.querySelector('.gr-plan') && document.body.classList.contains('con-planeta')"));
         c("docentes · en el Puente, los tres pasos de la clase, a la vista (" + quien + ")",
-          await p.hasta("!!document.querySelector('.gr-acc .gp-b.principal') && document.querySelector('.gr-acc .gp-b.principal').offsetHeight>=44 && document.querySelectorAll('.gr-acc .gp-b').length===1", 30));
+          await p.hasta("!!document.querySelector('.gr-acc .gp-b.principal') && document.querySelector('.gr-acc .gp-b.principal').offsetHeight>=44 && !!document.querySelector('.gr-acc .gp-b.gr-pres')", 30));   // (26-sep · y «La presentación» al lado)
         await p.foto(FOTOS + "/1-" + quien.replace(/\W+/g, "-") + "-tarjeta.png");
         const tabs = await p.js("[].slice.call(document.querySelectorAll('.cn-secs .pest')).map(function(b){return b.textContent.trim()})");
         const conCola = (tabs || []).some(x => /^Reclutas\d+$/.test(x));
@@ -429,7 +430,10 @@ const REG = {};   // cifras que se apuntan para el informe
       await ana.ir("recluta.html?per=lab-clase");
       await ana.hasta("!!document.querySelector('.nb-t[data-tab=\"botin\"]')", 25);
       await ana.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
-      c("🔴 premiar · Ana ve «🖼️ El marco dorado» en Mi botín para ponérselo", await ana.hasta("/El marco dorado/.test(document.body.innerText)", 15));
+      // (25-sep · el Botín tiene tres puertas: el marco, con los héroes y adornos)
+      await ana.hasta("!!document.querySelector('[data-bsec=\"heroes\"]')", 10);
+      await ana.js("var b=document.querySelector('[data-bsec=\"heroes\"]'); if(b) b.click(); 1");
+      c("🔴 premiar · Ana ve «🖼️ El marco dorado» en Botín → Héroes para ponérselo", await ana.hasta("/El marco dorado/.test(document.body.innerText)", 15));
       // 🎲 pregunta al azar, sin repetir
       await rita.js("document.getElementById('au-azar').click(); 1");
       await rita.hasta("!document.getElementById('au-sorteo').hidden", 15);
@@ -661,6 +665,7 @@ const REG = {};   // cifras que se apuntan para el informe
         await beto.js("var f=document.querySelector('.sb-fin, .neb-capa [data-cerrar]'); if(f) f.click(); 1");
         // (17-sep · se sigue hasta chocar con el tope: parar al llegar a 3 dejaba a veces el aviso del último reto, no el del tope)
         if (/Esta semana ya has registrado 3/.test(await beto.js("(document.getElementById('nave-aviso')||{}).textContent||''"))) break;
+        if (intentos >= 8) break;   // 28-sep · sin tope (25-sep): con 8 basta para ver que no hay freno y que queda rastro
       }
       const f1 = await fichaDe("beto@lab.test", "lab-clase");
       // (los relámpago no cuentan para el tope de la semana: se hacen en clase)
@@ -668,19 +673,19 @@ const REG = {};   // cifras que se apuntan para el informe
       const marcados = sinRel(f1.completedMissionIds) - sinRel(f0.completedMissionIds);
       REG.tramposo = { antes: "15 retos, +4.100 xp, +880 ◈ en un minuto (sin tope ni enlace)",
                        marcados, xp: f1.totalPoints - f0.totalPoints, creditos: f1.coins - f0.coins };
-      c("🔴 tramposo · con el tope, por mucho que pulse solo registra 3 retos esta semana", marcados === 3, JSON.stringify(REG.tramposo));
-      const avisoTope = await beto.js("(document.getElementById('nave-aviso')||{}).textContent||''");
-      c("tramposo · y la Nave le dice por qué", /Esta semana ya has registrado 3/.test(avisoTope), avisoTope.slice(0, 120));
+      // 🔴 25-sep · SIN TOPE (Norberto: «vamos a quitar el límite de 3 retos a la semana… algunos lo hacen al final a modo de
+      // repaso»). Lo que le frena ahora es que TODO deja rastro (la basura, a la vista del docente) y el aviso en la consola.
+      c("🔴 tramposo · sin tope semanal (25-sep): registra lo que pulse, y cada uno con su evidencia", marcados >= 4, JSON.stringify(REG.tramposo));
       // 🔴 17-sep · y el SERVIDOR también: hasta hoy el tope solo lo ponía la web, y un completeMission a mano se lo saltaba
       const libre = (await consultar("missions", "projectId", "lab-clase")).filter(m => /^B\d$/.test(m.stargateId || "") && (f1.completedMissionIds || []).indexOf(m._id) < 0)[0];
       const aMano = libre ? await beto.js(`window.SG.MOTOR.llamar('completeMission',{projectId:'lab-clase', missionId:${JSON.stringify(libre._id)}, studentProfileId:${JSON.stringify(f1._id)}}).then(function(){return 'PASÓ'},function(e){return e.message})`) : "sin reto libre";
-      c("🔴 tramposo · y si llama al servidor a mano, el SERVIDOR tampoco le deja («Esta semana ya has registrado 3»)", /Esta semana ya has registrado 3/.test(aMano), aMano);
+      c("tramposo · y el servidor dice lo mismo que la web: sin tope (TOPE_SEMANA = 0)", aMano === "PASÓ" || !libre, aMano);
       const suyas = await consultar("mission_deliveries", "studentProfileId", f1._id);
       c("tramposo · y deja rastro: su basura queda como evidencia a la vista del docente", suyas.some(x => /culo/.test(x.enlace || "")),
         JSON.stringify(suyas.map(x => x.stargateReto + ":" + x.enlace)));
       // se lo gasta en sobres
       let sobres = 0;
-      for (let k = 0; k < 80; k++) {
+      for (let k = 0; k < 6; k++) {   // 28-sep · 6 sobres (sin tope junta cientos de créditos: gastarlos todos eran 30 min)
         const f = await fichaDe("beto@lab.test", "lab-clase"); if (f.coins < 15) break;
         await beto.ir("recluta.html?per=lab-clase#mercado");
         await beto.hasta("!!document.querySelector('button[data-canje]')", 15);

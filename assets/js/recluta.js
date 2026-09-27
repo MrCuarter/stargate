@@ -1288,7 +1288,7 @@
       +'<div class="rs-grid'+(suyos.length===4?' par':'')+'">'+tarjetas+'</div>'
       +(atrasados?'<p class="rs-atras"><img class=ico src=assets/img/iconos/p/tiempo.png alt> Y llevas <b>'+atrasados+'</b> reto'+(atrasados===1?'':'s')
         +' sin registrar de semanas anteriores. '
-        +'<button class="btn small" type="button" data-tab="retos">Verlos en Mis retos →</button></p>':'')
+        +'<button class="btn small" type="button" data-tab="retos">Verlos en Retos →</button></p>':'')
       +'</div>';
   }
 
@@ -3267,7 +3267,7 @@
                 var otro=soyVende?t.compra:t.vende;
                 return { titulo:'¡Trato hecho!', arte:pz.img, texto: soyVende
                   ? 'Tu <b>'+esc(pz.nombre)+'</b> ya es de <b>'+esc(otro.alias)+'</b>, y lo que te ha dado ya está en tu cuenta.'
-                  : '<b>'+esc(pz.nombre)+'</b> ya es tuyo: lo tienes en «Mi botín».' }; }); });
+                  : '<b>'+esc(pz.nombre)+'</b> ya es tuyo: lo tienes en «Botín».' }; }); });
         }
       };
     });
@@ -3445,7 +3445,7 @@
     c3:[{t:'Llegan los Héroes de la Rebelión',foco:'.nb-t[data-tab="mercado"]',
          x:'En el Mercado ya está la <b>cápsula de rescate</b>: llega a tu Nave con un <b>héroe al azar</b> de los 30 dentro, por 60 ◈. Tres rangos: la Resistencia, la Vanguardia y los <b>MITOS</b>, que casi nadie llega a ver.'},
         {t:'Tu vestuario',foco:'.nb-t[data-tab="botin"]',
-         x:'Tus héroes viven en <b>Mi botín → Personajes y héroes</b>. Te los pones y te los quitas gratis, cuando quieras. ¿Repetido? Con <b>2 repetidos</b>, uno nuevo al azar.'}],
+         x:'Tus héroes viven en <b>Botín → Personajes y héroes</b>. Te los pones y te los quitas gratis, cuando quieras. ¿Repetido? Con <b>2 repetidos</b>, uno nuevo al azar.'}],
     c4:[{t:'Tu ficha, a tu gusto',foco:'.nb-t[data-tab="mercado"]',
          x:'Tres adornos nuevos en el Mercado: un <b>título</b> bajo tu alias, el <b>fondo</b> de tu ficha con el planeta que elijas y el <b>marco dorado</b> de tu avatar. Y el <b>sobre grande</b>: cinco cartas en vez de tres.'},
         {t:'Dónde se ven',foco:'.nb-t[data-tab="botin"]',
@@ -4712,7 +4712,7 @@
           ? varias.map(nombreDeCarta).join(' · ')
           : (botin ? nombreDeCarta(botin) : nombre),
         donde: (d && d.sinAbrir)
-          ? 'La tienes, pero no he podido abrirla ahora. Ábrela desde «Mi botín» cuando quieras: está arriba del todo.'
+          ? 'La tienes, pero no he podido abrirla ahora. Ábrela desde «Botín» cuando quieras: está arriba del todo.'
           : null
       });
       // El refresco sigue pasando por detrás: la ficha, la barra y el álbum quedan al día para

@@ -1082,12 +1082,10 @@ def _gr_img(k, alt, pie="", clase=""):
             + (f'<figcaption>{pie}</figcaption>' if pie else '') + '</figure>')
 _GR_TABS = [
     ("nave", "Mi nave", "Tu ficha (personaje, nivel, xp, créditos y <b>tu Bitácora a un clic</b>), lo que NEBULA te dice hoy, tu carrera con quien va justo delante y justo detrás, <b>la orden de la semana</b> (con su sesión de clase) y, cuando toca, la entrega que viene y el ticket de salida."),
-    ("retos", "Mis retos", "El mapa de los ocho planetas y todos los retos, explicados paso a paso. <b>Aquí se registran.</b>"),
-    ("botin", "Mi botín", "Tres botones grandes: <b>Insignias</b> (por tema, y los logros de a bordo), <b>Cromos</b> (tu álbum) y <b>Héroes</b> (tu vestuario y tus adornos)."),
+    ("retos", "Retos", "Tres secciones: <b>Retos</b> (el mapa de los ocho planetas y todos los retos, explicados paso a paso: <b>aquí se registran</b>), <b>La Ruta</b> (las misiones de nave) y, desde Ludo, el <b>Simulador de Joran</b> (cinco máquinas arcade, el Simulador de vuelo para repasar, récords y la Galería)."),
+    ("botin", "Botín", "Tres botones grandes: <b>Insignias</b> (por tema, y los logros de a bordo), <b>Cromos</b> (tu álbum) y <b>Héroes</b> (tu vestuario y tus adornos)."),
     ("archivo", "El Archivo", "Dos secciones: <b>Narrativa y vídeos</b> (la historia en orden y los fragmentos de la Tripulación Cero que vas ganando) y <b>Sesiones de clase</b> (la presentación de la asignatura, cada semana y cada actividad, sin salir de tu Nave)."),
-    ("simulador", "Simulador de Joran", "La sala de juegos de Joran, desde Ludo: cinco máquinas arcade, el <b>Simulador de vuelo</b> para repasar los temas, récords, Cuaderno de vuelo y la Galería."),
-    ("mercado", "Mercado Estelar", "Donde gastas tus créditos: sobres, cápsulas, adornos para tu ficha y, al final del viaje, las subidas de nota."),
-    ("zoco", "El Zoco", "El trueque con tu tripulación: pones cromos, héroes o participaciones y te ofrecen créditos u otras piezas."),
+    ("mercado", "Mercado", "Dos secciones: el <b>Bazar</b>, donde gastas tus créditos (sobres, cápsulas, adornos para tu ficha y, al final del viaje, las subidas de nota), y el <b>Zoco</b>, el trueque con tu tripulación (pones cromos, héroes o participaciones y te ofrecen créditos u otras piezas)."),
     ("rankings", "Rankings", "El tablero de tu grupo: varias clasificaciones distintas, siempre por alias."),
     ("mas", "El botón «···»", "Esta guía (con «¿Mi enlace abre lo mío?»), el sonido de las celebraciones y «No soy yo / salir»."),
 ]
@@ -1208,7 +1206,7 @@ Antes, compruébalo en <a href="ayuda.html">¿Mi enlace abre lo mío?</a>: que s
 <p class="small">{EVALUACION_EXAMEN}</p>
 <h3>Pero los retos te dejan media Actividad hecha</h3>
 <div class="grid cols-2">{_gr_act}</div>
-<p class="small">En tu Nave los ves como <b>retos relacionados</b>: en la tarjeta de la entrega (con su <b>cuenta atrás</b>, las semanas antes de entregar) y en la de la Actividad en «Mis retos», marcados como hechos o pendientes.</p>
+<p class="small">En tu Nave los ves como <b>retos relacionados</b>: en la tarjeta de la entrega (con su <b>cuenta atrás</b>, las semanas antes de entregar) y en la de la Actividad en «Retos», marcados como hechos o pendientes.</p>
 <p class="small"><b>Cada actividad tiene su sesión</b> en tu Nave (El Archivo) desde la semana en que se lanza: qué se entrega, paso a paso con un ejemplo resuelto, lo que hace falta para el 10 y las fechas. Y <b>haz capturas</b> de cada paso: son la prueba de que lo hiciste a tiempo y te salvan si un enlace sale privado.</p>
 </div></section>
 
@@ -1251,7 +1249,7 @@ encender: el curso entero termina en ella, y además <b>vale el 20 % de cada Act
 <p><b>Logros de a bordo.</b> La Nave apunta la primera vez que haces cada cosa y los días que vienes. {len(HITOS_A_BORDO)} logros en {len(CUBIERTAS_A_BORDO)} cubiertas;
 cada cubierta completa trae su premio, y con todas llega el <b>Contramaestre de la Nave</b>, que no se compra, no se regala y no se cambia.</p>
 </div>
-{_gr_img("logros", "Los logros de a bordo, por cubiertas", "Mi botín → Logros de a bordo.")}
+{_gr_img("logros", "Los logros de a bordo, por cubiertas", "Botín → Logros de a bordo.")}
 </div>
 {_gr_img("botin", "Mi botín: las insignias por planeta", "Mi botín: tus insignias, planeta a planeta.")}
 </div></section>
@@ -1281,7 +1279,7 @@ tal como se vio en clase y la sesión de cada actividad, sin salir de tu Nave). 
 Tripulación Cero— <b>se ganan</b>: aparecen al completar el relámpago de su tema. Quien no lo hace, lo verá dos semanas más tarde.</p>
 <p><b>La Ruta de la Estática.</b> Al cerrar cada tema, una misión de nave de 3 minutos hasta el planeta siguiente: las preguntas se
 contestan pilotando. <b>Bronce</b> por llegar; <b>plata</b> y <b>oro</b>, por saber y por pilotar (dan xp y créditos una vez).</p>
-<p><b>La sala de Joran.</b> Desde Ludo, en su propia pestaña, <b>Simulador de Joran</b>: cinco máquinas arcade y el <b>Simulador de vuelo</b> para repasar. Sus hitos dan créditos
+<p><b>La sala de Joran.</b> Desde Ludo, en <b>Retos → Simulador de Joran</b>: cinco máquinas arcade y el <b>Simulador de vuelo</b> para repasar. Sus hitos dan créditos
 una vez; hay Cuaderno de vuelo, ranking de la clase, Salón de la fama y la Galería con los juegos de la tripulación.</p>
 <p><b>En directo y el Asedio.</b> Al final de clase, tras el ticket, se juega todos juntos desde el móvil. Y en la semana 11, tu
 escuadrón contra los demás: el Asedio, de lunes a lunes.</p>
@@ -4578,13 +4576,13 @@ _PE = [
  ]),
  ("7 · Como estudiante (con tu otra cuenta)", [
    ("En otra ventana, con la otra cuenta, entra por la <a href='index.html'>portada</a> y escribe el código de tu grupo.", "Te alistas en un minuto (alias y Comandante) y NEBULA te enseña la Nave."),
-   ("«Mis retos»: busca el <b>reto principal de Fôrge</b>, «La Bitácora en marcha».",
+   ("«Retos»: busca el <b>reto principal de Fôrge</b>, «La Bitácora en marcha».",
     "El curso entero termina en un ePortfolio y se empieza por él: crearlo, publicar su <b>primera experiencia</b> (los recursos creados con IA) y pegar el enlace <b>aquí y en tu BIO</b>. No hace falta enseñar la plataforma en clase: el alumnado ya trae el curso de competencia digital A1-A2."),
    ("Busca un reto con el sello <b>«<img class=ico src=assets/img/iconos/p/rayo.png alt> En clase · 10-15 min»</b>.",
     "Son los <b>relámpago</b>: uno por tema (dos en Fôrge), de quince minutos, para hacerse <b>en clase</b> con el cronómetro del aula proyectado — quien viene, sale con el reto hecho, y quien no pudo venir lo hace esa semana. Cada uno nace de la pregunta de su clase, <b>recupera al tripulante</b> del planeta y deja un trozo para la actividad: una imagen con IA, un QR, un juego encontrado… Con cinco de los ocho planetas se gana la insignia «Mano rápida»."),
-   ("«Mis retos»: despliega un reto y márcalo.", "La misma tarjeta que la de la semana, con su insignia. Casi todos piden el <b>enlace</b> (hay un «+» para un segundo); sin él, no se registra. Algunos traen «<img class=ico src=assets/img/iconos/p/estrella.png alt> Ver un ejemplo»."),
-   ("«Mi botín».", "Tus insignias, por planetas: el tripulante y el reto de cada tema."),
-   ("«Mi botín» → «<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Logros de a bordo</b>» (en el grupo de prueba ya están; en uno nuevo, desde la semana 9).", "Lo que ya has hecho, con su fecha, y lo que falta con «Ir». Registra un reto o compra un sobre: NEBULA lo celebra al momento. Al completar una cubierta llega su premio, y con las cinco, el <b>Contramaestre</b>: un héroe legendario y una carta con tu alias."),
+   ("«Retos»: despliega un reto y márcalo.", "La misma tarjeta que la de la semana, con su insignia. Casi todos piden el <b>enlace</b> (hay un «+» para un segundo); sin él, no se registra. Algunos traen «<img class=ico src=assets/img/iconos/p/estrella.png alt> Ver un ejemplo»."),
+   ("«Botín».", "Tus insignias, por planetas: el tripulante y el reto de cada tema."),
+   ("«Botín» → «<img class=ico src=assets/img/iconos/p/medalla.png alt> <b>Logros de a bordo</b>» (en el grupo de prueba ya están; en uno nuevo, desde la semana 9).", "Lo que ya has hecho, con su fecha, y lo que falta con «Ir». Registra un reto o compra un sobre: NEBULA lo celebra al momento. Al completar una cubierta llega su premio, y con las cinco, el <b>Contramaestre</b>: un héroe legendario y una carta con tu alias."),
    ("La <b>sala de Joran</b>: pulsa «<img class=ico src=assets/img/iconos/p/diana.png alt> Entrar en la sala» (se abre con el planeta Ludo).", "Cinco máquinas arcade y el <b>Simulador de vuelo</b> (la Ruta para repasar, en tres niveles). La plata de cada máquina enciende la siguiente; sus hitos dan créditos una vez y la sala no da xp. Dentro: el Cuaderno de vuelo, el ranking de la clase, el Salón de la fama y la Galería de juegos."),
    ("Y con tu cuenta de docente, en tu Nave → <b>Simulador</b>.", "La sala en <b>modo ensayo</b>, para enseñarla en clase sin que cuente; y cómo funcionan el directo del final de la clase y el Asedio."),
    ("Al acabar el viaje (última semana), en la Nave sale «<img class=ico src=assets/img/iconos/p/libro.png alt> Tu diploma».", "Con tu alias, tu nombre, tus insignias y tus cifras, firmado por tu Comandante. Se descarga o se imprime.")

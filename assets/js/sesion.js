@@ -1434,7 +1434,7 @@
         +'<div class="reto-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Misión '+(i+1)+' de '+ls.length+' · '+etiquetaReto(txt)+'</div>'
         +'<h2>«'+esc(tituloReto(txt))+'»</h2>'
         +(pide?'<div class="pide"><div class="et">Qué hay que hacer</div><p>'+esc(pide)+'</p></div>'
-              :'<p class="sub">El enunciado completo está en tu Nave, en «Mis retos».</p>')
+              :'<p class="sub">El enunciado completo está en tu Nave, en «Retos».</p>')
         +(i===ls.length-1&&s.hito?'<p class="reto-hito"><img class=ico src=assets/img/iconos/p/diana.png alt> <b>Esta semana se entrega:</b> '+esc(s.hito)+'</p>':'')
         +(rel?cronoRelampago(mins):'')
         // 18-sep · Norberto: «añade enlace a los ejemplos de los retos en la presentación en vivo; si puede ser, que
