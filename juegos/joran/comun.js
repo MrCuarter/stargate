@@ -26,22 +26,22 @@ export const EMBED = QS.get('embed') === '1';
 export const HITO_CR = { bronce: 5, plata: 10, oro: 15 };
 export const ESCALONES = ['bronce', 'plata', 'oro'];
 export const JUEGOS = [
-  { id: 'evacuacion', n: 'La Evacuación', lema: 'Corre por los pasillos de la Cero antes de que la Estática te alcance.', controles: '← → cambiar de carril · ↑ saltar · ↓ agacharse (o desliza el dedo)', abre: null, precio: 0, hitos: [3000, 7500, 18000], img: 'img/maq_evacuacion.jpg', url: 'evacuacion.html?v=cdadcf2641', desafio: true },
-  { id: 'laberinto', n: 'El Laberinto de la Cero', lema: 'La nave se ha apagado. Encuentra las tres llaves y llega a la cápsula… a oscuras.', controles: 'Flechas / WASD o el joystick del dedo · Espacio: pulso que aturde · célula verde: sobrecarga', abre: { juego: 'evacuacion', puntos: 7500 }, precio: 40, hitos: [2000, 4500, 12000], img: 'img/maq_laberinto.jpg', url: 'laberinto.html?v=cdadcf2641', desafio: true },
-  { id: 'ruta-azul', n: 'RUTA AZUL', lema: 'El arcade que Joran programó para entrenar pilotos. Oleadas de la Estática y el jefe final.', controles: '← → o el dedo para moverte · dispara solo · Espacio: bomba', abre: { juego: 'laberinto', puntos: 4500 }, precio: 60, hitos: [8000, 18000, 38000], img: 'img/maq_rutaazul.jpg', url: 'ruta-azul.html?v=cdadcf2641', desafio: true },
-  { id: 'descenso', n: 'El Descenso', lema: 'Posa el Módulo Lunar en los ocho planetas: cada uno con su gravedad, su viento solar y su truco.', controles: '← → girar · ↑ / Espacio propulsor (en el móvil, los botones)', abre: { juego: 'ruta-azul', puntos: 18000 }, precio: 80, hitos: [2000, 5500, 16000], img: 'img/maq_descenso.jpg', url: 'descenso.html?v=cdadcf2641', desafio: true },
+  { id: 'evacuacion', n: 'La Evacuación', lema: 'Corre por los pasillos de la Cero antes de que la Estática te alcance.', controles: '← → cambiar de carril · ↑ saltar · ↓ agacharse (o desliza el dedo)', abre: null, precio: 0, hitos: [3000, 7500, 18000], img: 'img/maq_evacuacion.jpg', url: 'evacuacion.html?v=ff69e3ea03', desafio: true },
+  { id: 'laberinto', n: 'El Laberinto de la Cero', lema: 'La nave se ha apagado. Encuentra las tres llaves y llega a la cápsula… a oscuras.', controles: 'Flechas / WASD o el joystick del dedo · Espacio: pulso que aturde · célula verde: sobrecarga', abre: { juego: 'evacuacion', puntos: 7500 }, precio: 40, hitos: [2000, 4500, 12000], img: 'img/maq_laberinto.jpg', url: 'laberinto.html?v=ff69e3ea03', desafio: true },
+  { id: 'ruta-azul', n: 'RUTA AZUL', lema: 'El arcade que Joran programó para entrenar pilotos. Oleadas de la Estática y el jefe final.', controles: '← → o el dedo para moverte · dispara solo · Espacio: bomba', abre: { juego: 'laberinto', puntos: 4500 }, precio: 60, hitos: [8000, 18000, 38000], img: 'img/maq_rutaazul.jpg', url: 'ruta-azul.html?v=ff69e3ea03', desafio: true },
+  { id: 'descenso', n: 'El Descenso', lema: 'Posa el Módulo Lunar en los ocho planetas: cada uno con su gravedad, su viento solar y su truco.', controles: '← → girar · ↑ / Espacio propulsor (en el móvil, los botones)', abre: { juego: 'ruta-azul', puntos: 18000 }, precio: 80, hitos: [2000, 4000, 10000], img: 'img/maq_descenso.jpg', url: 'descenso.html?v=ff69e3ea03', desafio: true },
   // 27-sep · la quinta: plataformas en Fôrge, el planeta de la forja (acantilados, ríos de lava). La primera con modo desafío.
   // Hitos: bronce ≈ pasar dos balizas, plata ≈ llegar a la pared o a la cumbre, oro ≈ conquistarla con buen tiempo y vidas.
-  { id: 'conquista', n: 'La conquista de Fôrge', lema: 'Salta de acantilado en acantilado sobre los ríos de lava de Fôrge hasta la Puerta de la cumbre.', controles: '← → o A D correr · ↑ / W / Espacio saltar (en el móvil, los botones)', abre: { juego: 'descenso', puntos: 5500 }, precio: 100, hitos: [2000, 4500, 8500], img: 'img/maq_conquista.jpg', url: 'conquista.html?v=cdadcf2641', desafio: true },
+  { id: 'conquista', n: 'La conquista de Fôrge', lema: 'Trepa por la chimenea de Fôrge mientras la lava sube cada vez más rápido. ¿Hasta dónde aguantas?', controles: '← → o A D correr · ↑ / W / Espacio saltar (en el móvil, los botones)', abre: { juego: 'descenso', puntos: 4000 }, precio: 100, hitos: [3000, 12000, 40000], img: 'img/maq_conquista.jpg', url: 'conquista.html?v=ff69e3ea03', desafio: true },
   // el REPASO: la Ruta de la Estática con niveles. Abierta desde el principio y sin créditos (repetir preguntas no puede ser
   // una fuente de premios): solo su ranking y el hito «Repaso de oro» del Cuaderno.
-  { id: 'vuelo', n: 'Simulador de vuelo', lema: 'La Ruta de la Estática para repasar: cualquier tramo, en fácil, media o difícil, o todo el viaje de una vez.', controles: 'Como en la Ruta: ratón, teclado o el dedo · las respuestas, pilotando', abre: null, precio: 0, repaso: true, hitos: [2000, 4000, 7000], img: 'img/maq_vuelo.jpg', url: (location.pathname.includes('/juegos/') ? '../ruta/' : '../ruta-estatica/') + 'index.html?repaso=1&v=cdadcf2641' },
+  { id: 'vuelo', n: 'Simulador de vuelo', lema: 'La Ruta de la Estática para repasar: cualquier tramo, en fácil, media o difícil, o todo el viaje de una vez.', controles: 'Como en la Ruta: ratón, teclado o el dedo · las respuestas, pilotando', abre: null, precio: 0, repaso: true, hitos: [2000, 4000, 7000], img: 'img/maq_vuelo.jpg', url: (location.pathname.includes('/juegos/') ? '../ruta/' : '../ruta-estatica/') + 'index.html?repaso=1&v=ff69e3ea03' },
 ];
 export const ARCADE = JUEGOS.filter((j) => !j.repaso);
 // 🔴 En la web, lo que se cuenta de cada máquina y cómo se enciende (marca y precio) llega de _site_data.py → datos.js
 // (lo escribe el build): un dato, un sitio. En el borrador no hay datos.js y se queda lo de arriba.
 let DATOS = null;
-try { DATOS = (await import('./datos.js?v=cdadcf2641')).SALA_JORAN; for (const [id, n, lema, abre, precio, hitos] of DATOS.maquinas) { const j = JUEGOS.find((x) => x.id === id); if (j) Object.assign(j, { n, lema, abre: abre ? { juego: abre[0], puntos: abre[1] } : null, precio }, hitos ? { hitos } : {}); } if (DATOS.hito_cr) Object.assign(HITO_CR, DATOS.hito_cr); } catch (e) { /* borrador: sin datos.js */ }
+try { DATOS = (await import('./datos.js?v=ff69e3ea03')).SALA_JORAN; for (const [id, n, lema, abre, precio, hitos] of DATOS.maquinas) { const j = JUEGOS.find((x) => x.id === id); if (j) Object.assign(j, { n, lema, abre: abre ? { juego: abre[0], puntos: abre[1] } : null, precio }, hitos ? { hitos } : {}); } if (DATOS.hito_cr) Object.assign(HITO_CR, DATOS.hito_cr); } catch (e) { /* borrador: sin datos.js */ }
 // lo que datos.js no trae (una máquina nueva que aún no está en _site_data.py): se abre con la plata de la anterior
 for (const j of JUEGOS) {
   if (!j.abre || (DATOS && DATOS.maquinas.some((m) => m[0] === j.id))) continue;
@@ -62,6 +62,8 @@ export function estado() {
   return Object.assign({ avatar: 'finn', alias: 'Vega', marcas: {}, desbloqueados: ['evacuacion'], creditos: 100, partidas: {}, hitos: {}, logros: {} }, e || {});
 }
 export function guardar(e) { try { localStorage.setItem(CLAVE, JSON.stringify(e)); } catch (x) { /* sin almacenamiento */ } }
+// el último nivel superado de una máquina por niveles (0 = ninguno); en la web, el que guarda el servidor
+export function nivelDe(juego) { return Number((estado().niveles || {})[juego]) || 0; }
 export function abierto(e, j) { return !j.abre || e.desbloqueados.includes(j.id); }
 // al terminar una partida: guarda la marca y abre lo que toque. Devuelve lo nuevo que se ha abierto.
 // En la web (dentro de la Nave, que carga el motor), las marcas y las compras van al servidor (stargateSala) y lo de este
@@ -89,7 +91,7 @@ export async function sincronizar() {
   if (!r) return false;
   const e = estado();
   Object.assign(e, { marcas: r.sala.marcas || {}, desbloqueados: r.sala.abiertas || ['evacuacion'], hitos: r.sala.hitos || {}, logros: r.sala.logros || {},
-    votados: r.sala.votados || {}, creditos: r.coins, alias: r.alias || e.alias, ensayo: !!r.ensayo });
+    votados: r.sala.votados || {}, niveles: r.sala.niveles || {}, creditos: r.coins, alias: r.alias || e.alias, ensayo: !!r.ensayo });
   guardar(e); CLASE_SRV = r.clase || {};
   if (ru && ru.marcas) RUTA_SRV = ru.marcas;
   return true;
@@ -108,12 +110,15 @@ export function registrarPartida(juego, puntos, extra = {}) {
     const k = juego + ':' + esc;
     if (!e.hitos[k] && puntos >= j.hitos[i]) { const cr = j.repaso ? 0 : HITO_CR[esc]; e.hitos[k] = true; e.creditos += cr; hitos.push({ esc, cr, puntos: j.hitos[i] }); }
   });
+  // 28-sep · el progreso por niveles (El Descenso, planeta a planeta): posarse en el siguiente al último superado lo guarda
+  e.niveles = e.niveles || {};
+  if (extra.posado === true && Number(extra.planeta) === (e.niveles[juego] || 0) + 1) e.niveles[juego] = Number(extra.planeta);
   if (extra.intocable) e.logros.intocable = true;
   if (extra.perfecto) e.logros.perfecto = true;
   if (juego === 'vuelo' && extra.nivel === 'dificil' && j && puntos >= j.hitos[2]) e.logros.repasoOro = true;
   guardar(e);
   alServidor({ accion: 'marca', juego, puntos, extra, segundos: Math.round((performance.now() - (window.__t0Partida || T0)) / 1000) })
-    .then((r) => { if (r && r.ok && !r.ensayo) { const e2 = estado(); e2.creditos = r.coins; e2.desbloqueados = r.abiertas; guardar(e2); } });
+    .then((r) => { if (r && r.ok && !r.ensayo) { const e2 = estado(); e2.creditos = r.coins; e2.desbloqueados = r.abiertas; if (r.niveles) e2.niveles = r.niveles; guardar(e2); } });
   try { window.parent !== window && window.parent.postMessage({ sgJoran: { juego, puntos, record: puntos > antes } }, '*'); } catch (x) { /* sin padre */ }
   return { record: puntos > antes, antes, nuevos, hitos, mejor: e.marcas[juego] };
 }
@@ -131,7 +136,7 @@ export const CUADERNO = [
   { k: 'oro1', t: 'Récord de Joran', que: 'Oro en una máquina arcade.', ok: (c) => ARCADE.some((j) => c.e.hitos[j.id + ':oro']) },
   { k: 'oro4', t: 'Maestro de la sala', que: 'Oro en las cinco máquinas arcade.', ok: (c) => ARCADE.every((j) => c.e.hitos[j.id + ':oro']) },
   { k: 'intocable', t: 'Intocable', que: 'Vence a RUTA AZUL sin perder una vida.', ok: (c) => !!c.e.logros.intocable },
-  { k: 'perfecto', t: 'Ocho mundos, cero golpes', que: 'Pósate en los ocho planetas de El Descenso sin perder un módulo.', ok: (c) => !!c.e.logros.perfecto },
+  { k: 'perfecto', t: 'Ocho mundos, cero golpes', que: 'Pósate en Liminar, el octavo planeta de El Descenso, sin perder un módulo.', ok: (c) => !!c.e.logros.perfecto },
   { k: 'repasoOro', t: 'Repaso de oro', que: 'Oro en el Simulador de vuelo en nivel difícil.', ok: (c) => !!c.e.logros.repasoOro },
   { k: 'critico', t: 'Crítico de Ludo', que: 'Valora cinco juegos de la Galería de la tripulación.', ok: (c) => Object.keys(c.g.votos).length >= 5 },
 ];
@@ -278,7 +283,7 @@ export function finDePartida({ juego, titulo, puntos, filas, texto = '', alRepet
     <div class="gran">${Math.round(puntos).toLocaleString('es-ES')}<small>puntos${r.record ? ' · ¡récord!' : ` · tu récord: ${r.mejor.toLocaleString('es-ES')}`}</small></div>
     <div class="filas">${filas.map(([a, b]) => `<div><span>${esc(a)}</span><b>${esc(b)}</b></div>`).join('')}</div>
     ${hitos}${nuevos}${sigHito ? `<p class="pista">Siguiente hito: <b>${NOM[sigHito[0]]}</b> con ${sigHito[1].toLocaleString('es-ES')} puntos${j.repaso ? '' : ` (+${HITO_CR[sigHito[0]]} ◈)`}.</p>` : ''}${sig ? `<p class="pista">Con <b>${sig.abre.puntos.toLocaleString('es-ES')}</b> puntos aquí se abre <b>${esc(sig.n)}</b> (o se compra por ${sig.precio} ◈ en la sala).</p>` : ''}
-    <div class="botones"><button id="b-otra">Otra partida</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=cdadcf2641">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-otra">Otra partida</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=ff69e3ea03">Volver a la sala</a>'}</div>`);
   $('b-otra').onclick = () => { cerrarPantalla(); alRepetir(); };
   return r;
 }

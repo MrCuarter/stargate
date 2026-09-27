@@ -1,132 +1,191 @@
 // LA CONQUISTA DE FÔRGE · la quinta máquina de la sala de Joran (borrador).
-// Fôrge es el planeta de la forja: roca agrietada, acantilados y ríos de lava. Joran hizo de él su prueba más dura: cruzarlo
-// a saltos hasta la Puerta de la cumbre, con la Estática patrullando las rocas. Plataformas 2D en canvas, como las de
-// siempre: correr, saltar (más alto si mantienes), pisar a la Estática, balizas de control y meta.
+// Fôrge es el planeta de la forja. Joran hizo de él su prueba más dura: la CHIMENEA. Un pozo de roca por el que sube
+// un mar de lava que no para y cada vez va más deprisa. No hay meta: se trepa de roca en roca hasta donde aguantes.
+// Supervivencia vertical en canvas 2D: correr, saltar (más alto si mantienes), pisar a la Estática, coger enfriadores.
 // Arcade o DESAFÍO (desafio.js, ?modo=desafio): en el desafío, la refrigeración del traje se gasta y se recarga acertando.
 //
-// Gráficos: TODO dibujado por código en este fichero (rocas, lava, piloto, Estática, cristales, Puerta), salvo el cielo
-// del fondo, que es el arte de Fôrge de la propia serie STARGATE (p1_forge_llegada) y el retrato del piloto que elegiste
-// en la sala. Sin recursos de terceros ni generadores de pago.
-import { $, estado, SON, tono, ruido, audio, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, AVATARES, EMBED } from './comun.js?v=cdadcf2641';
-import { crearDesafio, MODO, urlModo } from './desafio.js?v=cdadcf2641';
+// La curva (decisión de diseño, pedida por el docente: «a partir de 10 minutos, súper difícil»):
+//   · 0-2 min, amable: la lava va lenta y lejos; rocas anchas y saltos cortos (se aprende a saltar).
+//   · ~5 min, exigente: losas que crujen, plataformas móviles, géiseres en la pared, la lava ya se ve.
+//   · 10 min en adelante, ZONA ROJA: la lava va casi a la velocidad máxima a la que se puede trepar y apenas deja
+//     margen (se acerca sola si te alejas mucho). Hacia los 15-17 min va más rápido de lo que nadie puede subir.
+// El mundo se genera por TRAMOS de 50 m, cada uno con su semilla fija: todo el mundo trepa la misma chimenea (ranking justo).
+//
+// Gráficos: TODO dibujado por código en este fichero (rocas, lava, piloto, Estática, cristales, enfriadores), salvo el
+// cielo del fondo, que es el arte de Fôrge de la propia serie STARGATE (p1_forge_llegada) y el retrato del piloto que
+// elegiste en la sala. Sin recursos de terceros ni generadores de pago.
+import { $, estado, SON, tono, ruido, audio, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, AVATARES, EMBED } from './comun.js?v=ff69e3ea03';
+import { crearDesafio, MODO, urlModo } from './desafio.js?v=ff69e3ea03';
 
 const JUEGO = JUEGOS.find((j) => j.id === 'conquista') || { id: 'conquista', n: 'La conquista de Fôrge' };
 const EN_WEB = location.pathname.includes('/juegos/');
 // en la web, el fondo que ya sirve la Nave (un solo fichero); en el borrador, la copia reducida de img/
 const FONDO = EN_WEB ? '../../assets/img/fondos/p1_forge_llegada.webp' : 'img/forge_fondo.webp';
 
-// ───────────────────────────────── la física (unidades: píxeles del mundo y segundos)
-const ALTO = 540;                 // alto mínimo de lo que se ve
-const LAVA = 600, PIE = LAVA + 80; // el mar de lava y el fondo de las rocas (se hunden en ella)
+// ───────────────────────────────── la física (unidades: píxeles del mundo y segundos; y crece hacia ABAJO)
+const ANCHO = 640;                 // el ancho de la chimenea, de pared a pared
+const VISTA = { w: 680, h: 620 };  // lo mínimo que se ve (en un móvil en vertical se ve más alto: mejor para trepar)
 const G = 2300, CAIDA_MAX = 1150, VCORRE = 310, ACC_SUELO = 2800, ACC_AIRE = 1700;
-const SALTO = 780, SALTO_CORTO = 320, REBOTE = 600;  // salto: ~132 px de alto y ~210 px de largo a toda carrera
+const SALTO = 780, SALTO_CORTO = 320, REBOTE = 600;  // salto entero: ~132 px de alto
 const COYOTE = 0.1, BUFFER = 0.13;                   // perdón al saltar tarde (ya fuera del borde) o pronto (aún en el aire)
 const PASO = 1 / 120;                                // paso fijo: el mismo salto en un móvil lento que en un ordenador
 const PJ = { w: 24, h: 40 };
 const M = 32;                                        // px por metro (lo que se ve en el marcador)
-const VIDAS = 3;
-// los puntos, en un sitio (la portada los cuenta de aquí)
-const PT = { metro: 3, cristal: 25, nucleo: 250, pisoton: 100, baliza: 250, meta: 1500, vida: 500, segundo: 6, limite: 300 };
+const TRAMO_H = 50 * M;                              // cada tramo, 50 m de chimenea
+const ESCUDOS = 3;                                   // la Estática y los géiseres quitan escudo; la lava, la partida entera
+const LAVA0 = 300;                                   // la lava empieza 300 px por debajo de la primera cornisa
+const ENFRIA = 5, ENFRIA_MAX = 8;                    // segundos que un enfriador para la lava (se acumula hasta 8)
 
-// ───────────────────────────────── el nivel: siempre el mismo (semilla fija), para que el ranking sea justo
+// los puntos, en un sitio (la portada los cuenta de aquí). Todo lo que se gana se multiplica por el de la fase:
+// así aguantar en la zona roja vale mucho más que trepar al principio (lo que se nota a partir de los 10 min).
+const PT = { metro: 10, segundo: 3, cristal: 25, nucleo: 250, pisoton: 100, enfriador: 50 };
+// las fases van por TIEMPO (no por altura): el reloj es lo que el alumnado entiende («aguanté 10 minutos»)
+const FASES = [
+  { t: 0, n: 'Calentamiento', x: 1, color: '#5ff4ff' },
+  { t: 90, n: 'La lava despierta', x: 1.5, color: '#ffc24a' },
+  { t: 180, n: 'La forja se calienta', x: 2, color: '#ffc24a' },
+  { t: 300, n: 'Fôrge ruge', x: 2.5, color: '#ff8a3d' },
+  { t: 450, n: 'Río de fuego', x: 3, color: '#ff8a3d' },
+  { t: 600, n: 'Zona roja', x: 4, color: '#ff4a1c' },
+  { t: 720, n: 'Fusión', x: 5, color: '#ff2e55' },
+];
+// la velocidad de la lava (px/s) según el tiempo. Trepar bien son ~100-130 px/s sostenidos y el techo físico ronda los
+// 200: a 80 (10 min) ya no hay respiro, a 105 (13 min) casi nadie aguanta, y a 175-260 (17-18 min) es imposible.
+const LAVA_V = [[0, 0], [5, 0], [8, 16], [60, 20], [90, 24], [180, 34], [300, 50], [450, 64], [600, 80], [720, 96], [780, 104], [900, 128], [1020, 175], [1080, 260]];
+// el margen máximo que la lava te deja (px por encima de ella): si subes más deprisa, acelera hasta alcanzarlo. Al
+// principio es más de una pantalla (no se ve); en la zona roja, poco más de un salto: «casi pisa los talones».
+const LAVA_MARGEN = [[0, 900], [90, 820], [180, 640], [300, 480], [450, 360], [600, 250], [720, 190], [900, 150]];
+const interp = (tabla, t) => {
+  if (t <= tabla[0][0]) return tabla[0][1];
+  for (let i = 1; i < tabla.length; i++) if (t <= tabla[i][0]) { const [t0, v0] = tabla[i - 1], [t1, v1] = tabla[i]; return v0 + (v1 - v0) * (t - t0) / (t1 - t0); }
+  return tabla[tabla.length - 1][1];
+};
+const faseEn = (t) => { let i = 0; while (i + 1 < FASES.length && t >= FASES[i + 1].t) i++; return i; };
+
+// ───────────────────────────────── el GENERADOR: tramo k → siempre lo mismo (semilla fija por tramo), sin estado global
 function azarFijo(s) { return () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
-// lo más lejos que llega un salto a toda carrera hasta una roca `sube` px más alta (negativo: más baja). El generador
-// nunca pone un hueco de más del ~70 % de esto: así todo el nivel se puede pasar, y con margen.
+// lo más lejos (en horizontal) que llega un salto a toda carrera hasta una roca `sube` px más alta. El generador nunca
+// pone un hueco de más del ~72 % de esto: así todo se puede pasar, y con margen.
 function alcance(sube) {
   const a = G / 2, d = SALTO * SALTO - 4 * a * sube;
   if (d < 0) return 0;
   return VCORRE * (SALTO + Math.sqrt(d)) / (2 * a);
 }
-// S = salto entre acantilados · F = losas que crujen · G = géiser de lava · M = plataforma móvil sobre un lago
-const TRAMOS = [
-  { n: 'El borde del cráter', piezas: 'SSSSSS', hueco: [50, 110], dy: 40, ancho: [180, 300], andantes: 0.45, drones: 0 },
-  { n: 'Las rocas que crujen', piezas: 'SFSFSF', hueco: [70, 130], dy: 45, ancho: [150, 260], andantes: 0.5, drones: 0 },
-  { n: 'Los géiseres', piezas: 'GSGSFG', hueco: [80, 140], dy: 45, ancho: [150, 250], andantes: 0.5, drones: 0.25 },
-  { n: 'El lago de magma', piezas: 'MSGMSM', hueco: [90, 140], dy: 40, ancho: [150, 240], andantes: 0.55, drones: 0.5 },
-  { n: 'La pared de Fôrge', piezas: 'SSSSSSSS', subida: true, hueco: [50, 105], ancho: [110, 170], andantes: 0.2, drones: 0.35 },
-  { n: 'La cumbre', piezas: 'SFSGMSFS', relativo: true, hueco: [90, 150], dy: 40, ancho: [140, 240], andantes: 0.65, drones: 0.5 },
-];
-function generar() {
-  const r = azarFijo(20261005), R = (a, b) => a + r() * (b - a);
-  const N = { rocas: [], losas: [], geiseres: [], enemigos: [], cristales: [], nucleos: [], balizas: [], tramos: [], meta: null, inicio: 0 };
-  // el borde de arriba, dentado, y las grietas de lava de cada roca (solo se dibujan: el choque usa el borde recto)
-  const dientes = (w) => { const p = []; for (let x = 0; x <= w; x += 18 + r() * 10) p.push([Math.min(x, w), x === 0 ? 0 : -1 - r() * 5]); p.push([w, 0]); return p; };
-  const grietas = (w, h) => {
-    const gs = []; const n = 1 + Math.floor(w / 110 + r() * 2);
-    for (let i = 0; i < n; i++) { let x = 10 + r() * (w - 20), y = 6 + r() * 20; const g = [[x, y]]; const largo = Math.min(h - 30, 60 + r() * 220);
-      while (y < largo) { x = Math.max(6, Math.min(w - 6, x + (r() - 0.5) * 26)); y += 14 + r() * 22; g.push([x, y]); } gs.push(g); }
-    return gs;
+const SEMILLA = 20261005, MARGEN = 14;
+const NOMBRES = ['El fondo del cráter', 'Las rocas que crujen', 'La chimenea', 'Los géiseres', 'La pared de Fôrge', 'El nido de la Estática',
+  'La garganta', 'Las losas de ceniza', 'La cumbre negra', 'El cielo de la forja'];
+const nombreTramo = (k) => (k < NOMBRES.length ? NOMBRES[k] : `Más allá de la cumbre ${k - NOMBRES.length + 1}`);
+// la dificultad del terreno según el tramo: 0 abajo, 1 hacia los 750 m (≈10 min al ritmo de la lava), hasta 1,3
+const dificultad = (k) => Math.min(1.3, k / 15);
+const lerp = (a, b, f) => a + (b - a) * f;
+function tramo(k) {
+  const r = azarFijo(SEMILLA + k * 7919), R = (a, b) => a + r() * (b - a);
+  const d = dificultad(k), f = Math.min(1, d), mas = Math.max(0, d - 1); // `mas`: lo que pasa de 1 (solo acelera cosas)
+  const Y0 = -k * TRAMO_H, Y1 = Y0 - TRAMO_H;
+  const T = { k, n: nombreTramo(k), y: Y0, plats: [], camino: [], enemigos: [], geiseres: [], cristales: [], nucleos: [], enfriadores: [] };
+  const dientes = (w) => { const p = []; for (let x = 0; x <= w; x += 16 + r() * 10) p.push([Math.min(x, w), x === 0 ? 0 : -1 - r() * 4]); p.push([w, 0]); return p; };
+  const panza = (w, h) => [[w, h], [w * R(0.62, 0.8), h + R(4, 12)], [w * R(0.3, 0.5), h + R(8, 18)], [w * R(0.08, 0.22), h + R(2, 8)], [0, h]];
+  const grieta = (w) => { const x = R(8, w - 8); return [[x, 4], [x + R(-8, 8), R(10, 16)], [x + R(-10, 10), R(18, 26)]]; };
+  const roca = (tipo, x, y, w) => {
+    const h = tipo === 'movil' ? 16 : tipo === 'fragil' ? 20 : 24;
+    const p = { tipo, k, x, x0: x, y, y0: y, w, h, borde: dientes(w), panza: panza(w, h), grieta: tipo === 'roca' ? grieta(w) : null, t: -1, cae: false, vy: 0, vuelve: 0, dx: 0 };
+    T.plats.push(p); return p;
   };
-  const roca = (x, w, y) => { const s = { tipo: 'roca', x, y, w, h: PIE - y, borde: dientes(w), grietas: grietas(w, PIE - y) }; N.rocas.push(s); return s; };
-  const andante = (s) => { const v = R(55, 85) * (r() < 0.5 ? -1 : 1); N.enemigos.push({ tipo: 'andante', x: s.x + s.w / 2 - 15, y: s.y - 26, w: 30, h: 26, min: s.x + 12, max: s.x + s.w - 42, v }); };
-  const dron = (cx, top) => N.enemigos.push({ tipo: 'dron', cx, cy: top - R(150, 185), ax: R(25, 60), ay: R(28, 42), f: R(1.1, 1.8), fase: r() * 6, x: cx, y: top - 160, w: 30, h: 30 });
-  // tres cristales siguiendo el arco del salto (a la altura del cuerpo a toda carrera)
-  const arco = (x0, y0, x1, y1) => { for (let i = 1; i <= 3; i++) { const f = i / 4; N.cristales.push({ x: x0 + (x1 - x0) * f, y: y0 + (y1 - y0) * f - 22 - 118 * 4 * f * (1 - f), ok: false }); } };
-  let x = -360, top = 420;
-  roca(-420, 60, 120);                // la pared de detrás: no se puede volver hacia atrás
-  roca(x, 620, top); x += 620; N.inicio = -240;
-  TRAMOS.forEach((T, ti) => {
-    N.tramos.push({ x: x - 40, n: T.n });
-    const base = top, lo = T.relativo ? base - 70 : 300, hi = T.relativo ? base + 60 : 470;
-    const altura = (desde) => (T.subida ? desde - R(45, 88) : Math.max(lo, Math.min(hi, desde + R(-T.dy, T.dy))));
-    const conNucleo = [...T.piezas].map((c, i) => (c === 'S' ? i : -1)).filter((i) => i > 0);
-    const nucleoEn = conNucleo[Math.floor(r() * conNucleo.length)];
-    [...T.piezas].forEach((pieza, pi) => {
-      if (pieza === 'S') {
-        const nt = altura(top), h = Math.max(45, Math.min(R(T.hueco[0], T.hueco[1]), alcance(top - nt) * 0.7));
-        if (pi === nucleoEn) N.nucleos.push({ x: x + h / 2, y: top - 140, ok: false }); // a la altura del salto entero desde el borde
-        else if (r() < 0.6) arco(x, top, x + h, nt);
-        if (r() < T.drones) dron(x + h / 2, Math.min(top, nt));
-        x += h; const w = R(T.ancho[0], T.ancho[1]), s = roca(x, w, nt);
-        if (w >= 180 && r() < T.andantes) andante(s);
-        x += w; top = nt;
-      } else if (pieza === 'F') {
-        // dos o tres losas flotando sobre la lava: crujen al pisarlas y a medio segundo se caen (vuelven a los 3 s)
-        let cy = top; const n = r() < 0.5 ? 2 : 3;
-        for (let i = 0; i < n; i++) {
-          const ny = Math.max(lo - 40, Math.min(hi, cy + R(-35, 25))), h = Math.min(R(75, 115), alcance(cy - ny) * 0.68);
-          x += h; const w = R(66, 92);
-          N.losas.push({ tipo: 'fragil', x, y: ny, y0: ny, w, h: 22, t: -1, vy: 0, cae: false, vuelve: 0, borde: dientes(w) });
-          N.cristales.push({ x: x + w / 2, y: ny - 42, ok: false });
-          x += w; cy = ny;
-        }
-        const nt = Math.max(lo, Math.min(hi, cy + R(-30, 30))), h = Math.min(R(75, 115), alcance(cy - nt) * 0.68);
-        x += h; const w = R(T.ancho[0], T.ancho[1]); const s = roca(x, w, nt); if (w >= 180 && r() < T.andantes) andante(s); x += w; top = nt;
-      } else if (pieza === 'G') {
-        const nt = altura(top), h = Math.max(110, Math.min(R(120, 165), alcance(top - nt) * 0.72));
-        N.geiseres.push({ x: x + h / 2 - 22, w: 44, techo: Math.min(top, nt) - 200, periodo: R(2.4, 3.2), fase: r() * 3 });
-        x += h; const w = R(T.ancho[0], T.ancho[1]); const s = roca(x, w, nt); if (w >= 180 && r() < T.andantes) andante(s); x += w; top = nt;
-      } else if (pieza === 'M') {
-        // un lago de lava que solo se cruza subido a una plataforma que va y viene (hay que esperarla)
-        const lago = R(360, 440), nt = Math.max(lo, Math.min(hi, top + R(-20, 20))), py = (top + nt) / 2 + R(0, 15), w = 110;
-        const a = x + 34, b = x + lago - 34 - w;
-        N.losas.push({ tipo: 'movil', x: a, y: py, w, h: 18, a, b, om: (2 * Math.PI) / R(4.6, 5.6), fase: 0, dx: 0 });
-        for (let i = 1; i <= 3; i++) N.cristales.push({ x: x + lago * i / 4, y: py - 44, ok: false });
-        if (r() < T.drones) dron(x + lago / 2, py);
-        x += lago; const w2 = R(T.ancho[0], T.ancho[1]); roca(x, w2, nt); x += w2; top = nt;
-      }
-    });
-    if (ti < TRAMOS.length - 1) { // la baliza del final del tramo: una roca ancha y llana para respirar
-      const nt = T.subida ? top - 40 : Math.max(lo, Math.min(hi, top + R(-20, 20))), h = Math.min(R(60, 100), alcance(top - nt) * 0.7);
-      x += h; roca(x, 300, nt); N.balizas.push({ x: x + 150, y: nt, ok: false, n: ti + 1 }); x += 300; top = nt;
+  // la cornisa del arranque del tramo: de pared a pared, se sube desde cualquier punto (y así los tramos siempre casan)
+  const cornisa = roca('cornisa', 0, Y0, ANCHO); cornisa.h = 34; cornisa.panza = panza(ANCHO, 34);
+  // cómo es este tramo (todo interpolado con la dificultad)
+  const dy = [lerp(52, 84, f), lerp(78, 112, f)];                     // cuánto sube cada roca (salto entero: 132)
+  const anchoR = [lerp(150, 66, f), lerp(230, 104, f)];               // rocas más estrechas arriba
+  const hueco = [lerp(-0.5, 0.25, f), lerp(0.35, 0.72, f)];           // hueco horizontal, en fracción del alcance
+  const pFragil = k < 1 ? 0 : lerp(0.14, 0.4, f), pMovil = k < 2 ? 0 : lerp(0.12, 0.3, f);
+  const pGeiser = k < 3 ? 0 : lerp(0.12, 0.26, f), pDron = k < 4 ? 0 : lerp(0.1, 0.24, f) + mas * 0.2;
+  const pAndante = k < 1 ? 0.22 : lerp(0.3, 0.5, f), pExtra = lerp(0.55, 0.18, f), pCristal = 0.42;
+  const vAndante = lerp(55, 115, f) * (1 + mas), crujido = Math.max(0.25, lerp(0.6, 0.3, f) - mas * 0.1);
+  const periodoMovil = Math.max(2, lerp(5, 2.6, f) - mas * 1.5), periodoGeiser = Math.max(1.9, lerp(3.4, 2.3, f) - mas);
+  const nucleoEn = 4 + Math.floor(r() * 8), enfriaEn = 3 + Math.floor(r() * 9);
+  let prev = { x: ANCHO / 2 - 80, x0: ANCHO / 2 - 80, w: 160, y: Y0 }, n = 0, enfriado = false;
+  for (;;) {
+    const resta = prev.y - Y1;
+    if (resta <= dy[1]) break; // desde aquí, la cornisa del tramo siguiente queda a un salto (de pared a pared: siempre)
+    const sube = Math.min(R(dy[0], dy[1]), resta - 30), ny = prev.y - sube, reach = alcance(sube);
+    let tipo = 'roca';
+    const q = r();
+    if (n >= 2 && q < pMovil) tipo = 'movil'; else if (n >= 1 && q < pMovil + pFragil) tipo = 'fragil';
+    const w = tipo === 'movil' ? R(96, 116) : tipo === 'fragil' ? R(62, 90) : R(anchoR[0], anchoR[1]);
+    let x;
+    if (n === 0) x = R(MARGEN + 40, ANCHO - MARGEN - 40 - w); // desde la cornisa se salta desde donde quieras
+    else {
+      const g = R(hueco[0], hueco[1]) * reach;
+      const en = (dir) => (dir > 0 ? prev.x0 + prev.w + g : prev.x0 - g - w);
+      let dir = r() < 0.5 ? -1 : 1; x = en(dir);
+      if (x < MARGEN || x + w > ANCHO - MARGEN) { dir = -dir; x = en(dir); }
+      x = Math.max(MARGEN, Math.min(ANCHO - MARGEN - w, x)); // pegar a la pared solo acorta el salto
     }
-  });
-  // la cumbre: la Puerta, y una pared detrás para no caerse de largo
-  const h = 90; x += h; roca(x, 480, top); N.meta = { x: x + 300, y: top }; x += 480; roca(x, 80, top - 320);
-  N.fin = x;
-  return N;
+    const p = roca(tipo, x, ny, w);
+    T.camino.push(p);
+    if (tipo === 'movil') { // va y viene alrededor de su sitio (pasa por él: basta esperarla)
+      const A = R(50, 120); Object.assign(p, { a: Math.max(MARGEN, x - A), b: Math.min(ANCHO - MARGEN - w, x + A), om: (2 * Math.PI) / periodoMovil, fase: r() * 6.3 });
+    } else if (tipo === 'fragil') p.crujido = crujido;
+    // la Estática: andantes que patrullan las rocas anchas, drones que flotan en los huecos
+    if (tipo === 'roca' && w >= 96 && n >= (k === 0 ? 4 : 1) && r() < pAndante) {
+      const v = vAndante * R(0.85, 1.15) * (r() < 0.5 ? -1 : 1);
+      T.enemigos.push({ tipo: 'andante', k, x: x + w / 2 - 15, y: ny - 26, w: 30, h: 26, min: x + 4, max: x + w - 34, v });
+    }
+    if (n >= 1 && r() < pDron) {
+      const cx = (prev.x0 + prev.w / 2 + x + w / 2) / 2 + R(-60, 60);
+      T.enemigos.push({ tipo: 'dron', k, cx, cy: (prev.y + ny) / 2 - R(30, 60), ax: R(30, 75), ay: R(14, 28), f: R(1.1, 1.8) * (1 + mas * 0.5), fase: r() * 6, x: cx, y: 0, w: 30, h: 30 });
+    }
+    // géiser de pared: una grieta que escupe lava hacia dentro, a ratos (burbujea antes de salir). Nunca más del 60 %
+    // del pozo: siempre queda un lado por donde pasar.
+    if (n >= 1 && r() < pGeiser) {
+      T.geiseres.push({ k, lado: r() < 0.5 ? -1 : 1, y: ny - R(40, 80), h: 26, largo: ANCHO * R(0.35, 0.6), periodo: periodoGeiser * R(0.9, 1.1), fase: r() * 3 });
+    }
+    // una roca de más al otro lado: atajos, cristales y a veces el enfriador (desviarse cuesta tiempo: esa es la gracia)
+    let extra = null;
+    if (n >= 1 && r() < pExtra) {
+      const wE = R(80, 130), izq = x + w / 2 > ANCHO / 2;
+      const xE = izq ? R(MARGEN, Math.max(MARGEN, x - 60 - wE)) : R(Math.min(ANCHO - MARGEN - wE, x + w + 60), ANCHO - MARGEN - wE);
+      if (izq ? xE + wE <= x - 40 : xE >= x + w + 40) {
+        extra = roca('roca', xE, ny + R(-24, 24), wE);
+        T.cristales.push({ k, x: xE + wE / 2, y: extra.y - 34, ok: false });
+      }
+    }
+    if (r() < pCristal) T.cristales.push({ k, x: x + w / 2, y: ny - 34, ok: false });
+    if (n === nucleoEn) T.nucleos.push({ k, x: x + w / 2, y: ny - 118, ok: false }); // hace falta el salto entero
+    if (n === enfriaEn) { const s = extra || p; T.enfriadores.push({ k, x: s.x + s.w / 2, y: s.y - 30, ok: false }); enfriado = true; }
+    prev = p; n++;
+  }
+  if (!enfriado) T.enfriadores.push({ k, x: prev.x0 + prev.w / 2, y: prev.y - 30, ok: false }); // uno por tramo, siempre
+  return T;
 }
 
 // ───────────────────────────────── estado
-let N = generar(), J = null, P = null, jugando = false, pausa = false;
-const cam = { x: -420, y: 0 };
-function nuevoPiloto() { const r0 = N.rocas[1]; return { x: N.inicio, y: r0.y - PJ.h, vx: 0, vy: 0, mira: 1, suelo: null, coyote: 0, buffer: 0, saltoAntes: false, muerto: 0, inv: 0 }; }
-function nuevaPartida() { return { t: 0, vidas: VIDAS, ev: 0, maxX: N.inicio, cristales: 0, nucleos: 0, pisotones: 0, balizas: 0, tramo: 0, respawn: { x: N.inicio, y: N.rocas[1].y - PJ.h }, fin: false }; }
-const metros = () => Math.max(0, Math.floor((P.maxX - N.inicio) / M));
-const puntosAhora = () => P.ev + metros() * PT.metro;
+let N = null, J = null, P = null, jugando = false, pausa = false;
+const cam = { x: ANCHO / 2 - VISTA.w / 2, y: -VISTA.h * 0.6 };
+// el mundo vivo: los tramos que ya existen, en listas planas (lo que choca y se dibuja)
+function nuevoMundo() { const W = { sig: 0, tramos: [], plats: [], enemigos: [], geiseres: [], cristales: [], nucleos: [], enfriadores: [] }; asegurar(W, 0); return W; }
+function asegurar(W, yArriba) { // genera tramos hasta dos por encima de lo que se ve
+  while (-W.sig * TRAMO_H > yArriba - 2 * TRAMO_H) {
+    const T = tramo(W.sig++); W.tramos.push({ k: T.k, y: T.y, n: T.n });
+    for (const c of ['plats', 'enemigos', 'geiseres', 'cristales', 'nucleos', 'enfriadores']) W[c].push(...T[c]);
+  }
+}
+function podar(W, kMin) { // lo que se ha tragado la lava se olvida (una partida de 15 min son ~25 tramos)
+  for (const c of ['plats', 'enemigos', 'geiseres', 'cristales', 'nucleos', 'enfriadores']) W[c] = W[c].filter((o) => o.k >= kMin);
+}
+function nuevoPiloto() { return { x: ANCHO / 2 - PJ.w / 2, y: -PJ.h, vx: 0, vy: 0, mira: 1, suelo: null, coyote: 0, buffer: 0, saltoAntes: false, muerto: 0, inv: 0 }; }
+function nuevaPartida() {
+  return { t: 0, ev: 0, escudos: ESCUDOS, lava: LAVA0, lavaV: 0, frio: 0, fase: 0, tramo: 0, maxM: 0, seg: 0,
+    cristales: 0, nucleos: 0, pisotones: 0, enfriadores: 0, avisoFase: -1, motivo: '', fin: false };
+}
+const multi = () => FASES[P.fase].x;
+const gana = (base) => { const v = base * multi(); P.ev += v; return Math.round(v); };
+const puntosAhora = () => Math.round(P.ev);
+const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+const fmtX = (x) => '×' + String(x).replace('.', ',');
 
-// el modo desafío: la refrigeración del traje (en Fôrge hace calor). Mientras se contesta, el juego para; al volver, se sueltan
-// las teclas (si no, el piloto seguiría corriendo con la tecla que pulsaste antes de la pregunta)
+// el modo desafío: la refrigeración del traje (en Fôrge hace calor). Mientras se contesta, el juego para (la lava
+// también); al volver, se sueltan las teclas (si no, el piloto seguiría corriendo con la tecla de antes de la pregunta)
 const DES = crearDesafio({ nombre: 'Refrigeración del traje', segundos: 40, recarga: 40, hud: $('des-slot'), alPausar: (si) => { if (!si) soltar(); }, enJuego: () => jugando && !pausa });
 if (DES.activo) DES.preparar(); // se piden las preguntas mientras lees la portada
 
@@ -156,52 +215,58 @@ function chispas(x, y, n, color, fuerza = 220) {
   for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, v = fuerza * (0.3 + Math.random()); particulas.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 80, vida: 0.5 + Math.random() * 0.5, max: 1, color, g: 600 }); }
 }
 function flota(x, y, t, color = '#ffc24a') { textos.push({ x, y, t, color, vida: 1 }); }
-function geiserAltura(g, t) { // 0 = en calma · 1 = columna entera. Antes de salir, burbujea (fase de aviso)
+function geiserChorro(g, t) { // 0 = en calma · 1 = chorro entero. Antes de salir, burbujea (el aviso)
   const c = ((t + g.fase) % g.periodo);
-  if (c < 0.7) return { aviso: true, h: 0 };
-  if (c < 1.6) { const k = c - 0.7; return { aviso: false, h: k < 0.18 ? k / 0.18 : k > 0.72 ? Math.max(0, (0.9 - k) / 0.18) : 1 }; }
+  if (c < 0.75) return { aviso: true, h: 0 };
+  if (c < 1.65) { const q = c - 0.75; return { aviso: false, h: q < 0.15 ? q / 0.15 : q > 0.75 ? Math.max(0, (0.9 - q) / 0.15) : 1 }; }
   return { aviso: false, h: 0 };
 }
+function efectos(dt) {
+  for (let i = particulas.length - 1; i >= 0; i--) { const q = particulas[i]; q.vida -= dt; if (q.vida <= 0) { particulas.splice(i, 1); continue; } q.x += q.vx * dt; q.y += q.vy * dt; q.vy += q.g * dt; }
+  for (let i = textos.length - 1; i >= 0; i--) { const q = textos[i]; q.vida -= dt; q.y -= 40 * dt; if (q.vida <= 0) textos.splice(i, 1); }
+}
 function mundo(dt) {
-  for (const l of N.losas) {
+  for (const l of N.plats) {
     if (l.tipo === 'movil') { const nx = l.a + (l.b - l.a) * (0.5 - 0.5 * Math.cos(P.t * l.om + l.fase)); l.dx = nx - l.x; l.x = nx; continue; }
+    if (l.tipo !== 'fragil') continue;
     if (l.cae) { l.vy += G * 0.5 * dt; l.y += l.vy * dt; l.vuelve -= dt; if (l.vuelve <= 0) { l.cae = false; l.y = l.y0; l.vy = 0; l.t = -1; } continue; }
-    if (l.t >= 0) { l.t += dt; if (l.t > 0.5) { l.cae = true; l.vuelve = 3; ruido(0.25, 0.2, 600); } }
+    if (l.t >= 0) { l.t += dt; if (l.t > l.crujido) { l.cae = true; l.vuelve = 2.5; ruido(0.25, 0.2, 600); } }
   }
   for (const e of N.enemigos) {
     if (e.muerto) continue;
     if (e.tipo === 'andante') { e.x += e.v * dt; if (e.x < e.min) { e.x = e.min; e.v = Math.abs(e.v); } if (e.x > e.max) { e.x = e.max; e.v = -Math.abs(e.v); } }
     else { e.x = e.cx - 15 + Math.sin(P.t * e.f + e.fase) * e.ax; e.y = e.cy - 15 + Math.cos(P.t * e.f * 1.3 + e.fase) * e.ay; }
   }
-  for (let i = particulas.length - 1; i >= 0; i--) { const q = particulas[i]; q.vida -= dt; if (q.vida <= 0) { particulas.splice(i, 1); continue; } q.x += q.vx * dt; q.y += q.vy * dt; q.vy += q.g * dt; }
-  for (let i = textos.length - 1; i >= 0; i--) { const q = textos[i]; q.vida -= dt; q.y -= 40 * dt; if (q.vida <= 0) textos.splice(i, 1); }
+}
+// la lava: su velocidad por el reloj, más lo que haga falta para no dejarte más margen del que toca (sin pasarse: así un
+// enfriador sigue valiendo aunque luego la lava recupere), y parada del todo mientras dura el frío
+function subirLava(dt) {
+  if (P.frio > 0) { P.frio = Math.max(0, P.frio - dt); P.lavaV = 0; return; }
+  const base = interp(LAVA_V, P.t), margen = P.lava - (J.y + PJ.h), lim = interp(LAVA_MARGEN, P.t);
+  const extra = margen > lim ? Math.min(base * 0.9 + 10, (margen - lim) * 0.9) : 0;
+  P.lavaV = base + extra; P.lava -= P.lavaV * dt;
 }
 const cruzan = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-function chocarX() {
-  const yo = { x: J.x, y: J.y, w: PJ.w, h: PJ.h };
-  for (const s of N.rocas) {
-    if (s.x > J.x + PJ.w + 2 || s.x + s.w < J.x - 2) continue;
-    yo.x = J.x; if (!(J.y + PJ.h > s.y + 0.01 && J.y < s.y + s.h) || !cruzan(yo, s)) continue;
-    J.x = J.x + PJ.w / 2 < s.x + s.w / 2 ? s.x - PJ.w : s.x + s.w; J.vx = 0;
-  }
-}
+// todas las rocas se atraviesan al subir y sostienen al bajar (como en cualquier juego de trepar: sin cabezazos injustos)
 function chocarY(piesAntes) {
-  const yo = { x: J.x, y: J.y, w: PJ.w, h: PJ.h };
-  for (const s of N.rocas) {
-    if (s.x > J.x + PJ.w || s.x + s.w < J.x || !cruzan(yo, s)) continue;
-    if (piesAntes <= s.y + 0.5) { J.y = s.y - PJ.h; J.vy = 0; J.suelo = s; yo.y = J.y; }
-    else if (J.vy < 0) { J.y = s.y + s.h; J.vy = 0; yo.y = J.y; }
-  }
-  // las losas y las móviles solo sostienen desde arriba (se atraviesan al subir: menos cabezazos injustos)
-  for (const l of N.losas) {
-    if (l.cae || J.vy < 0) continue;
+  if (J.vy < 0) return;
+  for (const l of N.plats) {
+    if (l.cae) continue;
     if (J.x + PJ.w > l.x + 2 && J.x < l.x + l.w - 2 && piesAntes <= l.y + 2 && J.y + PJ.h >= l.y) { J.y = l.y - PJ.h; J.vy = 0; J.suelo = l; }
   }
 }
 function paso(dt) {
+  efectos(dt);
+  if (J.muerto > 0) { J.muerto -= dt; if (J.muerto <= 0) terminar(); return; } // el reloj se para al caer
   P.t += dt;
-  mundo(dt);
-  if (J.muerto > 0) { J.muerto -= dt; if (J.muerto <= 0) { if (P.vidas <= 0) terminar(false); else reaparecer(); } return; }
+  mundo(dt); subirLava(dt);
+  // la fase (por el reloj): cada cambio, un aviso bien visible y el multiplicador nuevo
+  const fi = faseEn(P.t);
+  if (fi > P.fase) {
+    P.fase = fi; const F = FASES[fi]; P.avisoFase = P.t;
+    aviso(fi === 5 ? `ZONA ROJA · LA LAVA ACELERA · ${fmtX(F.x)}` : `LA LAVA ACELERA · ${fmtX(F.x)}`, F.color, 2.6); SON.alarma();
+  }
+  while (P.t >= P.seg + 1) { P.seg++; gana(PT.segundo); } // cada segundo vivo suma (y más en las fases altas)
   if (J.inv > 0) J.inv -= dt;
   const izq = !!(tecla.ArrowLeft || tecla.KeyA || toque.izq), der = !!(tecla.ArrowRight || tecla.KeyD || toque.der);
   const quiere = !!(tecla.Space || tecla.ArrowUp || tecla.KeyW || toque.salto);
@@ -217,112 +282,156 @@ function paso(dt) {
   J.vy = Math.min(CAIDA_MAX, J.vy + G * dt);
   const sobre = J.suelo;
   if (sobre && sobre.dx) J.x += sobre.dx; // la plataforma móvil te lleva
-  J.x += J.vx * dt; chocarX();
+  J.x += J.vx * dt;
+  if (J.x < 0) { J.x = 0; J.vx = 0; } else if (J.x + PJ.w > ANCHO) { J.x = ANCHO - PJ.w; J.vx = 0; } // las paredes del pozo
   const piesAntes = J.y + PJ.h; J.y += J.vy * dt; J.suelo = null; chocarY(piesAntes);
   if (J.suelo && J.suelo.tipo === 'fragil' && J.suelo.t < 0) { J.suelo.t = 0; tono(180, 90, 0.2, 'sawtooth', 0.04); }
   if (J.suelo && !sobre && J.vy === 0) for (let i = 0; i < 4; i++) particulas.push({ x: J.x + PJ.w / 2, y: J.y + PJ.h, vx: (Math.random() - 0.5) * 120, vy: -Math.random() * 60, vida: 0.3, max: 0.3, color: '#8a6f68', g: 300 });
-  if (J.y + PJ.h > LAVA + 4) return morir('lava');
+  if (J.y + PJ.h > P.lava + 6) return morir('lava');
   const yo = { x: J.x, y: J.y, w: PJ.w, h: PJ.h };
-  // la Estática: si caes encima, la deshaces (y rebotas: manteniendo el salto, más alto); si no, te deshace a ti
+  // la Estática: si caes encima, la deshaces (y rebotas: manteniendo el salto, más alto); si no, te quita un escudo
   for (const e of N.enemigos) {
     if (e.muerto) continue;
     const caja = { x: e.x + 3, y: e.y + 3, w: e.w - 6, h: e.h - 3 };
     if (!cruzan(yo, caja)) continue;
     if (J.vy > 60 && piesAntes <= e.y + 12) {
-      e.muerto = true; P.ev += PT.pisoton; P.pisotones++; J.vy = quiere ? -SALTO * 0.92 : -REBOTE; J.coyote = 0;
-      SON.boom(); chispas(e.x + e.w / 2, e.y + e.h / 2, 18, '#ff4dd8'); flota(e.x + e.w / 2, e.y, '+' + PT.pisoton, '#ff4dd8');
-    } else if (J.inv <= 0) return morir('estatica');
+      e.muerto = true; P.pisotones++; const v = gana(PT.pisoton); J.vy = quiere ? -SALTO * 0.92 : -REBOTE; J.coyote = 0;
+      SON.boom(); chispas(e.x + e.w / 2, e.y + e.h / 2, 18, '#ff4dd8'); flota(e.x + e.w / 2, e.y, '+' + v, '#ff4dd8');
+    } else if (J.inv <= 0) return golpe('estatica', e.x + e.w / 2);
   }
   for (const g of N.geiseres) {
-    const s = geiserAltura(g, P.t); if (s.h < 0.3) continue;
-    const arriba = LAVA - (LAVA - g.techo) * s.h;
-    if (J.inv <= 0 && cruzan(yo, { x: g.x + 6, y: arriba, w: g.w - 12, h: LAVA - arriba })) return morir('geiser');
+    const s = geiserChorro(g, P.t); if (s.h < 0.3) continue;
+    const largo = g.largo * s.h, x = g.lado < 0 ? 0 : ANCHO - largo;
+    if (J.inv <= 0 && cruzan(yo, { x, y: g.y + 3, w: largo, h: g.h - 6 })) return golpe('geiser', g.lado < 0 ? 0 : ANCHO);
   }
   const cx = J.x + PJ.w / 2, cy = J.y + PJ.h / 2;
-  for (const c of N.cristales) if (!c.ok && Math.abs(c.x - cx) < 20 && Math.abs(c.y - cy) < 26) { c.ok = true; P.cristales++; P.ev += PT.cristal; SON.chispa(); flota(c.x, c.y - 10, '+' + PT.cristal, '#5ff4ff'); }
-  for (const c of N.nucleos) if (!c.ok && Math.abs(c.x - cx) < 24 && Math.abs(c.y - cy) < 30) { c.ok = true; P.nucleos++; P.ev += PT.nucleo; SON.llave(); chispas(c.x, c.y, 16, '#ffc24a', 160); aviso(`NÚCLEO DE FORJA · +${PT.nucleo}`, '#ffc24a', 1.1); }
-  for (const b of N.balizas) if (!b.ok && cx >= b.x - 8 && J.y + PJ.h <= b.y + 2) {
-    b.ok = true; P.balizas++; P.ev += PT.baliza; P.respawn = { x: b.x - PJ.w / 2, y: b.y - PJ.h }; SON.bien();
-    aviso(`BALIZA ${b.n} ENCENDIDA · +${PT.baliza}`, '#5dffa0', 1.3);
+  for (const c of N.cristales) if (!c.ok && Math.abs(c.x - cx) < 20 && Math.abs(c.y - cy) < 26) { c.ok = true; P.cristales++; SON.chispa(); flota(c.x, c.y - 10, '+' + gana(PT.cristal), '#5ff4ff'); }
+  for (const c of N.nucleos) if (!c.ok && Math.abs(c.x - cx) < 24 && Math.abs(c.y - cy) < 30) { c.ok = true; P.nucleos++; const v = gana(PT.nucleo); SON.llave(); chispas(c.x, c.y, 16, '#ffc24a', 160); flota(c.x, c.y - 14, '+' + v); if (P.t - P.avisoFase > 2.6) aviso(`NÚCLEO DE FORJA · +${v}`, '#ffc24a', 1.1); }
+  for (const c of N.enfriadores) if (!c.ok && Math.abs(c.x - cx) < 22 && Math.abs(c.y - cy) < 28) {
+    c.ok = true; P.enfriadores++; P.frio = Math.min(ENFRIA_MAX, P.frio + ENFRIA); const v = gana(PT.enfriador);
+    SON.pulso(); chispas(c.x, c.y, 20, '#bff8ff', 180); flota(c.x, c.y - 14, '+' + v, '#bff8ff');
+    if (P.t - P.avisoFase > 2.6) aviso(`LAVA ENFRIADA · ${Math.ceil(P.frio)} s`, '#bff8ff', 1.3);
   }
-  P.maxX = Math.max(P.maxX, J.x);
-  while (P.tramo + 1 < N.tramos.length && J.x > N.tramos[P.tramo + 1].x) {
-    P.tramo++; aviso(`${P.tramo + 1}/${N.tramos.length} · ${N.tramos[P.tramo].n.toUpperCase()}`, '#5ff4ff', 1.6); $('h-tramo').textContent = N.tramos[P.tramo].n;
+  // la altura cuenta al POSARSE (no en lo alto del salto): lo que se mide es hasta dónde has trepado de verdad
+  if (J.suelo) {
+    const m = Math.max(0, Math.floor(-(J.y + PJ.h) / M));
+    if (m > P.maxM) { gana((m - P.maxM) * PT.metro); P.maxM = m; }
+    const k = Math.floor(-(J.y + PJ.h) / TRAMO_H + 0.001);
+    if (k > P.tramo) { P.tramo = k; if (P.t - P.avisoFase > 2.6) aviso(`${k * 50} m · ${nombreTramo(k).toUpperCase()}`, '#5ff4ff', 1.5); }
   }
-  if (J.suelo && cx >= N.meta.x - 16) terminar(true);
+  // el mundo crece por arriba y se olvida por abajo
+  asegurar(N, J.y - 1000); // por el piloto, no por la cámara: así también vale con CON.avanzar y la pestaña oculta
+  const kLava = Math.floor(-P.lava / TRAMO_H);
+  if (kLava - 1 > (N.podado || 0)) { N.podado = kLava - 1; podar(N, N.podado); }
+}
+function golpe(motivo, desdeX) {
+  P.escudos--; SON.golpe();
+  chispas(J.x + PJ.w / 2, J.y + PJ.h / 2, 22, motivo === 'geiser' ? '#ffb347' : '#ff4dd8', 220);
+  if (P.escudos <= 0) return morir(motivo);
+  J.inv = 1.6; J.vy = -420; J.vx = (J.x + PJ.w / 2 < desdeX ? -1 : 1) * 260; J.suelo = null; // el empujón te aparta
+  aviso(P.escudos === 1 ? 'ÚLTIMO ESCUDO' : `QUEDAN ${P.escudos} ESCUDOS`, motivo === 'geiser' ? '#ff8a3d' : '#ff4dd8', 1.1);
 }
 function morir(motivo) {
   if (J.muerto > 0) return;
-  P.vidas--; J.muerto = 1.3; J.vx = 0; J.vy = 0;
+  P.motivo = motivo; J.muerto = 1.2; J.vx = 0; J.vy = 0;
   const x = J.x + PJ.w / 2, y = J.y + PJ.h / 2;
-  if (motivo === 'lava') { SON.caida(); chispas(x, LAVA - 4, 26, '#ffb347', 260); aviso('¡A LA LAVA!', '#ff8a3d', 1.2); }
-  else { SON.golpe(); chispas(x, y, 26, motivo === 'geiser' ? '#ffb347' : '#ff4dd8', 240); aviso(motivo === 'geiser' ? '¡EL GÉISER!' : '¡LA ESTÁTICA!', motivo === 'geiser' ? '#ff8a3d' : '#ff4dd8', 1.2); }
+  if (motivo === 'lava') { SON.caida(); chispas(x, P.lava - 4, 30, '#ffb347', 260); aviso('¡LA LAVA!', '#ff8a3d', 1.2); }
+  else { SON.golpe(); chispas(x, y, 26, motivo === 'geiser' ? '#ffb347' : '#ff4dd8', 240); aviso('SIN ESCUDOS', motivo === 'geiser' ? '#ff8a3d' : '#ff4dd8', 1.2); }
 }
-function reaparecer() {
-  Object.assign(J, { x: P.respawn.x, y: P.respawn.y, vx: 0, vy: 0, suelo: null, inv: 1.8, buffer: 0, coyote: 0 });
-  aviso(P.vidas === 1 ? 'ÚLTIMA VIDA' : `QUEDAN ${P.vidas} VIDAS`, '#5ff4ff', 1.1);
-}
-function terminar(llego) {
+function terminar() {
   if (P.fin) return; P.fin = true; jugando = false; DES.parar();
-  const seg = Math.round(P.t), mmss = `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`;
+  const seg = Math.floor(P.t), F = FASES[P.fase];
   let puntos = puntosAhora();
-  const filas = [['Metros', metros().toLocaleString('es-ES')], ['Cristales', `${P.cristales}/${N.cristales.length}`], ['Núcleos de forja', `${P.nucleos}/${N.nucleos.length}`],
-    ['Estática pisada', P.pisotones], ['Balizas', `${P.balizas}/${N.balizas.length}`], ['Tiempo', mmss]];
-  let texto;
-  if (llego) {
-    const bt = Math.max(0, PT.limite - seg) * PT.segundo, bv = P.vidas * PT.vida;
-    puntos += PT.meta + bt + bv;
-    filas.push(['Conquista', `+${PT.meta.toLocaleString('es-ES')}`], ['Bonus de tiempo', `+${bt.toLocaleString('es-ES')}`], ['Vidas que te quedan', `+${bv.toLocaleString('es-ES')}`]);
-    SON.bien(); chispas(N.meta.x, N.meta.y - 90, 60, '#5ff4ff', 320);
-    texto = `Has cruzado Fôrge y encendido la Puerta de la cumbre en <b>${mmss}</b>.`;
-  } else texto = `Fôrge te ha podido esta vez: llegaste a <b>${metros().toLocaleString('es-ES')} m</b>. Las balizas no se olvidan… pero la partida sí: vuelta al borde del cráter.`;
+  const filas = [['Tiempo', mmss(seg)], ['Altura', `${P.maxM.toLocaleString('es-ES')} m`], ['Fase', `${P.fase + 1} · ${F.n} (${fmtX(F.x)})`],
+    ['Cristales', P.cristales], ['Núcleos de forja', P.nucleos], ['Estática pisada', P.pisotones], ['Enfriadores', P.enfriadores]];
   const bonus = DES.bonus(puntos); puntos += bonus; filas.push(...DES.filas(bonus));
+  const como = P.motivo === 'lava' ? 'La lava te alcanzó' : 'Te quedaste sin escudos';
+  const texto = `${como} a los <b>${mmss(seg)}</b>, a <b>${P.maxM.toLocaleString('es-ES')} m</b> de altura.` +
+    (seg >= 600 ? ' Has aguantado en la <b>zona roja</b>: eso es de pilotos de Joran.' : seg >= 300 ? ' La lava ya no perdona: a ver si llegas a los 10 minutos.' : ' Los primeros minutos son para aprender: la próxima, más arriba.');
   setTimeout(() => {
     $('hud').classList.add('oculto');
-    finDePartida({ juego: JUEGO.id, titulo: llego ? '¡Fôrge conquistado!' : 'Fin de la conquista', puntos, filas, texto, alRepetir: empezar,
-      // conquista / sinCaer: para un hito futuro del Cuaderno («Conquistador sin caer»); hoy registrarPartida no los usa
-      extra: { ...DES.extra(), conquista: llego, sinCaer: llego && P.vidas === VIDAS } });
-  }, llego ? 1200 : 700);
+    finDePartida({ juego: JUEGO.id, titulo: seg >= 600 ? '¡Superviviente de Fôrge!' : 'Fin de la escalada', puntos, filas, texto, alRepetir: empezar,
+      // segundos / altura / fase: para la comprobación del servidor y para hitos futuros del Cuaderno
+      extra: { ...DES.extra(), segundos: seg, altura: P.maxM, fase: P.fase + 1 } });
+  }, 700);
 }
 
 // ───────────────────────────────── dibujo
 const lienzo = $('lienzo'), c = lienzo.getContext('2d');
-let esc = 1, vw = 960, vh = ALTO, dpr = 1;
+let esc = 1, vw = VISTA.w, vh = VISTA.h, dpr = 1;
 function ajustar() {
   dpr = Math.min(devicePixelRatio || 1, 2); lienzo.width = Math.round(innerWidth * dpr); lienzo.height = Math.round(innerHeight * dpr);
-  // se ve siempre un alto de 540 como mínimo; en un móvil en vertical, además, un ancho de 600 (para ver venir los saltos)
-  esc = Math.min(innerHeight / ALTO, innerWidth / 600); vw = innerWidth / esc; vh = innerHeight / esc;
+  // siempre se ve el pozo entero de ancho y al menos 620 de alto; lo que sobra a los lados es pared de roca
+  esc = Math.min(innerHeight / VISTA.h, innerWidth / VISTA.w); vw = innerWidth / esc; vh = innerHeight / esc;
 }
 addEventListener('resize', ajustar); ajustar();
 const carga = (src) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
 let imgFondo = null, imgPiloto = null;
-// las sierras del fondo: dos capas que se mueven más despacio que el suelo (paralaje)
+// las sierras del fondo: se hunden a medida que trepas (quedas por encima de las montañas de Fôrge)
 const sierra = (sem, n, alto) => { const r = azarFijo(sem); const v = []; let h = alto * 0.5; for (let i = 0; i < n; i++) { h = Math.max(alto * 0.15, Math.min(alto, h + (r() - 0.5) * alto * 0.45)); v.push(h); } return v; };
-const SIERRAS = [{ p: 0.22, paso: 70, v: sierra(7, 64, 190), base: 0.74, color: '#1a0c1c', borde: 'rgba(95,244,255,.16)' }, { p: 0.45, paso: 54, v: sierra(11, 80, 150), base: 0.86, color: '#0f070f', borde: 'rgba(255,122,48,.32)' }];
+const SIERRAS = [{ p: 0.18, paso: 70, v: sierra(7, 64, 190), base: 0.74, color: '#1a0c1c', borde: 'rgba(95,244,255,.16)' }, { p: 0.36, paso: 54, v: sierra(11, 80, 150), base: 0.88, color: '#0f070f', borde: 'rgba(255,122,48,.32)' }];
 const brasas = [];
+const PARED_BLOQUE = 420;
+function pared(lado, y0, y1, xa, xb) { // la roca de los lados del pozo, con grietas incandescentes (siempre las mismas: semilla por bloque)
+  const gr = c.createLinearGradient(lado < 0 ? 0 : ANCHO, 0, lado < 0 ? xa : xb, 0); gr.addColorStop(0, '#2c1d22'); gr.addColorStop(0.25, '#170d11'); gr.addColorStop(1, '#0b0508');
+  c.fillStyle = gr; c.fillRect(xa, y0, xb - xa, y1 - y0);
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  for (let b = Math.floor(y0 / PARED_BLOQUE); b * PARED_BLOQUE < y1; b++) {
+    const r = azarFijo(9000 + b * 31 + (lado < 0 ? 0 : 7));
+    for (let i = 0; i < 3; i++) {
+      let x = (lado < 0 ? -1 : 1) * (8 + r() * 110) + (lado < 0 ? 0 : ANCHO), y = b * PARED_BLOQUE + r() * PARED_BLOQUE; const pts = [[x, y]];
+      for (let j = 0; j < 5; j++) { x += (r() - 0.5) * 30; y += 16 + r() * 26; pts.push([x, y]); }
+      for (const [ancho, color] of [[5, 'rgba(255,110,30,.22)'], [1.5, 'rgba(255,179,71,.85)']]) { c.strokeStyle = color; c.lineWidth = ancho; c.beginPath(); pts.forEach(([px, py], j) => (j ? c.lineTo(px, py) : c.moveTo(px, py))); c.stroke(); }
+    }
+  }
+  c.strokeStyle = 'rgba(95,244,255,.55)'; c.lineWidth = 2; c.beginPath(); c.moveTo(lado < 0 ? 0 : ANCHO, y0); c.lineTo(lado < 0 ? 0 : ANCHO, y1); c.stroke();
+}
+function pintarRoca(s) {
+  const tiembla = s.tipo === 'fragil' && s.t > 0 && !s.cae ? (Math.random() - 0.5) * 4 * (s.t / s.crujido) : 0;
+  c.save(); c.translate(s.x + tiembla, s.y);
+  if (s.tipo === 'fragil' && s.cae) c.globalAlpha = Math.max(0, s.vuelve - 1.5);
+  if (s.tipo === 'movil') {
+    c.fillStyle = '#0b2233'; c.fillRect(0, 0, s.w, s.h); c.strokeStyle = '#5ff4ff'; c.lineWidth = 2; c.strokeRect(0, 0, s.w, s.h);
+    c.fillStyle = 'rgba(95,244,255,.5)'; for (let i = 8; i < s.w - 8; i += 16) c.fillRect(i, 6, 8, 3);
+    const pr = c.createLinearGradient(0, s.h, 0, s.h + 26); pr.addColorStop(0, 'rgba(95,244,255,.6)'); pr.addColorStop(1, 'rgba(95,244,255,0)');
+    c.fillStyle = pr; c.fillRect(14, s.h, 16, 20 + Math.random() * 6); c.fillRect(s.w - 30, s.h, 16, 20 + Math.random() * 6);
+    c.restore(); return;
+  }
+  const gr = c.createLinearGradient(0, 0, 0, s.h + 16); gr.addColorStop(0, s.tipo === 'fragil' ? '#3d2a2e' : '#3a2a30'); gr.addColorStop(1, '#140b0e');
+  c.fillStyle = gr; c.beginPath(); c.moveTo(0, 0);
+  for (const [dx, dy] of s.borde) c.lineTo(dx, dy);
+  for (const [dx, dy] of s.panza) c.lineTo(dx, dy);
+  c.closePath(); c.fill();
+  c.lineCap = 'round';
+  if (s.tipo === 'fragil') { c.strokeStyle = s.t >= 0 ? '#ff8a3d' : 'rgba(255,194,74,.8)'; c.lineWidth = 2; c.beginPath(); c.moveTo(s.w * 0.3, 2); c.lineTo(s.w * 0.45, 10); c.lineTo(s.w * 0.4, s.h); c.stroke(); }
+  else if (s.grieta) for (const [ancho, color] of [[4, 'rgba(255,110,30,.25)'], [1.4, '#ffb347']]) { c.strokeStyle = color; c.lineWidth = ancho; c.beginPath(); s.grieta.forEach(([gx, gy], i) => (i ? c.lineTo(gx, gy) : c.moveTo(gx, gy))); c.stroke(); }
+  c.strokeStyle = s.tipo === 'fragil' ? 'rgba(255,194,74,.7)' : 'rgba(95,244,255,.75)'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, 0); for (const [dx, dy] of s.borde) c.lineTo(dx, dy); c.stroke();
+  c.restore();
+}
 
 function pintar(dtReal, tt) {
   const W = lienzo.width, H = lienzo.height;
-  // la cámara: adelantada hacia donde corres; nunca por debajo de la lava
-  if (J) {
-    const tx = J.x + PJ.w / 2 - vw * 0.38 + J.vx * 0.25, ty = Math.min(J.y + PJ.h - vh * 0.64, LAVA + 70 - vh);
-    const k = Math.min(1, dtReal * 5); cam.x += (Math.max(-440, tx) - cam.x) * k; cam.y += (ty - cam.y) * Math.min(1, dtReal * 4);
-  }
+  const lava = P ? P.lava : LAVA0;
+  // la cámara: fija de lado (se ve el pozo entero) y en vertical con el piloto algo por debajo del centro (se ve lo que
+  // viene); nunca enseña más de 110 px por debajo de la lava
+  cam.x = ANCHO / 2 - vw / 2;
+  if (J) { const ty = Math.min(J.y + PJ.h - vh * 0.6, lava + 110 - vh); cam.y += (ty - cam.y) * Math.min(1, dtReal * 5); }
+  const fase = P ? P.fase : 0;
   c.setTransform(1, 0, 0, 1, 0, 0);
-  // el cielo de Fôrge: tormenta violeta
+  // el cielo de Fôrge: tormenta violeta que se enrojece con cada fase
   const cielo = c.createLinearGradient(0, 0, 0, H); cielo.addColorStop(0, '#140726'); cielo.addColorStop(0.6, '#231033'); cielo.addColorStop(1, '#2e0f10');
   c.fillStyle = cielo; c.fillRect(0, 0, W, H);
-  if (imgFondo) { // el arte de Fôrge, que se recorre de izquierda a derecha a lo largo de todo el nivel
-    const ih = Math.max(vh * 1.08, (vw * 1.35) * imgFondo.height / imgFondo.width), iw = ih * imgFondo.width / imgFondo.height;
-    const prog = Math.max(0, Math.min(1, (cam.x - N.inicio) / (N.fin - N.inicio)));
-    const fx = -(iw - vw) * prog, fy = Math.max(vh - ih, Math.min(0, -(ih - vh) * 0.5 - (cam.y - (LAVA + 70 - vh)) * 0.04));
-    c.globalAlpha = 0.62; c.drawImage(imgFondo, fx * esc * dpr, fy * esc * dpr, iw * esc * dpr, ih * esc * dpr); c.globalAlpha = 1;
+  const E = esc * dpr, alturaCam = Math.max(0, -(cam.y + vh * 0.6));
+  if (imgFondo) { // el arte de Fôrge: se ve su parte de abajo al empezar y se va subiendo por él hasta los ~900 m
+    const s = Math.max(vw / imgFondo.width, (vh * 1.5) / imgFondo.height), iw = imgFondo.width * s, ih = imgFondo.height * s;
+    const prog = Math.min(1, alturaCam / (900 * M)), fy = (vh - ih) * (1 - prog);
+    c.globalAlpha = 0.6; c.drawImage(imgFondo, ((vw - iw) / 2) * E, fy * E, iw * E, ih * E); c.globalAlpha = 1;
     c.fillStyle = 'rgba(12,4,20,.42)'; c.fillRect(0, 0, W, H);
   }
-  const E = esc * dpr;
-  // sierras (en coordenadas de pantalla, con su propio paralaje)
-  for (const s of SIERRAS) {
-    const baseY = vh * s.base - (cam.y - (LAVA + 70 - vh)) * s.p * 0.5, ciclo = s.v.length * s.paso;
+  if (fase) { c.fillStyle = `rgba(255,50,15,${0.035 * fase})`; c.fillRect(0, 0, W, H); } // el calor de la fase
+  for (const s of SIERRAS) { // se hunden al trepar
+    const baseY = vh * s.base + alturaCam * s.p * 0.25, ciclo = s.v.length * s.paso;
+    if (baseY - 200 > vh) continue;
     c.beginPath(); c.moveTo(0, H);
     for (let sx = -s.paso; sx <= vw + s.paso; sx += s.paso / 2) {
       const wx = sx + cam.x * s.p, i = Math.floor(((wx % ciclo) + ciclo) % ciclo / s.paso), f = (((wx % ciclo) + ciclo) % ciclo) / s.paso - i;
@@ -333,100 +442,63 @@ function pintar(dtReal, tt) {
   }
   // a partir de aquí, coordenadas del mundo
   c.setTransform(E, 0, 0, E, -cam.x * E, -cam.y * E);
-  const x0 = cam.x - 40, x1 = cam.x + vw + 40, t = P ? P.t : tt;
+  const x0 = cam.x - 20, x1 = cam.x + vw + 20, y0 = cam.y - 40, y1 = cam.y + vh + 40, t = P ? P.t : tt;
+  const vis = (o, alto = 60) => o.y + alto > y0 && o.y - alto < y1;
+  // el fondo del cráter, bajo la primera cornisa
+  if (y1 > 0) { c.fillStyle = '#120a0d'; c.fillRect(0, 34, ANCHO, y1); }
+  pared(-1, y0, y1, x0, 0); pared(1, y0, y1, ANCHO, x1);
   // el resplandor de la lava sobre todo lo de abajo
-  const res = c.createLinearGradient(0, LAVA - 220, 0, LAVA); res.addColorStop(0, 'rgba(255,90,30,0)'); res.addColorStop(1, 'rgba(255,90,30,.38)');
-  c.fillStyle = res; c.fillRect(x0, LAVA - 220, x1 - x0, 220);
-  // géiseres (detrás de las rocas no: van en los huecos)
+  const res = c.createLinearGradient(0, lava - 260, 0, lava); res.addColorStop(0, 'rgba(255,90,30,0)'); res.addColorStop(1, P && P.frio > 0 ? 'rgba(120,220,255,.28)' : 'rgba(255,90,30,.42)');
+  c.fillStyle = res; c.fillRect(0, lava - 260, ANCHO, 260);
+  // géiseres de pared: la boca siempre se ve (brilla más cuando va a escupir)
   for (const g of N.geiseres) {
-    if (g.x + g.w < x0 || g.x > x1) continue;
-    const s = geiserAltura(g, t);
-    if (s.aviso) { for (let i = 0; i < 3; i++) { c.fillStyle = 'rgba(255,190,90,.8)'; c.beginPath(); c.arc(g.x + 8 + ((tt * 60 + i * 13) % (g.w - 16)), LAVA - 4 - ((tt * 40 + i * 9) % 14), 3 + i, 0, 7); c.fill(); } }
+    if (!vis(g)) continue;
+    const s = geiserChorro(g, t), bx = g.lado < 0 ? 0 : ANCHO, cy = g.y + g.h / 2;
+    c.fillStyle = s.aviso ? '#ffb347' : '#6a2a12'; c.beginPath(); c.ellipse(bx, cy, 7, 15, 0, 0, 7); c.fill();
+    if (s.aviso) for (let i = 0; i < 3; i++) { c.fillStyle = 'rgba(255,190,90,.85)'; c.beginPath(); c.arc(bx - g.lado * (6 + ((tt * 70 + i * 17) % 30)), cy + Math.sin(tt * 20 + i) * 6, 2.5 + i, 0, 7); c.fill(); }
     if (s.h > 0) {
-      const arriba = LAVA - (LAVA - g.techo) * s.h, col = c.createLinearGradient(0, arriba, 0, LAVA);
-      col.addColorStop(0, '#fff3b0'); col.addColorStop(0.25, '#ffb347'); col.addColorStop(1, '#ff4a1c');
-      c.fillStyle = col; c.beginPath(); c.moveTo(g.x + 4, LAVA);
-      for (let y = LAVA; y > arriba; y -= 18) c.lineTo(g.x + 4 + Math.sin(y * 0.08 + tt * 12) * 4, y);
-      c.quadraticCurveTo(g.x + g.w / 2, arriba - 18, g.x + g.w - 4, arriba);
-      for (let y = arriba; y < LAVA; y += 18) c.lineTo(g.x + g.w - 4 + Math.sin(y * 0.08 + tt * 12 + 1) * 4, y);
+      const largo = g.largo * s.h, xa = g.lado < 0 ? 0 : ANCHO - largo;
+      const col = c.createLinearGradient(bx, 0, bx - g.lado * largo, 0); col.addColorStop(0, '#ff4a1c'); col.addColorStop(0.7, '#ffb347'); col.addColorStop(1, '#fff3b0');
+      c.fillStyle = col; c.beginPath(); c.moveTo(xa, g.y + 4);
+      for (let x = xa; x <= xa + largo; x += 16) c.lineTo(x, g.y + 3 + Math.sin(x * 0.09 + tt * 14) * 3);
+      for (let x = xa + largo; x >= xa; x -= 16) c.lineTo(x, g.y + g.h - 3 + Math.sin(x * 0.09 + tt * 14 + 1) * 3);
       c.closePath(); c.fill();
-      if (Math.random() < 0.5) brasas.push({ x: g.x + Math.random() * g.w, y: arriba, vx: (Math.random() - 0.5) * 80, vy: -80 - Math.random() * 120, vida: 0.8 });
+      if (Math.random() < 0.5) brasas.push({ x: xa + Math.random() * largo, y: g.y + Math.random() * g.h, vx: -g.lado * 60, vy: -60 - Math.random() * 80, vida: 0.7 });
     }
   }
-  // las rocas: acantilados que se hunden en la lava, con grietas incandescentes y el borde de holograma de Joran
-  for (const s of N.rocas) {
-    if (s.x + s.w < x0 || s.x > x1) continue;
-    const gr = c.createLinearGradient(0, s.y, 0, Math.min(PIE, s.y + 420)); gr.addColorStop(0, '#3a2a30'); gr.addColorStop(0.3, '#22161b'); gr.addColorStop(1, '#120a0d');
-    c.fillStyle = gr; c.beginPath(); c.moveTo(s.x, s.y);
-    for (const [dx, dy] of s.borde) c.lineTo(s.x + dx, s.y + dy);
-    c.lineTo(s.x + s.w - 5, PIE); c.lineTo(s.x + 5, PIE); c.closePath(); c.fill();
-    c.lineCap = 'round'; c.lineJoin = 'round';
-    for (const g of s.grietas) { // grieta: halo ancho y tenue + línea fina brillante (más barato que shadowBlur)
-      for (const [ancho, color] of [[5, 'rgba(255,110,30,.25)'], [1.6, '#ffb347']]) { c.strokeStyle = color; c.lineWidth = ancho; c.beginPath(); g.forEach(([gx, gy], i) => (i ? c.lineTo(s.x + gx, s.y + gy) : c.moveTo(s.x + gx, s.y + gy))); c.stroke(); }
-    }
-    c.strokeStyle = 'rgba(95,244,255,.75)'; c.lineWidth = 2; c.beginPath(); c.moveTo(s.x, s.y); for (const [dx, dy] of s.borde) c.lineTo(s.x + dx, s.y + dy); c.stroke();
+  // las rocas (las cornisas, con su altura grabada)
+  for (const s of N.plats) {
+    if (!vis(s) || s.x + s.w < x0 || s.x > x1) continue;
+    pintarRoca(s);
+    if (s.tipo === 'cornisa' && s.k > 0) { c.font = '700 13px Orbitron, sans-serif'; c.textAlign = 'left'; c.fillStyle = 'rgba(95,244,255,.7)'; c.fillText(`${s.k * 50} m · ${nombreTramo(s.k).toUpperCase()}`, 16, s.y + 23); }
   }
-  // losas que crujen y plataformas móviles
-  for (const l of N.losas) {
-    if (l.x + l.w < x0 || l.x > x1) continue;
-    if (l.tipo === 'movil') {
-      c.fillStyle = '#0b2233'; c.fillRect(l.x, l.y, l.w, l.h); c.strokeStyle = '#5ff4ff'; c.lineWidth = 2; c.strokeRect(l.x, l.y, l.w, l.h);
-      c.fillStyle = 'rgba(95,244,255,.5)'; for (let i = 8; i < l.w - 8; i += 16) c.fillRect(l.x + i, l.y + 6, 8, 3);
-      const pr = c.createLinearGradient(0, l.y + l.h, 0, l.y + l.h + 26); pr.addColorStop(0, 'rgba(95,244,255,.6)'); pr.addColorStop(1, 'rgba(95,244,255,0)');
-      c.fillStyle = pr; c.fillRect(l.x + 14, l.y + l.h, 16, 20 + Math.random() * 6); c.fillRect(l.x + l.w - 30, l.y + l.h, 16, 20 + Math.random() * 6);
-      continue;
-    }
-    const tiembla = l.t > 0 && !l.cae ? (Math.random() - 0.5) * 4 * (l.t / 0.5) : 0;
-    c.save(); c.translate(tiembla, 0); c.globalAlpha = l.cae ? Math.max(0, l.vuelve - 2) : 1;
-    c.fillStyle = '#34242a'; c.beginPath(); c.moveTo(l.x, l.y); for (const [dx, dy] of l.borde) c.lineTo(l.x + dx, l.y + dy);
-    c.lineTo(l.x + l.w - 8, l.y + l.h); c.lineTo(l.x + l.w / 2, l.y + l.h + 8); c.lineTo(l.x + 8, l.y + l.h); c.closePath(); c.fill();
-    c.strokeStyle = l.t >= 0 ? '#ff8a3d' : 'rgba(255,194,74,.8)'; c.lineWidth = 2; c.beginPath(); c.moveTo(l.x + l.w * 0.3, l.y + 2); c.lineTo(l.x + l.w * 0.45, l.y + 12); c.lineTo(l.x + l.w * 0.4, l.y + l.h); c.stroke();
-    c.strokeStyle = 'rgba(95,244,255,.6)'; c.beginPath(); c.moveTo(l.x, l.y); c.lineTo(l.x + l.w, l.y); c.stroke();
-    c.restore();
-  }
-  // la lava: olas y brasas que suben
-  const lv = c.createLinearGradient(0, LAVA - 6, 0, LAVA + 120); lv.addColorStop(0, '#ffe08a'); lv.addColorStop(0.08, '#ff9a2e'); lv.addColorStop(0.5, '#e0360f'); lv.addColorStop(1, '#5a0c05');
-  c.fillStyle = lv; c.beginPath(); c.moveTo(x0, LAVA + 400);
-  for (let x = x0; x <= x1; x += 12) c.lineTo(x, LAVA + Math.sin(x * 0.02 + tt * 2) * 4 + Math.sin(x * 0.051 - tt * 1.3) * 3);
-  c.lineTo(x1, LAVA + 400); c.closePath(); c.fill();
-  if (brasas.length < 70 && Math.random() < 0.6) brasas.push({ x: x0 + Math.random() * (x1 - x0), y: LAVA, vx: (Math.random() - 0.5) * 20, vy: -40 - Math.random() * 60, vida: 1.5 + Math.random() * 2 });
-  for (let i = brasas.length - 1; i >= 0; i--) { const b = brasas[i]; b.vida -= dtReal; if (b.vida <= 0) { brasas.splice(i, 1); continue; } b.x += b.vx * dtReal; b.y += b.vy * dtReal; c.fillStyle = `rgba(255,${140 + (b.vida * 40) | 0},60,${Math.min(1, b.vida)})`; c.fillRect(b.x, b.y, 2.5, 2.5); }
-  // balizas
-  for (const b of N.balizas) {
-    if (b.x < x0 || b.x > x1) continue;
-    if (b.ok) { const haz = c.createLinearGradient(0, b.y - 460, 0, b.y - 70); haz.addColorStop(0, 'rgba(95,244,255,0)'); haz.addColorStop(1, 'rgba(95,244,255,.35)'); c.fillStyle = haz; c.fillRect(b.x - 9, b.y - 460, 18, 390); }
-    c.fillStyle = '#1b2a36'; c.fillRect(b.x - 14, b.y - 6, 28, 6); c.fillRect(b.x - 3, b.y - 70, 6, 66);
-    c.fillStyle = b.ok ? '#5ff4ff' : '#4a5663'; c.beginPath(); c.arc(b.x, b.y - 74, 9, 0, 7); c.fill();
-    if (b.ok) { c.strokeStyle = 'rgba(95,244,255,.5)'; c.lineWidth = 2; c.beginPath(); c.arc(b.x, b.y - 74, 14 + Math.sin(tt * 5) * 2, 0, 7); c.stroke(); }
-  }
-  // la Puerta de la cumbre: el anillo (de la serie) que se enciende al llegar
-  if (N.meta && N.meta.x + 120 > x0 && N.meta.x - 120 < x1) {
-    const mx = N.meta.x, my = N.meta.y - 92, ok = P && P.fin && J && J.x > N.meta.x - 40;
-    const h = c.createRadialGradient(mx, my, 10, mx, my, 70); h.addColorStop(0, ok ? 'rgba(200,255,255,.95)' : 'rgba(95,244,255,.28)'); h.addColorStop(1, ok ? 'rgba(95,244,255,.5)' : 'rgba(95,244,255,.06)');
-    c.fillStyle = h; c.beginPath(); c.arc(mx, my, 66, 0, 7); c.fill();
-    c.strokeStyle = '#2a3440'; c.lineWidth = 16; c.beginPath(); c.arc(mx, my, 76, 0, 7); c.stroke();
-    c.strokeStyle = 'rgba(95,244,255,.8)'; c.lineWidth = 2; c.beginPath(); c.arc(mx, my, 84, 0, 7); c.stroke(); c.beginPath(); c.arc(mx, my, 68, 0, 7); c.stroke();
-    for (let i = 0; i < 9; i++) { const a = -Math.PI / 2 + i * (Math.PI * 2 / 9) + tt * 0.2; c.fillStyle = ok || Math.sin(tt * 3 + i) > 0.6 ? '#ffc24a' : '#7a5a2a'; c.beginPath(); c.arc(mx + Math.cos(a) * 76, my + Math.sin(a) * 76, 5, 0, 7); c.fill(); }
-    c.fillStyle = '#1b2a36'; c.fillRect(mx - 60, N.meta.y - 10, 120, 10);
-  }
-  // cristales y núcleos
+  // cristales, núcleos y enfriadores
   for (const k of N.cristales) {
-    if (k.ok || k.x < x0 || k.x > x1) continue;
+    if (k.ok || !vis(k)) continue;
     const sx = Math.cos(tt * 3 + k.x * 0.01);
     c.save(); c.translate(k.x, k.y + Math.sin(tt * 2 + k.x) * 2); c.scale(Math.max(0.15, Math.abs(sx)), 1);
     c.fillStyle = sx > 0 ? '#9ffaff' : '#35c9dc'; c.beginPath(); c.moveTo(0, -11); c.lineTo(7, 0); c.lineTo(0, 11); c.lineTo(-7, 0); c.closePath(); c.fill();
     c.strokeStyle = '#e8ffff'; c.lineWidth = 1.2; c.stroke(); c.restore();
   }
   for (const k of N.nucleos) {
-    if (k.ok || k.x < x0 || k.x > x1) continue;
+    if (k.ok || !vis(k)) continue;
     const pul = 1 + Math.sin(tt * 4) * 0.12;
     c.fillStyle = 'rgba(255,194,74,.22)'; c.beginPath(); c.arc(k.x, k.y, 22 * pul, 0, 7); c.fill();
     c.fillStyle = '#ffc24a'; c.beginPath(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3 + tt; c[i ? 'lineTo' : 'moveTo'](k.x + Math.cos(a) * 12, k.y + Math.sin(a) * 12); } c.closePath(); c.fill();
     c.fillStyle = '#fff6d8'; c.beginPath(); c.arc(k.x, k.y, 4.5, 0, 7); c.fill();
   }
+  for (const k of N.enfriadores) { // una cápsula de refrigerante: aros de escarcha que giran
+    if (k.ok || !vis(k)) continue;
+    const y = k.y + Math.sin(tt * 2.4 + k.x) * 3;
+    c.fillStyle = 'rgba(160,240,255,.2)'; c.beginPath(); c.arc(k.x, y, 24 + Math.sin(tt * 5) * 2, 0, 7); c.fill();
+    c.strokeStyle = '#bff8ff'; c.lineWidth = 2;
+    for (let i = 0; i < 3; i++) { c.beginPath(); c.ellipse(k.x, y, 16, 6, tt * 1.5 + i * Math.PI / 3, 0, 7); c.stroke(); }
+    c.fillStyle = '#e8ffff'; c.beginPath(); c.roundRect(k.x - 6, y - 10, 12, 20, 5); c.fill();
+    c.fillStyle = '#35c9dc'; c.fillRect(k.x - 4, y - 2, 8, 3);
+  }
   // la Estática
   for (const e of N.enemigos) {
-    if (e.muerto || e.x + e.w < x0 || e.x > x1) continue;
+    if (e.muerto || !vis(e) || e.x + e.w < x0 || e.x > x1) continue;
     const j = () => (Math.random() - 0.5) * 3;
     if (e.tipo === 'andante') {
       c.fillStyle = '#2a0020'; c.beginPath(); c.moveTo(e.x + j(), e.y + e.h); c.lineTo(e.x + 2 + j(), e.y + 6 + j()); c.lineTo(e.x + 10, e.y + j()); c.lineTo(e.x + 20, e.y + 3 + j()); c.lineTo(e.x + e.w + j(), e.y + 8); c.lineTo(e.x + e.w, e.y + e.h); c.closePath(); c.fill();
@@ -444,11 +516,30 @@ function pintar(dtReal, tt) {
   }
   // el piloto (parpadea mientras es invulnerable; si ha caído, solo quedan las chispas)
   if (J && J.muerto <= 0 && !(J.inv > 0 && Math.floor(J.inv * 12) % 2)) pintarPiloto(tt);
+  // la lava: olas y brasas que suben; con el enfriador, costra oscura con reflejos de escarcha
+  if (lava < y1 + 20) {
+    const frio = P && P.frio > 0;
+    const lv = c.createLinearGradient(0, lava - 6, 0, lava + 160);
+    if (frio) { lv.addColorStop(0, '#d8fbff'); lv.addColorStop(0.06, '#4a6c7c'); lv.addColorStop(0.5, '#2a2a33'); lv.addColorStop(1, '#3a0c05'); }
+    else { lv.addColorStop(0, '#ffe08a'); lv.addColorStop(0.08, '#ff9a2e'); lv.addColorStop(0.5, '#e0360f'); lv.addColorStop(1, '#5a0c05'); }
+    const ola = frio ? 0.2 : 1;
+    c.fillStyle = lv; c.beginPath(); c.moveTo(x0, Math.max(lava, y1) + 400);
+    for (let x = x0; x <= x1; x += 12) c.lineTo(x, lava + (Math.sin(x * 0.02 + tt * 2) * 4 + Math.sin(x * 0.051 - tt * 1.3) * 3) * ola);
+    c.lineTo(x1, Math.max(lava, y1) + 400); c.closePath(); c.fill();
+    if (!frio && brasas.length < 70 && Math.random() < 0.6) brasas.push({ x: Math.random() * ANCHO, y: lava, vx: (Math.random() - 0.5) * 20, vy: -40 - Math.random() * 60, vida: 1.5 + Math.random() * 2 });
+  }
+  for (let i = brasas.length - 1; i >= 0; i--) { const b = brasas[i]; b.vida -= dtReal; if (b.vida <= 0) { brasas.splice(i, 1); continue; } b.x += b.vx * dtReal; b.y += b.vy * dtReal; c.fillStyle = `rgba(255,${140 + (b.vida * 40) | 0},60,${Math.min(1, b.vida)})`; c.fillRect(b.x, b.y, 2.5, 2.5); }
   for (const q of particulas) { c.globalAlpha = Math.max(0, q.vida / q.max); c.fillStyle = q.color; c.fillRect(q.x - 2, q.y - 2, 4, 4); }
   c.globalAlpha = 1;
   c.font = '700 16px Orbitron, sans-serif'; c.textAlign = 'center';
   for (const q of textos) { c.globalAlpha = Math.max(0, q.vida); c.fillStyle = q.color; c.fillText(q.t, q.x, q.y); }
   c.globalAlpha = 1;
+  // si la lava no se ve, una flecha abajo con lo lejos que está (para no olvidarse de ella)
+  if (P && jugando && lava > cam.y + vh) {
+    const m = Math.round((lava - (J.y + PJ.h)) / M), sy = cam.y + vh - (document.body.classList.contains('tactil') ? 150 : 34), sx = ANCHO / 2;
+    c.fillStyle = 'rgba(255,138,61,.9)'; c.beginPath(); c.moveTo(sx - 12, sy + 4); c.lineTo(sx + 12, sy + 4); c.lineTo(sx, sy + 16); c.closePath(); c.fill();
+    c.font = '700 14px Orbitron, sans-serif'; c.fillText(`LAVA A ${m} m`, sx, sy - 4);
+  }
 }
 function pintarPiloto(tt) {
   const cx = J.x + PJ.w / 2, pies = J.y + PJ.h, corre = J.suelo && Math.abs(J.vx) > 20;
@@ -471,19 +562,22 @@ function pintarPiloto(tt) {
 }
 function pintarHUD() {
   if (!P || !jugando) return;
-  const seg = Math.floor(P.t);
+  const F = FASES[P.fase], margen = P.lava - (J.y + PJ.h);
   $('h-pts').textContent = puntosAhora().toLocaleString('es-ES');
-  $('h-m').textContent = metros().toLocaleString('es-ES');
-  $('h-vid').textContent = Math.max(0, P.vidas);
-  $('h-t').textContent = `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`;
-  $('h-prog').style.width = Math.min(100, (P.maxX - N.inicio) / (N.meta.x - N.inicio) * 100) + '%';
+  $('h-m').textContent = P.maxM.toLocaleString('es-ES');
+  $('h-vid').textContent = Math.max(0, P.escudos);
+  $('h-t').textContent = mmss(P.t);
+  $('h-tramo').textContent = P.frio > 0 ? `Lava enfriada · ${Math.ceil(P.frio)} s` : `Fase ${P.fase + 1} · ${F.n} · ${fmtX(F.x)}`;
+  // la barra: el margen que te queda sobre la lava (llena = lejos; en rojo, a menos de ~4 m)
+  $('h-prog').style.width = Math.max(2, Math.min(100, margen / 6)) + '%';
+  $('h-barra').classList.toggle('peligro', margen < 130);
 }
 
 // ───────────────────────────────── bucle
 function pausar() {
   if (!jugando || !P || P.fin || DES.abierto) return;
   pausa = !pausa; soltar();
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=cdadcf2641">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><p>La lava también espera.</p><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=ff69e3ea03">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && jugando && !pausa && !DES.abierto && !window.__sinPausa) pausar(); });
@@ -495,26 +589,27 @@ function bucle(ahora) {
     acum += dt; let n = 0;
     while (acum >= PASO && n < 8) { paso(PASO); acum -= PASO; n++; if (!jugando) break; }
     if (jugando) DES.tick(dt);
-  }
+  } else if (!jugando) efectos(dt);
   pintar(dt, ahora / 1000); pintarHUD();
 }
 function empezar() {
-  N = generar(); J = nuevoPiloto(); P = nuevaPartida(); particulas.length = 0; textos.length = 0;
+  N = nuevoMundo(); J = nuevoPiloto(); P = nuevaPartida(); particulas.length = 0; textos.length = 0; brasas.length = 0;
+  cam.y = J.y + PJ.h - vh * 0.6;
   jugando = true; pausa = false; acum = 0; soltar(); window.__t0Partida = performance.now();
   DES.empezar();
-  $('h-tramo').textContent = N.tramos[0].n;
   $('hud').classList.remove('oculto'); cerrarPantalla();
-  aviso(`1/${N.tramos.length} · ${N.tramos[0].n.toUpperCase()}`, '#5ff4ff', 1.6);
+  aviso('¡TREPA! LA LAVA SUBE', '#ffc24a', 1.8);
 }
 function portada() {
   const e = estado(), desafio = MODO === 'desafio';
   pantalla(`<div class="kicker">El simulador de Joran · máquina 5${desafio ? ' · modo desafío' : ''}</div><h2>La conquista de Fôrge</h2>
-    <p>Fôrge es el planeta de la forja: roca agrietada, acantilados y ríos de lava. Joran hizo de él su prueba más dura: cruzarlo a saltos, <b>de acantilado en acantilado</b>, hasta la <b>Puerta de la cumbre</b>. La Estática patrulla las rocas: <b>písala</b> desde arriba o esquívala.</p>
-    <div class="teclas"><kbd>← →  /  A D</kbd><span>Correr</span><kbd>↑  /  W  /  Espacio</kbd><span>Saltar (mantén para llegar más alto y más lejos)</span><kbd>P</kbd><span>Pausa</span></div>
-    <p>Seis tramos, con una <b>baliza</b> al final de cada uno: si caes, vuelves a la última que encendiste. Tienes ${VIDAS} vidas. Suman los metros, los <b>cristales</b> (+${PT.cristal}), los <b>núcleos de forja</b> (+${PT.nucleo}), cada Estática pisada (+${PT.pisoton}) y cada baliza (+${PT.baliza}). Si conquistas la cumbre: +${PT.meta.toLocaleString('es-ES')}, más lo que te sobre de ${PT.limite / 60} minutos y +${PT.vida} por vida.</p>
+    <p>La prueba más dura de Joran: la <b>chimenea de Fôrge</b>. Por el pozo sube un mar de lava que <b>no para</b> y cada vez va más deprisa. Trepa de roca en roca <b>hasta donde aguantes</b>: no hay meta. La Estática patrulla las rocas: <b>písala</b> desde arriba o esquívala.</p>
+    <div class="teclas"><kbd>← →  /  A D</kbd><span>Correr</span><kbd>↑  /  W  /  Espacio</kbd><span>Saltar (mantén para llegar más alto; las rocas se atraviesan desde abajo)</span><kbd>P</kbd><span>Pausa</span></div>
+    <p>Si tocas la lava, se acabó. La Estática y los <b>géiseres de la pared</b> te quitan un escudo (tienes ${ESCUDOS}). Los <b>enfriadores</b> paran la lava ${ENFRIA} s: hay uno cada 50 m. Suman la altura (+${PT.metro} por metro), cada segundo vivo (+${PT.segundo}), los <b>cristales</b> (+${PT.cristal}), los <b>núcleos de forja</b> (+${PT.nucleo}), cada Estática pisada (+${PT.pisoton}) y cada enfriador (+${PT.enfriador}).</p>
+    <p>Cada pocos minutos <b>la lava acelera</b> y todo vale más: ${FASES.slice(1).map((F) => `${mmss(F.t)} ${fmtX(F.x)}`).join(' · ')}. A partir de los 10 minutos, la <b>zona roja</b>.</p>
     ${DES.texto()}
-    <p class="pista">Tu récord: <b>${(e.marcas[JUEGO.id] || 0).toLocaleString('es-ES')}</b> · Dibujado por código · el cielo, de la serie STARGATE</p>
-    <div class="botones"><button id="b-ya">¡A conquistar!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=cdadcf2641">Volver a la sala</a>'}</div>`);
+    <p class="pista">Tu récord: <b>${(e.marcas[JUEGO.id] || 0).toLocaleString('es-ES')}</b> · La chimenea es la misma para todos · Dibujado por código · el cielo, de la serie STARGATE</p>
+    <div class="botones"><button id="b-ya">¡A trepar!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=ff69e3ea03">Volver a la sala</a>'}</div>`);
   $('b-ya').onclick = async () => {
     audio();
     if (desafio) { // las preguntas tienen que estar antes de salir: sin ellas, el depósito no se podría rellenar
@@ -527,11 +622,16 @@ function portada() {
 (async () => {
   const av = AVATARES.find((a) => a.id === estado().avatar) || AVATARES[0];
   [imgFondo, imgPiloto] = await Promise.all([carga(FONDO), carga(av.img)]);
-  J = nuevoPiloto(); P = null; cam.x = J.x - vw * 0.38; cam.y = LAVA + 70 - vh;
+  N = nuevoMundo(); J = nuevoPiloto(); P = null; cam.y = J.y + PJ.h - vh * 0.6;
   $('carga').remove(); requestAnimationFrame(bucle); portada();
 })().catch((err) => { console.error(err); $('carga').textContent = 'No se pudo cargar: ' + err.message; });
-// para probar desde la consola: CON.irA(3) te lleva a la baliza 3 · CON.avanzar(2) simula 2 s (también con la pestaña oculta)
-window.CON = { get N() { return N; }, get J() { return J; }, get P() { return P; }, DES, tecla, empezar,
-  irA: (n) => { const b = N.balizas[n - 1]; if (b && J) Object.assign(J, { x: b.x, y: b.y - PJ.h, vx: 0, vy: 0 }); },
+// para probar desde la consola: CON.avanzar(2) simula 2 s (también con la pestaña oculta) · CON.subir(300) te sube a
+// la roca más cercana a 300 m · CON.tramo(k) da el tramo k tal cual lo genera la semilla
+window.CON = { get N() { return N; }, get J() { return J; }, get P() { return P; }, DES, tecla, empezar, tramo, FASES, LAVA_V, LAVA_MARGEN, PT,
+  subir: (m) => {
+    if (!J) return; asegurar(N, -m * M - 800);
+    const p = N.plats.filter((l) => l.tipo === 'roca' || l.tipo === 'cornisa').sort((a, b) => Math.abs(a.y + m * M) - Math.abs(b.y + m * M))[0];
+    Object.assign(J, { x: p.x + p.w / 2 - PJ.w / 2, y: p.y - PJ.h, vx: 0, vy: 0 });
+  },
   dibujar: () => { pintar(1 / 60, performance.now() / 1000); pintarHUD(); },
   avanzar: (seg) => { for (let i = 0; i < seg / PASO && jugando && !DES.abierto; i++) { paso(PASO); DES.tick(PASO); } } };

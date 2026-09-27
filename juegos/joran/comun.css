@@ -44,7 +44,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 /* el peligro: un borde de estática magenta que se enciende con --peligro (0-1) */
 body.juego::after{content:"";position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 calc(var(--peligro,0)*140px) calc(var(--peligro,0)*30px) rgba(255,46,166,.75);opacity:var(--peligro,0);transition:opacity .2s}
 
-/* EL MODO DESAFÍO (desafio.js?v=cdadcf2641): el depósito que se gasta y el panel de la pregunta. Aquí y no en cada juego: lo comparten todas las máquinas */
+/* EL MODO DESAFÍO (desafio.js?v=ff69e3ea03): el depósito que se gasta y el panel de la pregunta. Aquí y no en cada juego: lo comparten todas las máquinas */
 .des-hud{position:absolute;right:16px;bottom:16px;width:min(340px,46vw);pointer-events:none}
 body.tactil .des-hud{bottom:122px}
 .des-cab{display:flex;justify-content:space-between;align-items:center;gap:8px}

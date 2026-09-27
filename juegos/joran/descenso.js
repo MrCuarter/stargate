@@ -1,35 +1,54 @@
 // EL DESCENSO · máquina 4 de la sala de Joran (borrador). Precisión.
 // Joran entrenaba a los pilotos para posar las cápsulas del refugio en cualquier mundo: aquí se posa el Módulo Lunar del
 // Apolo (modelo de la NASA, dominio público) en los ocho planetas de la ruta, cada uno con SU física: gravedad, viento
-// solar (constante, a ráfagas o que cambia de sentido), atmósfera que frena, niebla o una plataforma que se mueve.
-// Cuanto más estrecha la plataforma, más multiplica. Se puntúa la suavidad, el centrado y el combustible que sobra.
-// Tres vidas; una partida entera, unos 5-8 minutos.
+// solar (constante, a ráfagas o que cambia de sentido), atmósfera que frena, niebla, paredes junto a las plataformas o una
+// plataforma que se mueve. Cuanto más estrecha la plataforma, más multiplica. Se puntúa la suavidad, el centrado y el
+// combustible que sobra.
 // Arcade o DESAFÍO (desafio.js, ?modo=desafio): en el desafío el oxígeno de la cabina se gasta y se recarga acertando.
 // 27-sep (Norberto: «es imposible, necesitaría el triple de combustible»): el depósito dura 4,5 veces más (de 9 s de
-// propulsor a 42 s), el tope de tiempo pasa de 4 a 10 minutos y el viento de Reliae y Liminar baja un poco. Lo comprobé
-// con un piloto automático simulado (la misma física, 200 terrenos por planeta): posarse en la ancha pide de mediana
-// 16-26 s de propulsor y 40-65 s de vuelo; con el viento de antes, Reliae no se posaba ni el piloto automático.
-import { THREE, $, azar, elegir, estado, SON, audio, holo, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=cdadcf2641';
-import { crearDesafio, MODO, urlModo } from './desafio.js?v=cdadcf2641';
+// propulsor a 42 s). Lo comprobé con un piloto automático simulado (la misma física, 200 terrenos por planeta).
+// 27-sep, más tarde (Norberto: «cada vez que aterriza en un planeta se guarda el progreso y se desbloquea el siguiente, un
+// poco más difícil; no hay que hacer todos seguidos»): UNA PARTIDA = UN PLANETA. En la portada se elige el planeta (los
+// superados se pueden rejugar, el siguiente está abierto y el resto con candado); al posarte se guarda el progreso y tu
+// marca. Tres módulos por partida y 1-2 minutos. Los puntos del aterrizaje se multiplican por la DIFICULTAD del planeta
+// (×1 en Fôrge … ×5,3 en Liminar): así la mejor partida, que es la marca del ranking, sale de llegar lejos, no de repetir
+// Fôrge. La curva de los ocho, otra vez con el piloto automático simulado (300 terrenos por planeta, con 0,3 s de
+// reacción): la ancha, siempre posable y con combustible de sobra (vuelos de 40-55 s); la estrecha de Liminar, un 65 %
+// al piloto automático: exigente, pero posible.
+import { THREE, $, azar, elegir, estado, SON, audio, holo, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=ff69e3ea03';
+// 🔴 nivelDe (el nº del último planeta superado: 0-8; en el borrador, del navegador; en la web, del servidor) lo escribe
+// comun.js. Se lee por el espacio de nombres y no con `import { nivelDe }` para que, mientras comun.js no lo tenga, la
+// máquina no se quede en blanco (un import con nombre que no existe tumba el módulo entero): sin él, solo Fôrge.
+import * as COMUN from './comun.js?v=ff69e3ea03';
+import { crearDesafio, MODO, urlModo } from './desafio.js?v=ff69e3ea03';
+const nivelDe = (id) => (typeof COMUN.nivelDe === 'function' ? COMUN.nivelDe(id) : 0);
 
 const V3 = THREE.Vector3;
 const JUEGO = JUEGOS.find((j) => j.id === 'descenso') || { id: 'descenso', n: 'El Descenso' };
-// los ocho planetas: g (m/s²), viento: base (m/s², + a la derecha), rafaga (amplitud), periodo (s), cambia (s: el viento
-// da la vuelta), arrastre (atmósfera), niebla, pistas (anchos de las plataformas) y lo que hace distinto a cada uno
+// los ocho planetas, de menos a más difícil: g (m/s²), viento: base (m/s², + a la derecha), rafaga (amplitud), periodo (s),
+// cambia (s: el viento da la vuelta), arrastre (atmósfera), niebla, muros (m: paredes a los lados de cada plataforma: hay
+// que bajar en vertical), movil (la estrecha va y viene), pistas (anchos: ancha, media, estrecha) y dif (lo que multiplica
+// los puntos del aterrizaje). Cada planeta conserva su truco, pero la curva sube sin saltos: más gravedad (más propulsor y
+// menos margen), más viento en proporción a la gravedad (lo que de verdad empuja), plataformas más estrechas y, desde
+// Sendara, paredes. Reliae bajó de 0,8 a 0,5 de viento: con g 1,4, ni el piloto automático tenía combustible para aguantarlo.
 const PLANETAS = [
-  { k: 'p1_forge', n: 'Fôrge', g: 1.6, viento: 0, rafaga: 0, rugoso: 0.7, pistas: [14, 10, 6], nota: 'Sin viento: aprende a posarte.' },
-  { k: 'p2_ecos', n: 'Ecos', g: 1.1, viento: 0, rafaga: 0.9, periodo: 5, rugoso: 0.8, pistas: [12, 8, 5], nota: 'Poca gravedad y ráfagas que van y vienen, como un eco.' },
-  { k: 'p3_sendara', n: 'Sendara', g: 2.2, viento: 0.2, rafaga: 0.3, periodo: 7, rugoso: 1.5, pistas: [10, 7, 4.5], nota: 'Terreno abrupto y plataformas estrechas entre las montañas.' },
-  { k: 'p4_reliae', n: 'Reliae', g: 1.4, viento: 0.8, rafaga: 0.2, periodo: 6, rugoso: 0.9, pistas: [12, 8, 5], nota: 'Viento solar constante: tendrás que ir inclinado contra él.' },
-  { k: 'p5_umbral', n: 'Umbral', g: 2.6, viento: -0.3, rafaga: 0.4, periodo: 6, rugoso: 1.0, niebla: true, pistas: [12, 8, 5], nota: 'Niebla: el suelo aparece tarde. Mira la altura.' },
-  { k: 'p6_ludo', n: 'Ludo', g: 1.8, viento: 0.3, rafaga: 0.3, periodo: 5, rugoso: 0.8, movil: true, pistas: [12, 8, 5], nota: 'La plataforma buena se mueve: es un juego.' },
-  { k: 'p7_vinculo', n: 'Vínculo', g: 3.4, viento: -0.2, rafaga: 0.4, periodo: 6, rugoso: 1.1, arrastre: 0.35, pistas: [12, 8, 5], nota: 'Gravedad fuerte y atmósfera espesa que frena.' },
-  { k: 'p8_liminar', n: 'Liminar', g: 2.0, viento: 0.7, rafaga: 0.5, periodo: 4, cambia: 6, rugoso: 1.2, pistas: [11, 7, 4.5], nota: 'El viento cambia de sentido cada pocos segundos.' },
+  { k: 'p1_forge', n: 'Fôrge', g: 1.6, viento: 0, rafaga: 0, rugoso: 0.7, pistas: [16, 11, 7], dif: 1, nota: 'Sin viento: aprende a posarte.' },
+  { k: 'p2_ecos', n: 'Ecos', g: 1.3, viento: 0, rafaga: 0.5, periodo: 5, rugoso: 0.8, pistas: [14, 10, 6], dif: 1.4, nota: 'Poca gravedad y ráfagas que van y vienen, como un eco.' },
+  { k: 'p3_sendara', n: 'Sendara', g: 2.0, viento: 0.15, rafaga: 0.3, periodo: 7, rugoso: 1.4, muros: 3, pistas: [13, 9, 5.5], dif: 1.8, nota: 'Terreno abrupto: las plataformas están encajadas entre paredes. Baja en vertical.' },
+  { k: 'p4_reliae', n: 'Reliae', g: 1.8, viento: 0.5, rafaga: 0.2, periodo: 6, rugoso: 1.0, pistas: [12, 8.5, 5.5], dif: 2.3, nota: 'Viento solar constante: tendrás que ir inclinado contra él.' },
+  { k: 'p5_umbral', n: 'Umbral', g: 2.4, viento: -0.35, rafaga: 0.35, periodo: 6, rugoso: 1.1, niebla: true, pistas: [12, 8, 5], dif: 2.9, nota: 'Niebla: el suelo aparece tarde. Mira la altura.' },
+  { k: 'p6_ludo', n: 'Ludo', g: 2.2, viento: 0.35, rafaga: 0.35, periodo: 5, rugoso: 1.1, movil: true, muros: 3, pistas: [11, 8, 6], dif: 3.6, nota: 'La plataforma ×4 va y viene: es un juego. Espérala donde da la vuelta.' },
+  { k: 'p7_vinculo', n: 'Vínculo', g: 3.4, viento: -0.45, rafaga: 0.45, periodo: 6, rugoso: 1.2, arrastre: 0.3, muros: 4, pistas: [11, 7.5, 4.8], dif: 4.4, nota: 'Gravedad fuerte, atmósfera espesa que frena y paredes altas.' },
+  { k: 'p8_liminar', n: 'Liminar', g: 2.4, viento: 0.6, rafaga: 0.45, periodo: 4, cambia: 6, rugoso: 1.3, muros: 4, pistas: [10, 7, 4.5], dif: 5.3, nota: 'El viento cambia de sentido cada pocos segundos. Y hay paredes.' },
 ];
 const MULT = [1, 2, 4];                       // la ancha, la media, la estrecha
 const SEGURO = { vy: 2.4, vx: 1.6, ang: 0.2 };  // lo que aguantan las patas
 const COMB_S = 2.4;                            // combustible por segundo de propulsor (el depósito es de 100: ~42 s)
-const TOPE_S = 600;                            // tope de la partida entera (s), solo por si alguien se queda flotando
+const VIDAS = 3;                               // módulos por partida (por planeta)
+const INTACTO = 250;                           // puntos por cada módulo que te sobra al posarte (antes de la dificultad)
+const TOPE_S = 240;                            // tope de seguridad de una partida (un planeta), por si alguien se queda flotando
+const MOVIL = { a: 10, w: 0.35 };              // Ludo: la estrecha va y viene ±10 m (3,5 m/s en el centro, quieta en los extremos)
+const fmtDif = (d) => '×' + d.toLocaleString('es-ES', { minimumFractionDigits: d % 1 ? 1 : 0 });
 
 // ───────────────────────────────── escena
 const lienzo = $('lienzo');
@@ -87,11 +106,17 @@ function montarTerreno(P) {
   // las tres plataformas, en tres tercios distintos del mapa y en orden al azar
   const huecos = [[-150, -70], [-40, 40], [70, 150]].sort(() => Math.random() - 0.5);
   const pistas = P.pistas.map((w, i) => {
-    const [a, b] = huecos[i], cx = azar(a + w, b - w), x0 = cx - w / 2, x1 = cx + w / 2;
-    const i0 = Math.floor((x0 + ANCHO / 2) / PASO) - 1, i1 = Math.ceil((x1 + ANCHO / 2) / PASO) + 1;
+    // la que se mueve (Ludo) necesita su recorrido llano: un foso a la altura de la plataforma por el que se desliza (si
+    // tocas el foso y no la plataforma, «fuera de las plataformas», como en cualquier otro suelo)
+    const mueve = P.movil && i === 2, ext = mueve ? MOVIL.a : 0;
+    const [a, b] = huecos[i], cx = azar(a + w + ext, b - w - ext), x0 = cx - w / 2, x1 = cx + w / 2;
+    const i0 = Math.floor((x0 - ext + ANCHO / 2) / PASO) - 1, i1 = Math.ceil((x1 + ext + ANCHO / 2) / PASO) + 1;
     const y = Math.max(...perfil.slice(i0, i1 + 1)) + 1;
     for (let k = i0; k <= i1; k++) perfil[k] = y;
-    return { x0, x1, cx, w, y, mult: MULT[i] };
+    // las paredes: dos columnas de roca a cada lado, por encima de la plataforma. Obligan a llegar parado y bajar en
+    // vertical los últimos metros, que es justo cuando el viento empuja
+    if (P.muros) for (const k of [i0 - 1, i0 - 2, i1 + 1, i1 + 2]) if (k >= 0 && k < perfil.length) perfil[k] = Math.max(perfil[k], y + P.muros);
+    return { x0, x1, cx, base: cx, w, y, mult: MULT[i], mueve };
   });
   // el suelo: el perfil extruido hacia dentro (3D), con la piel del planeta
   const forma = new THREE.Shape(); forma.moveTo(-ANCHO / 2, -90);
@@ -155,7 +180,8 @@ function chispa(x, y, z, vx, vy, vida, color) { if (polvo.length < MAXP) polvo.p
 
 // ───────────────────────────────── estado
 let S = null;
-function nueva() { return { nivel: 0, vidas: 3, puntos: 0, t0: performance.now(), aterrizajes: [], fin: false }; }
+// una partida = un planeta (nivel: 0-7). puntos = los del aterrizaje ya multiplicados (0 hasta posarse)
+function nueva(nivel = 0) { return { nivel, vidas: VIDAS, puntos: 0, t0: performance.now(), fin: false }; }
 function nuevoVuelo() {
   const P = PLANETAS[S.nivel];
   S.P = P; S.x = azar(-150, -110) * elegir([1, -1]); S.y = Math.max(...T.perfil) + 55; S.vx = -Math.sign(S.x) * azar(2, 3.5); S.vy = 0;
@@ -181,7 +207,7 @@ let soplido = null;
 // DES porque window.DES ya es el mando de consola de esta máquina. Solo se gasta en pleno vuelo (no en la cuenta atrás, ni
 // posado, ni estrellado). Su barra va en #des-slot, abajo a la derecha y, en el móvil, por encima de los botones táctiles.
 // Al abrir la pregunta se calla el propulsor; al cerrarla se sueltan teclas y botones (el panel se tragó el keyup/pointerup)
-// y se corre el reloj de la partida lo que duró la pregunta: el tope de 10 minutos va por reloj de pared y pensar no cuenta
+// y se corre el reloj de la partida lo que duró la pregunta: el tope de 4 minutos va por reloj de pared y pensar no cuenta
 let abiertaDesde = 0;
 const DESAFIO = crearDesafio({ nombre: 'Oxígeno', segundos: 40, recarga: 40, hud: $('des-slot'),
   alPausar: (si) => {
@@ -212,7 +238,8 @@ function tick(dt) {
   if (tot > TOPE_S && S.estado === 'vuela') { terminar('Se acabó el tiempo del simulador.'); return; }
   S.t += dt;
   // la plataforma que se mueve (Ludo)
-  if (P.movil) { const p = T.pistas.find((x) => x.mult === 4); const dx = Math.sin(S.t * 0.6) * 18 * dt * 0.6; p.x0 += dx; p.x1 += dx; p.cx += dx; p.obj.position.x = p.cx; }
+  // (por posición y no sumando pasos: así no se desplaza con los tirones de fotogramas; y quieta una vez posado)
+  if (P.movil && S.estado === 'vuela') { const p = T.pistas.find((x) => x.mueve); p.cx = p.base + Math.sin(S.t * MOVIL.w) * MOVIL.a; p.x0 = p.cx - p.w / 2; p.x1 = p.cx + p.w / 2; p.obj.position.x = p.cx; }
   if (S.estado === 'vuela') {
     const giro = (tecla.ArrowLeft || tecla.KeyA || toque.izq ? 1 : 0) - (tecla.ArrowRight || tecla.KeyD || toque.der ? 1 : 0);
     S.ang = THREE.MathUtils.clamp(S.ang + giro * 1.7 * dt, -1.3, 1.3);
@@ -249,39 +276,60 @@ function posado(p) {
   S.estado = 'posado'; S.prop = false; if (soplido) soplido.gain.value = 0;
   S.y = p.y + 0.02; S.vx = S.vy = 0; S.ang = 0;
   const vyToque = Math.abs(S._vyAntes || 0);
+  const suavidad = (SEGURO.vy - Math.min(SEGURO.vy, vyToque)) / SEGURO.vy;
   const centrado = Math.max(0, 1 - Math.abs(S.x - p.cx) / (p.w / 2));
-  const puntos = Math.round(p.mult * (300 + (SEGURO.vy - Math.min(SEGURO.vy, vyToque)) / SEGURO.vy * 200 + centrado * 150) + S.comb * 6);
-  S.puntos += puntos; S.aterrizajes.push({ planeta: S.P.n, mult: p.mult, puntos });
-  SON.bien(); aviso(`¡POSADO EN ${S.P.n.toUpperCase()}! ×${p.mult} · +${puntos}`, '#5dffa0', 2);
+  // el aterrizaje, como siempre (plataforma × suavidad y centrado, + combustible) y + los módulos que te sobran; todo eso,
+  // por la dificultad del planeta
+  const aterrizaje = Math.round(p.mult * (300 + suavidad * 200 + centrado * 150) + S.comb * 6);
+  const intactos = (S.vidas - 1) * INTACTO;
+  S.detalle = { mult: p.mult, aterrizaje, intactos, suavidad, centrado, comb: S.comb };
+  S.puntos = Math.round((aterrizaje + intactos) * S.P.dif);
+  SON.bien(); aviso(`¡POSADO EN ${S.P.n.toUpperCase()}! ×${p.mult} · +${S.puntos.toLocaleString('es-ES')}`, '#5dffa0', 2);
   for (let i = 0; i < 40; i++) chispa(S.x + azar(-4, 4), p.y + 0.4, azar(-3, 3), azar(-6, 6), azar(1, 5), azar(0.6, 1.2), 0x5dffa0);
-  setTimeout(() => { if (!S || S.fin) return; S.nivel++; if (S.nivel >= PLANETAS.length) terminar(null, true); else siguientePlaneta(); }, 2200);
+  setTimeout(() => terminar(null, true), 2200);
 }
 function estrellado(motivo) {
   S.estado = 'roto'; S.prop = false; if (soplido) soplido.gain.value = 0; S.vidas--;
   SON.caida(); lem.visible = false;
   for (let i = 0; i < 90; i++) chispa(S.x, S.y, azar(-2, 2), azar(-14, 14), azar(0, 16), azar(0.6, 1.4), elegir([0xffb347, 0xff6a3d, 0xfff1c4, 0x9aa6b2]));
   aviso(`¡ESTRELLADO! ${motivo}`, '#ff4d6d', 2.2);
-  setTimeout(() => { if (!S || S.fin) return; if (S.vidas <= 0) terminar('Te has quedado sin módulos.'); else { nuevoVuelo(); aviso(`Otra vez, en ${S.P.n}`, '#5ff4ff', 1.2); } }, 2200);
-}
-function siguientePlaneta() {
-  const P = PLANETAS[S.nivel]; montarTerreno(P); S.P = P; nuevoVuelo();
-  pantallita(P);
+  setTimeout(() => { if (!S || S.fin) return; if (S.vidas <= 0) terminar(`Te has quedado sin módulos en ${S.P.n}. Vuelve a intentarlo: el planeta sigue ahí.`); else { nuevoVuelo(); aviso(`Otra vez, en ${S.P.n}`, '#5ff4ff', 1.2); } }, 2200);
 }
 function pantallita(P) {
   aviso(`${S.nivel + 1}/8 · ${P.n.toUpperCase()}`, '#5ff4ff', 1.6);
-  $('extra').textContent = P.nota;
+  $('extra').textContent = `${P.nota} Dificultad ${fmtDif(P.dif)}.`;
 }
-function terminar(motivo, completo = false) {
+// lo más alto que has abierto en esta visita: si el servidor tarda en apuntar el progreso, el botón «Siguiente planeta» y
+// el selector no te cierran lo que acabas de ganar (lo que vale para siempre es nivelDe)
+let superadoAqui = 0;
+let elegido = null;   // el planeta marcado en el selector (se recuerda entre partidas de esta visita)
+function terminar(motivo, posadoOk = false) {
   if (S.fin) return; S.fin = true; if (soplido) soplido.gain.value = 0; DESAFIO.parar();
-  if (completo) { S.puntos += S.vidas * 1000; }
+  const N = S.nivel + 1, P = S.P, d = S.detalle;
+  if (posadoOk) superadoAqui = Math.max(superadoAqui, N);
+  if (posadoOk && N < PLANETAS.length) elegido = N;   // al volver al selector, marcado el que se acaba de abrir
+  // «Ocho mundos, cero golpes»: posarte en Liminar, el 8.º (al que solo se llega habiendo superado los otros siete), sin
+  // perder ningún módulo en esa partida. Se eligió esto y no «los ocho, cada uno a la primera» porque esa cuenta pediría
+  // guardar una marca por planeta que el servidor no lleva: un dato, un sitio.
+  const perfecto = posadoOk && N === PLANETAS.length && S.vidas === VIDAS;
   const bonus = DESAFIO.bonus(S.puntos); // el bonus de precisión del desafío (0 en arcade), sobre la marca ya completa
   setTimeout(() => {
     $('hud').classList.add('oculto');
-    const seg = Math.round((performance.now() - S.t0) / 1000);
-    finDePartida({ juego: JUEGO.id, titulo: completo ? '¡Los ocho planetas!' : 'Fin del descenso', puntos: S.puntos + bonus,
-      texto: completo ? `Te has posado en los ocho mundos de la ruta. <b>+${(S.vidas * 1000).toLocaleString('es-ES')}</b> por los módulos que te quedan.` : motivo,
-      filas: [['Aterrizajes', `${S.aterrizajes.length}/8`], ['En la estrecha (×4)', S.aterrizajes.filter((a) => a.mult === 4).length], ['Vidas', Math.max(0, S.vidas)], ['Tiempo', `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`], ...DESAFIO.filas(bonus)],
-      alRepetir: empezar, extra: { ...DESAFIO.extra(), perfecto: completo && S.vidas >= 3 } });
+    const seg = Math.round((performance.now() - S.t0) / 1000), NOM = ['la ancha', 'la media', '', 'la estrecha'];
+    const filas = posadoOk
+      ? [['Planeta', `${N}. ${P.n}`], ['Plataforma', `${NOM[d.mult - 1]} (×${d.mult})`], ['Aterrizaje', d.aterrizaje.toLocaleString('es-ES')],
+        ['Módulos de sobra', `${S.vidas - 1} (+${d.intactos.toLocaleString('es-ES')})`], ['Dificultad', fmtDif(P.dif)], ['Tiempo', `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`]]
+      : [['Planeta', `${N}. ${P.n}`], ['Módulos que quedan', '0'], ['Tiempo', `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}`]];
+    const sig = posadoOk && N < PLANETAS.length ? PLANETAS[N] : null;
+    finDePartida({ juego: JUEGO.id, titulo: posadoOk ? `¡Posado en ${P.n}!` : 'Fin del descenso', puntos: S.puntos + bonus,
+      texto: posadoOk ? (sig ? `Progreso guardado: se abre <b>${sig.n}</b>, un poco más difícil (${fmtDif(sig.dif)} a los puntos).` : 'Te has posado en los ocho mundos de la ruta.') : motivo,
+      filas: [...filas, ...DESAFIO.filas(bonus)],
+      alRepetir: () => empezar(S.nivel), extra: { ...DESAFIO.extra(), planeta: N, posado: posadoOk, perfecto } });
+    // los botones del final: repetir este planeta, pasar al siguiente (si lo has abierto) o volver al selector
+    const otra = $('b-otra'); otra.textContent = `Repetir ${P.n}`; otra.classList.toggle('sec', !!sig);
+    const mapa = document.createElement('button'); mapa.className = 'sec'; mapa.textContent = 'Elegir planeta';
+    mapa.onclick = () => { cerrarPantalla(); portada(); }; otra.after(mapa);
+    if (sig) { const b = document.createElement('button'); b.textContent = `Siguiente: ${sig.n}`; b.onclick = () => { cerrarPantalla(); empezar(N); }; otra.before(b); }
   }, 900);
 }
 
@@ -304,8 +352,8 @@ function pintarHUD(vv) {
 // ───────────────────────────────── bucle
 let pausa = false;
 function pausar() {
-  if (!S || S.fin || DESAFIO.abierto) return; pausa = !pausa; if (soplido) soplido.gain.value = 0; // con la pregunta abierta el juego ya está parado
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=cdadcf2641">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (!S || S.fin || S.estado === 'portada' || DESAFIO.abierto) return; pausa = !pausa; if (soplido) soplido.gain.value = 0; // con la pregunta abierta el juego ya está parado
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=ff69e3ea03">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && S && !S.fin && !pausa && !DESAFIO.abierto && !window.__sinPausa) pausar(); });
@@ -338,28 +386,60 @@ function bucle(ahora) {
   if (T) for (const p of T.pistas) (p.luces || []).forEach((l) => { l.material.opacity = 0.6 + Math.sin(ahora / 200 + p.cx) * 0.4; });
   render.render(escena, camara);
 }
-function empezar() {
-  S = nueva(); window.__t0Partida = performance.now(); prepararSoplido();
-  montarTerreno(PLANETAS[0]); nuevoVuelo(); pantallita(PLANETAS[0]);
+function empezar(nivel = 0) {
+  elegido = nivel; S = nueva(nivel); window.__t0Partida = performance.now(); prepararSoplido();
+  const P = PLANETAS[nivel]; montarTerreno(P); S.P = P; nuevoVuelo(); pantallita(P);
   $('hud').classList.remove('oculto'); cerrarPantalla(); pausa = false;
   DESAFIO.empezar();
 }
-function portada() {
+// lo que se ve detrás de la portada: el planeta elegido y el módulo esperando arriba
+function vistaPortada(i) {
+  montarTerreno(PLANETAS[i]); S = nueva(i); S.P = PLANETAS[i]; S.x = -40; S.y = Math.max(...T.perfil) + 30; S.vx = 0; S.vy = 0; S.ang = 0.1; S.t = 0; S.estado = 'portada'; S.comb = 100;
+  lem.visible = true; camara.position.set(-40, S.y + 10, 60); camara.lookAt(-40, S.y - 8, 0);
+}
+// los iconos del selector (SVG propio: nada de emojis)
+const ICONO = {
+  candado: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>',
+  hecho: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+async function portada() {
   const e = estado(), desafio = MODO === 'desafio';
+  // hasta dónde has llegado: lo guardado (nivelDe) o, si el servidor aún no lo ha apuntado, lo que has ganado en esta visita
+  let hecho = 0; try { hecho = Number(await nivelDe('descenso')) || 0; } catch (x) { /* sin progreso: solo Fôrge */ }
+  hecho = Math.min(PLANETAS.length, Math.max(hecho, superadoAqui));
+  const abierto = Math.min(PLANETAS.length, hecho + 1);   // 1-8: el último que se puede jugar
+  if (elegido === null || elegido >= abierto) elegido = abierto - 1;
+  const fichas = PLANETAS.map((P, i) => {
+    const est = i < hecho ? 'hecho' : i < abierto ? 'nuevo' : 'cerrado';
+    return `<button class="pl ${est}${i === elegido ? ' sel' : ''}" data-i="${i}" ${est === 'cerrado' ? 'disabled' : ''} aria-label="${i + 1}. ${P.n}${est === 'cerrado' ? ' (bloqueado)' : ''}">
+      <span class="pl-bola" style="background-image:url(tex/${P.k}.jpg)">${est === 'cerrado' ? ICONO.candado : est === 'hecho' ? `<i class="pl-ok">${ICONO.hecho}</i>` : ''}</span>
+      <span class="pl-txt"><b>${i + 1}. ${P.n}</b><small>${est === 'hecho' ? 'Superado' : est === 'nuevo' ? 'Disponible' : 'Bloqueado'} · ${fmtDif(P.dif)}</small></span></button>`;
+  }).join('');
   pantalla(`<div class="kicker">El simulador de Joran · máquina 4${desafio ? ' · modo desafío' : ''}</div><h2>El Descenso</h2>
-    <p>Joran entrenaba a los pilotos para posar las cápsulas del refugio en cualquier mundo. Aquí se posa el <b>Módulo Lunar</b> en los <b>ocho planetas de la ruta</b>, y cada uno tiene su física: gravedad, <b>viento solar</b> (constante, a ráfagas o que cambia de sentido), atmósfera que frena, niebla o una plataforma que se mueve.</p>
+    <p>Posa el <b>Módulo Lunar</b> en los <b>ocho planetas de la ruta</b>, cada uno con su gravedad, su <b>viento solar</b> y su truco. Cada partida es <b>un planeta</b>: al posarte se guarda y se abre el siguiente, un poco más difícil. No hace falta hacerlos seguidos.</p>
+    <div class="planetas" id="planetas">${fichas}</div>
+    <p class="pl-nota" id="pl-nota"></p>
     <div class="teclas"><kbd>← →  /  A D</kbd><span>Girar el módulo</span><kbd>↑  /  W  /  Espacio</kbd><span>Propulsor (gasta combustible)</span></div>
-    <p>Para posarte: caída de menos de <b>${SEGURO.vy.toLocaleString('es-ES')} m/s</b>, deriva de menos de <b>${SEGURO.vx.toLocaleString('es-ES')} m/s</b> y el módulo casi recto (lo verde del panel). Las plataformas multiplican: <b style="color:#5dffa0">×1</b> la ancha, <b style="color:#ffc24a">×2</b> la media y <b style="color:#ff4dd8">×4</b> la estrecha. Suman la suavidad, el centrado y el combustible que te sobre. Tienes tres módulos.</p>
+    <p>Para posarte: caída de menos de <b>${SEGURO.vy.toLocaleString('es-ES')} m/s</b>, deriva de menos de <b>${SEGURO.vx.toLocaleString('es-ES')} m/s</b> y el módulo casi recto (lo verde del panel). Plataformas: <b style="color:#5dffa0">×1</b> la ancha, <b style="color:#ffc24a">×2</b> la media y <b style="color:#ff4dd8">×4</b> la estrecha. Suman la suavidad, el centrado, el combustible y los módulos que te sobren (tienes ${VIDAS}); y todo se multiplica por la <b>dificultad del planeta</b>.</p>
     ${DESAFIO.texto()}
-    <p class="pista">Tu récord: <b>${(e.marcas.descenso || 0).toLocaleString('es-ES')}</b> · Módulo Lunar del Apolo: NASA (dominio público)</p>
-    <div class="botones"><button id="b-ya">¡Iniciar el descenso!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=cdadcf2641">Volver a la sala</a>'}</div>`);
+    <p class="pista">Tu marca (tu mejor partida): <b>${(e.marcas.descenso || 0).toLocaleString('es-ES')}</b> · Módulo Lunar del Apolo: NASA (dominio público)</p>
+    <div class="botones"><button id="b-ya"></button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=ff69e3ea03">Volver a la sala</a>'}</div>`);
+  const marcar = (i) => {
+    elegido = i; const P = PLANETAS[i];
+    document.querySelectorAll('#planetas .pl').forEach((b) => b.classList.toggle('sel', +b.dataset.i === i));
+    $('pl-nota').innerHTML = `<b>${P.n}</b> · ${P.nota} Gravedad ${P.g.toLocaleString('es-ES')} m/s² · puntos ${fmtDif(P.dif)}.`;
+    $('b-ya').textContent = `Descender en ${P.n}`;
+    vistaPortada(i);
+  };
+  document.querySelectorAll('#planetas .pl').forEach((b) => { b.onclick = () => marcar(+b.dataset.i); });
+  marcar(elegido);
   $('b-ya').onclick = async () => {
     audio();
     if (desafio) { // las preguntas tienen que estar antes de despegar: sin ellas, el oxígeno no se podría recargar
       const b = $('b-ya'); b.disabled = true; b.textContent = 'Cargando preguntas…';
       if (!(await DESAFIO.preparar())) aviso('Sin preguntas: juegas en arcade', '#ffc24a', 2.2);
     }
-    empezar();
+    empezar(elegido);
   };
 }
 (async () => {
@@ -371,9 +451,7 @@ function portada() {
   llama = brillo(0xffa347, 3); llama.position.set(0, -0.6, 0); lem.add(llama);
   llamaLuz = new THREE.PointLight(0xffa347, 0, 30, 1.6); llamaLuz.position.set(0, -1.5, 0); lem.add(llamaLuz);
   await medirColores();
-  // lo que se ve detrás de la portada: Fôrge y el módulo esperando arriba
-  montarTerreno(PLANETAS[0]); S = nueva(); S.P = PLANETAS[0]; S.x = -40; S.y = Math.max(...T.perfil) + 30; S.vx = 0; S.vy = 0; S.ang = 0.1; S.t = 0; S.estado = 'portada'; S.comb = 100;
-  camara.position.set(-40, S.y + 10, 60); camara.lookAt(-40, S.y - 8, 0);
+  vistaPortada(0);
   $('carga').remove(); requestAnimationFrame(bucle); portada();
 })().catch((err) => { console.error(err); $('carga').textContent = 'No se pudo cargar: ' + err.message; });
-window.DES = { get S() { return S; }, get T() { return T; }, PLANETAS, empezar, camara, desafio: DESAFIO, irA: (n) => { S.nivel = n; siguientePlaneta(); } };
+window.DES = { get S() { return S; }, get T() { return T; }, PLANETAS, empezar, camara, desafio: DESAFIO, irA: (n) => empezar(n), portada };

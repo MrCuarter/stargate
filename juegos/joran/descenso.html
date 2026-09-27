@@ -6,7 +6,7 @@
 <title>El Descenso</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="comun.css?v=cdadcf2641">
+<link rel="stylesheet" href="comun.css?v=ff69e3ea03">
 <style>
 .instr{position:absolute;right:16px;top:14px;display:grid;grid-template-columns:auto auto;gap:3px 12px;background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:10px 14px;font-size:14px;min-width:210px}
 .instr span{opacity:.8}
@@ -30,6 +30,25 @@ body.tactil .comb{bottom:120px}
 #des-slot .des-hud{right:16px;bottom:16px;width:min(320px,42vw)}
 body.tactil #des-slot .des-hud{bottom:120px}
 body.tactil #extra{bottom:170px!important}
+/* el selector de planetas de la portada: una partida = un planeta. Superado (check verde), disponible (cian) o con candado */
+.planetas{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 4px}
+.pl{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px 7px;font-family:"Exo 2",system-ui,sans-serif;font-weight:600;letter-spacing:0;background:#0d2236;color:#e8f6ff;border:1px solid var(--borde)}
+.pl-txt{display:flex;flex-direction:column;align-items:center;gap:1px}
+.pl b{font-size:14px;line-height:1.15}
+.pl small{font-size:12px;opacity:.85}
+.pl-bola{position:relative;width:46px;height:46px;border-radius:50%;background-size:cover;background-position:center;box-shadow:inset -8px -6px 14px rgba(0,0,0,.6),0 0 10px rgba(95,244,255,.25);display:flex;align-items:center;justify-content:center}
+.pl-bola svg{width:22px;height:22px}
+.pl.cerrado{opacity:.5}
+.pl.cerrado .pl-bola{filter:grayscale(1) brightness(.55);color:#e8f6ff}
+.pl-ok{position:absolute;right:-5px;bottom:-4px;width:20px;height:20px;border-radius:50%;background:var(--verde);color:#001a0c;display:flex;align-items:center;justify-content:center}
+.pl-ok svg{width:14px;height:14px}
+.pl.hecho small{color:var(--verde);opacity:1}
+.pl.nuevo{border-color:var(--cian)}
+.pl.nuevo small{color:var(--cian);opacity:1}
+.pl.sel{border-color:var(--ambar);box-shadow:0 0 0 2px var(--ambar) inset,0 0 14px rgba(255,194,74,.35)}
+.pl:disabled{cursor:not-allowed;opacity:.5}
+.pl-nota{font-size:15px!important;margin:6px 0!important;min-height:1.4em}
+@media (max-width:520px){.planetas{grid-template-columns:repeat(2,1fr)}.pl{flex-direction:row;justify-content:flex-start;gap:8px;padding:6px 8px;text-align:left}.pl-bola{width:36px;height:36px;flex:none}.pl-txt{align-items:flex-start}}
 @media (max-width:760px){.instr{top:120px;min-width:0;font-size:13px}#viento{top:262px;min-width:0}}
 </style>
 <script type="importmap">
@@ -60,6 +79,6 @@ body.tactil #extra{bottom:170px!important}
 <div class="mandos" id="mandos"><button id="m-izq" aria-label="Girar a la izquierda">⟲</button><button id="m-prop" class="prop">PROPULSOR</button><button id="m-der" aria-label="Girar a la derecha">⟳</button></div>
 <div id="aviso"></div>
 <div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
-<script type="module" src="descenso.js?v=cdadcf2641"></script>
+<script type="module" src="descenso.js?v=ff69e3ea03"></script>
 </body>
 </html>

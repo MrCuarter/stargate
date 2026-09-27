@@ -2,7 +2,7 @@
 // el navegador solo recibe el enunciado y las opciones barajadas, nunca cuál es la buena; responde por POSICIÓN y el
 // servidor la traduce (como hoy hace stargateBatalla). La medalla y el premio también los decide el servidor.
 // Aquí se imita con el banco local y la marca se guarda en el navegador (localStorage).
-import { PREGUNTAS } from './preguntas.js?v=cdadcf2641';
+import { PREGUNTAS } from './preguntas.js?v=ff69e3ea03';
 
 const barajar = (xs) => { const a = xs.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 

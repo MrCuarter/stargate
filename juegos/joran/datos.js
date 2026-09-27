@@ -52,7 +52,7 @@ export const SALA_JORAN = {
   [
    "descenso",
    "El Descenso",
-   "Posa el Módulo Lunar en los ocho planetas: cada uno con su gravedad, su viento solar y su truco.",
+   "Posa el Módulo Lunar planeta a planeta: cada uno con su gravedad, su viento y su truco, y el siguiente un poco más difícil.",
    [
     "ruta-azul",
     18000
@@ -60,23 +60,23 @@ export const SALA_JORAN = {
    80,
    [
     2000,
-    5500,
-    16000
+    4000,
+    10000
    ]
   ],
   [
    "conquista",
    "La conquista de Fôrge",
-   "Salta de acantilado en acantilado sobre los ríos de lava de Fôrge hasta la Puerta de la cumbre.",
+   "Trepa por la chimenea de Fôrge mientras la lava sube cada vez más rápido. ¿Hasta dónde aguantas?",
    [
     "descenso",
-    5500
+    4000
    ],
    100,
    [
-    2000,
-    4500,
-    8500
+    3000,
+    12000,
+    40000
    ]
   ],
   [
@@ -136,7 +136,7 @@ export const SALA_JORAN = {
   [
    "perfecto",
    "Ocho mundos, cero golpes",
-   "Pósate en los ocho planetas de El Descenso sin perder un módulo."
+   "Pósate en Liminar, el octavo planeta de El Descenso, sin perder un módulo."
   ],
   [
    "repasoOro",
@@ -152,5 +152,5 @@ export const SALA_JORAN = {
  "premio_cuaderno": "el título «As de Joran» y el marco holográfico para tu avatar",
  "galeria_reto": "B6",
  "fama": 10,
- "v": "cdadcf2641"
+ "v": "ff69e3ea03"
 };

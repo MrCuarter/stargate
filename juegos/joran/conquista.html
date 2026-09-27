@@ -6,7 +6,7 @@
 <title>La conquista de Fôrge</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="comun.css?v=cdadcf2641">
+<link rel="stylesheet" href="comun.css?v=ff69e3ea03">
 <style>
 /* la barra del modo desafío va abajo a la izquierda (los botones táctiles la empujan hacia arriba) */
 #des-slot .des-hud{left:16px;right:auto;bottom:16px}
@@ -28,15 +28,16 @@ body.tactil .mandos{display:flex}
 <body class="juego">
 <canvas id="lienzo" class="lienzo"></canvas>
 <div class="escaner"></div>
-<div id="carga">Encendiendo Fôrge…</div>
+<div id="carga">Calentando la chimenea de Fôrge…</div>
 <div class="hud oculto" id="hud">
   <div class="cifras">
     <div class="cif am"><small>Puntos</small><b id="h-pts">0</b></div>
-    <div class="cif"><small>Metros</small><b id="h-m">0</b></div>
-    <div class="cif"><small>Vidas</small><b id="h-vid">3</b></div>
+    <div class="cif"><small>Altura (m)</small><b id="h-m">0</b></div>
+    <div class="cif"><small>Escudos</small><b id="h-vid">3</b></div>
     <div class="cif"><small>Tiempo</small><b id="h-t">0:00</b></div>
   </div>
-  <div class="meta"><small id="h-tramo">Hasta la Puerta de la cumbre</small><div class="barra"><i id="h-prog"></i></div></div>
+  <!-- la barra: el margen que te queda sobre la lava; el texto, la fase y su multiplicador -->
+  <div class="meta"><small id="h-tramo">Fase 1 · Calentamiento · ×1</small><div class="barra" id="h-barra"><i id="h-prog"></i></div></div>
   <div class="der"><button class="sec" id="b-pausa" type="button">Pausa</button></div>
   <div id="des-slot"></div>
 </div>
@@ -49,6 +50,6 @@ body.tactil .mandos{display:flex}
 </div>
 <div id="aviso"></div>
 <div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
-<script type="module" src="conquista.js?v=cdadcf2641"></script>
+<script type="module" src="conquista.js?v=ff69e3ea03"></script>
 </body>
 </html>
