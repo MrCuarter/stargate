@@ -7133,3 +7133,4 @@ details.mas summary{cursor:pointer;color:var(--teal,#5ff4ff);font-weight:700;fon
   .nb-t b{font-size:.75rem!important;letter-spacing:-.02em;white-space:nowrap}
   .nb-mas{flex:0 0 auto}
 }
+.neb-aviso{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--amber);color:#1b1204;font-size:.75rem;font-weight:800}

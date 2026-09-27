@@ -551,12 +551,21 @@
       document.body.appendChild(b); document.body.appendChild(cap);
       var montado=false;
       b.onclick=function(){ cap.hidden=!cap.hidden; b.setAttribute('aria-expanded', String(!cap.hidden));
-        if(!cap.hidden && !montado){ montado=true; SG.NEBULA_CHAT.montar('neb-ayuda-chat', { per: per }); }
+        if(!cap.hidden && !montado){ montado=true; SG.NEBULA_CHAT.montar('neb-ayuda-chat', { per: per, fichaId: (st.yo&&st.yo.fid)||'', alias: (st.yo&&st.yo.alias)||'' }); }
+        if(!cap.hidden){ var bb=b.querySelector('.neb-aviso'); if(bb) bb.remove(); }
         if(!cap.hidden){ var t=cap.querySelector('textarea,input'); if(t) setTimeout(function(){ t.focus(); }, 60); } };
       cap.querySelector('.neb-ayuda-x').onclick=function(){ cap.hidden=true; b.setAttribute('aria-expanded','false'); b.focus(); };
       document.addEventListener('keydown',function(e){ if(e.key==='Escape' && !cap.hidden){ cap.hidden=true; b.focus(); } });
     }
     b.style.display='';
+    // 28-sep · el aviso de «tu Comandante te ha respondido» (la guardia contesta en el buzón y le sale en el chat)
+    if(SG.NEBULA_CHAT.pendientes && Date.now()-(ayudaNebula._t||0)>60000){   // (como mucho, una vez por minuto)
+      ayudaNebula._t=Date.now();
+      Promise.resolve(SG.NEBULA_CHAT.pendientes && SG.NEBULA_CHAT.pendientes(per)).then(function(n){
+        var v=b.querySelector('.neb-aviso'); if(v) v.remove();
+        if(n>0 && cap.hidden) b.insertAdjacentHTML('beforeend','<span class="neb-aviso" title="Tu Comandante te ha respondido">'+n+'</span>');
+      }).catch(function(){});
+    }
   }
   function verSesion(si){
     var cap=document.getElementById('nave-ses');

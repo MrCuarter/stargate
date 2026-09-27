@@ -1004,8 +1004,10 @@ async function buzonEnviar(m) {
   if (!yo) throw new Error("Entra con tu cuenta para escribir al Mando.");
   const ahora = Date.now();
   const ref = await addDoc(collection(db, BUZON), {
-    uid: yo.uid, correo: yo.correo, nombre: yo.nombre || yo.correo, projectId: m.projectId || "", grupo: m.grupo || "",
-    tipo: m.tipo, urgente: !!m.urgente, texto: String(m.texto || "").trim().slice(0, 2000), contexto: m.contexto || {},
+    // 28-sep · la duda de un RECLUTA (la que NEBULA no sabe): va con su alias, nunca urgente (reglas: tipo 'recluta')
+    uid: yo.uid, correo: yo.correo, nombre: m.tipo === "recluta" ? String((m.contexto || {}).alias || "Recluta") : (yo.nombre || yo.correo),
+    projectId: m.projectId || "", grupo: m.grupo || "",
+    tipo: m.tipo, urgente: m.tipo === "recluta" ? false : !!m.urgente, texto: String(m.texto || "").trim().slice(0, 2000), contexto: m.contexto || {},
     estado: "nuevo", respuestas: [], creado: ahora, actualizado: ahora, visto: true, autoayuda: m.autoayuda || []
   });
   return ref.id;
