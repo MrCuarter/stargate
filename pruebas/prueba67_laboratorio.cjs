@@ -4778,9 +4778,14 @@ const REG = {};   // cifras que se apuntan para el informe
       }
       // 17-sep · los ejemplos: en la Nave, un enlace que abre SU página en otra pestaña (Norberto: «dentro de la ficha del
       // reto se verá fatal»); en la página, estilo académico, la autoevaluación corrige y la línea de tiempo salta de pregunta
-      await sb.ir("recluta.html?per=lab-clase"); await sb.hasta("document.querySelectorAll('a.rs-ej, .rs-ej-ver a').length>3", 40);
+      // (28-sep · en Retos, donde están todos: en Mi nave solo salen los de la semana que aún tiene pendientes)
+      // (el barrido pulsa todos los botones de la Nave: si alguno cierra la sesión, se apunta y se vuelve a entrar)
+      const sinSesion = await sb.js("location.pathname.indexOf('entrar.html')>=0 || /La Nave del Recluta/.test((document.querySelector('main')||document.body).innerText) && !document.querySelector('.nb-tabs')");
+      if (sinSesion) { console.log("      ⚠ el barrido dejó a Sara sin sesión (algún botón la cierra): vuelve a entrar"); await sb.ir("entrar.html"); await sb.entrarComo("sara@lab.test", "Sara Prueba"); }
+      await sb.ir("recluta.html?per=lab-clase#retos"); await sb.hasta("document.querySelectorAll('a.rs-ej, .rs-ej-ver a').length>3", 40);
       c("ejemplos · en la Nave, «💡 Ver un ejemplo» abre su página en otra pestaña (y no se mete en la tarjeta)",
-        await sb.js("(function(){ var a=[].slice.call(document.querySelectorAll('a.rs-ej, .rs-ej-ver:not(.rs-pl) a')); return a.length>3 && a.every(function(x){ return /ejemplo\\.html\\?reto=/.test(x.getAttribute('href')) && x.target==='_blank'; }) && !document.querySelector('.rs-ej-caja, .ejv'); })()"));
+        await sb.js("(function(){ var a=[].slice.call(document.querySelectorAll('a.rs-ej, .rs-ej-ver:not(.rs-pl) a')); return a.length>3 && a.every(function(x){ return /ejemplo\\.html\\?reto=/.test(x.getAttribute('href')) && x.target==='_blank'; }) && !document.querySelector('.rs-ej-caja, .ejv'); })()"),
+        await sb.js("JSON.stringify({a:[].slice.call(document.querySelectorAll('a.rs-ej, .rs-ej-ver:not(.rs-pl) a')).map(function(x){return (x.getAttribute('href')||'').slice(0,40)+' '+x.target}).slice(0,6), caja:[].slice.call(document.querySelectorAll('.rs-ej-caja, .ejv')).map(function(e){return e.className}), url:location.href, retos:document.querySelectorAll('.reto-sem').length, ej:Object.keys(window.SG_EJEMPLOS||{}).length, txt:document.body.innerText.replace(/\\s+/g,' ').slice(0,160)})"));
       // 23-sep · con los 20 retos ya no hay autoevaluación con preguntas: L5 («Mide con método») es una rúbrica en tabla
       await sb.ir("ejemplo.html?reto=L5"); await sb.hasta("!!document.querySelector('.ej-tabla')", 20); await barrer(sb, "ejemplo L5");
       const l5 = await sb.js("[document.querySelectorAll('.ej-tabla tbody tr').length>=3, /Tabla 1\\./.test(document.querySelector('.ej-tabla figcaption').textContent), getComputedStyle(document.body).fontFamily.indexOf('Georgia')>=0, !!document.getElementById('ej-cerrar')].join('|')");
