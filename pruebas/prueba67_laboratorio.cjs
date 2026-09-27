@@ -3977,7 +3977,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await dormir(900);
       // 19-sep · en filas plegadas (Norberto eligió entre cuatro, contra el aire): la insignia pequeña en la fila, grande al abrir
       c("🔴 nave · «Qué hay que hacer, explicado» en filas de menos de 110 px: su insignia a la vista (y en grande al abrirla; los relámpago no dan)",
-        await nv.js("(function(){ var r=[].slice.call(document.querySelectorAll('details.reto-pl[open] details.reto-sem.fila')); return r.length>0 && r.every(function(x){ var ins = !!x.querySelector('summary .rs-mini') && !!x.querySelector('.rs-detalle .rs-trofeo img'); return (ins || /relampago/.test(x.className)) && x.querySelector('summary').getBoundingClientRect().height < 110; }); })()"),
+        await nv.js("(function(){ var r=[].slice.call(document.querySelectorAll('details.reto-pl[open] details.reto-sem.fila')); return r.length>0 && r.every(function(x){ var ins = !!x.querySelector('summary .rs-mini') && !!x.querySelector('.rs-detalle .rs-trofeo img'); return (ins || /relampago/.test(x.className)) && (x.querySelector('summary').getBoundingClientRect().height < 110 || /Actividad \\d/.test(x.querySelector('summary').textContent)); }); })()"),   /* 26-sep · la fila de la Actividad lleva sus retos relacionados y su sesión: más alta a propósito */
         await nv.js("JSON.stringify([].slice.call(document.querySelectorAll('details.reto-pl[open] .reto-sem')).map(function(x){ return [x.className, !!x.querySelector('summary .rs-mini'), !!x.querySelector('.rs-detalle .rs-trofeo img'), x.querySelector('summary') ? Math.round(x.querySelector('summary').getBoundingClientRect().height) : 0]; }))"));
       // 17-sep · ya hay un ejemplo en TODOS los retos (menos S7), y cada uno abre su página en otra pestaña
       c("nave · y «💡 Ver un ejemplo» en cada reto, que abre su página (ejemplo.html) en otra pestaña",
@@ -4026,7 +4026,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const pasos = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){ return b.title; })");
       const arr = pasos.filter(t => t !== "Únete a la clase");   // (semanas 1 y 2: «Únete» va entre la portada y la llamada)
       c("🔴 sesión · el arranque: la portada, la llamada a filas y la pregunta (24-sep)", arr[0] === "Portada" && arr[1] === "Llamada a filas" && arr[2] === "La pregunta", pasos.slice(0, 4).join(" | "));
-      c("sesión · la semana 2 cierra el tema 1: lo último sigue siendo el ticket (no la despedida)", pasos[pasos.length - 1] === "Ticket de salida", pasos.slice(-3).join(" | "));
+      c("sesión · la semana 2 cierra el tema 1: al final, el ticket y detrás el juego En directo (no la despedida)", pasos[pasos.length - 2] === "Ticket de salida" && pasos[pasos.length - 1] === "En directo", pasos.slice(-3).join(" | "));
       const Q = await rita.js("((window.SG_SEMANAS||[]).filter(function(s){ return Number(s.sem)===2; })[0].preguntas||[])[0][1]");
       const ir = async (titulo, sel) => {
         await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){ return x.title===" + JSON.stringify(titulo) + "; })[0]; if(b) b.click(); return 1; })()");
@@ -4364,9 +4364,11 @@ const REG = {};   // cifras que se apuntan para el informe
       await nova.foto(FOTOS + "/39-simulador.png");
       // en la Nave, su puerta
       await nova.ir("recluta.html?per=" + P);
-      await nova.hasta("!!document.querySelector('.sim-caja')", 30);
-      c("batalla · en «Mi nave» aparece el Simulador de Joran, desbloqueado",
-        await nova.js("!!document.querySelector('.sim-caja') && !document.querySelector('.sim-caja').classList.contains('cerrada')"));
+      // 28-sep · el Simulador ya no es una tarjeta de Mi nave: es la sección «Simulador de Joran» de Retos
+      await nova.hasta("!!document.querySelector('.nb-t[data-tab=\"retos\"]')", 30);
+      await nova.js("location.hash='#simulador'; 1");
+      c("batalla · en Retos → Simulador de Joran, desbloqueado (la sala dentro de la Nave)",
+        await nova.hasta("!!document.querySelector('.nb-sec[data-tab=\"simulador\"]:not(.bloq)') && !!document.querySelector('#nave-sim iframe')", 20));
 
       // 5 · Quim se rinde: cuenta como derrota y el rival se cansa para la próxima
       const QUIM = ["quim@lab.test", "Quim Prueba", "Quim Batalla", 1];
@@ -4778,7 +4780,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // reto se verá fatal»); en la página, estilo académico, la autoevaluación corrige y la línea de tiempo salta de pregunta
       await sb.ir("recluta.html?per=lab-clase"); await sb.hasta("document.querySelectorAll('a.rs-ej, .rs-ej-ver a').length>3", 40);
       c("ejemplos · en la Nave, «💡 Ver un ejemplo» abre su página en otra pestaña (y no se mete en la tarjeta)",
-        await sb.js("(function(){ var a=[].slice.call(document.querySelectorAll('a.rs-ej, .rs-ej-ver a')); return a.length>3 && a.every(function(x){ return /ejemplo\\.html\\?reto=/.test(x.getAttribute('href')) && x.target==='_blank'; }) && !document.querySelector('.rs-ej-caja, .ejv'); })()"));
+        await sb.js("(function(){ var a=[].slice.call(document.querySelectorAll('a.rs-ej, .rs-ej-ver:not(.rs-pl) a')); return a.length>3 && a.every(function(x){ return /ejemplo\\.html\\?reto=/.test(x.getAttribute('href')) && x.target==='_blank'; }) && !document.querySelector('.rs-ej-caja, .ejv'); })()"));
       // 23-sep · con los 20 retos ya no hay autoevaluación con preguntas: L5 («Mide con método») es una rúbrica en tabla
       await sb.ir("ejemplo.html?reto=L5"); await sb.hasta("!!document.querySelector('.ej-tabla')", 20); await barrer(sb, "ejemplo L5");
       const l5 = await sb.js("[document.querySelectorAll('.ej-tabla tbody tr').length>=3, /Tabla 1\\./.test(document.querySelector('.ej-tabla figcaption').textContent), getComputedStyle(document.body).fontFamily.indexOf('Georgia')>=0, !!document.getElementById('ej-cerrar')].join('|')");
@@ -4908,7 +4910,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rs.ir("entrar.html"); await rs.entrarComo("rita@lab.test", "Rita Referente");
       const hay = await aMisEnlaces();
       const casillas = await rs.js("(function(){ var l=[].slice.call(document.querySelectorAll('.m-sec input')); return l.length+'|'+l.filter(function(x){return x.checked}).length; })()");
-      c("🔴 sesión a medida · la rueda de «Proyectar la clase» abre una casilla por sección y, por defecto, todas marcadas", hay && casillas === "21|21", casillas);   // (23-sep · 19 con «El embarque»; 20 con «La pregunta de la clase»; 21 con «El tripulante»)
+      c("🔴 sesión a medida · la rueda de «Proyectar la clase» abre una casilla por sección y, por defecto, todas marcadas", hay && /^(\d+)\|\1$/.test(casillas) && Number(casillas.split("|")[0]) >= 24, casillas);   // 27-sep · 24: + la Ruta, el juego En directo y el Asedio   // (23-sep · 19 con «El embarque»; 20 con «La pregunta de la clase»; 21 con «El tripulante»)
       // (la sesión lee la elección del docente directamente del grupo; con el emulador atascado eso tarda: se espera a que
       // el mazo ACABE reflejándola, como mucho un minuto. En producción son milisegundos)
       const conTop = "[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Top 5'})";
@@ -5244,8 +5246,8 @@ const REG = {};   // cifras que se apuntan para el informe
       // la semana 2 CIERRA el tema 1: el ticket embebido es la última diapositiva
       await rt.ir("sesion.html?per=lab-clase&sem=2"); await rt.hasta("!!document.querySelector('.barra-pasos .p')", 60);
       const rots = await rt.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.title})");
-      c("🔴 ticket · la semana 2 cierra el tema 1 y acaba con «Ticket de salida»", rots[rots.length - 1] === "Ticket de salida", JSON.stringify(rots.slice(-3)));
-      await rt.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).pop().click(); 1");
+      c("🔴 ticket · la semana 2 cierra el tema 1 con «Ticket de salida» (y detrás, «En directo»)", rots[rots.length - 2] === "Ticket de salida" && rots[rots.length - 1] === "En directo", JSON.stringify(rots.slice(-3)));
+      await rt.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){ return b.title==='Ticket de salida'; }).pop().click(); 1");
       const src = await rt.hasta("!!document.querySelector('.tk-form')", 20) && await rt.js("document.querySelector('.tk-form').getAttribute('src')");
       // (la semana 2 es la de la Actividad 1, y el formulario tiene su propia opción: esa es la que toca, no «Tema 1»)
       c("   con el formulario dentro, el grupo por su ID, la Comandante y el tema ya elegido",
@@ -5403,7 +5405,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await ne.hasta("!!document.querySelector('.nb-tabs')", 90); await dormir(900);
       const tabs = await ne.js("[].slice.call(document.querySelectorAll('.nb-t')).map(function(b){return b.textContent.trim()}).join(' · ')");
       c("🔴 escuela · su Nave se puede mirar como demostración, con todas sus pestañas",
-        /Archivo/.test(tabs) && /Zoco/.test(tabs) && /Mercado/.test(tabs), tabs);
+        /Archivo/.test(tabs) && /Mercado/.test(tabs) && /Retos/.test(tabs) && /Rankings/.test(tabs), tabs);   // (28-sep · el Zoco, sección del Mercado)
       await ne.foto(FOTOS + "/50-escuela-recluta.png");
       c("escuela · sin errores", !ne.errores.filter(e => !/Failed to load resource/.test(e)).length, ne.errores[0] || "");
       await ne.cerrar();
