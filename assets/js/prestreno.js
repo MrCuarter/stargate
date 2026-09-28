@@ -415,11 +415,11 @@
       '</div>' };
   }
   function rankings() {
-    var R = ["más xp", "esta semana", "colección", "constancia", "insignias", "explorador", "relámpago",
-             "logros de a bordo", "quien más sabe", "el más certero", "el más rápido", "escuadrones", "el duelo"];
+    // 28-sep · SEIS, los de la Nave (tablero.js → MODOS, desde el 26-sep): la presentación seguía contando los trece de antes
+    var R = ["más xp", "esta semana", "constancia", "coleccionistas", "Simulador", "escuadrones"];
     return { rot: "Rankings", html:
       '<div class="dia">' +
-        '<div class="kicker">Trece maneras de destacar</div>' +
+        '<div class="kicker">Seis maneras de destacar</div>' +
         '<h2>Si no destacas en una, destacas en otra</h2>' +
         '<div class="pr-rank">' + R.map(function (x) { return '<span class="pr-r">' + esc(x) + '</span>'; }).join("") + '</div>' +
         '<p class="pr-cita">Están para <b>ensalzar en clase</b>, no para señalar. Proyectad uno y decid el alias en voz alta: treinta segundos.</p>' +
@@ -735,8 +735,8 @@
       rx("tickets", "Tickets de salida", "Tu Nave → Puente → Ticket de salida", "Lo que dijeron al cerrar cada tema",
         ['<b>Fijar</b> un comentario: sale seguro en la sesión.', 'Las notas, repartidas, y los comentarios del <b>último tema cerrado</b> (el desplegable abre los anteriores).'],
         'Se rellena al acabar un <b>tema</b>, en la última diapositiva de su última sesión. Al abrir el siguiente, «Cómo os fue» y «Vuestras dudas».'),
-      rx("rankings", "Rankings", "Tu Nave → Rankings", "Trece rankings: casi todos brillan en alguno",
-        ['<b>De quién</b>: todo el grupo o un escuadrón.', '<b>Qué se mide</b>: xp, esta semana, colección, constancia, insignias, explorador, relámpago, logros, los tres del Simulador y escuadrones.', '<b>El podio</b> y la tabla, con el emblema de cada escuadrón.'],
+      rx("rankings", "Rankings", "Tu Nave → Rankings", "Seis rankings: casi todos brillan en alguno",
+        ['<b>De quién</b>: todo el grupo o un escuadrón.', '<b>Qué se mide</b>: más xp, esta semana, constancia, coleccionistas, el Simulador y escuadrones.', '<b>El podio</b> y la tabla, con el emblema de cada escuadrón.'],
         'Para ensalzar, no para señalar: proyecta uno y nombra a quien destaca.'),
       rx("zoco", "El Zoco", "Tu Nave → El Zoco", "El Zoco: el trueque, vigilado",
         ['El día en que se abre y cada trato, con su mensaje.'],
