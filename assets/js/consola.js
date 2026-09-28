@@ -2444,6 +2444,15 @@
           mFila({ ico: ico("notas"), tit: "El padlet de la clase", desc: ref ? "Lo abren desde su Nave." : (padlet ? "Lo abren desde su Nave." : "Lo pone el profe referente."), abrir: padlet, edit: editPadlet }),
           // 13-sep · la Nave con tu Comandante de recluta, para ensayar (o enseñarla fuera de la sesión): no guarda nada
           mFila({ ico: ico("envivo"), tit: "Tu Nave de ejemplo (simulacro)", desc: "La Nave de un recluta, para ensayar: no guarda nada.", abrir: "recluta.html?simulacro=1&per=" + P })]) +
+        /**
+         * 28-sep · EL FORO DINAMIZADOR, EN ABIERTO. Norberto: «un enlace directo y para embeber el foro dinamizador en abierto,
+         * en modo lectura, para que lo pueda ver cualquiera y lo podamos embeber en la página de la UNIR. No haría falta
+         * iniciar sesión, por tanto cada GRUPO tendrá su propio enlace». Es foro.html?per=: la orden de la semana en curso de
+         * ESTE grupo (con sus fechas), las pasadas para releer y las que faltan con candado. Sin fragmentos ni desenlace.
+         */
+        mBloque("Para la plataforma de UNIR", "En abierto y en modo lectura: <b>no hace falta iniciar sesión</b>. El enlace y el código son de <b>este grupo</b>: cada grupo tiene los suyos.", [
+          mFila({ ico: ico("notas"), tit: "El foro dinamizador", desc: "La orden de la semana en curso, con sus retos y sus vídeos; las semanas pasadas se releen y las que faltan salen con candado. Para enlazarlo o insertarlo en el aula virtual.",
+                  abrir: "foro.html?per=" + P, ventana: "foro_" + PER, embed: "foro", codigo: "foro.html?per=" + P + "&embed=1", deEsteGrupo: true })]) +
       '</section>' +
       // (19-sep · «Tu sesión en directo» ya no vive aquí: es la rueda de al lado de «Empezar la clase»)
       '<div class="card"><h3>Tu panel de Genially</h3>' +
@@ -2494,7 +2503,7 @@
       (hay && o.ventana ? botonVentana(o.abrir, o.ventana, o.tit) : '') +
       (hay ? '<button class="btn min" data-copiar="' + esc(absoluta(o.abrir)) + '" data-copiado="✓ Enlace copiado" title="Copia la dirección completa de este grupo">' + ico("enlace") + ' Enlace</button>' : '') +
       (o.codigo ? '<button class="btn min"' + (o.embed ? ' data-embed="' + o.embed + '"' : '') + ' data-copiar="' + esc(codigoGenially(o.codigo, "STARGATE · " + o.tit)) + '" data-copiado="✓ Código copiado" ' +
-        'title="Copia el código para insertar (Insertar → Otros → Código). Vale para todos tus grupos">&lt;/&gt; Código</button>' : '') +
+        'title="' + (o.deEsteGrupo ? "Copia el código para insertar: es el de ESTE grupo (cada grupo tiene el suyo)" : "Copia el código para insertar (Insertar → Otros → Código). Vale para todos tus grupos") + '">&lt;/&gt; Código</button>' : '') +
       '</div>';
   }
   /**

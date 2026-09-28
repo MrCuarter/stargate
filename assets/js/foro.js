@@ -31,7 +31,7 @@
       +'<pre class="foro-msg">'+msgHtml(s.foro,q.get('per'))+'</pre>'
       +(s.lanza.length?'<h4><img class=ico src=assets/img/iconos/p/llave.png alt> Retos de la semana</h4><ul>'+s.lanza.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'')
       +(s.insignias.length?'<h4><img class=ico src=assets/img/iconos/p/medalla.png alt> Insignias en juego</h4><div class="dots">'+s.insignias.map(function(k){return '<img class="dot" src="assets/img/insignias/'+k+'.webp" title="'+k+'">';}).join('')+'</div>':'')
-      +'<h4><img class=ico src=assets/img/iconos/p/video.png alt> Vídeos de la semana</h4><div class="yt-list three">'+s.videos.map(function(v){return yt(v[0],v[1]);}).join('')+'</div>'
+      +'<h4><img class=ico src=assets/img/iconos/p/video.png alt> Vídeos de la semana</h4><div class="yt-list three">'+s.videos.filter(function(v){return !/^Fragmento|desenlace/i.test(((v&&v[0])||{}).titulo||'');}).map(function(v){return yt(v[0],v[1]);}).join('')+'</div>'
       +'<p class="small muted">Hito: '+esc(s.hito)+'</p></div>';
     root.innerHTML=cab+nav+cuerpo;wire();}
   // ?todos=1 — TODOS los mensajes, semana a semana, listos para copiar (para el profe que los publica a mano en el foro)
