@@ -869,6 +869,9 @@
                    ["premios", "Premios", "assets/img/nave/iconos/premios.png", ["huevos", "sorteos", "ofertas"]],
                    ["enlaces", "Enlaces", "assets/img/iconos/enlace.png", ["mios"]]];
   var SUB_NOMBRE = { alumnado: "Reclutas", canjes: "Cola de nota", huevos: "Premios por enlace", sorteos: "Sorteos", ofertas: "Ofertas" };
+  var SUB_PUERTA = { alumnado: ["gente", "Su ficha, sus retos y su escuadrón"], canjes: ["notas", "Las subidas de nota que esperan tu visto bueno"],
+                     huevos: ["premios", "Una recompensa que se reclama con un enlace"], sorteos: ["dados", "El Gran Sorteo y los que organices"],
+                     ofertas: ["mercado", "La oferta de la semana, sola o la tuya"] };
   function seccionDe(tab) { return SECCIONES.filter(function (x) { return x[3].indexOf(tab) >= 0; })[0] || SECCIONES[0]; }
   function barraSecciones() {
     var mias = misTabs().map(function (x) { return x[0]; }), cola = pendientesCola(), actual = seccionDe(TAB)[0];
@@ -894,11 +897,15 @@
     // (17-sep · premios, sorteos y ofertas que valen para VARIOS de tus grupos: su página, desde aquí si llevas más de uno)
     var comun = sec[0] === "premios" && gestionados().length > 1
       ? '<a class="pest cn-s cn-comun" href="consola.html?comun=' + (TAB === "sorteos" ? "sorteos" : TAB === "ofertas" ? "ofertas" : "premios") + '">' + ico("varios") + ' Para todos tus grupos</a>' : "";
-    return '<div class="cn-sub" role="tablist" aria-label="' + esc(sec[1]) + '">' + dentro.map(function (k) {
-      var n = k === "canjes" ? pendientesCola() : 0;
-      return '<button type="button" class="pest cn-s' + (TAB === k ? " activa" : "") + (n ? " pest-aviso" : "") + '" data-tab="' + k + '">' + SUB_NOMBRE[k] +
-        (n ? '<span class="pest-n">' + n + '</span>' : "") + '</button>';
-    }).join("") + comun + '</div>';
+    // 28-sep · COMO EN LA NAVE DEL RECLUTA (Norberto: «¿no podemos unificar como el estudiante?»): las subsecciones, puertas
+    // grandes con su icono y lo que hay dentro (.bt-puerta, las mismas del Botín, Retos, Mercado y Archivo)
+    return '<div class="cn-sub bt-puertas" role="tablist" aria-label="' + esc(sec[1]) + '">' + dentro.map(function (k) {
+      var n = k === "canjes" ? pendientesCola() : 0, m = SUB_PUERTA[k] || ["estrella", ""], on = TAB === k;
+      return '<button type="button" role="tab" aria-selected="' + on + '" class="pest cn-s bt-puerta' + (on ? " on" : "") + '" data-tab="' + k + '">' +
+        '<img class="bt-p-img" src="assets/img/iconos/p/' + m[0] + '.png" alt="">' +
+        '<span class="bt-p-t"><b>' + esc(SUB_NOMBRE[k]) + '</b><small>' + esc(m[1]) + '</small></span>' +
+        (n ? '<span class="bt-p-aviso">' + n + (n === 1 ? " espera" : " esperan") + '</span>' : "") + '</button>';
+    }).join("") + '</div>' + (comun ? '<p class="cn-comun-p">' + comun + '</p>' : "");
   }
 
   /**

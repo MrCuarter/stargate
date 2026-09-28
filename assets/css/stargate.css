@@ -7139,14 +7139,21 @@ details.mas summary{cursor:pointer;color:var(--teal,#5ff4ff);font-weight:700;fon
 }
 /* 28-sep · las secciones de Retos y Mercado, puertas como las del Botín (.bt-puerta); en el móvil, en fila y con el icono encima */
 .nb-secs.bt-puertas{margin:4px 0 18px}
+/* 28-sep · la Nave del docente, como la del recluta: la barra de secciones pegada arriba (bajo la de la web) y las
+   subsecciones como puertas (Reclutas / Cola de nota; Premios por enlace / Sorteos / Ofertas) */
+#consola .cn-secs{position:sticky;top:var(--nav-h,54px);z-index:15;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+#consola .cn-sub.bt-puertas{display:grid;margin:4px 0 16px}
+#consola .cn-sub .bt-puerta{height:auto;color:#e8f2fa;font-weight:inherit}
+#consola .cn-sub .bt-puerta:hover{box-shadow:none}
+.cn-comun-p{margin:-6px 0 12px;text-align:right}
 .bt-puertas .bt-puerta.bloq{opacity:.55;filter:grayscale(.6)}
 .bt-puertas .bt-puerta .nb-candado{position:static;display:inline-block;vertical-align:middle;margin-left:8px}
 @media (max-width:600px){
-  .nb-secs.bt-puertas,.ar-subtabs.bt-puertas{grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px}
-  .nb-secs .bt-puerta,.ar-subtabs .bt-puerta{flex-direction:column;justify-content:center;text-align:center;gap:6px;padding:12px 6px}
-  .nb-secs .bt-p-img,.ar-subtabs .bt-p-img{width:40px;height:40px}
-  .nb-secs .bt-p-t b,.ar-subtabs .bt-p-t b{font-size:.92rem}
-  .nb-secs .bt-p-t small,.ar-subtabs .bt-p-t small{display:none}
+  .nb-secs.bt-puertas,.ar-subtabs.bt-puertas,#consola .cn-sub.bt-puertas{grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px}
+  .nb-secs .bt-puerta,.ar-subtabs .bt-puerta,#consola .cn-sub .bt-puerta{flex-direction:column;justify-content:center;text-align:center;gap:6px;padding:12px 6px}
+  .nb-secs .bt-p-img,.ar-subtabs .bt-p-img,#consola .cn-sub .bt-p-img{width:40px;height:40px}
+  .nb-secs .bt-p-t b,.ar-subtabs .bt-p-t b,#consola .cn-sub .bt-p-t b{font-size:.92rem}
+  .nb-secs .bt-p-t small,.ar-subtabs .bt-p-t small,#consola .cn-sub .bt-p-t small{display:none}
 }
 /* 28-sep · «Pregunta a NEBULA»: el botón flotante y su panel (el chat trae sus propios estilos: nebula-chat.js) */
 .neb-ayuda-b{position:fixed;right:16px;bottom:16px;z-index:900;display:flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:999px;border:1px solid var(--teal);background:#0b1626;color:#fff;font:inherit;font-size:.9rem;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 14px rgba(55,224,236,.35)}
