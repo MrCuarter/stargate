@@ -583,7 +583,7 @@
     var mio=escs.filter(function(e){ return e.comandante===quien; })[0]||null;
     if(!quien) return '';
     return window.SG.rotulo({ nombre:quien, avatar:window.SG.claveComandante(st.d, quien), escuadron:(mio&&mio.nombre)||'',
-      emblema:(mio&&mio.emblema)||'', grupo:st.nombre||'', clase:'grande' });
+      emblema:(mio&&mio.emblema)||'', grupo:st.nombre||'', clase:'grande', cita:((st.d&&st.d.citas)||{})[quien]||'' });
   }
   /**
    * 🔴 23-sep · EL RETRATO DEL COMANDANTE, AL VUELO. Sale del grupo (`avatares[nombre]`), que es lo que ve también el

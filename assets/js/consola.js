@@ -257,7 +257,7 @@
       }).join("") + '</div>' +
       // 23-sep · la firma, con el rótulo común (el mismo que en la diapositiva y en la orden del recluta)
       '<footer class="fc-firma-r">' + window.SG.rotulo({ nombre: yoN, avatar: (FICHA && FICHA.avatar) || "", escuadron: emb.nombre || "",
-        emblema: emb.img || "", grupo: pAqui.nombre || "", clase: "carta" }) + '</footer></article>';
+        emblema: emb.img || "", grupo: pAqui.nombre || "", clase: "carta", cita: miCita() }) + '</footer></article>';
   }
   function bloqueForo(sem, texto, propio, esc7) {
     if (!texto && !propio) return "";
@@ -456,6 +456,7 @@
           '<img class="av" id="doc-ava-img" src="' + esc(window.SG.avatarRetrato((FICHA && FICHA.avatar) || "c1")) + '" alt="">' +
           '<span class="av-cambiar">' + ico("editar") + '</span></button>' +
         '<div class="cn-ficha-t"><div class="eyebrow teal">La Nave del Comandante</div><h3>' + esc(nombre) + '</h3>' +
+          (miCita() ? '<p class="cn-cita">' + esc(miCita()) + '</p>' : '') +
           '<p class="small"><b>Comandante' + (soyRefAlguno() ? ' referente' : '') + '</b>' + (mio ? ' · en este grupo, «' + esc(mio) + '»' : '') +
             (emb.nombre ? ' · escuadrón <b>' + esc(emb.nombre) + '</b>' + (emb.con && emb.con.length ? ' <span class="muted">(compartido con ' + esc(emb.con.join(" y ")) + ')</span>' : '') : '') + (YO && YO.correo ? ' · <span class="muted">' + esc(YO.correo) + '</span>' : '') + '</p>' +
           '<p class="monedas"><span class="m xp" tabindex="0" data-tip="Los grupos de STARGATE en los que das clase ahora mismo. Los terminados no cuentan."><b>' + V.length + '</b> ' + (V.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span>' +
@@ -674,6 +675,113 @@
     try { DATOS = await MOTOR.leerPER(perId, true); LEIDO_EN = Date.now(); }
     catch (e) { return fallo("No he podido leer el grupo: " + e.message); }
     pintar();
+    quizaBienvenida();
+  }
+  /** Tu cita en el grupo que tienes abierto (`stargate.citas[tu nombre]`). */
+  function miCita() {
+    var p = PERS.filter(function (x) { return x.id === PER; })[0] || {}, S = (DATOS && DATOS.proyecto && DATOS.proyecto.stargate) || p.stargate || {};
+    return ((S.citas || {})[miNombreAqui()] || "");
+  }
+  /**
+   * 🔴 28-sep · LA BIENVENIDA DEL COMANDANTE, la primera vez que entra. Norberto: «que revisara su ficha (el nombre que le ha
+   * puesto el referente), que pudiera cambiar el avatar, que le dijera que el Genially es el común a todos, pero que puede
+   * cambiarlo en cualquier momento por el suyo propio (enlace al editor del Genially), dile que RECUERDE hacer copia, que no
+   * modifique la plantilla. Haz que escoja su cita favorita o que genere una automáticamente». Cuatro pasos; se apunta en su
+   * ficha (`guia.bienvenida`, como la guía de NEBULA) para no volver a salir, en este ordenador y en cualquier otro.
+   */
+  var BIENV_HECHA = false;
+  function quizaBienvenida() {
+    if (BIENV_HECHA || GESTION || !PER || (url.get("demo") === "1" && !url.get("bienvenida"))) return;   // (?bienvenida=1 la repite)
+    BIENV_HECHA = true;
+    var vista = !!(FICHA && FICHA.guia && FICHA.guia.bienvenida); try { vista = vista || localStorage.getItem("sgBienvenida:" + (YO && YO.correo)) === "1"; } catch (e) {}
+    var paso = 0; try { paso = Number(localStorage.getItem("sgBienvenidaPaso") || 0) || 0; } catch (e) {}
+    if (vista && !url.get("bienvenida")) return;
+    bienvenida(paso);
+  }
+  function bienvenida(paso) {
+    var p = PERS.filter(function (x) { return x.id === PER; })[0] || {}, nom = miNombreAqui() || (YO && YO.nombre) || "";
+    var CITAS = window.SG_CITAS || [], azar = function () { var c = CITAS[Math.floor(Math.random() * CITAS.length)] || ["", ""]; return "«" + c[0] + "» — " + c[1]; };
+    var edicion = window.SG_PANEL_MAESTRO_EDICION || "", capa = document.createElement("div"), DEMO = url.get("demo") === "1";   // (en la demostración no se guarda nada)
+    capa.className = "bc-capa"; capa.setAttribute("role", "dialog"); capa.setAttribute("aria-modal", "true"); capa.setAttribute("aria-label", "Bienvenida a bordo");
+    document.body.appendChild(capa);
+    var guardarPaso = function (i) { try { localStorage.setItem("sgBienvenidaPaso", String(i)); } catch (e) {} };
+    var terminar = function () {
+      try { localStorage.setItem("sgBienvenida:" + (YO && YO.correo), "1"); localStorage.removeItem("sgBienvenidaPaso"); } catch (e) {}
+      if (FICHA) { FICHA.guia = Object.assign({}, FICHA.guia || {}, { bienvenida: 1 }); }
+      if (FICHA && FICHA.uid && MOTOR.setDoc) MOTOR.setDoc(MOTOR.doc(MOTOR.db, "stargate_profes", FICHA.uid), { uid: FICHA.uid, correo: String(FICHA.correo || (YO && YO.correo) || "").toLowerCase(), guia: { bienvenida: 1 } }, { merge: true }).catch(function () {});
+      capa.remove(); pintar();
+    };
+    var PASOS = [
+      function () {
+        return '<h3>' + ico("estrella") + ' Bienvenido a bordo, Comandante</h3>' +
+          '<p>En <b>' + esc(p.nombre || "tu grupo") + '</b> te han dado de alta como <b>«' + esc(nom) + '»</b>. Es el nombre que verá tu alumnado: en su Nave, al alistarse y en el rótulo de tus mensajes.</p>' +
+          '<p class="small muted">¿Te gusta así? Si prefieres otro (tu nombre de pila, un apodo de Comandante…), cámbialo aquí: se cambia en todos tus grupos a la vez, con tu alumnado.</p>' +
+          '<div class="bc-fila"><input id="bc-nom" maxlength="60" value="' + esc(nom) + '" autocomplete="off" aria-label="Tu nombre">' +
+          '<button type="button" class="btn min" id="bc-nom-g">Cambiar mi nombre</button></div><p class="small" id="bc-nom-m" aria-live="polite"></p>';
+      },
+      function () {
+        return '<h3>' + ico("gente") + ' Tu Comandante</h3>' +
+          '<p>Elige el retrato que te representa. Sale en tu Nave y, recortado, en tu rótulo: el que ve tu alumnado en cada mensaje.</p>' +
+          '<div class="bc-avas">' + (window.SG_COMANDANTES_GEN || []).map(function (k) {
+            return '<button type="button" class="doc-av-op' + ((FICHA && FICHA.avatar) === k ? ' on' : '') + '" data-bc-av="' + esc(k) + '"><img src="' + esc(window.SG.avatarRetrato(k)) + '" alt="Comandante"></button>'; }).join("") + '</div>';
+      },
+      function () {
+        return '<h3>' + ico("enlace") + ' Tu panel de control (el Genially)</h3>' +
+          '<p>Tu alumnado abre desde su Nave un <b>Genially común a todos los grupos</b>, el oficial. Puedes usarlo tal cual. Y cuando quieras, cámbialo por <b>el tuyo</b>: en el Puente, «Tu panel de control» → <b>Cambiar el enlace</b>.</p>' +
+          '<div class="bc-ojo"><b>RECUERDA: haz una copia.</b> Abre la plantilla, pulsa <b>Duplicar</b> y trabaja sobre tu copia. <b>No modifiques la plantilla</b>: es la de todos los grupos y la de todo el profesorado.</div>' +
+          (edicion ? '<p><a class="btn min" href="' + esc(edicion) + '" target="_blank" rel="noopener">' + ico("editar") + ' Abrir la plantilla en Genially ↗</a></p>' : '');
+      },
+      function () {
+        return '<h3>' + ico("mensaje") + ' Tu cita de Comandante</h3>' +
+          '<p>Una frase que te represente. Sale en tu rótulo, bajo tu nombre: en la sesión que proyectas, en tus mensajes y en la Nave de tu alumnado.</p>' +
+          '<div class="bc-fila"><textarea id="bc-cita" rows="2" maxlength="160" placeholder="Escribe la tuya… o pulsa «Sorpréndeme»" aria-label="Tu cita">' + esc(miCita()) + '</textarea>' +
+          '<button type="button" class="btn min" id="bc-azar">Sorpréndeme</button></div>' +
+          '<p class="small muted">De películas, libros, gente que hizo historia y astronautas. Pulsa otra vez para otra.</p><p class="small" id="bc-cita-m" aria-live="polite"></p>';
+      }
+    ];
+    var pintarPaso = function () {
+      guardarPaso(paso);
+      capa.innerHTML = '<div class="bc-caja"><div class="bc-puntos">' + PASOS.map(function (_, i) { return '<span class="' + (i === paso ? "on" : i < paso ? "hecho" : "") + '"></span>'; }).join("") + '</div>' +
+        PASOS[paso]() +
+        '<div class="bc-acc"><button type="button" class="btn min" id="bc-saltar">' + (paso ? "Anterior" : "Ahora no") + '</button>' +
+        '<button type="button" class="btn primary" id="bc-sig">' + (paso === PASOS.length - 1 ? "¡A bordo!" : "Siguiente") + '</button></div></div>';
+      capa.querySelector("#bc-saltar").onclick = function () { if (paso) { paso--; pintarPaso(); } else terminar(); };
+      capa.querySelector("#bc-sig").onclick = async function () {
+        if (paso === 3) {   // la cita, al pulsar «¡A bordo!»: en todos tus grupos, como el retrato
+          var c = String((capa.querySelector("#bc-cita") || {}).value || "").trim();
+          if (c !== miCita() && !DEMO) { capa.querySelector("#bc-sig").disabled = true;
+            for (var k = 0; k < PERS.length; k++) { var q = PERS[k], yo = miNombreEn(q) || (q.id === PER ? nom : ""); if (yo) { try { await MOTOR.citaEnGrupo(q.id, yo, c); } catch (e) {} } }
+            try { DATOS = await MOTOR.leerPER(PER, true); } catch (e) {} }
+          return terminar();
+        }
+        paso++; pintarPaso();
+      };
+      var ng = capa.querySelector("#bc-nom-g");
+      if (ng) ng.onclick = function () {
+        var v = String(capa.querySelector("#bc-nom").value || "").trim().replace(/\s+/g, " "), m = capa.querySelector("#bc-nom-m");
+        if (v.length < 2) { m.textContent = "Escribe un nombre de al menos dos letras."; return; }
+        if (v === nom) { m.textContent = "Ya te llamas así."; return; }
+        if (DEMO) { m.textContent = "En la demostración no se guarda: en tu grupo, aquí se cambiaría."; return; }
+        ng.disabled = true; m.textContent = "Guardando…";
+        MOTOR.cambiarMiNombre(v).then(function (r) {
+          var n = ((r && r.grupos) || []).length;
+          if (n) { guardarPaso(1); m.textContent = "Hecho: ahora eres «" + v + "» en " + n + (n === 1 ? " grupo" : " grupos") + ". Recargo y seguimos…"; setTimeout(function () { location.reload(); }, 1300); }
+          else { ng.disabled = false; m.textContent = "No se ha podido cambiar: " + (((r && r.fallos) || [])[0] || {}).error; }
+        }).catch(function (e) { ng.disabled = false; m.textContent = "No se ha podido guardar: " + ((e && e.message) || e); });
+      };
+      Array.prototype.forEach.call(capa.querySelectorAll("[data-bc-av]"), function (o) {
+        o.onclick = function () {
+          var k = o.getAttribute("data-bc-av");
+          (DEMO ? Promise.resolve() : MOTOR.ponerAvatarDocente(k)).then(function () {
+            if (FICHA) FICHA.avatar = k; if (!DEMO) avatarEnMisGrupos(k);
+            var im = $("#doc-ava-img"); if (im) im.src = window.SG.avatarRetrato(k);
+            Array.prototype.forEach.call(capa.querySelectorAll("[data-bc-av]"), function (x) { x.classList.toggle("on", x === o); });
+          }, function (e) { aviso("No se ha podido guardar tu retrato: " + ((e && e.message) || e)); });
+        };
+      });
+      var az = capa.querySelector("#bc-azar"); if (az) az.onclick = function () { capa.querySelector("#bc-cita").value = azar(); };
+    };
+    pintarPaso();
   }
   /**
    * 🔴 25-sep · AL DÍA SIN RECARGAR. Norberto: «he registrado con cuenta de estudiante y al docente no le aparece que los
@@ -4469,6 +4577,7 @@
     Array.prototype.forEach.call(app.querySelectorAll("button"), function (b) {
       if (/Guardar|Conceder|Denegar|Pasar el alumnado/.test(b.textContent)) b.disabled = true;
     });
+    quizaBienvenida();   // (solo con ?bienvenida=1)
   }
 
   function arrancar() {

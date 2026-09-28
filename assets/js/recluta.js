@@ -723,7 +723,7 @@
       + '<footer class="fc-firma-r oc-pie">'
       +   (jefe && window.SG.rotulo ? window.SG.rotulo({ nombre: jefe,
             avatar: window.SG.claveComandante(st.d, jefe), escuadron: suEsc ? suEsc.nombre : '',
-            emblema: suEsc ? suEsc.emblema : '', grupo: (st.d && st.d.nombre) || '', clase: 'carta' }) : '<span></span>')
+            emblema: suEsc ? suEsc.emblema : '', grupo: (st.d && st.d.nombre) || '', clase: 'carta', cita: ((st.d && st.d.citas) || {})[jefe] || '' }) : '<span></span>')
       +   (per && !SIMULACRO ? '<a class="oc-ses" href="' + esc(urlSesion(sm.sem)) + '" target="_blank" rel="noopener">'
             + '<img class="ico" src="assets/img/iconos/p/video.png" alt=""><span><b>Ver la sesión de la semana</b>'
             + '<small>Tal como se vio en clase · a tu ritmo</small></span></a>' : '')

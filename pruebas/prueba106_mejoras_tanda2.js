@@ -47,7 +47,8 @@ c(poses.length === retratos.length * 3 && retratos.every(f => ["duda", "reto", "
   "🔴 y cada uno, de cuerpo entero en sus tres poses (duda, reto y saludo)", poses.length + "/" + retratos.length * 3);
 c(!fs.readdirSync(CMD).some(f => /^c\d+\.jpg$/.test(f)) && !fs.existsSync(path.join(CMD, "recorte")),
   "   y no quedan los de baja calidad (c1.jpg, recorte/) para que nadie los vuelva a enlazar");
-c(/function firmaForo\(\)\{[\s\S]{0,300}window\.SG\.rotulo\(\{[\s\S]{0,300}clase:'grande' \}\)/.test(SES), "🔴 la diapositiva «El mensaje» firma con el rótulo grande");
+// (28-sep · y con la cita del Comandante detrás de la clase)
+c(/function firmaForo\(\)\{[\s\S]{0,300}window\.SG\.rotulo\(\{[\s\S]{0,300}clase:'grande'(, cita:[\s\S]{0,80}?)? \}\)/.test(SES), "🔴 la diapositiva «El mensaje» firma con el rótulo grande");
 c(/\.foro-crawl\.fc-v2 \.fc-texto\{[^}]*font-size:clamp\([^)]*cqh/.test(CSS) && !/\.fc-v2 \.fc-texto\{[^}]*\dvw/.test(CSS) && /\.dia\.foro-crawl\.fc-v2\{container-type:size\}/.test(CSS),
   "🔴 la letra del mensaje se mide con la caja de la diapositiva (cqh), no con la ventana (vw)");
 c(/window\.SG\.rotulo\(/.test(CONS) && /fc-firma-r/.test(CONS), "   la carta del foro de la Nave del Comandante, con el mismo rótulo");

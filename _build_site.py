@@ -10,7 +10,7 @@ from _site_data import (GOOGLE_CLIENT_ID, RUTA, SALA_JORAN, DIRECTO, ASEDIO, JUE
                         PLAYLIST, HERO_MP4, HERO_POSTER, TABLERO_API, PLANTILLA_EPORTFOLIO,
                         CROMOS, CROMO_SERIES, SERIES_ALBUM, MONEDA, RANGOS, NIVELES, XP_VIAJE, CREDITOS,
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
-                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, ESCAPE_UNI, EVIDENCIA_RETOS, REFLEXION_RETOS, TOPE_RETOS_SEMANA, AVISO_RETOS_DIA, SESION_SECCIONES, ACTIVIDADES, EVALUACION, EVALUACION_EXAMEN, NOTA_FINAL, NOTA_FINAL_PUA, EVALUACION_EXAMEN_PUA, RETOS_TIPO, SESION_EMBARQUE, ASIGNATURA, BLOQUES_ASIGNATURA, TEMARIO, SESION_ACTIVIDAD, MATRIZ_PLANTILLA, INTELIGENCIAS, BLOOM, ORTOGRAFIA, CAPTURAS, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
+                        HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, ESCAPE_UNI, EVIDENCIA_RETOS, REFLEXION_RETOS, TOPE_RETOS_SEMANA, AVISO_RETOS_DIA, SESION_SECCIONES, ACTIVIDADES, EVALUACION, EVALUACION_EXAMEN, NOTA_FINAL, NOTA_FINAL_PUA, EVALUACION_EXAMEN_PUA, RETOS_TIPO, CITAS_EPICAS, SESION_EMBARQUE, ASIGNATURA, BLOQUES_ASIGNATURA, TEMARIO, SESION_ACTIVIDAD, MATRIZ_PLANTILLA, INTELIGENCIAS, BLOOM, ORTOGRAFIA, CAPTURAS, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
                         PASOS, ESCUADRONES, PER_DEMO, PER_ESCUELA, ENLACES_EQUIPO, TICKET_URL, TICKET_TEMAS, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, PANEL_MAESTRO_EDICION, DRIVE_EQUIPO,
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES,
@@ -2312,6 +2312,7 @@ window.SG.rotulo = function (o) {
     + '<img class="rt-av" src="' + e(window.SG.avatarComandante(o.avatar)) + '" alt="" loading="lazy">'
     + '<div class="rt-barra"><b class="rt-nom">' + e(titulo) + '</b>'
     + (linea ? '<span class="rt-sub">' + (o.emblema ? '<img class="rt-emb" src="' + e(o.emblema) + '" alt="" loading="lazy">' : '') + e(linea) + '</span>' : '')
+    + (o.cita ? '<em class="rt-cita">' + e(o.cita) + '</em>' : '')   // 28-sep · la cita que eligió en su bienvenida
     + '</div></div>';
 };
 window.SG.CFGSESION = (function () {
@@ -4367,7 +4368,7 @@ def _cabeza_motor():
         'window.SG_SECCIONES_SESION=' + _json.dumps([list(x) for x in SESION_SECCIONES], ensure_ascii=False) + ';'
         # 18-sep · los comandantes (c1, c2…) salen de la carpeta: se añade una imagen y ya está en la galería. Sin
         # nombres: los retratos inspirados en el equipo forman parte del reparto como los demás (Norberto)
-        'window.SG_COMANDANTES_GEN=' + _json.dumps(_comandantes_genericos()) + ';'
+        'window.SG_COMANDANTES_GEN=' + _json.dumps(_comandantes_genericos()) + ';window.SG_CITAS=' + _json.dumps(CITAS_EPICAS, ensure_ascii=False) + ';'
         # 19-sep · las capturas de cada sección de la sesión (herramientas/capturas_sesion.cjs): las que haya en la carpeta
         'window.SG_CAPTURAS_SESION=' + _json.dumps(sorted(f[:-4] for f in os.listdir(os.path.join(HERE, "assets/img/sesion")) if f.endswith(".jpg"))) + ';'
         # El banco de alias solo lo usa el alistamiento, pero va con el resto: son 4 KB y evita una

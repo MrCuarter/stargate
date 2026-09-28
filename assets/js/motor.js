@@ -2177,6 +2177,17 @@ async function avatarEnGrupo(perId, nombre, clave) {
   await updateDoc(ref, { "stargate.avatares": A });
   return true;
 }
+/** 28-sep · LA CITA DEL COMANDANTE en el grupo (`stargate.citas[tu nombre]`), igual que el retrato: vacía, se quita. */
+async function citaEnGrupo(perId, nombre, cita) {
+  nombre = String(nombre || "").trim(); cita = String(cita || "").replace(/\s+/g, " ").trim().slice(0, 160);
+  if (!perId || !nombre) return false;
+  const ref = doc(db, "projects", perId), pd = await getDoc(ref);
+  const C = Object.assign({}, ((((pd.exists() ? pd.data() : {}) || {}).stargate) || {}).citas || {});
+  if ((C[nombre] || "") === cita) return false;
+  if (cita) C[nombre] = cita; else delete C[nombre];
+  await updateDoc(ref, { "stargate.citas": C });
+  return true;
+}
 /**
  * 19-sep · TUS NOTAS DEL GRUPO. Norberto: «una caja de texto por si tiene algo pendiente». Van en
  * projects/{grupo}/privado/notas_{uid}: `privado` solo lo lee y escribe el equipo docente del grupo (reglas de
@@ -2369,7 +2380,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,

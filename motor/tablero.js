@@ -479,6 +479,7 @@
       panel: S.panelVer || "", paneles: S.paneles || {}, sesiones: S.sesiones || {},
       // 23-sep · el comandante que eligió cada docente (su clave cN), para su rótulo: su alumnado también le ve
       avatares: S.avatares || {},
+      citas: S.citas || {},   // 28-sep · la cita de cada Comandante (su rótulo)
       apertura: S.apertura || "", cierre_misiones: S.cierre || "", cierre_canje: S.cierreCanje || "",
       padlet: S.padlet || "",
       // La web lleva llamándolo `formTicket` desde el primer día y en siete sitios distintos.

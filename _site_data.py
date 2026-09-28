@@ -903,6 +903,47 @@ NOTA_FINAL = {"continua": 40, "examen": 60}
 # 🔴 28-sep · EN PUA NO HAY EXAMEN. Norberto: «¡Atención! En PUA no hay examen. El 100% de la nota es la ev continua».
 # La evaluación continua es la misma (EVALUACION, sobre 10); lo que cambia es que es toda la nota.
 NOTA_FINAL_PUA = {"continua": 100, "examen": 0}
+# 🔴 28-sep · LA CITA DEL COMANDANTE. Norberto: «que escoja su cita favorita o que genere una automáticamente: "Un gran poder
+# conlleva una gran responsabilidad", "Hasta el infinito y más allá"… un banco de frases épicas de películas, libros, gente
+# famosa, astronautas». Frases cortas y conocidas, siempre con su autor. Sale en su rótulo, al lado de su nombre.
+CITAS_EPICAS = [
+    ("Un gran poder conlleva una gran responsabilidad.", "Spider-Man"),
+    ("Hasta el infinito y más allá.", "Buzz Lightyear, Toy Story"),
+    ("Que la Fuerza te acompañe.", "Star Wars"),
+    ("Hazlo o no lo hagas, pero no lo intentes.", "Yoda, Star Wars"),
+    ("Es un pequeño paso para el hombre, pero un gran salto para la humanidad.", "Neil Armstrong"),
+    ("El fracaso no es una opción.", "Gene Kranz, Apolo 13"),
+    ("Veo la Tierra. ¡Es tan hermosa!", "Yuri Gagarin"),
+    ("¡Poyejali! ¡Vámonos!", "Yuri Gagarin"),
+    ("La Tierra es la cuna de la humanidad, pero no se puede vivir en la cuna para siempre.", "Konstantín Tsiolkovski"),
+    ("Somos polvo de estrellas.", "Carl Sagan"),
+    ("En algún lugar, algo increíble está esperando a ser descubierto.", "Carl Sagan"),
+    ("Encontraremos un camino. Siempre lo hemos hecho.", "Interstellar"),
+    ("No entres dócilmente en esa buena noche.", "Dylan Thomas"),
+    ("Llegar audazmente donde nadie ha llegado antes.", "Star Trek"),
+    ("¡Nunca rendirse, nunca claudicar!", "Héroes fuera de órbita"),
+    ("No todos los que vagan están perdidos.", "J. R. R. Tolkien"),
+    ("Todo lo que tenemos que decidir es qué hacer con el tiempo que se nos ha dado.", "Gandalf, El Señor de los Anillos"),
+    ("Son nuestras elecciones las que muestran lo que somos, mucho más que nuestras habilidades.", "Dumbledore, Harry Potter"),
+    ("Lo esencial es invisible a los ojos.", "El Principito"),
+    ("Recuerda quién eres.", "Mufasa, El Rey León"),
+    ("Sigue nadando.", "Dory, Buscando a Nemo"),
+    ("Lo que hacemos en la vida tiene su eco en la eternidad.", "Máximo, Gladiator"),
+    ("Oh capitán, mi capitán.", "Walt Whitman"),
+    ("Carpe diem. Aprovechad el día.", "El club de los poetas muertos"),
+    ("Caminante, no hay camino, se hace camino al andar.", "Antonio Machado"),
+    ("El que lee mucho y anda mucho, ve mucho y sabe mucho.", "Miguel de Cervantes"),
+    ("La imaginación es más importante que el conocimiento.", "Albert Einstein"),
+    ("La educación es el arma más poderosa para cambiar el mundo.", "Nelson Mandela"),
+    ("Siempre parece imposible hasta que se hace.", "Nelson Mandela"),
+    ("Dadme un punto de apoyo y moveré el mundo.", "Arquímedes"),
+    ("Sapere aude: atrévete a saber.", "Horacio"),
+    ("Solo sé que no sé nada.", "Sócrates"),
+    ("El conocimiento es poder.", "Francis Bacon"),
+    ("Vine, vi, vencí.", "Julio César"),
+    ("Ad astra per aspera: a las estrellas, por el camino difícil.", "Lema latino"),
+    ("No dejes que nadie te robe la imaginación.", "Mae Jemison, astronauta"),
+]
 # 🔴 28-sep · y el reto de los 90 minutos (XS) no es un simulacro: es LA BATALLA FINAL contra la Estática (Norberto: «En
 # PUA, no hay examen, pero aun así lucharemos contra la Estática. En vez de simulacro de examen ponle otro nombre»). Lo que
 # cambia por tipo de grupo va aquí; la web lo pone encima de AYUDA_RETOS y GANCHO_RETOS (SG.textosPorTipo).

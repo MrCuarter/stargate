@@ -5594,6 +5594,25 @@ body.embed .mazo .emb-c figcaption span,body.embed .mazo .emb-pasos li span,body
   background:linear-gradient(90deg,rgba(8,18,28,.97) 0%,rgba(8,18,28,.92) 68%,rgba(8,18,28,0) 100%);border-top:2px solid var(--teal)}
 .rotulo .rt-nom{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1em;line-height:1.15;color:#fff;letter-spacing:.01em}
 .rotulo .rt-sub{display:flex;align-items:center;gap:.45em;font-size:max(12px,.72em);line-height:1.3;color:#bfe9ef}
+/* 28-sep · la cita del Comandante, bajo su nombre */
+.rotulo .rt-cita{display:block;font-style:italic;font-size:max(12px,.7em);line-height:1.35;color:#ffe3a1;margin-top:2px;max-width:34em}
+.cn-ficha-t .cn-cita{margin:2px 0 6px;font-style:italic;color:#ffe3a1;font-size:.95rem}
+/* 28-sep · la bienvenida del Comandante (la primera vez que entra) */
+.bc-capa{position:fixed;inset:0;z-index:9500;background:rgba(2,6,12,.78);display:grid;place-items:center;padding:16px;overflow:auto}
+.bc-caja{width:min(640px,100%);max-height:92vh;overflow:auto;background:#0b1626;border:1px solid var(--teal);border-radius:18px;padding:20px 22px;display:grid;gap:10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.bc-caja h3{margin:0;display:flex;align-items:center;gap:8px}
+.bc-caja p{margin:0}
+.bc-puntos{display:flex;gap:6px}
+.bc-puntos span{width:26px;height:5px;border-radius:3px;background:#24344c}
+.bc-puntos span.on{background:var(--teal)} .bc-puntos span.hecho{background:rgba(55,224,236,.45)}
+.bc-fila{display:flex;gap:8px;flex-wrap:wrap}
+.bc-fila input,.bc-fila textarea{flex:1 1 220px;min-width:0;margin:0;padding:11px 13px;border-radius:9px;border:1px solid #24304a;background:#0d1420;color:#e8eefc;font:inherit;resize:vertical}
+.bc-fila button{align-self:flex-start}
+.bc-fila input:focus,.bc-fila textarea:focus{outline:2px solid var(--teal);outline-offset:1px}
+.bc-avas{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));grid-auto-rows:max-content;align-content:start;gap:8px;max-height:320px;overflow:auto}
+.bc-avas .doc-av-op.on{border-color:var(--teal)}
+.bc-ojo{border:1px solid var(--amber);border-radius:12px;padding:10px 12px;background:rgba(242,181,68,.1);color:#ffe3a1}
+.bc-acc{display:flex;justify-content:space-between;gap:8px;margin-top:6px}
 .rotulo .rt-emb{width:1.75em;height:1.75em;object-fit:contain;flex:none}
 .rotulo-carta{--rt-h:112px;--rt-f:1rem}
 .fc-firma-r{display:flex;justify-content:flex-start;text-align:left;padding:6px 0 0;border-top:1px solid rgba(55,224,236,.18)}

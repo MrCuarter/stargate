@@ -464,6 +464,7 @@ window.SG.rotulo = function (o) {
     + '<img class="rt-av" src="' + e(window.SG.avatarComandante(o.avatar)) + '" alt="" loading="lazy">'
     + '<div class="rt-barra"><b class="rt-nom">' + e(titulo) + '</b>'
     + (linea ? '<span class="rt-sub">' + (o.emblema ? '<img class="rt-emb" src="' + e(o.emblema) + '" alt="" loading="lazy">' : '') + e(linea) + '</span>' : '')
+    + (o.cita ? '<em class="rt-cita">' + e(o.cita) + '</em>' : '')   // 28-sep · la cita que eligió en su bienvenida
     + '</div></div>';
 };
 window.SG.CFGSESION = (function () {
