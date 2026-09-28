@@ -263,16 +263,19 @@
     var x = siguiente(); x.html = x.html.replace('<div class="dia">', '<div class="dia pr-esc"><div class="pr-fondo" style="background-image:url(\'assets/img/pres/perfil_en_vuelo.webp\')"></div><div class="pr-cuerpo">') + '</div>';
     return x;
   }
-  /** 24-sep · Norberto: «dedica una diapo al simulador de Joran, es caviar». */
+  /** 24-sep · Norberto: «dedica una diapo al simulador de Joran, es caviar».
+   * 28-sep · y hoy son los JUEGOS: la batalla de preguntas contra RUTA AZUL (batalla.html) se retiró y la diapositiva la
+   * seguía contando. Ahora, los cuatro juegos del viaje con las palabras de la guía (FAQ «¿Qué son la Ruta, la sala de
+   * Joran, En directo y el Asedio?»). Se sigue llamando simulador(): es su sitio en el mazo. */
   function simulador() {
-    return { rot: "El Simulador", html: escena({ cls: "pr-sim", bg: "assets/img/batalla/sala.jpg", neb: "Y el día del examen, llegan entrenados.",
-      cuerpo: '<div class="kicker">El Simulador de Joran · se abre con Ludo</div>' +
-        '<h2>Repasar para el examen… ganando una batalla</h2>' +
-        '<div class="pr-sim-dos"><div class="pr-sim-rival"><img src="assets/img/batalla/rival.jpg" alt="RUTA AZUL"><img class="pr-sim-joran" src="assets/img/batalla/joran.jpg" alt="Joran Pike"></div>' +
-          '<ul class="pr-sim-l"><li><b>RUTA AZUL</b>, un rival hecho de luz, pregunta por todo lo recorrido: imágenes, logotipos, esquemas, huecos que rellenar.</li>' +
-          '<li>Cada acierto es un golpe; cada fallo, <b>Joran lo corrige</b> ahí mismo. Es una batalla, pero sobre todo es repaso.</li>' +
-          '<li>Quien le gana se queda el simulador: <b>entrenar tema a tema</b>, tres niveles, su ranking y tres reconocimientos (el más rápido, el más certero y quien más sabe).</li>' +
-          '<li>Vosotros lo abrís en <b>modo ensayo</b> para jugarlo en clase, sin que cuente.</li></ul></div>' +
+    return { rot: "Los juegos", html: escena({ cls: "pr-sim", bg: "assets/img/batalla/sala.jpg", neb: "Y el día del examen, llegan entrenados.",
+      cuerpo: '<div class="kicker">Los juegos del viaje · ninguno da nota</div>' +
+        '<h2>Repasar jugando, sin que parezca estudiar</h2>' +
+        '<div class="pr-sim-dos"><div class="pr-sim-rival"><img src="assets/img/batalla/rival.jpg" alt="Una máquina de la sala de Joran"><img class="pr-sim-joran" src="assets/img/batalla/joran.jpg" alt="Joran Pike"></div>' +
+          '<ul class="pr-sim-l"><li><b>La Ruta de la Estática</b>: al cerrar cada tema, la clase vuela al planeta siguiente. Unos cinco minutos y una decena de preguntas del tema; medallas de bronce, plata y oro.</li>' +
+          '<li><b>En directo</b>: el juego del final de cada clase, desde el móvil y todos en la misma partida. Y vosotros, con el Mando.</li>' +
+          '<li><b>La sala de Joran</b>, que se abre con Ludo: cinco máquinas arcade y el Simulador de vuelo para repasar, con sus rankings. En modo Desafío, la energía solo se recarga acertando preguntas del curso.</li>' +
+          '<li><b>El Asedio</b>: una semana, escuadrón contra escuadrón, desde la Nave; la clase siguiente da el resultado.</li></ul></div>' +
         porque('Joran convertía los simulacros en juegos, y los niños del refugio escaparon riendo por una ruta que se sabían de memoria. Eso es esto: <b>el ensayo general del examen</b>, sin que parezca estudiar.') }) };
   }
   /** 24-sep · Norberto: «sé que son muchas cosas, pero no os preocupéis… se desbloquea algo nuevo poco a poco». */
@@ -759,9 +762,9 @@
       rx("logros", "Logros de a bordo", "El alumnado · Mi botín → Logros", "Los logros de a bordo y el Contramaestre",
         ['<b>Sus días a bordo</b>: los seguidos y los de todo el curso.', '<b>Lo hecho</b>, con su fecha.', '<b>Lo que falta</b>, con «Ir».', '<b>El premio de cada cubierta</b>: llega solo al completarla.'],
         '16 logros en 5 cubiertas; con las cinco, <b>Contramaestre de la Nave</b>: un héroe legendario y una carta con su alias. No dan xp, no se compran ni se regalan.'),
-      rx("batalla", "La batalla", "El alumnado · el Simulador de Joran", "La batalla contra RUTA AZUL",
-        ['<b>Los dos escudos y el reloj</b>: el rival ataca cada 25 segundos.', '<b>La arena</b>: cada acierto, un golpe; fallar quita tiempo y la pregunta vuelve.', '<b>Joran corrige</b> cada fallo ahí mismo.', '<b>La pregunta</b>, con su tema y su dificultad.'],
-        'No es un reto ni da nota: es repaso. Quien gana se queda el Simulador para entrenar tema a tema, con su ranking.')
+      rx("sala", "La sala de Joran", "El alumnado · Retos → Simulador de Joran", "La sala de Joran: máquinas arcade y repaso",
+        ['<b>Las máquinas</b>, en un carrusel: la plata de una enciende la siguiente, o se paga la ficha con créditos.', '<b>Arcade o Desafío</b>: en Desafío, la energía solo se recarga acertando preguntas del curso.', '<b>El Simulador de vuelo</b>, siempre encendido, para repasar tema a tema.', '<b>Cuaderno de vuelo, rankings y Galería de juegos</b>.'],
+        'Ninguna da nota ni xp: los hitos dan créditos, una vez. Vosotros la tenéis en vuestra sección Simulador, en modo ensayo.')
     ];
   }
   /**
