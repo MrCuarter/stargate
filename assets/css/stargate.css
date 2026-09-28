@@ -4984,7 +4984,8 @@ h3 .ico{margin-right:4px}
   #consola-app .c-cab-b{display:flex;flex-wrap:wrap;gap:6px}
 }
 /* ================================================================== 19-sep · PILOTO AUTOMÁTICO / MANDO MANUAL */
-body.modo-piloto [data-av]{display:none!important}
+/* 28-sep · solo la MARCA sin valor (data-av): los retratos del Comandante llevan data-av="c1"… y también se escondían */
+body.modo-piloto [data-av=""]{display:none!important}
 .modo-sel{display:inline-flex;border:1px solid rgba(62,214,200,.45);border-radius:999px;padding:3px;gap:3px;background:rgba(6,14,24,.7)}
 .modo-sel button{font:inherit;font-size:.84rem;font-weight:700;padding:6px 12px;border-radius:999px;border:0;background:none;color:#c7d6ee;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .modo-sel button .ico{width:1.2em;height:1.2em}

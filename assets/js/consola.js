@@ -169,7 +169,9 @@
   }
   /** La rueda de «Configurar la sesión», al lado de «Empezar la clase» (en la fila del grupo y dentro de él). */
   function botonCfgSesion(per) {
-    return '<button type="button" class="gp-cfg" data-av data-cfg-sesion="' + esc(per) + '" title="Configurar la sesión: qué diapositivas salen" aria-label="Configurar la sesión">' + ico("ajustes") + '</button>';
+    // 28-sep · SIN `data-av`: en Piloto automático (lo de serie para un docente) no salía, y solo lo veía el referente, que
+    // suele ir en Mando manual. Norberto: «un docente no puede configurar las diapositivas de clase que quiere mostrar».
+    return '<button type="button" class="gp-cfg" data-cfg-sesion="' + esc(per) + '" title="Configurar la sesión: qué diapositivas salen" aria-label="Configurar la sesión">' + ico("ajustes") + '</button>';
   }
 
   /**
@@ -2087,7 +2089,8 @@
       // enlace»: el Genially que abre su alumnado, aquí mismo, sin salir a otra pestaña.
       '<div class="card pt-panel"><div class="pt-panel-cab"><h3>' + ico("enlace") + ' Tu panel de control</h3>' +
           '<span class="pt-fila">' + (panelMio ? '<a class="btn min" href="' + esc(panelMio) + '" target="_blank" rel="noopener">Abrir ↗</a> ' : '') +
-            '<button type="button" class="btn min" id="pt-panel-ed" data-av aria-expanded="false">' + ico("editar") + ' Cambiar el enlace</button></span></div>' +
+            // 28-sep · también en Piloto automático (Norberto: «debe aparecer también el botón para cambiar el Genially»)
+            '<button type="button" class="btn min" id="pt-panel-ed" aria-expanded="false">' + ico("editar") + ' Cambiar el enlace</button></span></div>' +
           '<p class="small muted">El Genially que abre <b>tu</b> alumnado desde su Nave. Ahora usan ' + (propio ? '<b>el tuyo</b>.' : 'el <b>oficial</b> del grupo.') + '</p>' +
           (panelMio ? '<div class="pt-panel-marco"><iframe src="' + esc(panelMio) + '" title="Tu panel de control" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'
                     : '<p class="small muted">Todavía no hay ningún panel puesto.</p>') +
@@ -4285,7 +4288,7 @@
     return ((((p && p.stargate) || {}).docentes || []).filter(function (d) {
       return String(d.correo || "").toLowerCase() === String((YO && YO.correo) || "").toLowerCase(); })[0] || {}).nombre || "";
   }
-  var VITALICIOS_WEB = ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"];
+  var VITALICIOS_WEB = ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com", "anita.feridouni@gmail.com", "caridadsierradaz@gmail.com"];   // (28-sep · + Anita y Caridad)
   /**
    * 🔴 20-sep · Un referente VITALICIO puede borrar cualquier grupo de STARGATE (el servidor ya lo hacía), pero aquí no
    * le salía el botón: se miraba `YO.email` y la sesión guarda el correo en `YO.correo`. Como el fallo era silencioso

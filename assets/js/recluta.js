@@ -3608,7 +3608,11 @@
     onboarding._foco=s.foco||null;
     if(s.foco){ try{
       var diana=document.querySelector(s.foco);
-      if(diana){ diana.classList.add('tour-foco'); llevarA(diana, ov); }
+      if(diana){ diana.classList.add('tour-foco'); llevarA(diana, ov);
+        // 28-sep · y otra vez al asentarse: si la página se recoloca (imágenes que cargan, una pestaña que se pinta), el
+        // primer encuadre se quedaba corto y NEBULA hablaba de algo que no se veía (Norberto: «se queda abajo a veces»)
+        setTimeout(function(){ if(onboarding._foco!==s.foco) return; var d2=document.querySelector(s.foco); if(!d2) return;
+          var r=d2.getBoundingClientRect(); if(r.top<0 || r.bottom>innerHeight) llevarA(d2, ov); }, 650); }
     }catch(e){} }
     ov.querySelector('.tour-prev').onclick=function(){onboarding._dir=-1; onboarding(i-1,acto);};
     ov.querySelector('.tour-next').onclick=function(){onboarding._dir=1; onboarding(i+1,acto);};

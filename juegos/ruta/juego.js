@@ -7,8 +7,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-import { PREMIOS, CRITERIOS, ORDEN, NIVELES } from './servidor-local.js?v=4eafd61012';
-import { SERVIDOR, enEnsayo } from './servidor.js?v=4eafd61012';
+import { PREMIOS, CRITERIOS, ORDEN, NIVELES } from './servidor-local.js?v=1066523f0d';
+import { SERVIDOR, enEnsayo } from './servidor.js?v=1066523f0d';
 
 const V3 = THREE.Vector3;
 const $ = (id) => document.getElementById(id);
@@ -74,7 +74,7 @@ const MISIONES = [
 
 // 🔴 En la web, lo que se CUENTA de cada misión (título, lema, cuándo) llega de _site_data.py → datos.js (lo escribe el
 // build); aquí manda solo la jugabilidad. En el borrador no hay datos.js y se queda lo de arriba.
-try { const D = await import('./datos.js?v=4eafd61012'); for (const d of D.RUTA.misiones) { const m = MISIONES.find((x) => x.id === d.id); if (m) Object.assign(m, { titulo: d.titulo, lema: d.lema, cuando: d.cuando, tema: d.final ? 'final' : d.tema }); } } catch (e) { /* borrador: sin datos.js */ }
+try { const D = await import('./datos.js?v=1066523f0d'); for (const d of D.RUTA.misiones) { const m = MISIONES.find((x) => x.id === d.id); if (m) Object.assign(m, { titulo: d.titulo, lema: d.lema, cuando: d.cuando, tema: d.final ? 'final' : d.tema }); } } catch (e) { /* borrador: sin datos.js */ }
 
 // el tramo que solo existe en el repaso: preguntas de los ocho temas, rumbo a la Estática
 const VIAJE = { id: 'viaje', n: '∞', de: 0, a: 9, tema: 'todo', cuando: 'Simulador de vuelo', titulo: 'Todo el viaje',
@@ -256,6 +256,7 @@ addEventListener('keydown', (e) => {
   teclas[e.code] = true;
   if (e.code === 'Space') { disparando = true; e.preventDefault(); }
   if (/^(ShiftLeft|ShiftRight|KeyQ|KeyE)$/.test(e.code)) tonel();
+  if (e.code === 'KeyT') activarTurbo();
   if (e.code === 'KeyP' || e.code === 'Escape') pausar();
   if (/^(Arrow|Key[WASD])/.test(e.code)) ratonVisto = -99; // el teclado manda hasta que se mueva el ratón
 });
@@ -471,8 +472,8 @@ function tickMapa(dt) {
 function pantalla(html) { $('pantalla').classList.remove('oculto'); $('pantalla-caja').innerHTML = html; }
 function teclasHTML() {
   return matchMedia('(pointer: coarse)').matches
-    ? '<div class="teclas"><kbd>Arrastra el dedo</kbd><span>La nave te sigue y dispara mientras tocas</span><kbd>Dos dedos</kbd><span>Tonel: esquivas los disparos un instante</span></div>'
-    : '<div class="teclas"><kbd>Ratón / WASD / flechas</kbd><span>Pilotar</span><kbd>Clic / Espacio (mantén)</kbd><span>Disparar</span><kbd>Mayús / Q / E / doble clic</kbd><span>Tonel: esquivas los disparos un instante</span></div>';
+    ? '<div class="teclas"><kbd>Arrastra el dedo</kbd><span>La nave te sigue y dispara mientras tocas</span><kbd>Dos dedos</kbd><span>Tonel: esquivas los disparos un instante</span><kbd>Botón TURBO</kbd><span>¿Lo tienes claro? Cruza tu puerta ya (+250 si aciertas)</span></div>'
+    : '<div class="teclas"><kbd>Ratón / WASD / flechas</kbd><span>Pilotar</span><kbd>Clic / Espacio (mantén)</kbd><span>Disparar</span><kbd>Mayús / Q / E / doble clic</kbd><span>Tonel: esquivas los disparos un instante</span><kbd>T / botón TURBO</kbd><span>¿Lo tienes claro? Cruza tu puerta ya (+250 si aciertas)</span></div>';
 }
 const titMision = (m) => m.final ? 'Vaeon · la batalla final' : m.tema === 'todo' ? 'Todo el viaje' : NODOS[m.de].n + ' → ' + NODOS[m.a].n;
 async function briefing(m) {
@@ -730,7 +731,7 @@ function panelPregunta(P) {
   let enun = esc(q.enunciado);
   if (q.tipo === 'hueco') { let k = 0; enun = enun.replace(/_{2,}/g, () => { const i = k++, w = P.elegidas[i]; return `<span class="hueco${i === n ? ' ahora' : ''}">${w != null ? esc(q.opciones[w]) : '?'}</span>`; }); }
   const tit = q.pasos > 1 ? (q.tipo === 'hueco' ? `HUECO ${n + 1} DE ${q.pasos} · UNA PUERTA POR HUECO` : `BUENA ${n + 1} DE ${q.pasos} · CRUZA TODAS LAS CORRECTAS`) : 'ATRAVIESA LA PUERTA CORRECTA';
-  return `<div class="tit">PREGUNTA ${M.preguntas + 1} · ${tit}</div><div class="cuerpo">${htmlVisual(q.visual)}<div class="texto"><div class="enun">${enun}</div><ol>${q.opciones.map((o, i) => `<li class="${P.elegidas.includes(i) ? 'usada' : ''}"><b>${LETRAS[i]}</b><span>${esc(o)}</span></li>`).join('')}</ol></div></div><div class="reloj" id="p-reloj"></div>`;
+  return `<div class="tit">PREGUNTA ${M.preguntas + 1} · ${tit}</div><div class="cuerpo">${htmlVisual(q.visual)}<div class="texto"><div class="enun">${enun}</div><ol>${q.opciones.map((o, i) => `<li class="${P.elegidas.includes(i) ? 'usada' : ''}"><b>${LETRAS[i]}</b><span>${esc(o)}</span></li>`).join('')}</ol></div></div><div class="reloj-fila"><div class="reloj" id="p-reloj"></div><button type="button" class="turbo${P.turbo ? ' on' : ''}" id="b-turbo" title="¿Lo tienes claro? Apunta a tu puerta y crúzala ya (tecla T): +${TURBO_PTS} si aciertas"><b>TURBO</b><span>tecla T · +${TURBO_PTS} si aciertas</span></button></div>`;
 }
 function ponerPuertas(P) {
   const jefe = M.tipo === 'final', libres = P.q.opciones.map((_, i) => i).filter((i) => !P.elegidas.includes(i)), sep = 30 / libres.length;
@@ -747,8 +748,10 @@ function ponerPuertas(P) {
     g.position.set(-15 + sep * (k + 0.5), jefe ? -5 : 0, z); escena.add(g);
     const c = { tipo: 'puerta', obj: g, r: 0, hp: Infinity, puerta: true, i, W, H, marco, velo }; cosas.push(c); P.puertas.push(c);
   });
+  P.turbo = false;
   $('pregunta').innerHTML = panelPregunta(P);
   $('pregunta').classList.remove('oculto');
+  const bt = $('b-turbo'); if (bt) bt.onclick = (e) => { e.stopPropagation(); activarTurbo(); };
   // la cámara lenta se calcula para que las puertas tarden en llegar lo que se tarda en LEER la pregunta y las
   // opciones que quedan (27-sep · Norberto: «en difícil no da tiempo a leer»). Los segundos base, por nivel, están en
   // NIVELES.lectura; aquí se suma lo largo del texto. La segunda tanda ya tiene el enunciado leído: menos tiempo.
@@ -756,6 +759,19 @@ function ponerPuertas(P) {
   const base = jefe ? 14 : NIVEL ? NIVELES[NIVEL].lectura : 15;
   const seg = THREE.MathUtils.clamp((base + letras * 0.05) * (P.elegidas.length ? 0.6 : 1), 8, 26);
   M.lentaObj = Math.min(1, -z / (VEL * seg));
+}
+/**
+ * 28-sep · EL TURBO. Norberto: «cuando el estudiante está seguro de la respuesta, un botón de TURBO para que la nave atraviese
+ * la respuesta correcta rápidamente». Quita la cámara lenta de la pregunta y multiplica la velocidad del mundo: las puertas
+ * llegan en un suspiro. Vale para la tanda que está delante (en las de dos huecos, se pulsa en cada una) y, si se acierta,
+ * premia la seguridad con puntos de saber. No cambia qué se contesta: se cruza la puerta a la que se apunta.
+ */
+const TURBO_X = 2.6, TURBO_PTS = 250;
+function activarTurbo() {
+  const P = M && M.pregunta; if (!P || P.turbo || pausa) return;
+  P.turbo = true; P.turboAlguna = true; M.lentaObj = 1;
+  const b = $('b-turbo'); if (b) b.classList.add('on');
+  aviso('TURBO', '#ffc24a', 0.8); SON.anillo();
 }
 function lanzarPregunta(alAcabar) {
   // sin preguntas (la web sin servidor todavía): Vaeon no se queda regenerándose para siempre, se abre la fase siguiente
@@ -787,9 +803,9 @@ async function resolverPregunta(i) {
   for (const c of P.puertas) c.marco.color.set(c.i === i ? (ok ? 0x5dffa0 : 0xff4d6d) : 0x5ff4ff);
   if (ok) {
     M.aciertos++; M.racha++; M.maxRacha = Math.max(M.maxRacha, M.racha);
-    const pts = 500 * P.q.pasos * (1 + (M.racha - 1) * 0.5); M.saber += pts;
+    const pts = 500 * P.q.pasos * (1 + (M.racha - 1) * 0.5), extra = P.turboAlguna ? TURBO_PTS : 0; M.saber += pts + extra;
     M.escudo = Math.min(100, M.escudo + 20); M.doble = 14;
-    SON.bien(); aviso(`¡CORRECTO! +${pts}`, '#5dffa0', 1.8);
+    SON.bien(); aviso(`¡CORRECTO! +${pts}` + (extra ? ` · TURBO +${extra}` : ''), '#5dffa0', 1.8);
     decir('¡Correcto! ' + (r.correccion || '') + ' Te paso el láser doble.', 7);
   } else {
     M.racha = 0; SON.mal(); recibirDaño(10);
@@ -1043,7 +1059,7 @@ function tickMision(dtReal) {
   const dt = dtReal * M.lenta;
   M.t += dtReal; if (!M.pregunta && !M.fin) M.juego += dt;
   moverNave(dtReal);
-  const vel = VEL * M.lenta * (M.llegando != null ? 3 : 1);
+  const vel = VEL * M.lenta * (M.llegando != null ? 3 : 1) * (M.pregunta && M.pregunta.turbo ? TURBO_X : 1);
   const trans = Math.floor((performance.now() - M.inicio) / 1000);
   $('reloj-m').textContent = `${Math.floor(trans / 60)}:${String(trans % 60).padStart(2, '0')}`;
 
@@ -1198,7 +1214,7 @@ async function fin(llego, motivo = '') {
   try { window.parent !== window && window.parent.postMessage({ sgRuta: { mision: m.id, medalla: r.medalla, puntos: Math.round(datos.puntos) } }, '*'); } catch (e) { /* sin padre */ }
   const X = M;
   if (r.repaso) { // el Simulador de vuelo: la marca va a la sala de Joran (su ranking y sus hitos)
-    try { const S = await import(SALA + 'comun.js?v=4eafd61012'); S.registrarPartida('vuelo', r.total, { nivel: r.nivel, mision: m.id }); } catch (e) { console.warn('sin sala', e); }
+    try { const S = await import(SALA + 'comun.js?v=1066523f0d'); S.registrarPartida('vuelo', r.total, { nivel: r.nivel, mision: m.id }); } catch (e) { console.warn('sin sala', e); }
     setTimeout(() => {
       $('hud').classList.add('oculto');
       pantalla(`<div class="kicker">Simulador de vuelo · nivel ${esc(NIVELES[r.nivel].n)} (×${String(NIVELES[r.nivel].mult).replace('.', ',')})</div>

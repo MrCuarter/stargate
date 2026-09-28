@@ -142,7 +142,9 @@ const tablero = async (perId, conPrivados) =>
 
 /** Los PER en los que figuro como docente, más los que son de demostración. */
 /** Las dos cuentas que mandan siempre, leídas de donde viven (motor/paquete.js). */
-const REFERENTES_VITALICIOS = ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"];
+// 28-sep · + Anita y Caridad (Norberto: «añade como referentes vitalicios»). Ser vitalicio NO es ser del Mando (buzon.js y
+// las reglas: el Mando lee todo el buzón); eso sigue siendo solo de Norberto y la cuenta de CCD.
+const REFERENTES_VITALICIOS = ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com", "anita.feridouni@gmail.com", "caridadsierradaz@gmail.com"];
 /** La misma cuenta que hace la sala del docente (clase.js `estadoPer`), en un solo sitio. */
 function estadoDelPER(S) {
   S = S || {};

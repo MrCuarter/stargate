@@ -1,7 +1,7 @@
 // QUIÉN HACE DE SERVIDOR. Dentro de la web (la sesión o la Nave, que cargan el motor), el de verdad: la función
 // stargateRuta de GamificaPro, que da las preguntas SIN la respuesta, comprueba cada puerta y decide la medalla y el
-// premio. Fuera (el borrador) o si la función aún no está desplegada, el de ensayo (servidor-local.js?v=4eafd61012): nada cuenta.
-import { SERVIDOR as LOCAL } from './servidor-local.js?v=4eafd61012';
+// premio. Fuera (el borrador) o si la función aún no está desplegada, el de ensayo (servidor-local.js?v=1066523f0d): nada cuenta.
+import { SERVIDOR as LOCAL } from './servidor-local.js?v=1066523f0d';
 
 const QS = new URLSearchParams(location.search);
 const per = QS.get('per') || '';

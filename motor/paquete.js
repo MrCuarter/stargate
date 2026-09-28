@@ -32,7 +32,10 @@
    */
   var REFERENTES_VITALICIOS = [
     "n.cuartero.10@gmail.com",   // Norberto
-    "mutecdgami@gmail.com"       // la cuenta de la universidad: dueña de todo el material
+    "mutecdgami@gmail.com",      // la cuenta de la universidad: dueña de todo el material
+    // 28-sep · Norberto: «añade como referentes vitalicios a: anita.feridouni@gmail.com, caridadsierradaz@gmail.com»
+    "anita.feridouni@gmail.com",
+    "caridadsierradaz@gmail.com"
   ];
 
   var DIA = 864e5;
@@ -147,7 +150,9 @@
      * como docente que imparte y se llevaría un escuadrón con alumnado que no es suyo.
      */
     var NOMBRE_VITALICIO = { "n.cuartero.10@gmail.com": "Mr. Cuarter",
-                             "mutecdgami@gmail.com": "Mando UNIR" };
+                             "mutecdgami@gmail.com": "Mando UNIR",
+                             "anita.feridouni@gmail.com": "Anita",
+                             "caridadsierradaz@gmail.com": "Caridad" };
     var conVitalicio = function (lista) {
       var salida = lista.slice();
       REFERENTES_VITALICIOS.forEach(function (correo) {

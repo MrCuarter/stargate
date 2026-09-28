@@ -97,6 +97,21 @@
     if(activa && activa.soltar) activa.soltar();
     activa = null; if(capa) capa.innerHTML = '';
   }
+  /**
+   * 28-sep · IR HASTA LO QUE SE SEÑALA. Norberto: «el onboarding no sube a los marcadores, se queda en la parte inferior a
+   * veces». El aro se pintaba donde estuviera el botón, también fuera de la pantalla, y el bocadillo se quedaba abajo sin
+   * nada a la vista. Ahora, si lo señalado no se ve entero, se lleva al centro (dentro de su marco y el marco en la página).
+   */
+  function enfocar(p){
+    var b = buscar(p); if(!b) return false;
+    var H = window.innerHeight;
+    if(b.y >= 8 && b.y + b.h <= H - 8) return true;
+    try{
+      if(p.marco){ var f = document.querySelector(p.marco); if(f) f.scrollIntoView({ block: 'nearest' }); }
+      b.el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }catch(e){}
+    return true;
+  }
   function colocar(p){
     var b = buscar(p), aro = capa.querySelector('.nb-aro'), caja = capa.querySelector('.nb-caja');
     if(!caja) return;
@@ -132,8 +147,10 @@
       // si lo señalado no aparece (una sección apagada, un marco que no carga), se sigue sin él pasado un rato
       var t0 = Date.now();
       if(reloj) clearInterval(reloj);
+      var enfocado = enfocar(p);
       reloj = setInterval(function(){
         if(activa !== yoMismo){ clearInterval(reloj); return; }
+        if(!enfocado) enfocado = enfocar(p);   // (lo señalado puede aparecer más tarde)
         colocar(p);
         if(p.espera && !buscar(p) && Date.now() - t0 > (p.ms || 15000)){ i++; paso(); }
       }, 250);

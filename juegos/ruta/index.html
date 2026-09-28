@@ -60,6 +60,14 @@ h1,h2,h3{font-family:Orbitron,sans-serif;letter-spacing:.05em}
 #pregunta li{font-size:16px;display:flex;gap:8px;align-items:baseline}
 #pregunta li b{font-family:Orbitron;color:var(--cian);min-width:18px}
 #pregunta .reloj{font-size:13px;opacity:.85;margin-top:8px}
+/* 28-sep · el turbo: en la fila del reloj, a la derecha; el HUD no recibe clics, este botón sí */
+#pregunta .reloj-fila{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:6px}
+#pregunta .reloj-fila .reloj{margin-top:0}
+#pregunta .turbo{pointer-events:auto;display:flex;align-items:center;gap:10px;cursor:pointer;border:1px solid var(--ambar);border-radius:10px;padding:7px 14px;background:rgba(255,194,74,.12);color:var(--ambar);font:inherit}
+#pregunta .turbo b{font-family:Orbitron;font-size:15px;letter-spacing:.18em}
+#pregunta .turbo span{font-size:12px;opacity:.85}
+#pregunta .turbo:hover,#pregunta .turbo:focus-visible{background:rgba(255,194,74,.22);outline:none}
+#pregunta .turbo.on{background:var(--ambar);color:#1a1200;box-shadow:0 0 22px rgba(255,194,74,.6)}
 
 /* ── los diagramas que dibuja el servidor (clases `dg-…`) ────────────── */
 .dg { max-width: 100%; height: auto; }
@@ -186,6 +194,6 @@ button.sec{background:#0d2236;color:#e8f6ff;border:1px solid var(--borde);font-w
 
 <div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
 
-<script type="module" src="juego.js?v=4eafd61012"></script>
+<script type="module" src="juego.js?v=1066523f0d"></script>
 </body>
 </html>

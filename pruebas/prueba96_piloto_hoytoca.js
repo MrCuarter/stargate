@@ -18,7 +18,8 @@ const K = leer("assets/js/consola.js"), A = leer("assets/js/aula.js"), M = leer(
 c(/async function ponerModoDocente\(modo\)/.test(M) && /modo !== "piloto" && modo !== "manual"/.test(M) && /ponerModoDocente, misNotas/.test(M), "🔴 motor · el modo se guarda en la ficha del docente (solo «piloto» o «manual»)");
 c(/var FICHA = null, MODO = "piloto"/.test(K) && /cargarFicha\(\)\.then\(elegirGrupo\)/.test(K), "🔴 por defecto, PILOTO AUTOMÁTICO; y el modo se lee antes de pintar nada");
 c(/function selectorModo\(\)/.test(K) && /Piloto automático/.test(K) && /Mando manual/.test(K) && (K.match(/selectorModo\(\)/g) || []).length >= 2 && /'<div class="cn-ficha-b">' \+ selectorDeGrupo\(\) \+ selectorModo\(\)/.test(K), "   con su selector en tu ficha de comandante (el Puente), al lado del de grupos");
-c(/body\.modo-piloto \[data-av\]\{display:none!important\}/.test(CSS), "🔴 el piloto solo OCULTA (data-av): no hay dos consolas que mantener");
+// 28-sep · solo la marca SIN valor: los retratos del Comandante llevan data-av="c1" y el piloto también los escondía
+c(/body\.modo-piloto \[data-av=""\]\{display:none!important\}/.test(CSS), "🔴 el piloto solo OCULTA (data-av, la marca sin valor): no hay dos consolas que mantener");
 const GP = "/Users/nor/Claude/vibewebs/gamificapro/firestore.rules";
 if (fs.existsSync(GP)) c(/request\.resource\.data\.modo in \['piloto', 'manual'\]/.test(fs.readFileSync(GP, "utf8")), "   y las reglas del servidor admiten el modo (solo esas dos palabras)");
 
@@ -26,10 +27,13 @@ if (fs.existsSync(GP)) c(/request\.resource\.data\.modo in \['piloto', 'manual'\
 // 19-sep · «Para tus Geniallys» vive en «Enlaces» y «Para todos tus grupos» en «Premios»: dos secciones que el piloto no enseña
 c(/'<section class="card gp-gen m-unif">/.test(K) && /var comun = sec\[0\] === "premios"/.test(K) && /\["enlaces", "Enlaces", "assets\/img\/iconos\/enlace\.png", \["mios"\]\]/.test(K),
   "🔴 «Para todos tus grupos» (en Premios) y «Para tus Geniallys» (en Enlaces), solo en mando manual");
-c(/class="gp-cfg" data-av/.test(K), "   la rueda de la sesión, también (23-sep · «Ajustes» ya no existe)");
+// 28-sep · Norberto: «un docente no puede configurar las diapositivas de clase que quiere mostrar, no aparece la rueda dentada»
+c(/class="gp-cfg" data-cfg-sesion=/.test(K) && !/class="gp-cfg" data-av/.test(K), "🔴 la rueda de la sesión, en los DOS modos: cada docente elige sus diapositivas");
 c(/var AV_TABS = \["zoco", "mios", "huevos", "sorteos", "ofertas"\]/.test(K) && /if \(!manual\(\) && AV_TABS\.indexOf\(x\[0\]\) >= 0\) return false;/.test(K), "🔴 en piloto, fuera las pestañas de gestión (Zoco, Mis enlaces, Premios, Sorteos, Ofertas)");
 c(/manual\(\) && x\[0\] === "huevos"/.test(K) && /function premiables\(\)/.test(K), "🔴 en mando manual, el docente raso crea premios por enlace para SUS grupos (sorteos y ofertas siguen siendo del referente)");
-c(/class="card pt-msg pt-plega" data-av/.test(K) && /id="pt-panel-ed" data-av/.test(K) && /data-av data-escribir=/.test(K), "   en la portada: el mensaje a tus reclutas, cambiar el panel y «Escribirles», en mando manual");
+// 28-sep · Norberto: «en el modo piloto automático debe aparecer también el botón para cambiar el Genially»
+c(/class="card pt-msg pt-plega" data-av/.test(K) && /data-av data-escribir=/.test(K) && /id="pt-panel-ed" aria-expanded/.test(K) && !/id="pt-panel-ed" data-av/.test(K),
+  "   en la portada: el mensaje a tus reclutas y «Escribirles», en mando manual; cambiar el panel, en los dos modos");
 c(/var hace = c\.a && \(manual\(\) \|\| c\.a\[1\] === "cola" \|\| \/\^ficha:\/\.test\(c\.a\[1\]\)\)/.test(K), "   NEBULA en piloto no ofrece «Escribirles» (sí «Ver la Cola de nota» y, 25-sep, «Ver su ficha»)");
 c(/if \(!manual\(\)\) \{\s*await window\.SG\.preguntar\(\{ aqui: b\.closest\("\.retos-ficha"\) \|\| b, marca: b,/.test(K) && /si: "Cerrar", no: "" \}\);/.test(K),
   "🔴 en piloto la ficha enseña lo entregado, pero validar o anular lo hace el referente");
