@@ -5695,6 +5695,7 @@ body.embed .mazo .emb-c figcaption span,body.embed .mazo .emb-pasos li span,body
 .gs-est.en-marcha{color:var(--teal)}.gs-est.por-empezar{color:var(--amber)}.gs-est.terminado,.gs-est.archivado{color:var(--mut)}
 .gs-n em{font-style:normal;color:var(--mut);font-size:.8rem}
 .gs-eq{color:#c7d6ee;font-size:.85rem;min-width:0}
+.eq-esc .eq-comp{display:block;font-size:.88rem;color:#a9bad1;margin-top:2px}
 ul.gs-eq{list-style:none;margin:0;padding:0;display:grid;gap:3px;line-height:1.35}
 .gs-eq .gs-esc{color:#8fa6c4}
 .gs-eq .gs-ref{font-style:normal;font-size:12px;color:var(--teal);border:1px solid rgba(55,224,236,.4);border-radius:6px;padding:0 5px;margin-left:2px;white-space:nowrap}

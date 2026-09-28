@@ -673,7 +673,7 @@
   function rx(img, rot, kicker, titulo, pasos, nota) { return comoSeHace({ rot: rot, kicker: kicker, titulo: titulo, img: img, pasos: pasos, nota: nota }); }
   function radioGestion() {
     return [
-      rx("escuadrones", "Escuadrones", "Gestionar grupos → Escuadrones", "Un escuadrón por docente que imparte",
+      rx("escuadrones", "Escuadrones", "Gestionar grupos → Escuadrones", "Cada escuadrón, con su Comandante (o varios)",
         ['<b>Pulsa uno</b> y se despliega.', 'Su <b>Comandante</b> con su correo, cuántos reclutas, la <b>media de xp</b> y de insignias, y su gente: cada fila abre la ficha.'],
         'Se comparan <b>por media</b>, no por suma: así no gana siempre el más numeroso.'),
       rx("calendario-cambio", "Calendario", "Gestionar grupos → Calendario", "Una semana sin clase, y todo se corre solo",

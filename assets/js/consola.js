@@ -455,7 +455,7 @@
           '<span class="av-cambiar">' + ico("editar") + '</span></button>' +
         '<div class="cn-ficha-t"><div class="eyebrow teal">La Nave del Comandante</div><h3>' + esc(nombre) + '</h3>' +
           '<p class="small"><b>Comandante' + (soyRefAlguno() ? ' referente' : '') + '</b>' + (mio ? ' · en este grupo, «' + esc(mio) + '»' : '') +
-            (emb.nombre ? ' · escuadrón <b>' + esc(emb.nombre) + '</b>' : '') + (YO && YO.correo ? ' · <span class="muted">' + esc(YO.correo) + '</span>' : '') + '</p>' +
+            (emb.nombre ? ' · escuadrón <b>' + esc(emb.nombre) + '</b>' + (emb.con && emb.con.length ? ' <span class="muted">(compartido con ' + esc(emb.con.join(" y ")) + ')</span>' : '') : '') + (YO && YO.correo ? ' · <span class="muted">' + esc(YO.correo) + '</span>' : '') + '</p>' +
           '<p class="monedas"><span class="m xp" tabindex="0" data-tip="Los grupos de STARGATE en los que das clase ahora mismo. Los terminados no cuentan."><b>' + V.length + '</b> ' + (V.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span>' +
             '<span class="m cred" tabindex="0" data-tip="Todo el alumnado de esos grupos, sumado."><b>' + total + '</b> ' + (total === 1 ? "recluta a tu cargo" : "reclutas a tu cargo") + '</span>' +
             // 28-sep · los grupos finalizados (y archivados), a un clic: se abren en tu Nave y se reabren para recuperación
@@ -597,11 +597,17 @@
   }
   /** 🔴 EL EMBLEMA DE TU ESCUADRÓN en ese grupo (Norberto: «a golpe de vista… su emblema de escuadrón»), no el del grupo. */
   function emblemaDe(p) {
-    var S = (p && p.stargate) || {};
-    var nombreMio = ((S.docentes || []).filter(function (d) {
-      return String(d.correo || "").toLowerCase() === String(YO.correo || "").toLowerCase(); })[0] || {}).nombre;
-    var mio = (p.factions || []).filter(function (f) { return f.teacherName === nombreMio; })[0] || (p.factions || [])[0] || null;
-    return { img: mio && mio.imageUrl ? mio.imageUrl : "", nombre: mio ? mio.name : "" };
+    var S = (p && p.stargate) || {}, yoC = String((YO && YO.correo) || "").toLowerCase(), F = (p && p.factions) || [];
+    var nombreMio = ((S.docentes || []).filter(function (d) { return String(d.correo || "").toLowerCase() === yoC; })[0] || {}).nombre || (p && p.miNombre) || "";
+    // 28-sep · un escuadrón puede tener DOS Comandantes (quien lo lleva y quien le apoya: su correo está en el escuadrón)
+    var propio = F.filter(function (f) { return nombreMio && f.teacherName === nombreMio; })[0] ||
+                 F.filter(function (f) { return (f.assignedTeacherEmails || []).indexOf(yoC) >= 0; })[0] || null;
+    var mio = propio || F[0] || null, con = [];
+    if (propio) (p.equipo || []).forEach(function (d) {
+      if (d.correo === yoC) return;
+      if (d.nombre === propio.teacherName || (propio.assignedTeacherEmails || []).indexOf(d.correo) >= 0) con.push(d.nombre || d.correo);
+    });
+    return { img: mio && mio.imageUrl ? mio.imageUrl : "", nombre: mio ? mio.name : "", con: con };
   }
   /** Los grupos que llevas: el que tengas abierto y los demás en marcha. */
   function gruposParaElegir() {
@@ -735,6 +741,17 @@
   }
   function soyRefAqui() { return refDe(PERS.filter(function (p) { return p.id === PER; })[0]); }
   function miNombreAqui() { var p = PERS.filter(function (x) { return x.id === PER; })[0]; return (p && p.miNombre) || ""; }
+  /**
+   * 28-sep · EL COMANDANTE DE MI ESCUADRÓN AQUÍ: yo, si lo llevo; o quien lo lleva, si lo COMPARTO (mi correo va en el
+   * escuadrón). Con esto quien apoya a otro ve la gente de ese escuadrón como «la suya» (Reclutas, modo docente).
+   */
+  function miComandanteAqui() {
+    var mio = miNombreAqui(), yoC = String((YO && YO.correo) || "").toLowerCase();
+    var F = (DATOS && DATOS.proyecto && DATOS.proyecto.factions) || [];
+    if (F.some(function (f) { return f.teacherName === mio; })) return mio;
+    var f = F.filter(function (x) { return (x.assignedTeacherEmails || []).indexOf(yoC) >= 0; })[0];
+    return f ? f.teacherName : mio;
+  }
 
   /**
    * 15-sep · «📡 ¿Algo falla?»: la puerta al buzón del Mando (buzon.html). Lleva desde dónde se
@@ -970,7 +987,7 @@
    */
   var FILTRO = {};   // por grupo: "" = todos, o el nombre del Comandante
   function filtroDe(t) {
-    var escs = t.escuadrones || [], f = FILTRO[PER], mio = miNombreAqui();
+    var escs = t.escuadrones || [], f = FILTRO[PER], mio = miComandanteAqui();
     var tengoEsc = escs.some(function (e) { return e.comandante === mio; });
     /**
      * 🔴 16-sep · EN MODO DOCENTE, SOLO LO TUYO. Norberto: «si activo el modo docente no debo ver nada del referente;
@@ -983,7 +1000,7 @@
   }
   /** El docente sin escuadrón en este grupo (y sin ser referente) no tiene alumnado que ver. */
   function sinGenteQueVer(t) {
-    var mio = miNombreAqui();
+    var mio = miComandanteAqui();
     return !soyRefAqui() && !(t.escuadrones || []).some(function (e) { return e.comandante === mio; });
   }
   function NBADGES() { return (window.SG_BADGES && window.SG_BADGES.length) || 27; }
@@ -2997,8 +3014,14 @@
         .map(function (p) { var d = p.equipo.filter(function (x) { return x.correo === correo; })[0]; return { id: p.id, nombre: p.nombre, rol: d.rol }; });
     };
     var tarjeta = function (d, i) {
-      var correo = String(d.correo || "").toLowerCase(), f = conEsc(d.nombre);
-      var n = t.reclutas.filter(function (r) { return r.profe === d.nombre; }).length, soyYo = !!correo && correo === yo;
+      var correo = String(d.correo || "").toLowerCase();
+      // 28-sep · su escuadrón: el que lleva a su nombre o el que comparte (su correo está en él). Norberto: «deberían
+      // tener los dos el mismo logo y aparecer como comandantes, con un "compartido con…"»
+      var f = conEsc(d.nombre) || facc.filter(function (x) { return (x.assignedTeacherEmails || []).indexOf(correo) >= 0; })[0];
+      var compartido = !!f && f.teacherName !== d.nombre;
+      var con = f ? docs.filter(function (x) { return x !== d && (x.nombre === f.teacherName ||
+        (f.assignedTeacherEmails || []).indexOf(String(x.correo || "").toLowerCase()) >= 0); }).map(function (x) { return x.nombre || x.correo; }) : [];
+      var n = t.reclutas.filter(function (r) { return r.profe === (f ? f.teacherName : d.nombre); }).length, soyYo = !!correo && correo === yo;
       var vital = VITALICIOS_WEB.indexOf(correo) >= 0, esRef = d.rol === "referente", otros = enOtros(correo);
       // 28-sep · a quién puede pasar su escuadrón: a CUALQUIERA del equipo (también quien acaba de llegar o no tiene escuadrón)
       var destinos = docs.filter(function (x) { return x.nombre && x.nombre !== d.nombre; });
@@ -3007,8 +3030,9 @@
           '<div class="eq-quien"><h4>' + esc(d.nombre || correo) + (soyYo ? ' <span class="chip">tú</span>' : "") + "</h4>" +
           '<p class="small muted">' + esc(correo || "sin correo") + "</p></div>" +
           '<span class="eq-rol' + (esRef ? " ref" : "") + '"' + (vital ? ' title="Referente vitalicio: manda en todos los grupos"' : "") + '>' + (vital ? "<img class=ico src=assets/img/iconos/p/estrella.png alt> Vitalicio" : esRef ? "<img class=ico src=assets/img/iconos/p/estrella.png alt> Referente" : "Docente") + "</span></div>" +
-        '<p class="eq-esc">' + (f ? "<img class=ico src=assets/img/iconos/p/escudo.png alt> <b>" + esc(f.name) + "</b> · " + n + " recluta" + (n === 1 ? "" : "s") +
-            ' <button type="button" class="eq-lnk" data-ver-esc="' + esc(d.nombre) + '">Ver su escuadrón →</button>'
+        '<p class="eq-esc">' + (f ? "<img class=ico src=assets/img/iconos/p/escudo.png alt> Comandante de <b>" + esc(f.name) + "</b> · " + n + " recluta" + (n === 1 ? "" : "s") +
+            (con.length ? '<span class="eq-comp">Compartido con ' + esc(con.join(" y ")) + (compartido ? " (lo lleva " + esc(f.teacherName) + ")" : "") + '</span>' : "") +
+            ' <button type="button" class="eq-lnk" data-ver-esc="' + esc(f.teacherName || d.nombre) + '">Ver su escuadrón →</button>'
           : '<span class="muted">Sin escuadrón (coordina, o se incorporó después)</span>' + (n ? " · " + n + " reclutas a su nombre" : "")) + "</p>" +
         (otros.length ? '<p class="small eq-otros">También en ' + otros.map(function (g) {
             return '<a href="consola.html?per=' + encodeURIComponent(g.id) + '&tab=equipo">' + esc(g.nombre) + "</a>" + (g.rol === "referente" ? " <img class=ico src=assets/img/iconos/p/estrella.png alt>" : ""); }).join(" · ") + "</p>" : "") +
@@ -3017,13 +3041,19 @@
          * se añade más adelante… no hay manera de ajustarlo». Con escuadrón: se le pasa ENTERO (con su alumnado) a quien
          * sea del equipo. Sin escuadrón: se hace cargo del de otro, o estrena uno.
          */
-        (f && destinos.length ? '<div class="eq-pasar"><span>Pasar su escuadrón y su alumnado a</span><select data-dest="' + i + '" aria-label="A quién pasa su escuadrón">' +
+        (f && !compartido && destinos.length ? '<div class="eq-pasar"><span>Pasar su escuadrón y su alumnado a</span><select data-dest="' + i + '" aria-label="A quién pasa su escuadrón">' +
             destinos.map(function (x) { return '<option value="' + esc(x.nombre) + '">' + esc(x.nombre) + (conEsc(x.nombre) ? "" : " (sin escuadrón)") + "</option>"; }).join("") + "</select>" +
             '<button type="button" class="btn min" data-pasar="' + i + '">Pasar</button></div>' : "") +
         (!f && d.nombre ? '<div class="eq-pasar"><span>Darle un escuadrón</span><select data-asumir="' + i + '" aria-label="Qué escuadrón">' +
             facc.map(function (x) { return '<option value="' + esc(x.id) + '">' + esc(x.name) + (x.teacherName ? " (ahora de " + esc(x.teacherName) + ")" : " (sin Comandante)") + "</option>"; }).join("") +
             '<option value="__nuevo">Uno nuevo, para alumnado nuevo</option></select>' +
             '<button type="button" class="btn min primary" data-asumir-ir="' + i + '">Dárselo</button></div>' : "") +
+        // 28-sep · o compartir el de otro (dos Comandantes, el alumnado sigue con quien lo lleva)
+        (!f && d.nombre && correo && facc.some(function (x) { return x.teacherName && x.teacherName !== d.nombre; }) ?
+          '<div class="eq-pasar"><span>O compartir el escuadrón de</span><select data-compartir="' + i + '" aria-label="Con quién comparte escuadrón">' +
+            facc.filter(function (x) { return x.teacherName && x.teacherName !== d.nombre; }).map(function (x) {
+              return '<option value="' + esc(x.teacherName) + '">' + esc(x.teacherName) + ' (' + esc(x.name) + ')</option>'; }).join("") + '</select>' +
+            '<button type="button" class="btn min" data-compartir-ir="' + i + '">Compartir</button></div>' : "") +
         '<div class="eq-acc">' +
           (vital ? "" : '<button type="button" class="btn min" data-rol="' + i + '">' + (esRef ? "Pasar a docente" : "<img class=ico src=assets/img/iconos/p/estrella.png alt> Hacer referente") + "</button>") +
           (vital || soyYo ? "" : '<button type="button" class="btn min peligro" data-quitar="' + i + '">Quitar del equipo</button>') +
@@ -3107,6 +3137,15 @@
           .catch(function (e) { b.disabled = false; aviso(e.message); });
       };
     });
+    Array.prototype.forEach.call(app.querySelectorAll("[data-compartir-ir]"), function (b) {
+      b.onclick = async function () {
+        var i = Number(b.getAttribute("data-compartir-ir")), d = docs[i], de = app.querySelector('[data-compartir="' + i + '"]').value;
+        b.disabled = true;
+        MOTOR.apoyarEscuadron(PER, de, d.correo)
+          .then(function () { return refrescar().then(function () { TAB = "equipo"; pintar(); aviso(d.nombre + " comparte escuadrón con " + de + ": su alumnado sigue con " + de + ".", true); }); })
+          .catch(function (e) { b.disabled = false; aviso(e.message); });
+      };
+    });
     Array.prototype.forEach.call(app.querySelectorAll("[data-asumir-ir]"), function (b) {
       b.onclick = async function () {
         var i = Number(b.getAttribute("data-asumir-ir")), d = docs[i], v = app.querySelector('[data-asumir="' + i + '"]').value;
@@ -3148,7 +3187,6 @@
     });
     // --- ¿para qué entra?: tocar el desplegable o la casilla de una tarjeta elige esa tarjeta
     Array.prototype.forEach.call(app.querySelectorAll(".eq-op select, .eq-op .eq-sub input"), function (s) {
-      s.addEventListener("focus", function () { var r = s.closest(".eq-op").querySelector('input[name="e-para"]'); if (r) r.checked = true; });
       s.addEventListener("click", function () { var r = s.closest(".eq-op").querySelector('input[name="e-para"]'); if (r) r.checked = true; });
     });
     // --- añadir a este grupo
@@ -3232,6 +3270,16 @@
       return;
     }
     var caps = capsDelGrupo(t), mio = miNombreAqui();
+    // 28-sep · UN ESCUADRÓN PUEDE TENER VARIOS COMANDANTES (Norberto: «dice "uno por docente", no es verdad, pueden ser
+    // varios, es algo habitual… si son comandantes, deberán aparecer»): quien lo lleva y quien lo comparte (su correo va en
+    // el escuadrón). El alumnado sigue atado a quien lo lleva.
+    var FAC = (DATOS && DATOS.proyecto && DATOS.proyecto.factions) || [], DOCS = t.docentes_full || [];
+    var comandantes = function (e) {
+      var f = FAC.filter(function (x) { return x.teacherName === e.comandante; })[0] || FAC.filter(function (x) { return x.name === e.nombre; })[0] || {};
+      var L = DOCS.filter(function (d) { return d.nombre === e.comandante; });
+      DOCS.forEach(function (d) { if (L.indexOf(d) < 0 && (f.assignedTeacherEmails || []).indexOf(String(d.correo || "").toLowerCase()) >= 0) L.push(d); });
+      return L.length ? L : [{ nombre: e.comandante }];
+    };
     var conGente = esc7.map(function (e) {
       var suyos = (t.reclutas || []).filter(function (r) { return r.profe === e.comandante; });
       var media = suyos.length ? Math.round(suyos.reduce(function (a, r) { return a + r.xp; }, 0) / suyos.length) : 0;
@@ -3242,23 +3290,24 @@
       return !esc7.some(function (e) { return e.comandante === r.profe; });
     });
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>Escuadrones</h3>' +
-      '<p class="small muted">Uno por docente. El alumnado entra en el de su Comandante al alistarse. ' +
+      '<p class="small muted">Cada escuadrón tiene su Comandante, o varios si lo comparten. El alumnado entra en el de su Comandante al alistarse. ' +
       'Se comparan por <b>media de xp</b>: sumando ganaría siempre el más numeroso. <b>Pulsa un escuadrón</b> para ver su gente, y a alguien para abrir su ficha.</p>' +
       conGente.map(function (x, i) {
-        var d = (t.docentes_full || []).filter(function (y) { return y.nombre === x.e.comandante; })[0] || {};
+        var cms = comandantes(x.e), nombres = cms.map(function (y) { return y.nombre || y.correo; });
         return '<details class="esc-det"' + (ABRIR_ESC === x.e.comandante ? " open" : "") + ' data-esc="' + esc(x.e.comandante) + '">' +
           '<summary class="esc-card' + (i === 0 && x.suyos.length ? " lider" : "") + '">' +
           '<div class="esc-pos">' + (i + 1) + "</div>" +
           (x.e.emblema ? '<img class="esc-emb" loading="lazy" src="' + esc(x.e.emblema) + '" alt="">' : "") +
-          '<div class="esc-txt"><b>' + esc(x.e.nombre) + (x.e.comandante === mio ? ' <span class="chip">el tuyo</span>' : "") + "</b>" +
+          '<div class="esc-txt"><b>' + esc(x.e.nombre) + (nombres.indexOf(mio) >= 0 ? ' <span class="chip">el tuyo</span>' : "") + "</b>" +
           (x.e.lema ? "<em>«" + esc(x.e.lema) + "»</em>" : "") +
-          '<span class="small muted">' + esc(x.e.comandante) + " · " + x.suyos.length +
+          '<span class="small muted">' + esc(nombres.join(" y ")) + (nombres.length > 1 ? " (compartido)" : "") + " · " + x.suyos.length +
           " recluta" + (x.suyos.length === 1 ? "" : "s") +
           (x.e.origen ? " · " + esc(x.e.origen) : "") + "</span></div>" +
           '<div class="esc-val">' + x.media + ' xp<span class="esc-ver">Ver su gente</span></div></summary>' +
           '<div class="esc-cuerpo"><div class="esc-datos">' +
-            '<div><span>Comandante</span><b>' + esc(x.e.comandante) + "</b>" + (d.correo ? "<em>" + esc(d.correo) + "</em>" : "") +
-              (d.rol === "referente" ? "<em><img class=ico src=assets/img/iconos/p/estrella.png alt> referente</em>" : "") + "</div>" +
+            '<div><span>' + (cms.length > 1 ? "Comandantes" : "Comandante") + '</span>' + cms.map(function (d) {
+              return "<b>" + esc(d.nombre || d.correo) + "</b>" + (d.correo ? "<em>" + esc(d.correo) + "</em>" : "") +
+                (d.rol === "referente" ? "<em><img class=ico src=assets/img/iconos/p/estrella.png alt> referente</em>" : ""); }).join("") + "</div>" +
             "<div><span>Reclutas</span><b>" + x.suyos.length + "</b></div>" +
             "<div><span>Media de xp</span><b>" + x.media + "</b></div>" +
             "<div><span>Insignias de media</span><b>" + String(x.ins).replace(".", ",") + "</b></div></div>" +
