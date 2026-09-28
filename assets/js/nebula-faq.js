@@ -160,7 +160,7 @@ window.SG_NEBULA_FAQ = [
     r: "Sí: las dos Actividades tienen su reto en la Nave. Pulsa «Lo he hecho» <b>cuando ya la hayas ENVIADO</b> por la plataforma de UNIR, con su enlace. Marcarla no la entrega: la entrega oficial es en UNIR.", ir: "retos" },
   { id: "reto_simulacro", p: ["qué es el simulacro del examen", "reto simulacro", "cuándo es el simulacro"],
     claves: ["simulacro", "ensayo", "noventa", "minutos"],
-    r: "El ensayo general: <b>90 minutos de reloj</b> para resolver un caso como el del examen, en la clase de repaso de la semana 15. No lleva nota: lleva una lista de comprobación. Se registra como reto con tu enlace público y tus capturas.", ir: "retos" },
+    r: "El ensayo general: <b>90 minutos de reloj</b> para resolver un caso como el del examen, en la clase de repaso de la semana 15. En un grupo <b>PUA</b>, sin examen, es <b>la batalla final</b> contra la Estática, en la última clase. No lleva nota: lleva una lista de comprobación. Se registra como reto con tu enlace público y tus capturas.", ir: "retos" },
   { id: "retos_actividades", p: ["qué retos ayudan con la actividad", "los retos sirven para la actividad", "relación entre retos y actividades"],
     claves: ["retos", "ayudan", "relacion", "sirven", "actividad", "preparan"],
     r: "Los retos te dejan media Actividad hecha: la 1 la preparan «La hoja de ruta», «Del boceto a la forja» y «La Bitácora en marcha»; la 2, «La hoja de ruta», «Dos senderos» y «El itinerario». En la Nave los ves como retos relacionados.", ir: "retos" },

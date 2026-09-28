@@ -33,8 +33,13 @@ for (let t = 1; t <= 8; t++) {
   const delTema = REG.filter(r => r[4] === t && /^[LB][1-8]$/.test(r[0])).map(r => r[0]);
   c(delTema.join(",") === "L" + t + ",B" + t, "   tema " + t + ": su relámpago y su reto principal", delTema.join(","));
 }
-c(JSON.stringify(PUA.map(r => r.slice(0, 5))) === JSON.stringify(REG.map(r => r.slice(0, 5))),
+const valor = r => [r[0], r[2], r[3], r[4]];
+c(JSON.stringify(PUA.map(valor)) === JSON.stringify(REG.map(valor)),
   "🔴 PUA lleva los mismos retos, con el mismo valor (antes el principal valía más en PUA)");
+// 28-sep · Norberto: «En PUA, no hay examen, pero aun así lucharemos contra la Estática. En vez de simulacro de examen ponle otro nombre»
+c(PUA.filter(r => r[0] !== "XS").every((r, i) => r[1] === REG.filter(x => x[0] !== "XS")[i][1]) &&
+  /La batalla final/.test((PUA.find(r => r[0] === "XS") || [])[1]) && /simulacro del examen/.test((REG.find(r => r[0] === "XS") || [])[1]),
+  "🔴 en PUA el reto de los 90 minutos es «La batalla final» (no hay examen); el resto, con el mismo nombre");
 c(REG.every(r => !/,/.test(r[1])), "   ningún título lleva coma (el lector del formato viejo parte por comas)");
 c(REG.filter(r => /^B\d$/.test(r[0])).every(r => /^Reto principal «/.test(r[1])) && REG.filter(r => /^L\d$/.test(r[0])).every(r => /^Reto relámpago «/.test(r[1])),
   "   y cada uno dice lo que es: «Reto relámpago» (en clase) o «Reto principal» (en casa)");

@@ -5193,6 +5193,7 @@
   SG.FUENTE.tablero(per, fresco).then(function(d){
     if(d.error){root.innerHTML='<p class="lead">PER no encontrado. Pregunta a tu Comandante por el enlace bueno.</p>';return;}
     st.d=d; st.dFresco=fresco?d:null; st.semanas=window.SGCAL.vista(d.tipo,SEM);
+    if(window.SG&&SG.textosPorTipo) SG.textosPorTipo(d.tipo);   // 28-sep · en PUA, «La batalla final» (no hay examen)
     // 🔴 El rango se calcula distinto en PUA (diez semanas, no quince). La fiesta dibuja el avatar
     // del nivel nuevo y necesita saberlo, o a un recluta de PUA le enseñaría el arte equivocado
     // justo en el momento de enseñarle en qué se ha convertido.

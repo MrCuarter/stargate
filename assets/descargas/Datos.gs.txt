@@ -112,7 +112,9 @@ var RETOS_PUA = [
   ["B8","Reto principal «El último umbral» (tu Bitácora publicada)",["R8_ultimo-umbral"],250,8],
   // 16-sep · el simulacro. La clase 20 de la semana 15 ya se llama «Simulacro del examen» en la
   // programación oficial de la asignatura. Aquí solo se le pone premio.
-  ["XS","Reto «El simulacro del examen» (90 minutos de reloj)",["H7_listo-para-la-batalla"],300,8,15]
+  // 🔴 28-sep · EN PUA NO HAY EXAMEN, pero se lucha contra la Estática (Norberto: «En vez de simulacro de examen ponle otro
+  // nombre»). El mismo reto (XS, la misma insignia y el mismo valor), con su nombre: la batalla final.
+  ["XS","Reto «La batalla final» (90 minutos contra la Estática)",["H7_listo-para-la-batalla"],300,8,15]
 ];
 // BONUS-INICIO · Los genera _build_site.py desde _site_data.py: NO editar a mano.
 var BONUS_PLANETA = {"xp": 150, "creditos": 40};

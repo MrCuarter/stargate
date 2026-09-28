@@ -903,6 +903,18 @@ NOTA_FINAL = {"continua": 40, "examen": 60}
 # 🔴 28-sep · EN PUA NO HAY EXAMEN. Norberto: «¡Atención! En PUA no hay examen. El 100% de la nota es la ev continua».
 # La evaluación continua es la misma (EVALUACION, sobre 10); lo que cambia es que es toda la nota.
 NOTA_FINAL_PUA = {"continua": 100, "examen": 0}
+# 🔴 28-sep · y el reto de los 90 minutos (XS) no es un simulacro: es LA BATALLA FINAL contra la Estática (Norberto: «En
+# PUA, no hay examen, pero aun así lucharemos contra la Estática. En vez de simulacro de examen ponle otro nombre»). Lo que
+# cambia por tipo de grupo va aquí; la web lo pone encima de AYUDA_RETOS y GANCHO_RETOS (SG.textosPorTipo).
+RETOS_TIPO = {"PUA": {"XS": {
+    "ayuda": "La batalla final contra la Estática, con el reloj de verdad: 90 minutos. Se libra en la última clase del viaje. "
+             "Se te dará un planteamiento y tendrás que montar, EN ESE RATO, una plataforma digital (web o Genially) con su "
+             "portada, su logo con la palabra clave, dos módulos y tres productos digitales —algunos puedes reutilizarlos de "
+             "los que ya has hecho en el viaje: para eso está tu Arsenal—. Al terminar, pega aquí el enlace público y sube tus "
+             "capturas. No lleva nota: lleva una lista de comprobación que repasas tú mismo delante de todos (¿el logo lleva la "
+             "palabra?, ¿se abre en incógnito?, ¿hay dos módulos?, ¿tres productos?, ¿la justificación cabe en diez líneas?). "
+             "Nadie sabe lo que son noventa minutos hasta que los vive.",
+    "gancho": "La batalla final: 90 minutos de reloj contra la Estática, en la última clase."}}}
 EVALUACION_EXAMEN_PUA = "En los grupos PUA no hay examen final: la evaluación continua es el 100 % de la nota."
 
 # ────────────────────────── 🔴 23-sep · LA SESIÓN DE LA SEMANA 1: EL EMBARQUE ──────────────────────────

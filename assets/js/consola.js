@@ -194,6 +194,7 @@
   }
   /** La ficha de un reto, completa (como la ve el alumnado): insignia, qué es, su gancho, lo que da y su ejemplo. */
   function fichaReto(r, tipo, prog, luegoEn) {
+    if (window.SG && SG.textosPorTipo) SG.textosPorTipo(tipo);   // 28-sep · en PUA, «La batalla final»
     var rel = r.id.charAt(0) === "L", ins = (r.insignias || [])[0] || "", g = (window.SG_GANCHO_RETOS || {})[r.id] || "";
     var ej = (window.SG_EJEMPLOS || {})[r.id], m = /^(Reto (?:A|B|principal|relámpago)|Actividad \d)\s*(.*)$/i.exec(r.titulo || "") || [null, "", r.titulo || ""];
     // 🔴 20-sep · Norberto: «deben aparecer todos los retos de esa semana; si no se han desbloqueado, se oscurecen o
@@ -2231,6 +2232,7 @@
   }
   /** La ficha de un reto, en grande: lo que lee el recluta y quién lo ha hecho (solo quien sí), con su enlace. */
   async function abrirReto(r, t, gente, tipo, w, sem) {
+    if (window.SG && SG.textosPorTipo) SG.textosPorTipo(tipo);
     if (!EVID && EVID_LISTO) { try { await EVID_LISTO; } catch (e) {} }
     var id = r.id, futuro = w > sem, rel = id.charAt(0) === "L";
     var m = /^(Reto (?:A|B|principal|relámpago)|Actividad \d)\s*(.*)$/i.exec(r.titulo || "") || [null, "", r.titulo || ""];
