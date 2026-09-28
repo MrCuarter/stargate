@@ -1054,7 +1054,7 @@ h2.con-logo{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
 .conector span{width:1px;background:var(--line);align-self:flex-end;height:18px}
 .conector::after{content:"";position:absolute;top:12px;left:16%;right:16%;height:1px;background:var(--line)}
 .brazos{margin-top:0}
-@media(max-width:760px){.conector{display:none}.dir-cab{flex-direction:column;gap:12px}}
+@media(max-width:760px){.conector{display:none}.dir-cab{flex-direction:column;gap:12px}.brazos{margin-top:14px}}  /* sin el conector, aire entre el director y los brazos */
 
 /* Los GIF de ayuda: encuadrados y con sombra, para que se vea que son una captura y no parte de la
    pagina. Escalan solos en movil. */
@@ -5592,7 +5592,7 @@ body.embed .mazo .emb-c figcaption span,body.embed .mazo .emb-pasos li span,body
   min-height:calc(var(--rt-h)*.58);padding:.5em 3.2em .5em calc(var(--rt-h)*1.1);box-sizing:border-box;font-size:var(--rt-f);
   background:linear-gradient(90deg,rgba(8,18,28,.97) 0%,rgba(8,18,28,.92) 68%,rgba(8,18,28,0) 100%);border-top:2px solid var(--teal)}
 .rotulo .rt-nom{font-family:'Unbounded',sans-serif;font-weight:700;font-size:1em;line-height:1.15;color:#fff;letter-spacing:.01em}
-.rotulo .rt-sub{display:flex;align-items:center;gap:.45em;font-size:.72em;line-height:1.3;color:#bfe9ef}
+.rotulo .rt-sub{display:flex;align-items:center;gap:.45em;font-size:max(12px,.72em);line-height:1.3;color:#bfe9ef}
 .rotulo .rt-emb{width:1.75em;height:1.75em;object-fit:contain;flex:none}
 .rotulo-carta{--rt-h:112px;--rt-f:1rem}
 .fc-firma-r{display:flex;justify-content:flex-start;text-align:left;padding:6px 0 0;border-top:1px solid rgba(55,224,236,.18)}

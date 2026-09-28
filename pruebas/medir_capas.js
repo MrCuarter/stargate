@@ -76,6 +76,19 @@
     if (out.pegados.length >= 12 || !visible(e) || capa(e) || !esCajaP(e) || /^(TR|TD|TH|LI|SUMMARY|OPTION|TBODY|THEAD)$/.test(e.tagName)) return;
     var f = e.nextElementSibling; while (f && !visible(f)) f = f.nextElementSibling;
     if (!f || /^(TR|LI|SCRIPT|STYLE|BR)$/.test(f.tagName) || getComputedStyle(f).display.indexOf('inline') === 0) return;
+    // 28-sep · lo que va pegado A PROPÓSITO no cuenta: los bloques de la página (la barra, la cabecera, las diapositivas,
+    // el pie: cosen la página de arriba abajo) y la cabecera o la foto de una tarjeta, a todo su ancho, con su cuerpo debajo
+    var pa = e.parentElement;
+    if (/^(NAV|FOOTER|MAIN)$/.test(e.tagName) || /^(NAV|FOOTER|MAIN)$/.test(f.tagName) || !pa || /^(BODY|MAIN)$/.test(pa.tagName)) return;
+    var primero = pa.firstElementChild; while (primero && !visible(primero)) primero = primero.nextElementSibling;
+    if (esCajaP(pa) && primero === e && e.getBoundingClientRect().width >= pa.getBoundingClientRect().width * 0.9) return;
+    // (y una cabecera cuyo borde de abajo ES la raya que la separa de su cuerpo: sin fondo propio, no es una caja suelta)
+    var se = getComputedStyle(e);
+    if (se.backgroundColor === 'rgba(0, 0, 0, 0)' && se.backgroundImage === 'none' && se.borderTopStyle === 'none' && parseFloat(se.borderBottomWidth) > 0) return;
+    // (el conector del «Cómo se hizo» sale del director a propósito: son sus líneas)
+    if (/\bconector\b/.test(f.className)) return;
+    // (la franja <header> de una tarjeta, como la de «La orden de la semana», va pegada a su cuerpo: es su cabecera)
+    if (e.tagName === 'HEADER' && primero === e) return;
     var a = e.getBoundingClientRect(), b = f.getBoundingClientRect();
     if (a.height < 16 || b.height < 16) return;
     var gap = b.top - a.bottom, lado = Math.min(a.right, b.right) - Math.max(a.left, b.left);
