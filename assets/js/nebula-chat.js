@@ -276,6 +276,10 @@
     ".nbc-btn:disabled{opacity:.5;cursor:default}",
     ".nbc-btn:focus-visible{outline:2px solid var(--nbc-texto);outline-offset:2px}",
     ".nbc-pie{border-top:1px solid var(--nbc-borde);padding:12px 16px 14px}",
+    ".nbc-clases{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}",
+    ".nbc-clases button{min-height:32px;padding:0 12px;border-radius:16px;border:1px solid rgba(95,244,255,.35);background:transparent;color:var(--nbc-texto);font-family:inherit;font-weight:600;font-size:13px;line-height:1;cursor:pointer}",
+    ".nbc-clases button[aria-pressed=true]{background:var(--nbc-cian);color:#06222a;border-color:var(--nbc-cian)}",
+    ".nbc-clases button:focus-visible{outline:2px solid var(--nbc-texto);outline-offset:2px}",
     ".nbc-form{display:flex;gap:8px;align-items:flex-end}",
     ".nbc-form textarea{flex:1;min-width:0;resize:vertical;min-height:44px;max-height:160px;background:#0b131e;color:var(--nbc-texto);",
     "border:1px solid var(--nbc-borde);border-radius:10px;padding:10px 12px;font:inherit;font-size:15px}",
@@ -380,12 +384,32 @@
     var enviarB = el("button", null, "Preguntar");
     enviarB.type = "submit";
     form.appendChild(etiqueta); form.appendChild(campo); form.appendChild(enviarB);
+    // 28-sep · PROBLEMA, DUDA O IDEA, como el profesorado en Contacto (Norberto: «me gustaría implementarlo en los
+    // estudiantes también. Nos pueden dar ideas buenas»). La duda sigue su camino (NEBULA busca y, si no sabe, se la
+    // pasa al Mando); el problema y la idea van directos al Mando, con su clase en el contexto.
+    var CLASES = [["duda", "Una duda", "Escribe tu duda, recluta…", "Preguntar"],
+                  ["problema", "Un problema", "Qué ha pasado, dónde y qué esperabas que pasara…", "Enviar al Mando"],
+                  ["idea", "Una idea", "Qué mejorarías de STARGATE y para qué…", "Enviar al Mando"]];
+    var clase = "duda";
+    var clases = el("div", "nbc-clases");
+    clases.setAttribute("role", "group"); clases.setAttribute("aria-label", "Qué quieres contar");
+    CLASES.forEach(function (c) {
+      var b = el("button", null, c[1]); b.type = "button"; b.setAttribute("data-clase", c[0]);
+      b.setAttribute("aria-pressed", String(c[0] === clase));
+      b.addEventListener("click", function () {
+        clase = c[0];
+        [].forEach.call(clases.querySelectorAll("button"), function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+        campo.placeholder = c[2]; enviarB.textContent = c[3]; etiqueta.textContent = c[1] + " para " + (c[0] === "duda" ? "NEBULA" : "el Mando");
+        campo.focus();
+      });
+      clases.appendChild(b);
+    });
     var info = el("div", "nbc-info");
     var estado = el("span", null, "");
     estado.setAttribute("aria-live", "polite");
     var cuenta = el("span", null, "0/" + MAX);
     info.appendChild(estado); info.appendChild(cuenta);
-    pie.appendChild(form); pie.appendChild(info);
+    pie.appendChild(clases); pie.appendChild(form); pie.appendChild(info);
 
     caja.appendChild(cab); caja.appendChild(mias); caja.appendChild(log); caja.appendChild(pie);
     raiz.appendChild(caja);
@@ -500,18 +524,25 @@
       });
     }
 
+    // 28-sep · un problema o una idea: sin buscar en la batería, directo al Mando (se envía al pulsar, como la duda)
+    function alMando(q, cl) {
+      turnos.push({ r: "yo", t: q });
+      empujar({ r: "nebula", k: "texto", t: cl === "idea" ? "Anotada tu idea, recluta: se la paso al Mando. Las ideas se leen todas, y las buenas acaban en tu Nave."
+        : "Recibido: se lo paso al Mando con tu alias. Te respondo aquí, en menos de una hora (" + HORARIO + ")." });
+      enviarDuda(q, [], function () { guardar(per, turnos); pintar(); }, cl);
+    }
     // ── el buzón: enviar (solo al pulsar), la cola si falla, y «Tus dudas al Comandante»
-    function enviarDuda(q, ids, fin) {
+    function enviarDuda(q, ids, fin, cl) {
       q = String(q || "").trim();
       if (!q) { fin(false); return; }
-      estado.textContent = "Enviando tu duda…";
+      estado.textContent = "Enviando…";
       var carta = { projectId: per, tipo: "recluta", urgente: false, texto: q,
-        contexto: { fichaId: o.fichaId || "", alias: o.alias || "", origen: "nebula", faq: (ids || []).slice(0, 3) } };
+        contexto: { fichaId: o.fichaId || "", alias: o.alias || "", origen: "nebula", clase: cl || "duda", faq: (ids || []).slice(0, 3) } };
       motor().then(function (M) {
         if (!M) throw new Error("sin motor");
         return M.buzonEnviar(carta);
       }).then(function () {
-        estado.textContent = "Duda enviada. Te respondo aquí en menos de una hora (" + HORARIO + ").";
+        estado.textContent = (cl === "idea" ? "Idea enviada" : cl === "problema" ? "Problema enviado" : "Duda enviada") + ". Te respondo aquí en menos de una hora (" + HORARIO + ").";
         fin(true); refrescar(true);
       }).catch(function () {
         var c = leerCola(per); c.push(carta); guardarCola(per, c);
@@ -590,7 +621,8 @@
       var q = campo.value.replace(/\s+/g, " ").trim();
       if (!q) { campo.focus(); return; }
       campo.value = ""; cuenta.textContent = "0/" + MAX;
-      preguntar(q.slice(0, MAX));
+      if (clase === "duda") preguntar(q.slice(0, MAX));
+      else alMando(q.slice(0, MAX), clase);
       campo.focus();
     }
 

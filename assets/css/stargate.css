@@ -5695,12 +5695,17 @@ body.embed .mazo .emb-c figcaption span,body.embed .mazo .emb-pasos li span,body
 .gs-est.en-marcha{color:var(--teal)}.gs-est.por-empezar{color:var(--amber)}.gs-est.terminado,.gs-est.archivado{color:var(--mut)}
 .gs-n em{font-style:normal;color:var(--mut);font-size:.8rem}
 .gs-eq{color:#c7d6ee;font-size:.85rem;min-width:0}
+ul.gs-eq{list-style:none;margin:0;padding:0;display:grid;gap:3px;line-height:1.35}
+.gs-eq .gs-esc{color:#8fa6c4}
+.gs-eq .gs-ref{font-style:normal;font-size:12px;color:var(--teal);border:1px solid rgba(55,224,236,.4);border-radius:6px;padding:0 5px;margin-left:2px;white-space:nowrap}
 .gs-b{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
 .gs-panel{border:1px solid var(--teal);border-radius:16px;padding:10px 12px;background:#0b1624;margin:-2px 0 6px}
 .gs-panel .gs-tabs{margin:0 0 10px}
 .gs-panel #c-cuerpo>.card:first-child{margin-top:0}
 .gs-op h3{margin:0 0 4px}
 @media(max-width:900px){.gs-fila{grid-template-columns:minmax(0,1fr) auto;row-gap:4px}.gs-est,.gs-n,.gs-eq{grid-column:1}.gs-b{grid-column:2;grid-row:1 / span 4;align-self:start}}
+/* 28-sep · en el móvil, los botones debajo: al lado se comían el nombre del grupo (y la lista de docentes ya es larga) */
+@media(max-width:600px){.gs-fila{grid-template-columns:minmax(0,1fr)}.gs-b{grid-column:1;grid-row:auto;display:flex;gap:8px;flex-wrap:wrap}}
 .cn-ficha .cn-ficha-b{margin-top:12px}
 .cn-der .c-res-cifras{grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
 @media(max-width:640px){.cn-ficha .cn-ficha-b .modo-sel{width:100%}}
@@ -7187,9 +7192,15 @@ button.m.fin-b:hover{color:#fff;border-color:var(--teal)}
 .eq-p{gap:7px;padding:12px 14px}
 .eq-p .eq-otros{margin:0}
 /* ¿Para qué entra? (al añadir a alguien al equipo) */
-.eq-para{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:10px 0;display:grid;gap:10px}
+/* 28-sep · una tarjeta por opción (dos por fila en ancho): botón + qué es + a quién, y debajo lo que pasa */
+.eq-para{border:1px solid var(--line);border-radius:12px;padding:12px 14px 14px;margin:12px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .eq-para legend{padding:0 6px;font-weight:700;color:var(--teal)}
-.eq-para label{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
-.eq-para select{width:auto;max-width:260px;margin:0}
-.eq-para .small{flex-basis:100%;margin-left:24px}
-.eq-para .eq-sub{flex-basis:100%;margin-left:24px;font-size:.88rem;display:flex;gap:6px;align-items:center}
+.eq-para .eq-op{display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:8px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.02);transition:border-color .15s,background .15s}
+.eq-para .eq-op:has(input[name="e-para"]:checked){border-color:var(--teal);background:rgba(55,224,236,.07)}
+#consola .eq-para .eq-cab,.eq-para .eq-cab{display:flex;align-items:center;gap:10px;margin:0;cursor:pointer;width:auto}
+.eq-para .eq-cab b{font-size:1rem}
+#consola .eq-para input[type=radio],#consola .eq-para input[type=checkbox],.eq-para input[type=radio],.eq-para input[type=checkbox]{display:inline-block;width:18px;height:18px;min-height:0;flex:none;margin:0;padding:0;accent-color:var(--teal);box-shadow:none}
+#consola .eq-para select,.eq-para select{width:100%;max-width:100%;margin:0}
+#consola .eq-para .eq-desc,.eq-para .eq-desc{margin:0;font-size:.9rem;color:#a9bad1;line-height:1.45}
+#consola .eq-para .eq-sub,.eq-para .eq-sub{display:flex;align-items:center;gap:8px;margin:0;font-size:.9rem;font-weight:500;cursor:pointer;width:auto}
+@media(max-width:760px){.eq-para{grid-template-columns:minmax(0,1fr)}}

@@ -1671,13 +1671,22 @@
     var fila = function (p) {
       var e = emblemaDe(p), est = estadoG(p), abierto = p.id === PER;
       var estTxt = est === "terminado" ? "Finalizado" : est === "archivado" ? "Archivado" : lineaEstado(p, true);
-      var eq = (p.equipo || []).map(function (d) { return esc(d.nombre || d.correo) + (d.rol === "referente" ? " (ref.)" : ""); }).join(" · ");
+      // 28-sep · Norberto: «¿Puedes poner los docentes en modo lista? Nombre del docente con escuadrón entre paréntesis».
+      // El escuadrón sale de las facciones del grupo (su Comandante, por nombre o por correo), como al alistarse.
+      var escDe = function (d) {
+        var f = (p.factions || []).filter(function (x) { return (d.nombre && x.teacherName === d.nombre) ||
+          (x.assignedTeacherEmails || []).indexOf(String(d.correo || "").toLowerCase()) >= 0; })[0];
+        return f ? f.name : "";
+      };
+      var eq = (p.equipo || []).map(function (d) { var s = escDe(d);
+        return '<li>' + esc(d.nombre || d.correo) + (s ? ' <span class="gs-esc">(' + esc(s) + ')</span>' : '') +
+          (d.rol === "referente" ? ' <em class="gs-ref" title="Profe referente">ref.</em>' : '') + '</li>'; }).join("");
       return '<div class="gs-fila' + (abierto ? " on" : "") + '">' +
           '<div class="gs-g">' + (e.img ? '<img src="' + esc(e.img) + '" alt="" loading="lazy">' : '<span class="cn-g-sin">◈</span>') +
             '<span><b>' + esc(p.nombre) + '</b><em>' + esc(((p.stargate || {}).tipo || "REGULAR") === "PUA" ? "PUA" : "Regular") + '</em></span></div>' +
           '<span class="gs-est ' + est.replace(/\s/g, "-") + '">' + esc(estTxt) + '</span>' +
           '<span class="gs-n">' + (p.reclutas == null ? "—" : p.reclutas) + '<em> ' + (p.reclutas === 1 ? 'recluta' : 'reclutas') + '</em></span>' +
-          '<span class="gs-eq">' + (eq || "—") + '</span>' +
+          (eq ? '<ul class="gs-eq">' + eq + '</ul>' : '<span class="gs-eq">—</span>') +
           '<span class="gs-b"><a class="btn min" href="consola.html?per=' + esc(p.id) + '" title="Abrirlo en tu Nave">Abrir ↗</a>' +
             '<button type="button" class="btn min' + (abierto ? " primary" : "") + '" data-gabrir="' + esc(p.id) + '" aria-expanded="' + abierto + '">Gestionar ' + (abierto ? "▴" : "▾") + '</button></span>' +
         '</div>' +
@@ -3048,15 +3057,21 @@
        */
       '<fieldset class="eq-para"><legend>¿Para qué entra?</legend>' +
         (docs.some(function (x) { return conEsc(x.nombre); }) ?
-          '<label><input type="radio" name="e-para" value="sustituye"> <b>Sustituye a</b> <select id="e-sust">' + docs.filter(function (x) { return conEsc(x.nombre); }).map(function (x) {
+          // 28-sep · Norberto: «la distribución es horrible». Una tarjeta por opción: el botón, qué es (y a quién, si hace
+          // falta) en una línea, y debajo lo que pasa. La elegida se ilumina; tocar su desplegable la elige.
+          '<div class="eq-op"><label class="eq-cab"><input type="radio" name="e-para" value="sustituye"> <b>Sustituye a</b></label>' +
+            '<select id="e-sust" aria-label="A quién sustituye">' + docs.filter(function (x) { return conEsc(x.nombre); }).map(function (x) {
             return '<option value="' + esc(x.nombre) + '">' + esc(x.nombre) + ' (' + esc(conEsc(x.nombre).name) + ')</option>'; }).join("") + '</select>' +
-          '<span class="small muted">una baja o un relevo: se queda con su escuadrón y su alumnado.</span>' +
-          '<span class="eq-sub"><input type="checkbox" id="e-sust-quitar"> y quitar del equipo a quien sale</span></label>' +
-          '<label><input type="radio" name="e-para" value="apoya"> <b>Apoya a</b> <select id="e-apoya">' + docs.filter(function (x) { return conEsc(x.nombre); }).map(function (x) {
+            '<p class="eq-desc">Una baja o un relevo: se queda con su escuadrón y su alumnado.</p>' +
+            '<label class="eq-sub"><input type="checkbox" id="e-sust-quitar"> Y quitar del equipo a quien sale</label></div>' +
+          '<div class="eq-op"><label class="eq-cab"><input type="radio" name="e-para" value="apoya"> <b>Apoya a</b></label>' +
+            '<select id="e-apoya" aria-label="A quién apoya">' + docs.filter(function (x) { return conEsc(x.nombre); }).map(function (x) {
             return '<option value="' + esc(x.nombre) + '">' + esc(x.nombre) + ' (' + esc(conEsc(x.nombre).name) + ')</option>'; }).join("") + '</select>' +
-          '<span class="small muted">comparten escuadrón: su alumnado sigue con su Comandante.</span></label>' : '') +
-        '<label><input type="radio" name="e-para" value="nuevo"> <b>Lidera un escuadrón nuevo</b> <span class="small muted">para alumnado que llega: podrán elegirle al alistarse.</span></label>' +
-        '<label><input type="radio" name="e-para" value="coordina"> <b>Coordina, sin escuadrón</b> <span class="small muted">ve el grupo, pero no tiene alumnado a su nombre.</span></label>' +
+            '<p class="eq-desc">Comparten escuadrón: su alumnado sigue con su Comandante.</p></div>' : '') +
+        '<div class="eq-op"><label class="eq-cab"><input type="radio" name="e-para" value="nuevo"> <b>Lidera un escuadrón nuevo</b></label>' +
+          '<p class="eq-desc">Para alumnado que llega: podrán elegirle al alistarse.</p></div>' +
+        '<div class="eq-op"><label class="eq-cab"><input type="radio" name="e-para" value="coordina"> <b>Coordina, sin escuadrón</b></label>' +
+          '<p class="eq-desc">Ve el grupo, pero no tiene alumnado a su nombre.</p></div>' +
       '</fieldset>' +
       '<p><button type="button" class="btn primary" id="e-add">Añadir a este grupo</button> ' +
       '<button type="button" class="btn min" id="e-todos">Hacerle referente de TODOS mis grupos</button></p>' +
@@ -3130,6 +3145,11 @@
     });
     Array.prototype.forEach.call(app.querySelectorAll("[data-ver-esc]"), function (b) {
       b.onclick = function () { ABRIR_ESC = b.getAttribute("data-ver-esc"); IR_ESC = true; TAB = "escuadrones"; pintar(); };
+    });
+    // --- ¿para qué entra?: tocar el desplegable o la casilla de una tarjeta elige esa tarjeta
+    Array.prototype.forEach.call(app.querySelectorAll(".eq-op select, .eq-op .eq-sub input"), function (s) {
+      s.addEventListener("focus", function () { var r = s.closest(".eq-op").querySelector('input[name="e-para"]'); if (r) r.checked = true; });
+      s.addEventListener("click", function () { var r = s.closest(".eq-op").querySelector('input[name="e-para"]'); if (r) r.checked = true; });
     });
     // --- añadir a este grupo
     $("#e-add").onclick = async function () {

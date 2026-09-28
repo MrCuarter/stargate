@@ -293,11 +293,13 @@
 
   // ── un mensaje, con su hilo (el mío o, para el Mando, el de cualquiera)
   function mensaje(m, comoMando) {
-    var tipo = TIPOS.filter(function (t) { return t[0] === m.tipo; })[0] || TIPOS[0], e = ESTADOS[m.estado] || ESTADOS.nuevo;
+    // 28-sep · lo del alumnado llega como tipo 'recluta' y su clase (problema, duda o idea) va en el contexto: antes salía
+    // siempre como «Un problema» (el primero de la lista)
+    var cx = m.contexto || {}, clase = m.tipo === "recluta" ? (cx.clase || "duda") : m.tipo;
+    var tipo = TIPOS.filter(function (t) { return t[0] === clase; })[0] || TIPOS[0], e = ESTADOS[m.estado] || ESTADOS.nuevo;
     var nuevoParaMi = !comoMando && m.visto === false;
-    var cx = m.contexto || {};
     return '<article class="bz-msg ' + esc(m.estado || "nuevo") + (m.urgente ? " urgente" : "") + (nuevoParaMi ? " fresco" : "") + '" data-m="' + esc(m.id) + '">'
-      + '<header><span class="bz-tipo-et">' + tipo[1] + ' ' + tipo[2] + '</span>'
+      + '<header><span class="bz-tipo-et">' + tipo[1] + ' ' + (m.tipo === "recluta" ? "Recluta · " : "") + tipo[2] + '</span>'
       + (m.urgente ? '<span class="chip bz-urgente"><img class=ico src=assets/img/iconos/p/aviso.png alt> Urgente</span>' : '')
       + '<span class="chip bz-estado">' + e[0] + ' ' + (comoMando && m.estado === "para_norberto" ? "Para ti" : e[1]) + '</span>'
       + (nuevoParaMi ? '<span class="chip bz-nueva-r"><img class=ico src=assets/img/iconos/p/envivo.png alt> Respuesta nueva</span>' : '')
