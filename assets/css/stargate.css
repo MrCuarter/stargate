@@ -5696,6 +5696,18 @@ body.embed .mazo .emb-c figcaption span,body.embed .mazo .emb-pasos li span,body
 .gs-n em{font-style:normal;color:var(--mut);font-size:.8rem}
 .gs-eq{color:#c7d6ee;font-size:.85rem;min-width:0}
 .eq-esc .eq-comp{display:block;font-size:.88rem;color:#a9bad1;margin-top:2px}
+/* 28-sep · el equipo agrupado por escuadrón, y todas las tarjetas del mismo tamaño (el pie, abajo) */
+.eq-grupos{display:grid;gap:16px;margin-top:12px}
+.eq-grupo{border:1px solid #2a3d5c;border-radius:16px;padding:12px 14px 14px;background:rgba(55,224,236,.03)}
+.eq-grupo.sin{border-style:dashed;background:transparent}
+.eq-g-cab{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.eq-g-cab img{width:44px;height:44px;object-fit:contain;flex:none}
+.eq-g-cab > div{display:grid;gap:2px;flex:1;min-width:0}
+.eq-g-cab b{font-size:1.05rem}
+.eq-grupo .eq-lista{margin-top:10px;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));align-items:stretch;grid-auto-rows:1fr}
+.eq-grupo .eq-p{min-height:290px;height:100%}
+.eq-p .eq-pie{margin-top:auto;display:grid;gap:8px}
+.eq-p .eq-pie:empty{display:none}
 ul.gs-eq{list-style:none;margin:0;padding:0;display:grid;gap:3px;line-height:1.35}
 .gs-eq .gs-esc{color:#8fa6c4}
 .gs-eq .gs-ref{font-style:normal;font-size:12px;color:var(--teal);border:1px solid rgba(55,224,236,.4);border-radius:6px;padding:0 5px;margin-left:2px;white-space:nowrap}

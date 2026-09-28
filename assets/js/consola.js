@@ -958,7 +958,13 @@
     var d = $("#c-aviso"); if (!d) return;
     d.innerHTML = esc(txt); d.className = "aviso " + (bien ? "" : "malo"); d.hidden = !txt;
   }
-  async function refrescar() { DATOS = await MOTOR.leerPER(PER, true); LEIDO_EN = Date.now(); EVID = null; EVID_PER = null; pintar(); }
+  async function refrescar() {
+    DATOS = await MOTOR.leerPER(PER, true); LEIDO_EN = Date.now(); EVID = null; EVID_PER = null;
+    // 28-sep · Norberto: «cuando añado un docente, no se actualiza en las cajas, tengo que refrescar la página». La lista de
+    // grupos (y sus docentes) sale de `misPERs`, que solo se leía al entrar: en Gestionar grupos se vuelve a leer también.
+    if (GESTION && YO && YO.correo) { try { PERS = await MOTOR.misPERs(YO.correo); } catch (e) { /* se queda la de antes */ } }
+    pintar();
+  }
 
   // ---------------------------------------------------------------- alumnado
   /**
@@ -3041,13 +3047,15 @@
          * se añade más adelante… no hay manera de ajustarlo». Con escuadrón: se le pasa ENTERO (con su alumnado) a quien
          * sea del equipo. Sin escuadrón: se hace cargo del de otro, o estrena uno.
          */
+        '<div class="eq-pie">' +
         (f && !compartido && destinos.length ? '<div class="eq-pasar"><span>Pasar su escuadrón y su alumnado a</span><select data-dest="' + i + '" aria-label="A quién pasa su escuadrón">' +
             destinos.map(function (x) { return '<option value="' + esc(x.nombre) + '">' + esc(x.nombre) + (conEsc(x.nombre) ? "" : " (sin escuadrón)") + "</option>"; }).join("") + "</select>" +
             '<button type="button" class="btn min" data-pasar="' + i + '">Pasar</button></div>' : "") +
-        (!f && d.nombre ? '<div class="eq-pasar"><span>Darle un escuadrón</span><select data-asumir="' + i + '" aria-label="Qué escuadrón">' +
+        // 28-sep · «Darle» sonaba a compartir y lo pasaba ENTERO (así le quitaron Los Yunques a Norberto): se dice lo que hace
+        (!f && d.nombre ? '<div class="eq-pasar"><span>Pasarle un escuadrón entero (con su alumnado)</span><select data-asumir="' + i + '" aria-label="Qué escuadrón">' +
             facc.map(function (x) { return '<option value="' + esc(x.id) + '">' + esc(x.name) + (x.teacherName ? " (ahora de " + esc(x.teacherName) + ")" : " (sin Comandante)") + "</option>"; }).join("") +
             '<option value="__nuevo">Uno nuevo, para alumnado nuevo</option></select>' +
-            '<button type="button" class="btn min primary" data-asumir-ir="' + i + '">Dárselo</button></div>' : "") +
+            '<button type="button" class="btn min" data-asumir-ir="' + i + '">Pasárselo</button></div>' : "") +
         // 28-sep · o compartir el de otro (dos Comandantes, el alumnado sigue con quien lo lleva)
         (!f && d.nombre && correo && facc.some(function (x) { return x.teacherName && x.teacherName !== d.nombre; }) ?
           '<div class="eq-pasar"><span>O compartir el escuadrón de</span><select data-compartir="' + i + '" aria-label="Con quién comparte escuadrón">' +
@@ -3057,7 +3065,35 @@
         '<div class="eq-acc">' +
           (vital ? "" : '<button type="button" class="btn min" data-rol="' + i + '">' + (esRef ? "Pasar a docente" : "<img class=ico src=assets/img/iconos/p/estrella.png alt> Hacer referente") + "</button>") +
           (vital || soyYo ? "" : '<button type="button" class="btn min peligro" data-quitar="' + i + '">Quitar del equipo</button>') +
-        "</div></article>";
+        "</div></div></article>";
+    };
+    /**
+     * 28-sep · AGRUPADOS POR ESCUADRÓN. Norberto: «agrupa los docentes que comparten escuadrón, una caja con el nombre del
+     * escuadrón que los englobe… intenta homogeneizar el tamaño, todos igual». Una caja por escuadrón (su emblema, su nombre,
+     * sus reclutas y quién lo lleva) con las tarjetas de sus Comandantes dentro; quien no tiene escuadrón, en la suya.
+     */
+    var equipoPorEscuadron = function () {
+      var grupos = [], sin = [];
+      docs.forEach(function (d, i) {
+        var c = String(d.correo || "").toLowerCase();
+        var f = conEsc(d.nombre) || facc.filter(function (x) { return (x.assignedTeacherEmails || []).indexOf(c) >= 0; })[0];
+        if (!f) { sin.push(i); return; }
+        var g = grupos.filter(function (x) { return x.f.id === f.id; })[0];
+        if (!g) grupos.push(g = { f: f, idx: [] });
+        g.idx.push(i);
+      });
+      var caja = function (g) {
+        var n = t.reclutas.filter(function (r) { return r.profe === g.f.teacherName; }).length;
+        return '<section class="eq-grupo">' +
+          '<header class="eq-g-cab">' + (g.f.imageUrl ? '<img src="' + esc(g.f.imageUrl) + '" alt="" width="44" height="44" loading="lazy">' : "") +
+            '<div><b>' + esc(g.f.name) + '</b><span class="small muted">' + (g.idx.length > 1 ? g.idx.length + " Comandantes (compartido) · " : "") +
+              n + " recluta" + (n === 1 ? "" : "s") + (g.f.teacherName ? " · lo lleva " + esc(g.f.teacherName) : "") + "</span></div>" +
+            '<button type="button" class="eq-lnk" data-ver-esc="' + esc(g.f.teacherName || "") + '">Ver su escuadrón →</button></header>' +
+          '<div class="eq-lista">' + g.idx.map(function (i) { return tarjeta(docs[i], i); }).join("") + "</div></section>";
+      };
+      return '<div class="eq-grupos">' + grupos.map(caja).join("") +
+        (sin.length ? '<section class="eq-grupo sin"><header class="eq-g-cab"><div><b>Sin escuadrón</b><span class="small muted">Coordinan, o acaban de llegar y aún no llevan ni comparten ninguno</span></div></header>' +
+          '<div class="eq-lista">' + sin.map(function (i) { return tarjeta(docs[i], i); }).join("") + "</div></section>" : "") + "</div>";
     };
     // los reclutas de alguien que ya no está en el equipo (su nombre no casa con nadie)
     var huerfanos = {}; t.reclutas.forEach(function (r) {
@@ -3066,7 +3102,7 @@
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>Equipo docente</h3>' +
       '<p class="small muted">Cada persona, con lo que se le puede hacer. Entran con <b>su cuenta de Google</b>: añadirla es darle entrada al grupo; quitarla, quitársela.' +
       (VITALICIOS_WEB.indexOf(yo) >= 0 ? ' Todo el profesorado de todos los grupos está en <a href="profesores.html"><img class=ico src=assets/img/iconos/p/gente.png alt> Profesores</a>.' : "") + "</p>" +
-      '<div class="eq-lista">' + docs.map(tarjeta).join("") + "</div></div>" +
+      equipoPorEscuadron() + "</div>" +
       (nomsH.length && conDestino.length ? '<div class="card"><h3><img class=ico src=assets/img/iconos/p/aviso.png alt> Alumnado sin Comandante</h3>' +
         '<p class="small muted">Su Comandante ya no está en el equipo. Pásalo a alguien que sí esté (y entra en su escuadrón).</p>' +
         '<p class="eq-pasar"><label>De<select id="t-de">' + nomsH.map(function (x) { return "<option>" + esc(x) + "</option>"; }).join("") + "</select></label>" +
@@ -3105,7 +3141,7 @@
       '</fieldset>' +
       '<p><button type="button" class="btn primary" id="e-add">Añadir a este grupo</button> ' +
       '<button type="button" class="btn min" id="e-todos">Hacerle referente de TODOS mis grupos</button></p>' +
-      '<p class="small muted">Después, en su tarjeta, <b>«Darle un escuadrón»</b>: el de quien sustituye (con su alumnado) o uno nuevo. Aparecerá en el alistamiento y en el ticket de salida de sus reclutas.</p></div>';
+      '<p class="small muted">Con «Sustituye a», «Apoya a» o «Lidera un escuadrón nuevo» queda hecho. Si alguien entró sin escuadrón y luego lo necesita, en su tarjeta: <b>«Compartir el escuadrón de…»</b> (lo llevan entre los dos) o <b>«Pasarle un escuadrón entero»</b> (una baja: se lleva también el alumnado).</p></div>';
 
     var hecho = async function (b, fn, txt) {
       b.disabled = true;
@@ -3150,10 +3186,10 @@
       b.onclick = async function () {
         var i = Number(b.getAttribute("data-asumir-ir")), d = docs[i], v = app.querySelector('[data-asumir="' + i + '"]').value;
         var f = facc.filter(function (x) { return x.id === v; })[0];
-        if (!(await window.SG.preguntar({ titulo: v === "__nuevo" ? "¿Estrenar un escuadrón para " + d.nombre + "?" : "¿Dar «" + f.name + "» a " + d.nombre + "?",
+        if (!(await window.SG.preguntar({ titulo: v === "__nuevo" ? "¿Estrenar un escuadrón para " + d.nombre + "?" : "¿Pasar «" + f.name + "» ENTERO a " + d.nombre + "?",
           texto: v === "__nuevo" ? "Un escuadrón nuevo del catálogo, a su nombre: el alumnado que se aliste podrá elegirle."
-            : (f.teacherName ? "Deja de ser de " + f.teacherName + ": el escuadrón y su alumnado pasan a " + d.nombre + " (una baja, una sustitución)." : "Pasa a " + d.nombre + " con su alumnado."),
-          si: "Dárselo" }))) return;
+            : (f.teacherName ? "Deja de ser de " + f.teacherName + ": el escuadrón y su alumnado pasan a " + d.nombre + " (una baja, una sustitución).\n\nSi lo van a llevar entre los dos, cancela y usa «Compartir el escuadrón de…»." : "Pasa a " + d.nombre + " con su alumnado."),
+          si: v === "__nuevo" ? "Estrenarlo" : "Pasárselo entero" }))) return;
         b.disabled = true;
         (v === "__nuevo" ? MOTOR.escuadronNuevo(PER, d.nombre, d.correo) : MOTOR.pasarEscuadron(PER, f.teacherName || "—", d.nombre, d.correo, f.id))
           .then(function () { return refrescar().then(function () { TAB = "equipo"; pintar(); aviso("Hecho: " + d.nombre + " ya tiene escuadrón.", true); }); })

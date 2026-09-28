@@ -2551,11 +2551,18 @@
   ];
   var guiaLista=false, guiaVista={}, guiaUsos={};
   var claveGuia=function(g){ return g.clave||g.k; };
+  /**
+   * 28-sep · EN LA NAVE ESCUELA, LA GUÍA SIEMPRE. Norberto: «en la nave escuela debería activar el onboarding para el docente
+   * en función de la semana. Ahora no me sale ninguno». La Escuela es para ensayar: cada semana que se elige trae la guía
+   * completa de lo que tiene, aunque ya se haya usado, y lo que se hace ahí NO cuenta (si contara, al llegar a su grupo de
+   * verdad NEBULA ya no le enseñaría nada).
+   */
+  var enEscuela=function(){ return st.per===(window.SG_PER_ESCUELA||'nave-escuela'); };
   function esDocenteEnSesion(){ return !st.alumno && !!st.per && !!st.yo && !!(window.SG && SG.GUIA); }
   // contar el uso (una vez por página y guía): lanzar, tocar, abrir…
   function vigilarUso(g){
     var c=claveGuia(g); if(guiaUsos[c]) return; guiaUsos[c]=true;
-    if(g.uso==='visto') return;
+    if(g.uso==='visto' || enEscuela()) return;
     SG.GUIA.alPulsar(g.uso, function(){ SG.GUIA.anotar(c); });
   }
   function guiar(forzar){
@@ -2570,10 +2577,10 @@
       cands.sort(function(a,b){ return (b.k||b.pri?1:0)-(a.k||a.pri?1:0); });
       cands.forEach(vigilarUso);
       for(var j=0;j<cands.length;j++){
-        var g=cands[j], c=claveGuia(g), v=SG.GUIA.veces(c), pasos=forzar?g.n0:(v===0?g.n0:v===1?g.n1:null);
+        var g=cands[j], c=claveGuia(g), v=enEscuela()?0:SG.GUIA.veces(c), pasos=forzar?g.n0:(v===0?g.n0:v===1?g.n1:null);
         if(!pasos || (!forzar && guiaVista[c])) continue;
         guiaVista[c]=true;
-        SG.GUIA.recorrido(pasos, { titulo:g.titulo, alAcabar:function(){ if(g.uso==='visto') SG.GUIA.anotar(c); }, alSaltar:function(){ if(g.uso==='visto') SG.GUIA.anotar(c); } });
+        SG.GUIA.recorrido(pasos, { titulo:g.titulo, alAcabar:function(){ if(g.uso==='visto' && !enEscuela()) SG.GUIA.anotar(c); }, alSaltar:function(){ if(g.uso==='visto' && !enEscuela()) SG.GUIA.anotar(c); } });
         return;
       }
       if(forzar) SG.GUIA.recorrido([{t:'En esta diapositiva no hay nada que configurar. Pasa con <b>→</b>; cuando llegue algo nuevo, te lo enseño.'}], {titulo:'Todo en orden'});

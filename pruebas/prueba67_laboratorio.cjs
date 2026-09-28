@@ -5421,6 +5421,54 @@ const REG = {};   // cifras que se apuntan para el informe
       c("escuela · sin errores", !ne.errores.filter(e => !/Failed to load resource/.test(e)).length, ne.errores[0] || "");
       await ne.cerrar();
     }
+    // ============================================================ 51 · EL ESCUADRÓN COMPARTIDO (28-sep)
+    /**
+     * Norberto: «¿has probado que Stargate ejecute lo que he decidido? Había puesto compartir, pero se traspasó». «Apoya a»
+     * deja el escuadrón a quien lo lleva (su nombre y su alumnado) y suma a quien entra como segundo Comandante; y la tarjeta
+     * de quien entra ya no invita a «Darle un escuadrón», que lo pasaba ENTERO.
+     */
+    if (hacer(51)) {
+      const P = "lab-clase", fsA = admin().firestore();
+      const suyos = async n => (await fsA.collection("student_profiles").where("projectId", "==", P).where("stargateProfe", "==", n).get()).size;
+      const rita = await nueva("Rita añade a Paula para apoyar un escuadrón");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await aGestion(rita, P, "equipo"); await rita.hasta("!!document.getElementById('e-add')", 15);
+      const de = await rita.js("(document.getElementById('e-apoya')||{}).value||''");
+      const fAntes = (((await leerDoc("projects/" + P)).factions) || []).filter(f => f.teacherName === de)[0] || {};
+      const nAntes = await suyos(de);
+      await rita.js("document.getElementById('e-nom').value='Paula Apoyo'; document.getElementById('e-mail').value='paula@lab.test'; document.getElementById('e-rol').value='docente'; document.getElementById('e-apoya').click(); document.querySelector('input[name=\"e-para\"][value=\"apoya\"]').click(); document.getElementById('e-add').click(); 1");
+      c("compartido · la referente añade a Paula con «Apoya a " + de + "»",
+        !!de && await rita.hasta("/Apoya a/.test((document.getElementById('c-aviso')||{}).innerText||'')", 30), await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
+      const fDesp = (((await leerDoc("projects/" + P)).factions) || []).filter(f => f.id === fAntes.id)[0] || {};
+      c("🔴 compartido · el escuadrón sigue siendo de " + de + ", y ahora con el correo de Paula (sin perder ninguno)",
+        !!fAntes.id && fDesp.teacherName === de && (fDesp.assignedTeacherEmails || []).indexOf("paula@lab.test") >= 0
+          && (fAntes.assignedTeacherEmails || []).every(x => (fDesp.assignedTeacherEmails || []).indexOf(x) >= 0),
+        JSON.stringify([fAntes.teacherName, fAntes.assignedTeacherEmails, fDesp.teacherName, fDesp.assignedTeacherEmails]));
+      const nDesp = await suyos(de), nPaula = await suyos("Paula Apoyo");
+      c("🔴 compartido · su alumnado no se mueve: nadie pasa a Paula", nDesp === nAntes && nPaula === 0, [nAntes, nDesp, nPaula].join(" · "));
+      await rita.hasta("[].slice.call(document.querySelectorAll('.eq-p h4')).some(function(h){return /Paula Apoyo/.test(h.innerText)})", 20);
+      const tj = await rita.js("(function(){ var a=[].slice.call(document.querySelectorAll('.eq-p')).filter(function(x){return /Paula Apoyo/.test(x.querySelector('h4').innerText)})[0]; return a ? {t:a.innerText, pasar:!!a.querySelector('[data-asumir]'), img:!!a.querySelector('.eq-cab img[src*=\"escuadron\"], .eq-cab img[src*=\"emblema\"], .eq-cab > img')} : null; })()");
+      c("🔴 compartido · la tarjeta de Paula: Comandante de «" + fAntes.name + "», compartido con " + de + ", con su emblema y sin «Pasarle un escuadrón entero»",
+        !!tj && tj.t.indexOf("Comandante de") >= 0 && tj.t.indexOf(fAntes.name) >= 0 && /Compartido con/.test(tj.t) && tj.t.indexOf(de) >= 0 && !tj.pasar && tj.img,
+        JSON.stringify(tj).slice(0, 320));
+      const tjDe = await rita.js("(function(){ var a=[].slice.call(document.querySelectorAll('.eq-p')).filter(function(x){return x.querySelector('h4').innerText.indexOf(" + JSON.stringify(de) + ")===0})[0]; return a ? a.innerText : ''; })()");
+      c("compartido · y la de " + de + " dice con quién lo comparte", /Compartido con Paula Apoyo/.test(tjDe), tjDe.slice(0, 220).replace(/\n/g, " · "));
+      await rita.foto(FOTOS + "/51-equipo-compartido.png");
+      await rita.js("document.querySelector('.gs-panel [data-tab=\"escuadrones\"]').click(); 1"); await dormir(1200);
+      const escTxt = await rita.js("(document.getElementById('c-cuerpo')||document.body).innerText");
+      c("compartido · Escuadrones: los dos Comandantes, «(compartido)», y ya no dice «uno por docente»",
+        escTxt.indexOf(de + " y Paula Apoyo (compartido)") >= 0 && !/Uno por docente/.test(escTxt), escTxt.slice(0, 320).replace(/\n/g, " · "));
+      await rita.foto(FOTOS + "/51-escuadrones.png");
+      await rita.cerrar();
+      const pa = await nueva("Paula entra en su Nave");
+      await pa.ir("entrar.html"); await pa.entrarComo("paula@lab.test", "Paula Apoyo");
+      await pa.ir("consola.html?per=" + P); await pa.hasta("!!document.querySelector('.cn-ficha')", 60); await dormir(1500);
+      const ban = await pa.js("(document.querySelector('.cn-ficha')||{}).innerText||''");
+      c("🔴 compartido · la Nave de Paula: escuadrón «" + fAntes.name + "» (compartido con " + de + ")",
+        ban.indexOf(fAntes.name) >= 0 && ban.indexOf("compartido con " + de) >= 0, ban.slice(0, 220).replace(/\n/g, " · "));
+      await pa.foto(FOTOS + "/51-nave-paula.png");
+      await pa.cerrar();
+    }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
   } finally {
