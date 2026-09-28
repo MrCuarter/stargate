@@ -893,13 +893,17 @@ SESION_ACTIVIDAD = {
 
 EVALUACION = [("Actividad %d" % a["n"], a["puntos"], "%s · se lanza en la semana %d, se entrega el último día de la semana %d y se resuelve en la %d" % (a["titulo"], a["sem"], a["entrega"], a["resuelve"]))
               for a in ACTIVIDADES] + [
-    ("Tests de tema", "0,8", "Uno por tema, 0,1 cada uno: fijan los conceptos del examen"),
+    ("Tests de tema", "0,8", "Uno por tema, 0,1 cada uno: fijan los conceptos de cada tema"),
     ("Asistencia en directo", "0,6", "Tres clases en directo a lo largo del curso, 0,2 cada una"),
 ]
 EVALUACION_EXAMEN = "Y el examen final, en la semana de exámenes: se construye una plataforma en directo (en la 15 hay simulacro)."
 # 🔴 28-sep · EL REPARTO DE LA NOTA FINAL (Norberto): «40 % evaluación continua (tests de final de tema, asistencias más nota
 # de actividades) y 60 % examen». La evaluación continua se puntúa sobre 10 (EVALUACION: 4,3 + 4,3 + 0,8 + 0,6).
 NOTA_FINAL = {"continua": 40, "examen": 60}
+# 🔴 28-sep · EN PUA NO HAY EXAMEN. Norberto: «¡Atención! En PUA no hay examen. El 100% de la nota es la ev continua».
+# La evaluación continua es la misma (EVALUACION, sobre 10); lo que cambia es que es toda la nota.
+NOTA_FINAL_PUA = {"continua": 100, "examen": 0}
+EVALUACION_EXAMEN_PUA = "En los grupos PUA no hay examen final: la evaluación continua es el 100 % de la nota."
 
 # ────────────────────────── 🔴 23-sep · LA SESIÓN DE LA SEMANA 1: EL EMBARQUE ──────────────────────────
 # Norberto: «esa primera semana es la presentación de la asignatura junto con la primera parte del tema 1. Esa sesión en
@@ -926,7 +930,7 @@ SESION_EMBARQUE = [
     ("bloque", "1", "ap", "**Bloque 1 · Creación de contenido** (temas 1 a 3): Fôrge, Ecos y Sendara, qué se trabaja en cada uno y cuándo"),
     ("bloque", "2", "ap", "**Bloque 2 · M-Learning** (temas 4 y 5): Reliae y Umbral"),
     ("bloque", "3", "ap", "**Bloque 3 · Gamificación en el aula** (temas 6 a 8): Ludo, Vínculo y Liminar"),
-    ("nota", "", "ap", "**Lo que cuenta para tu nota**, con las fechas de este grupo: las dos actividades, los tests, la asistencia y el examen"),
+    ("nota", "", "ap", "**Lo que cuenta para tu nota**, con las fechas de este grupo: las dos actividades, los tests, la asistencia y, en REGULAR, el examen (en PUA no hay: la continua es el 100 %)"),
     ("unir", "", "ap", "**Todo lo evaluable, por la plataforma de UNIR**: la asistencia que puntúa, las dos actividades y los tests"),
     ("dudas", "", "ap", "**Las dudas, en el foro de la asignatura** (UNIR)"),
     ("voluntario", "", "ap", "**Y ahora, el juego: STARGATE es voluntario**. Vivir una gamificación en primera persona, sin ninguna penalización"),

@@ -1594,20 +1594,22 @@
       +'</ol></div>'};
   }
   function diaNota(){
-    var E=window.SG_EVALUACION||[], NF=window.SG_NOTA_FINAL||null;
+    // 🔴 28-sep · en PUA no hay examen (Norberto): la evaluación continua es el 100 % y no sale la barra del examen
+    var pua=st.tipo==='PUA', E=window.SG_EVALUACION||[], NF=(pua?window.SG_NOTA_FINAL_PUA:window.SG_NOTA_FINAL)||null,
+        EX=pua?window.SG_EVALUACION_EXAMEN_PUA:window.SG_EVALUACION_EXAMEN;
     // 26-sep · con las fechas de ESTE grupo (Norberto: «a mano… la información de puntuaciones y fechas»)
     var fechaDe=function(nombre){ var m=String(nombre).match(/^Actividad\s*(\d)/); if(!m) return ''; var a=ACTS.filter(function(x){ return String(x.n)===m[1]; })[0];
       return a?fechaEntrega(a):''; };
     return {k:'embarque_nota', sec:'embarque', rot:'Lo que puntúa', html:
       '<div class="dia emb con-fondo">'+capaEscena('hangar')+'<div class="kicker"><img class=ico src=assets/img/iconos/p/notas.png alt> La nota</div><h2>Lo que cuenta para tu nota</h2>'
       // 28-sep · el reparto de la nota final (Norberto): 40 % la evaluación continua (esto, sobre 10) y 60 % el examen
-      +(NF?'<div class="emb-reparto"><div class="emb-rp cont" style="flex:'+NF.continua+'"><b>'+NF.continua+' %</b><span>Evaluación continua<small>actividades, tests de tema y asistencia (sobre 10, abajo)</small></span></div>'
-        +'<div class="emb-rp exa" style="flex:'+NF.examen+'"><b>'+NF.examen+' %</b><span>Examen final<small>en la semana de exámenes</small></span></div></div>':'')
+      +(NF?'<div class="emb-reparto"><div class="emb-rp cont" style="flex:'+NF.continua+'"><b>'+NF.continua+' %</b><span>Evaluación continua<small>actividades, tests de tema y asistencia (sobre 10, abajo)'+(NF.examen?'':' · sin examen final')+'</small></span></div>'
+        +(NF.examen?'<div class="emb-rp exa" style="flex:'+NF.examen+'"><b>'+NF.examen+' %</b><span>Examen final<small>en la semana de exámenes</small></span></div>':'')+'</div>':'')
       +'<div class="emb-nota">'+E.map(function(x,i){ var f=fechaDe(x[0]);
           return '<div class="emb-n'+(/^Actividad/.test(x[0])?' act':'')+'" style="--i:'+i+'"><b>'+esc(x[1])+'</b><span><em>'+esc(x[0])+'</em>'+esc(x[2])
             +(f?'<i class="emb-fecha">Entrega: '+esc(f)+', 23:59</i>':'')+'</span></div>'; }).join('')+'</div>'
       +'<p class="emb-ojo">Los <b>retos no puntúan</b>: son el camino. Muchos dejan hecho un trozo de una actividad, y quien los hace llega a la entrega con la mitad resuelta.</p>'
-      +(window.SG_EVALUACION_EXAMEN?'<p class="sub">'+esc(window.SG_EVALUACION_EXAMEN)+'</p>':'')
+      +(EX?'<p class="sub">'+esc(EX)+'</p>':'')
       +'</div>'};
   }
   /**

@@ -457,7 +457,7 @@
   var PREGUNTAS = [
     ["¿Esto me da más trabajo?", "Menos. No se apunta nada a mano y la sesión viene montada. Lo que sí pide son treinta segundos de ceremonia en clase: decir el alias en voz alta."],
     ["¿Y si alguien hace trampas?", "Todos los retos piden el enlace, hay un aviso si alguien registra muchos de golpe y cada reto se puede anular con un motivo que le llega a su Nave. Y ninguna nota sube sin vuestro visto bueno."],
-    ["¿Los puntos son la nota?", "No. Los xp y los créditos son del juego. La nota sale de las actividades y del examen, como siempre."],
+    ["¿Los puntos son la nota?", "No. Los xp y los créditos son del juego. La nota sale de las actividades, los tests, la asistencia y, en los grupos REGULAR, del examen, como siempre (en PUA no hay examen: la evaluación continua es el 100 %)."],
     ["¿Tengo que saberme la historia?", "No. Cada semana tenéis el mensaje del foro ya escrito y la sesión proyectada la cuenta sola."],
     ["¿Y si no me gusta la gamificación?", "Usad solo la parte operativa: la sesión montada, los enlaces y el seguimiento. Su Nave la tendrán igual."]
   ];
