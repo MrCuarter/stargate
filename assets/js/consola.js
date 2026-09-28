@@ -990,7 +990,7 @@
   var RAPIDOS_ANULAR = [["El enlace no abre", "El enlace no abre: revisa que esté bien copiado y vuelve a registrar el reto."],
                         ["No es público", "El enlace no es público: cambia los permisos para que cualquiera con el enlace pueda verlo y vuelve a registrarlo."],
                         ["No es lo que pide", "Lo que has entregado no es lo que pide el reto: vuelve a leerlo y regístralo cuando lo tengas."],
-                        ["Falta la reflexión", "Falta la reflexión que pide el reto: añádela al registrarlo otra vez."]];
+                        ["Está a medias", "Lo que has entregado está a medias: termínalo y vuelve a registrarlo."]];
   function retosOrdenados() { return DATOS.misiones.slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); }
   /**
    * 16-sep · EXPORTAR A CSV. Norberto lo eligió de lo que trae el motor: para evaluar con datos y para justificar una

@@ -2027,9 +2027,9 @@ PASOS = [
         "que configurar nada más: ya está funcionando."),
 
    dict(cod="R6", t="Lo único que tienes que repartir", pose="senala", img=None,
-    hacer="El <b>código de clase</b>: en el <b>Puente</b> de tu Nave las tres primeras semanas (después, en <b>Mi gente</b>), con el botón <b>«Copiar invitación»</b>. Y en la sesión de las semanas 1 y 2, en grande, en la diapositiva <b>«Únete a la clase»</b>.",
+    hacer="El <b>código de clase</b>: en el <b>Puente</b> de tu Nave las tres primeras semanas (después, en <b>Reclutas</b>), con el botón <b>«Copiar invitación»</b>. Y en la sesión de las semanas 1 y 2, en grande, en la diapositiva <b>«Únete a la clase»</b>.",
     voz="Un código. Uno solo, de seis caracteres. Las tres primeras semanas lo tienes en el Puente de "
-        "tu nave, y después en Mi gente. Y en la sesión de las dos primeras semanas sale en grande, en "
+        "tu nave, y después en Reclutas. Y en la sesión de las dos primeras semanas sale en grande, en "
         "su propia diapositiva, para que lo copien de la pantalla. Tu alumnado entra por la portada con su cuenta de Google, escribe "
         "el código y se alista. Y si prefieres mandarlo por escrito, el botón Copiar invitación te da "
         "un mensaje listo para el foro de la plataforma de UNIR, con el enlace directo dentro. Ya no hay "
@@ -2066,7 +2066,7 @@ PASOS = [
         "foro, ya escrito. Lo copias, lo pegas en el foro de la plataforma de UNIR y sigues con tu vida."),
 
    dict(cod="D3", t="Dos: tu gente", pose="tablet", img="d3_sala.png",
-    hacer="Tu Nave → <b>Mi gente</b> → pulsa cualquier fila.",
+    hacer="Tu Nave → <b>Reclutas</b> → pulsa cualquier fila.",
     voz="Esta es tu gente, y entras con tu cuenta de Google: ni PIN, ni escribir tu correo, ni elegir "
         "tu nombre de una lista. Si pulsas a cualquiera se abre su ficha: lo que lleva hecho, sus "
         "insignias, sus créditos, su correo y el enlace de cada evidencia. El aviso sin enlace te dice "

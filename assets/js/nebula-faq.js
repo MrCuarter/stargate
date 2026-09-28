@@ -430,7 +430,7 @@ window.SG_NEBULA_FAQ = [
     r: "Dos secciones: <b>Narrativa y vídeos</b> (la historia en orden y los fragmentos que vas ganando) y <b>Sesiones de clase</b> (la presentación, cada semana y cada actividad).", ir: "archivo" },
   { id: "fragmentos", p: ["qué son los fragmentos", "cómo consigo un fragmento", "no veo el fragmento"],
     claves: ["fragmento", "fragmentos", "tripulante"],
-    r: "Cada fragmento aparece al completar el <b>relámpago</b> de su tema. Quien no lo hace, lo verá dos semanas más tarde. Están en Archivo → Narrativa y vídeos.", ir: "archivo" },
+    r: "Cada fragmento aparece al completar el <b>relámpago</b> de su tema, y solo para quien lo completa: la historia se colecciona ganándola. Están en Archivo → Narrativa y vídeos.", ir: "archivo" },
   { id: "spoiler", p: ["cómo acaba la historia", "qué pasa al final", "cuéntame el final", "quién es el villano", "qué les pasó a la tripulación"],
     claves: ["acaba", "final", "spoiler", "villano", "historia", "pasa"],
     r: "Ni una palabra, recluta: la historia se descubre viajando. Lo que ya se ha abierto está en el Archivo; lo demás llegará a su tiempo.", ir: "archivo" },
