@@ -3535,7 +3535,10 @@ SEMANAS_JSON = json.dumps([{
   # la sala de sesion (sesion.html) para la tira de preparacion del docente.
   "consejo": s.get("consejo", ""), "clases": s.get("clases", ""),
   # 23-sep · la pregunta de cada clase (calendario oficial): abre la sesión con el comandante del docente
-  "preguntas": [list(q) for q in s.get("preguntas", [])]} for s in CRONO], ensure_ascii=False)
+  "preguntas": [list(q) for q in s.get("preguntas", [])],
+  # 29-sep · lo que cambia en un PUA (la semana del repaso, que en PUA va en la última sesión: calendario.js → semanasPua)
+  **({"pua": dict(s["pua"], videos=[[{"id": yt(c)["id"], "titulo": yt(c)["titulo"]}, cuando] for c, cuando in s["pua"]["videos"]])} if s.get("pua") else {})}
+  for s in CRONO], ensure_ascii=False)
 
 """
 18-sep · EN QUÉ SEMANA SE LANZA CADA RETO. Norberto: «organiza el despliegue de los retos… si un reto no se ha

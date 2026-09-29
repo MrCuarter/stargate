@@ -183,7 +183,26 @@ CRONO = [
               ("f9","Y detrás, el último secreto de la Cero: se abre con el desenlace")],
       lanza=["Reto «El simulacro del examen» (90 minutos de reloj, en la clase de repaso)"], insignias=["H5_la-liberacion"],
       hito="Repaso + simulacro del examen · Bitácoras publicadas", clases="Clases 19–20",
-      consejo="Celebra las Bitácoras publicadas: son el producto real del curso. Despídete con «Vuelve después de la batalla para ver el desenlace»: cuando acaba el viaje se abren en su Nave «La batalla de la Ciudadela Gris» y, detrás, el Fragmento Prohibido."),
+      consejo="Celebra las Bitácoras publicadas: son el producto real del curso. Despídete con «Vuelve después de la batalla para ver el desenlace»: cuando acaba el viaje se abren en su Nave «La batalla de la Ciudadela Gris» y, detrás, el Fragmento Prohibido.",
+      # 🔴 29-sep · EN PUA, ESTA SEMANA VA EN LA ÚLTIMA SESIÓN. Un PUA no tiene examen (la evaluación continua es el 100 %) y su
+      # vista de 8 semanas agrupa por tema: esta semana, que no tiene tema, se caía entera (el reto de 90 minutos, su hito y su
+      # mensaje). Norberto: «PUA, la última sesión». calendario.js → semanasPua la suma a la sesión 8 con ESTO en su lugar: sin
+      # «El Plan de Ataque» (explica el examen), con «La batalla final» y un mensaje del foro sin simulacro.
+      pua=dict(sub="La batalla final",
+               videos=[("desenlace","Tras la batalla final: cómo se ganó, en la Nave de cada cual cuando acaba el viaje"),
+                       ("f9","Y detrás, el último secreto de la Cero: se abre con el desenlace")],
+               lanza=["Reto «La batalla final» (90 minutos contra la Estática, en la última clase)"],
+               hito="La batalla final contra la Estática · Bitácoras publicadas",
+               consejo="En un PUA no hay examen: la evaluación continua es el 100 %, y la última clase es la batalla final, noventa minutos contra la Estática. Celebra las Bitácoras publicadas: son el producto real del curso. Despídete con «Vuelve después de la batalla para ver el desenlace»: cuando acaba el viaje se abren en su Nave «La batalla de la Ciudadela Gris» y, detrás, el Fragmento Prohibido.",
+               foro=("Último capítulo: La liberación.\n\nReclutas:\n\nYa sabes la verdad de la Cero, y la flota de la Estática está aquí. "
+                     "Esta es la última clase a bordo, y es la batalla.\n\nVaeon apaga mundos apagando a quien registra, y contra eso solo hay "
+                     "una defensa: que lo registrado esté en demasiadas manos. Una Bitácora abierta, copiada mil veces y contada por mil voces no "
+                     "se puede apagar. Ocho planetas, ocho tripulantes y una Bitácora que empezó vacía en Fôrge: eso es lo que llevamos a la "
+                     "Ciudadela Gris.\n\nEn clase libramos la batalla final: noventa minutos contra la Estática, con todo lo que has aprendido "
+                     "en el viaje. Aquí no hay examen: cuenta lo que has construido, página a página.\n\nÓRDENES DE LA SEMANA\n"
+                     "· Reto «La batalla final»: 90 minutos contra la Estática, en la última clase.\n"
+                     "· Tu Bitácora completa, cerrada y pública. Es literal: es el camino a casa.\n\nY ya sabes por qué esta nave se llama "
+                     "La Constancia. Vuelve después de la batalla: el desenlace te espera en tu Nave.\n\n— Tu Comandante"))),
 ]
 
 # ---------- Plantilla Genially del ePortfolio (la Bitácora) ----------

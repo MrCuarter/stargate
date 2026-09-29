@@ -108,6 +108,10 @@
       (RET.REGULAR||[]).forEach(function(r){
         var k=nucleo(r[1]); if(k&&!_idx[k]) _idx[k]=r[0];
       });
+      // 29-sep · y los nombres propios del PUA (su XS es «La batalla final», que en PUA lanza la última sesión)
+      (RET.PUA||[]).forEach(function(r){
+        var k=nucleo(r[1]); if(k&&!_idx[k]) _idx[k]=r[0];
+      });
     }
     return _idx[nucleo(txt)]||'';
   }

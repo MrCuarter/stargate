@@ -2,7 +2,13 @@
 // Semana en curso desde la fecha de la semana 1 del PER, vista PUA (fusión por tema)
 // y semanas de desbloqueo (los umbrales se definen sobre las 15 semanas REGULAR).
 window.SGCAL = (function(){
-  function semanasPua(SEM){var porTema={};SEM.forEach(function(s){var t=s.tema_n;if(!t)return;(porTema[t]=porTema[t]||[]).push(s);});
+  /**
+   * 🔴 29-sep · LA SEMANA DEL REPASO, EN LA ÚLTIMA SESIÓN DEL PUA. Norberto: «PUA, la última sesión». La vista de 8 semanas
+   * agrupa por tema, y la semana sin tema (la 15: el reto de 90 minutos, su hito y su mensaje) se caía entera. Ahora se suma a
+   * la del último tema, con su versión PUA (`pua` en el CRONO): sin el vídeo del examen y con «La batalla final».
+   */
+  function semanasPua(SEM){var porTema={},ultimo=0;SEM.forEach(function(s){if(s.tema_n>ultimo)ultimo=s.tema_n;});
+    SEM.forEach(function(s){var t=s.tema_n;if(!t){if(!ultimo)return;t=ultimo;s=Object.assign({},s,s.pua||{});}(porTema[t]=porTema[t]||[]).push(s);});
     return Object.keys(porTema).sort(function(a,b){return a-b;}).map(function(t,i){var l=porTema[t];return {sem:i+1,tema:l[0].tema.replace(' (cont.)',''),sub:l.map(function(s){return s.sub;}).join(' · '),capitulo:l[0].capitulo,tema_n:Number(t),videos:[].concat.apply([],l.map(function(s){return s.videos;})),lanza:[].concat.apply([],l.map(function(s){return s.lanza;})),insignias:[].concat.apply([],l.map(function(s){return s.insignias;})),foro:l.map(function(s){return s.foro;}).join('\n\n— · —\n\n'),hito:l.map(function(s){return s.hito;}).join(' · '),consejo:l.map(function(s){return s.consejo;}).filter(Boolean).join(' '),clases:l.map(function(s){return s.clases;}).filter(Boolean).join(' · ')};});}
   function vista(tipo,SEM){return tipo==='PUA'?semanasPua(SEM):SEM;}
   // 13-sep · con las semanas congeladas del referente; la cuenta vive en motor/semanas.js (una para todos)
