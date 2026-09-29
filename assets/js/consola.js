@@ -678,6 +678,23 @@
     quizaBienvenida();
   }
   /** Tu cita en el grupo que tienes abierto (`stargate.citas[tu nombre]`). */
+  /**
+   * 29-sep · EL ENLACE DE UNA PRESENTACIÓN, O SU CÓDIGO «INSERTAR». Genially da un bloque HTML con un iframe: de ahí se saca
+   * SOLO la dirección (`src`), y solo si es de un sitio conocido. Nunca se guarda ni se pinta el HTML de nadie. Un enlace a
+   * secas sigue valiendo como siempre (https).
+   */
+  var EMBEBIBLES = /^https:\/\/(view\.genially\.com|view\.genial\.ly|app\.genially\.com|genial\.ly|docs\.google\.com|(www\.)?canva\.com)\//i;
+  function enlaceEmbebible(v) {
+    v = String(v || "").trim(); if (!v) return { url: "" };
+    if (/<iframe/i.test(v)) {
+      var m = /\ssrc\s*=\s*["']([^"']+)["']/i.exec(v), src = m ? m[1].replace(/&amp;/g, "&").trim() : "";
+      if (!src) return { error: "No encuentro la dirección dentro de ese código. Copia el código «Insertar» entero, o solo el enlace." };
+      if (!EMBEBIBLES.test(src)) return { error: "Ese código no es de Genially, Google Slides ni Canva." };
+      return { url: src };
+    }
+    if (!/^https:\/\/\S+\.\S+/i.test(v)) return { error: "Tiene que ser una dirección que empiece por https:// (o el código «Insertar» de Genially)." };
+    return { url: v };
+  }
   function miCita() {
     var p = PERS.filter(function (x) { return x.id === PER; })[0] || {}, S = (DATOS && DATOS.proyecto && DATOS.proyecto.stargate) || p.stargate || {};
     return ((S.citas || {})[miNombreAqui()] || "");
@@ -1046,6 +1063,8 @@
       bannerGrupo(t) + barraSecciones() + subPestanas() +
       '<div id="c-aviso" class="aviso" hidden></div>' +
       '<div id="c-cuerpo"></div>';
+    // 29-sep · la consola de ensayo apunta lo que recorre, para la Academia de la Cero (en ESTE navegador; no escribe nada)
+    if (url.get("demo") === "1" && window.SG.rastroAcademia) { var vis = {}; vis[TAB] = true; window.SG.rastroAcademia({ consola: vis }); }
     Array.prototype.forEach.call(app.querySelectorAll("[data-tab]"), function (b) {
       b.onclick = function () { TAB = b.getAttribute("data-tab"); if (alDia()) pintar(); else releerYPintar(); };   // (25-sep · al día)
     });
@@ -1515,6 +1534,7 @@
   }
   function verFicha(r, volver) {   // (25-sep · `volver`: {texto, fn}, si se llega desde otra ventana —la del reto—)
     var retos = retosOrdenados(), ficha = r.ficha, esRef = soyRefAqui();
+    if (url.get("demo") === "1" && window.SG.rastroAcademia) window.SG.rastroAcademia({ consola: { ficha: true } });
     FICHA_RF = r;   // (para quitar una reflexión o un comentario desde su ficha)
     var f = ((DATOS.proyecto && DATOS.proyecto.factions) || []).filter(function (x) { return x.teacherName === r.profe; })[0];
     var m = modalFicha(
@@ -1747,7 +1767,7 @@
     var nombre = p.miNombre || miNombreEn(p);
     var dentro = per === PER && DATOS;
     var ses = (dentro ? ((window.SG.TABLERO.tablero(DATOS, true) || {}).sesiones) : ((p.stargate || {}).sesiones)) || {};
-    window.SG.CFGSESION.abrir({ per: per, grupo: p.nombre || per, nombre: nombre, off: ses[nombre] || [],
+    window.SG.CFGSESION.abrir({ per: per, grupo: p.nombre || per, nombre: nombre, off: ses[nombre] || [], demo: url.get("demo") === "1",
       alGuardar: function (off) {
         p.stargate = p.stargate || {}; p.stargate.sesiones = p.stargate.sesiones || {};
         if (off.length) p.stargate.sesiones[nombre] = off; else delete p.stargate.sesiones[nombre];
@@ -2209,7 +2229,9 @@
           '<p class="small muted">El Genially que abre <b>tu</b> alumnado desde su Nave. Ahora usan ' + (propio ? '<b>el tuyo</b>.' : 'el <b>oficial</b> del grupo.') + '</p>' +
           (panelMio ? '<div class="pt-panel-marco"><iframe src="' + esc(panelMio) + '" title="Tu panel de control" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'
                     : '<p class="small muted">Todavía no hay ningún panel puesto.</p>') +
-          '<div id="pt-panel-caja" hidden><label>Tu Genially<input id="pt-panel-in" value="' + esc(propio) + '" placeholder="https://view.genially.com/…" autocomplete="off"></label>' +
+          // 29-sep · vale su enlace o el código «Insertar» de Genially tal cual (de ahí solo se saca la dirección)
+          '<div id="pt-panel-caja" hidden><label>Tu Genially: su enlace o su código «Insertar»<input id="pt-panel-in" value="' + esc(propio) + '" placeholder="https://view.genially.com/… o <iframe …>" autocomplete="off"></label>' +
+            '<p class="small muted"><b>RECUERDA:</b> pon tu <b>copia</b> de la plantilla, nunca la plantilla (Genially → Duplicar). En Genially, <b>Compartir → Insertar</b> te da el código.</p>' +
             '<p class="pt-fila"><button type="button" class="btn primary" id="pt-panel-ok">Guardar para mis reclutas</button>' +
             (propio ? ' <button type="button" class="btn min" id="pt-panel-of">Volver al oficial</button>' : '') + '</p>' +
             '<p class="small m-sec-msg" id="pt-panel-msg" aria-live="polite"></p></div></div>' +
@@ -2250,7 +2272,11 @@
     var pEd = $("#pt-panel-ed"), pCaja = $("#pt-panel-caja"), pMsg = $("#pt-panel-msg");
     if (pEd && pCaja) pEd.onclick = function () { pCaja.hidden = !pCaja.hidden; pEd.setAttribute("aria-expanded", String(!pCaja.hidden)); if (!pCaja.hidden) $("#pt-panel-in").focus(); };
     var guardaPanel = async function (v) {
-      if (v && !/^https:\/\/\S+\.\S+/i.test(v)) { pMsg.textContent = "Tiene que ser una dirección que empiece por https://"; return; }
+      var e = enlaceEmbebible(v); if (e.error) { pMsg.textContent = e.error; return; }
+      v = e.url;
+      if (url.get("demo") === "1") {   // 29-sep · la consola de ensayo no guarda: lo apunta para la Academia
+        if (v && window.SG.rastroAcademia) window.SG.rastroAcademia({ panel: true });
+        pMsg.textContent = v ? "✓ Anotado. En la consola de ensayo no se guarda: en tu grupo, tu alumnado abriría este panel." : "✓ Volverían al oficial."; return; }
       pMsg.textContent = "Guardando…";
       try { await guardarMiParte("paneles", yoN, v); await refrescar();
             aviso(v ? "Guardado: tu alumnado abrirá tu panel." : "Quitado: tu alumnado vuelve al panel oficial.", true); }

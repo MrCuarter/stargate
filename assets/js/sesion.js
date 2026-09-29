@@ -2443,6 +2443,7 @@
     if(st.i>=st.slides.length) st.i=st.slides.length-1;
     if(st.i<0) st.i=0;
     if(st.fuera){ try{ st.fuera(); }catch(e){} st.fuera=null; }
+    rastroAcademia();
 
     root.innerHTML=(EMBED ? '' : st.aviso+prep(s)+tira())
       +'<div class="mazo" id="mazo" tabindex="0" aria-live="polite">'
@@ -2602,6 +2603,21 @@
     ir(st.i-1, true);
   }
 
+  /**
+   * 🔴 29-sep · EL RASTRO PARA LA ACADEMIA DE LA CERO. La clase de ensayo (la del grupo DEMO, sin ser su docente) y la sesión
+   * en diferido del grupo de la Academia apuntan hasta dónde se ha llegado, en ESTE navegador (SG.rastroAcademia): la Academia
+   * da por hecha «una clase entera» cuando se llega a la última diapositiva. No escribe en ningún servidor, y en cualquier otro
+   * grupo no apunta nada.
+   */
+  function rastroAcademia(){
+    var R=window.SG&&window.SG.rastroAcademia; if(!R||!st.slides||!st.slides.length) return;
+    var demo=st.per===(window.SG_PER_DEMO||'demo-stargate')&&!st.miNombre&&!st.alumno, aca=DIFERIDO&&st.per&&st.per===window.SG_PER_ACADEMIA;
+    if(!demo&&!aca) return;
+    var k=st.per+':'+(st.act?'act'+st.act:st.pres?'pres':(st.sem||0)), prev=null;
+    try{ prev=((JSON.parse(localStorage.getItem('sgAcademia')||'{}')||{}).clase||{})[k]||null; }catch(e){}
+    var v={ max:Math.max(Number(prev&&prev.max)||0, st.i), total:st.slides.length, dif:!!DIFERIDO }, o={}; o[k]=v;
+    R({ clase:o });
+  }
   function ir(i, hacia_atras, desdeDirecto){
     var n=st.slides.length;
     if(i<0||i>=n) return;
@@ -2613,6 +2629,7 @@
      */
     if(st.alumno && !desdeDirecto && i!==st.i && enDirecto()){ avisoBloqueo(); return; }
     st.i=i;
+    rastroAcademia();
     // al volver atrás a un podio, se ve entero; al llegar de frente, se destapa de uno en uno
     st.f=hacia_atras&&st.slides[i].frag?st.slides[i].frag:0;
     if(st.fuera){ try{ st.fuera(); }catch(e){} st.fuera=null; }

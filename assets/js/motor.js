@@ -2189,6 +2189,37 @@ async function citaEnGrupo(perId, nombre, cita) {
   return true;
 }
 /**
+ * 🔴 29-sep · LA ACADEMIA DE LA CERO (academia.html), el curso del profesorado. Norberto: «los profes se unirán a través de un
+ * enlace, así ya les obligamos a usar una cuenta de Google… así cuando cree un grupo nuevo, puedo ver ya la lista de profes
+ * registrados y marcar con tic para añadirlos». Cada docente, SU documento: `stargate_formacion/{uid}` con sus hitos (`pasos`),
+ * su diseño, sus preguntas, lo que opina de cada juego y cuánto lleva (`avance`). `claude` (las respuestas y los ajustes de su
+ * camino) solo lo escribe la revisión diaria, con la cuenta de servicio: las reglas no dejan tocarlo desde el navegador.
+ */
+const ACADEMIA_CAMPOS = ["alias", "pasos", "diseno", "preguntas", "feedback", "avance"];
+async function academiaMia() {
+  const yo = await sesion(); if (!yo) return null;
+  const d = await getDoc(doc(db, "stargate_formacion", yo.uid));
+  return d.exists() ? d.data() : null;
+}
+async function academiaGuardar(campos) {
+  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta de Google.");
+  const limpio = {};
+  ACADEMIA_CAMPOS.forEach((k) => { if (campos[k] !== undefined) limpio[k] = campos[k]; });
+  await setDoc(doc(db, "stargate_formacion", yo.uid), Object.assign({ uid: yo.uid, correo: String(yo.correo || "").toLowerCase(),
+    nombre: String(yo.nombre || "").slice(0, 80), t: Date.now() }, limpio), { merge: true });
+}
+function academiaEscuchar(fn) {
+  // (si no se puede leer —las reglas sin desplegar, sin red—, se avisa igual: la Academia se pinta y lo dice, no se queda colgada)
+  return sesion().then((yo) => (yo ? onSnapshot(doc(db, "stargate_formacion", yo.uid), (d) => fn(d.exists() ? d.data() : null), (e) => fn(null, e)) : null));
+}
+/** El profesorado registrado en la Academia, para añadirlo a un grupo con un clic (lo leen el Mando y los referentes). */
+async function academiaProfes() {
+  const r = await getDocs(collection(db, "stargate_formacion"));
+  return r.docs.map((d) => { const x = d.data() || {};
+    return { uid: d.id, correo: String(x.correo || "").toLowerCase(), nombre: String(x.nombre || x.alias || ""), avance: x.avance || null, t: Number(x.t) || 0 }; })
+    .filter((x) => x.correo).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+}
+/**
  * 19-sep · TUS NOTAS DEL GRUPO. Norberto: «una caja de texto por si tiene algo pendiente». Van en
  * projects/{grupo}/privado/notas_{uid}: `privado` solo lo lee y escribe el equipo docente del grupo (reglas de
  * siempre, sin desplegar nada) y nunca el alumnado. Una por docente.
@@ -2380,7 +2411,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,

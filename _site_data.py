@@ -264,6 +264,195 @@ PER_DEMO = "demo-stargate"
 # del equipo sin que nadie escriba el identificador dos veces.
 PER_ESCUELA = "nave-escuela"
 
+# ---------- 29-sep · LA ACADEMIA DE LA CERO: el curso del profesorado (academia.html) ----------
+# 🔴 Norberto (29-sep): «un grupo solo para docentes, que se alistan como estudiantes… un recorrido asíncrono… de lo más grande
+# a lo más concreto, con hitos autocorregibles… conexión directa contigo una vez al día» (la receta: CCD/RECETA_CURSO_DOCENTES.md,
+# nacida en DPG1 como «El Camino del Mentor»). Y: «los profes se unirán a través de un enlace, así ya les obligamos a usar una
+# cuenta de Google (avisa que los estudiantes nunca verán el mail…), así cuando cree un grupo nuevo, puedo ver ya la lista de
+# profes registrados y marcar con tic para añadirlos». Decidido con él: «Academia de la Cero», título final «Comandante de la
+# Cero», la actividad del alumnado es la imagen con IA (el relámpago L1), el ensayo es el que ya existe y la revisión es diaria.
+# 🔴 El repo es PÚBLICO: aquí no hay destripes (ni qué fue de la Cero, ni quién es NEBULA, ni el pasado de Vaeon) y las
+# respuestas de los cuestionarios quedan a la vista (se corrige en el navegador: vale para un curso de docentes).
+# Tipos de hito: quiz (con `minimo` aciertos) · clasificar (componente, mecánica o dinámica) · auto (lo comprueba la plataforma:
+# alta, reto:<id>, ruta:<misión>, repaso; y el ENSAYO, en este navegador: sim:consola, sim:clase, sim:estudiante, sim:rueda,
+# sim:panel, dif:<semana>) · diseno (se da por hecho con todo relleno; Claude lo comenta). `botones`: [texto, enlace].
+PER_ACADEMIA = "academia-cero"
+ACADEMIA = {
+  "grupo": PER_ACADEMIA,
+  # 29-sep · Norberto: «ponme a mí como docente organizador» (el referente del grupo de la Academia, donde se alistan)
+  "organiza": {"nombre": "Norberto Cuartero", "correo": "n.cuartero.10@gmail.com"},
+  "codigo": "UT795T",   # el código de clase del grupo: lo escribe CCD/academia/academia_grupo.cjs --crear
+  "titulo": "La Academia de la Cero",
+  "sub": "El curso del profesorado de STARGATE: la historia, el temario dentro de ella, la plataforma desde los dos lados y cómo hacerla tuya",
+  "estaciones": [
+    {"id": "historia", "titulo": "La historia, sin destripes", "sub": "Lo justo para guiarla sin ver toda la serie", "min": 10,
+     "pj": "assets/img/personajes/nebula.png", "bg": "assets/img/fondos/p1_forge_llegada.webp", "quien": "NEBULA",
+     "voz": "No hace falta que veas cada capítulo. Te cuento lo justo para que guíes a tu tripulación, y me guardo lo que tiene que descubrir ella.",
+     "bloques": [
+       {"h": "La premisa", "p": "Una fuerza llamada <b>la Estática</b> apaga mundos. No los destruye: <b>los deja en silencio</b>. Donde llega, la gente deja de crear, de dejar constancia de lo que aprende y de compartirlo. La manda el <b>General Vaeon</b>. Contra ella, la agencia STARGATE envía la nave <b>Cero</b>, heredera de una tripulación que desapareció haciendo ese mismo viaje."},
+       {"h": "Tu alumnado son los reclutas", "p": "Cada estudiante es un <b>recluta</b>: se alista en la Cero con un alias y un avatar, y entra en un <b>escuadrón</b>, el de su Comandante. Viaja con <b>NEBULA</b>, la IA de la nave, que narra la serie y guarda, a trozos, la memoria de la Tripulación Cero. Su arma es la <b>Bitácora Estelar</b>: el ePortfolio de la asignatura, página a página. <b>Tú eres su Comandante</b>, con tu nombre y el retrato que elijas; el <b>Capitán de la Nave</b> es un personaje de los vídeos, no tú."},
+       {"h": "Ocho planetas, ocho temas", "p": "Fôrge, Ecos, Sendara, Reliae, Umbral, Ludo, Vínculo y Liminar: un planeta por tema. En cada uno espera un tripulante de la Cero con una lección: Bran, Tomás, Sylla, Amara, Vera, Joran, Mara y Noa. El tono es adulto y sin moralinas: gente corriente que se equivocó, dudó y eligió."},
+       {"h": "Cómo llega a tu aula", "p": "Nadie tiene que ver la serie en casa. <b>Cada clase trae su vídeo</b>, dentro de la sesión que proyectas; el <b>foro</b> de cada semana lleva el mensaje de su Comandante, ya escrito; y el <b>relámpago</b> de cada tema recupera a su tripulante: su fragmento de vídeo solo lo ve quien lo hace. La historia avanza a la vez que el temario."},
+       {"h": "Lo que no te contamos, a propósito", "p": "Qué fue de la Tripulación Cero, quién es de verdad NEBULA y qué hay detrás de Vaeon se descubre al final del curso, después del examen. Si guías sin saberlo, reaccionarás a la vez que tu tripulación, y eso también enseña.",
+        "botones": [["Ver la sinopsis (opcional, 3 minutos)", "https://youtu.be/5CqyMqs8zE8"]]},
+     ],
+     "hitos": [
+       {"id": "historia-quiz", "tipo": "quiz", "titulo": "La historia en cinco preguntas", "minimo": 4, "preguntas": [
+         {"p": "¿Qué hace la Estática?", "o": ["Silencia mundos: la gente deja de crear, de dejar constancia y de compartir", "Destruye planetas enteros", "Es una enfermedad de la tripulación"], "ok": 0, "porque": "No destruye nada: apaga las ganas de crear y de compartir. Es exactamente lo que la asignatura combate."},
+         {"p": "¿Quién es tu alumnado en la historia?", "o": ["Reclutas de la nave Cero, cada uno en un escuadrón", "La Tripulación Cero", "Los soldados de Vaeon"], "ok": 0, "porque": "Cada estudiante es un recluta que se alista con su alias y su avatar, en el escuadrón de su Comandante."},
+         {"p": "¿Quién narra la serie?", "o": ["NEBULA, la IA de la nave", "Tú, su Comandante", "El General Vaeon"], "ok": 0, "porque": "NEBULA narra y guarda la memoria de la Cero; tú guías a tu tripulación."},
+         {"p": "¿Quién es el Capitán de la Nave?", "o": ["Un personaje de los vídeos: tú eres el Comandante", "Tú, el docente", "El recluta que más xp lleva"], "ok": 0, "porque": "El Capitán es un personaje de la serie. Tú eres el Comandante, con tu nombre y tu retrato."},
+         {"p": "¿Tiene que ver tu grupo la serie en casa?", "o": ["No: cada clase trae su vídeo, y el foro y los relámpagos completan la historia", "Sí, antes de cada clase", "Solo la sinopsis"], "ok": 0, "porque": "La historia llega sola: el vídeo va dentro de la clase, el mensaje en el foro y cada tripulante en su relámpago."},
+       ]},
+     ]},
+    {"id": "temario", "titulo": "El temario dentro de la historia", "sub": "Cada planeta, un tema; cada tripulante, su lección", "min": 10,
+     "pj": "assets/img/tripulacion/P1_bran.webp", "bg": "assets/img/fondos/p2_ecos.webp", "quien": "Bran Okafor, el Forjador",
+     "voz": "Durante años guardé mis bocetos porque no estaban listos. En Fôrge aprendí que lo imperfecto compartido vale más que lo perfecto guardado.",
+     "bloques": [
+       {"h": "La tesis, hecha enemigo", "p": "La Estática es justo lo que la asignatura combate: <b>no crear, no documentar, no compartir</b>. Cada tema de la asignatura es una forma de romper ese silencio, y cada tripulante la encarna con una historia adulta que explica por qué importa."},
+       {"h": "Planeta a planeta", "p": "<b>T1 · Fôrge</b> (contenido multimedia): Bran, «lo imperfecto compartido vale más que lo perfecto guardado».<br><b>T2 · Ecos</b> (el vídeo): Tomás, «un buen vídeo es tu voz enseñando cuando tú ya no estás».<br><b>T3 · Sendara</b> (interactivos y paisajes de aprendizaje): Sylla, «no hay una sola ruta».<br><b>T4 · Reliae</b> (m-learning): Amara, «compartir a tiempo salva más que compartir perfecto».<br><b>T5 · Umbral</b> (evaluación y ePortfolio): Vera, «evaluar es mirar con método a alguien que te importa».<br><b>T6 · Ludo</b> (el juego y el ABJ): Joran, «el juego es el ensayo general del miedo».<br><b>T7 · Vínculo</b> (gamificación): Mara, «una insignia registra un acto con significado».<br><b>T8 · Liminar</b> (RA y RV): Noa, la arquitecta de capas, que enseña futuros."},
+       {"h": "Cómo lo usas en clase", "p": "Cada clase trae su <b>pregunta</b> del calendario oficial, y el vídeo la pone dentro de la historia. Tú la llevas a su aula: «¿Qué habría hecho Bran? ¿Lo habéis visto en un centro?». La historia <b>nunca explica el temario en voz alta</b>: eso lo hacéis tu grupo y tú, con el temario de la UNIR."},
+       {"h": "Y la Bitácora", "p": "Cada tema deja una página de la <b>Bitácora Estelar</b>, el ePortfolio de la asignatura: el reto principal de cada tema es esa página. Así el juego empuja justo lo que la asignatura pide."},
+     ],
+     "hitos": [
+       {"id": "temario-quiz", "tipo": "quiz", "titulo": "¿Qué tema esconde este planeta?", "minimo": 5, "preguntas": [
+         {"p": "En Fôrge, Bran comparte un boceto a medio acabar y salva a cuarenta personas.", "o": ["T1 · Contenido multimedia", "T5 · Evaluación", "T8 · RA y RV"], "ok": 0, "porque": "Crear y compartir contenido aunque no sea perfecto: el tema 1."},
+         {"p": "En Ecos, Tomás graba mensajes para quien no está.", "o": ["T2 · El vídeo", "T4 · M-learning", "T6 · El juego"], "ok": 0, "porque": "El vídeo como tu voz cuando no estás: el aula invertida."},
+         {"p": "En Sendara, Sylla traza 48 senderos para que nadie se quede fuera del mapa.", "o": ["T3 · Interactivos y paisajes de aprendizaje", "T1 · Contenido multimedia", "T7 · Gamificación"], "ok": 0, "porque": "Muchas rutas para aprender lo mismo: el paisaje de aprendizaje."},
+         {"p": "En Umbral, Vera aprende a medir sin humillar.", "o": ["T5 · Evaluación", "T2 · El vídeo", "T3 · Interactivos"], "ok": 0, "porque": "Evaluar es mirar con método a alguien que te importa."},
+         {"p": "En Ludo, Joran convierte el simulacro de evacuación en un juego.", "o": ["T6 · El juego y el ABJ", "T7 · Gamificación", "T4 · M-learning"], "ok": 0, "porque": "El juego como ensayo general: el aprendizaje basado en el juego."},
+         {"p": "¿Qué hace el vídeo en tu clase?", "o": ["Pone la pregunta dentro de la historia; la clase la resuelve con el temario", "Explica el temario en voz alta", "Sustituye a la teoría"], "ok": 0, "porque": "La historia pone el problema; la teoría y la discusión son tuyas y de tu grupo."},
+       ]},
+     ]},
+    {"id": "elementos", "titulo": "Los elementos y su porqué", "sub": "Objetivo → dinámicas → mecánicas y componentes", "min": 15,
+     "pj": "assets/img/tripulacion/P7_mara.webp", "bg": "assets/img/fondos/p7_vinculo.webp", "quien": "Mara Voss, el Mando",
+     "voz": "Una orden mueve cuerpos. Un porqué mueve personas. Primero, qué quieres que pase; después, la pieza.",
+     "bloques": [
+       {"h": "Los tres elementos", "p": "Los elementos de un proyecto gamificado son los <b>componentes</b>, las <b>mecánicas</b> y las <b>dinámicas</b> (el temario y algunos autores los nombran de otra forma). Los <b>componentes</b> son las piezas: puntos, insignias, avatares, un ranking. Las <b>mecánicas</b> son las reglas que las mueven: ganar xp, subir de nivel, desbloquear, intercambiar. Las <b>dinámicas</b> son lo que surge en quien juega: la cooperación, la curiosidad, las ganas de volver."},
+       {"h": "Las dinámicas no se imponen", "p": "Tú eliges componentes y mecánicas; las dinámicas solo se <b>propician</b>. Por eso se diseña al revés de como se juega: <b>1</b> el objetivo, <b>2</b> las dinámicas que te gustaría que surgieran, <b>3</b> las mecánicas y componentes que pueden propiciarlas. Después se mira qué ha surgido de verdad: si surge una que no querías, se cambian las mecánicas; la dinámica no se prohíbe."},
+       {"h": "Cada pieza de STARGATE, con su objetivo", "p": "<b>Xp y niveles</b>: el progreso, a la vista; los da el saber (los retos, la Ruta).<br><b>Créditos ◈</b>: una economía pequeña que premia la pericia (la sala de Joran) y se gasta en el Mercado.<br><b>El relámpago y el principal</b>: el relámpago practica en clase lo del día (15 minutos); el principal deja la página de la Bitácora.<br><b>El fragmento</b>: la historia se gana; solo quien hace el relámpago recupera a su tripulante.<br><b>Los escuadrones</b>: su ranking va por la <b>media</b>, no por la suma, así que subir a quien va detrás cuenta tanto como subir tú.<br><b>Seis rankings</b>: la xp, la semana, la constancia, la colección, el Simulador y los escuadrones, para que no gane siempre el mismo."},
+       {"h": "Y lo que se abre después", "p": "<b>El Mercado</b> (semana 2): cromos, sobres, héroes y adornos. <b>El Zoco</b> (semana 8): el trueque entre reclutas. <b>El Gran Sorteo</b>: participaciones que se compran con créditos. <b>Los logros de a bordo</b>: recorrer la Nave entera. <b>La Ruta de la Estática</b> y <b>la sala de Joran</b>: el repaso jugado y la pericia. <b>En directo</b> y <b>el Asedio</b>: la clase entera y los escuadrones. <b>El ticket de salida</b>: lo que se ha entendido, anónimo, al cerrar cada tema. <b>El Arsenal</b> (semana 15): subir un poco la nota."},
+     ],
+     "hitos": [
+       {"id": "elementos-clasifica", "tipo": "clasificar", "titulo": "¿Componente, mecánica o dinámica?", "minimo": 7, "items": [
+         ["Los créditos ◈ de tu ficha", "componente", "Los créditos son una pieza: se ven, se ganan y se gastan."],
+         ["Ganar créditos al superar un hito de la sala de Joran", "mecanica", "Es la regla que hace funcionar la pieza."],
+         ["Las ganas de volver a la Ruta a por el oro", "dinamica", "Surge en quien juega: no se impone."],
+         ["La insignia de cada tripulante", "componente", "Una pieza que se colecciona."],
+         ["Que el fragmento solo lo vea quien hace su relámpago", "mecanica", "Una regla de desbloqueo."],
+         ["Ayudar a tu escuadrón para que suba su media", "dinamica", "Un comportamiento que surge: cooperar."],
+         ["El avatar que eliges al alistarte", "componente", "Una pieza de identidad."],
+         ["Cambiar tres cromos repetidos por un sobre", "mecanica", "Una regla de intercambio."],
+         ["Regatear en el Zoco por la carta que te falta", "dinamica", "Lo que surge cuando hay algo que intercambiar."],
+       ]},
+       {"id": "elementos-porque", "tipo": "quiz", "titulo": "¿Para qué está esta pieza?", "minimo": 5, "preguntas": [
+         {"p": "Los escuadrones puntúan por la media, no por la suma. ¿Qué dinámica quieren propiciar?", "o": ["Que se ayude a quien va detrás", "Que compitan los mejores entre sí", "Que cada cual vaya a lo suyo"], "ok": 0, "porque": "Con la media, subir a quien va detrás vale tanto como subir tú: se propicia la cooperación."},
+         {"p": "¿Qué objetivo tiene el reto principal de cada tema?", "o": ["Dejar una página de su Bitácora, el ePortfolio", "Repasar la teoría de memoria", "Sumar xp rápido"], "ok": 0, "porque": "El principal es el portfolio, jugado: una página por tema."},
+         {"p": "¿Por qué el fragmento de un tripulante solo lo ve quien hace su relámpago?", "o": ["Para que la historia se gane: propicia la curiosidad y las ganas de hacerlo", "Para esconder el temario", "Porque cuenta para la nota"], "ok": 0, "porque": "Una recompensa narrativa: la historia es de quien la persigue."},
+         {"p": "¿Por qué la sala de Joran da créditos y no xp?", "o": ["El saber da xp y la pericia da créditos: nadie sube de nivel solo jugando", "Porque es más difícil", "Por un error de diseño"], "ok": 0, "porque": "La xp mide lo que se aprende; los juegos de habilidad pagan en créditos, que se gastan."},
+         {"p": "¿Para qué te sirve el ticket de salida?", "o": ["Para saber, de forma anónima, qué ha entendido tu grupo al cerrar cada tema", "Para poner nota", "Para pasar lista"], "ok": 0, "porque": "Es feedback para ti: lo ves en tu Nave y en la apertura de la clase siguiente."},
+         {"p": "Alguien registra seis retos en un día, sin pensar. ¿Qué haces?", "o": ["Hablar con esa persona y, si se repite, cambiar lo que lo propicia (NEBULA te avisa en el Puente)", "Prohibir registrar retos", "Quitar la gamificación"], "ok": 0, "porque": "Las dinámicas no se ordenan: se corrigen cambiando lo que las propicia."},
+       ]},
+     ]},
+    {"id": "organizacion", "titulo": "Cómo se organiza el curso", "sub": "Las semanas, la clase y tu semana de Comandante", "min": 15,
+     "pj": "assets/img/capitan/senala.png", "bg": "assets/img/fondos/p8_liminar_llegada.webp", "quien": "El Capitán de la Nave",
+     "voz": "Una travesía larga se hace semana a semana. Te enseño el rumbo y lo que te toca en cada una.",
+     "bloques": [
+       {"h": "Quince semanas, ocho planetas", "p": "Un grupo REGULAR dura <b>15 semanas</b>, con un planeta (un tema) cada dos semanas más o menos, según el calendario oficial de la UNIR; un PUA, <b>8</b>, con los temas agrupados. Las semanas festivas se saltan solas. Y cada semana la Nave de tu alumnado abre algo nuevo, un <b>capítulo</b>, que NEBULA le presenta: el Mercado en la 2, los héroes en la 3, el Zoco en la 8, la sala de Joran en la 10…"},
+       {"h": "Una clase, tres tiempos", "p": "Cada clase en directo es una sesión que proyectas. La <b>apertura</b>: la pregunta del día, cómo os fue en el ticket, el mensaje y el vídeo. El <b>despegue</b>: el Genially, con la teoría. Y el <b>cierre</b>: los retos de la semana, el tripulante, la misión de la Ruta si se cierra tema, el ticket de salida y el juego En directo. Quien no puede venir, la ve en diferido."},
+       {"h": "Tu semana de Comandante", "p": "<b>Antes</b> de clase: el mensaje del foro ya está escrito; lo copias a la plataforma de la UNIR (o guardas tu versión). <b>En clase</b>: «Empezar la clase» y avanzar. <b>Después</b>: en tu Nave, un vistazo a los retos registrados (anulas con un porqué el que no tenga evidencia), a la Cola de nota si hay algo pendiente y a los consejos de NEBULA sobre quién se descuelga. Unos minutos a la semana."},
+       {"h": "La nota y lo evaluable", "p": "Lo que cuenta para la nota vive en la plataforma de la UNIR: las dos actividades (la primera se entrega el último día de la semana 5; la segunda, el de la 9), los tests y el ePortfolio. <b>STARGATE es voluntario</b> y acompaña: empuja justo eso. En un grupo REGULAR, la evaluación continua es el 40 % y el examen el 60 %; en un PUA, la continua es el 100 %. Lo único que STARGATE toca de la nota es el <b>Arsenal</b>: subir un poco al final, siempre con tu visto bueno."},
+       {"h": "El equipo", "p": "Cada grupo tiene un <b>referente</b>, que lo coordina (el calendario, el equipo docente, los escuadrones), y uno o varios <b>Comandantes</b>, cada uno con su escuadrón (que se puede compartir). Si algo falla o tienes una duda, <b>Contacto</b>, en tu Nave, escribe al Mando."},
+     ],
+     "hitos": [
+       {"id": "organizacion-quiz", "tipo": "quiz", "titulo": "El curso en cinco preguntas", "minimo": 4, "preguntas": [
+         {"p": "¿Cuántas semanas dura un grupo REGULAR?", "o": ["15", "8", "20"], "ok": 0, "porque": "Quince semanas; un PUA, ocho, con los temas agrupados."},
+         {"p": "¿Qué hay en el cierre de cada clase?", "o": ["Los retos de la semana, el ticket de salida y el juego En directo", "La teoría del tema", "Nada: se acaba sin más"], "ok": 0, "porque": "El cierre lanza lo de la semana y recoge lo aprendido (el ticket), y acaba jugando."},
+         {"p": "¿Qué te toca hacer después de clase?", "o": ["Un vistazo a los retos registrados, y anular con un porqué lo que no tenga evidencia", "Corregir cada reto con una nota", "Nada"], "ok": 0, "porque": "Los retos se registran solos con su enlace; tú solo miras y, si hace falta, anulas explicando por qué."},
+         {"p": "¿Qué parte de la nota toca STARGATE?", "o": ["Solo el Arsenal: subir un poco al final, con tu visto bueno", "Toda la evaluación continua", "El examen"], "ok": 0, "porque": "Lo evaluable está en la UNIR; STARGATE es voluntario y solo deja subir un poco al final."},
+         {"p": "¿Quién coordina el calendario y el equipo de un grupo?", "o": ["El referente", "Cada Comandante por su cuenta", "NEBULA"], "ok": 0, "porque": "El referente gobierna el grupo; cada Comandante lleva su escuadrón."},
+       ]},
+     ]},
+    {"id": "alta", "titulo": "Alístate como recluta", "sub": "Para entenderla, vívela", "min": 5,
+     "pj": "assets/img/capitan/saluda.png", "bg": "assets/img/fondos/p1_forge.webp", "quien": "El Capitán de la Nave",
+     "voz": "Nadie aprende a guiar una tripulación mirándola desde el puerto. Súbete a la Cero.",
+     "bloques": [
+       {"h": "Un grupo solo para docentes", "p": "La Academia tiene su propio grupo, como si fuera una clase: te alistas con tu cuenta de Google, eliges un <b>alias</b> y tu escuadrón, y ya eres recluta. Todo lo que hagas en él es de prueba: no cuenta para nadie. <b>Tus estudiantes nunca verán tu correo</b>: si lo prefieres, usa una cuenta personal."},
+       {"h": "Qué vas a ver", "p": "Tu <b>Nave</b> (tu ficha, tus retos, tu botín), igual que la verá tu alumnado. Deja esta página abierta en otra pestaña: aquí vuelves a por la siguiente misión."},
+     ],
+     "hitos": [
+       {"id": "alta-ficha", "tipo": "auto", "comprobar": "alta", "titulo": "Tu ficha en el grupo de la Academia", "como": "Pulsa <b>Alistarme</b>, elige alias y escuadrón, y vuelve aquí.", "boton": "alistarse"},
+     ]},
+    {"id": "retos", "titulo": "Tus primeros retos", "sub": "Dos retos de verdad, como tu alumnado", "min": 25,
+     "pj": "assets/img/tripulacion/P4_amara.webp", "bg": "assets/img/fondos/p4_reliae.webp", "quien": "Amara Sol, la Operadora",
+     "voz": "Compartir a tiempo salva más que compartir perfecto. Haz el reto, sube lo que tengas y regístralo.",
+     "bloques": [
+       {"h": "Cómo funciona", "p": "Cada misión se hace en la plataforma, en el grupo de la Academia. Esta página <b>lo comprueba sola</b>: cuando la cumplas, se marca. Si una se te atraganta, cuéntalo abajo: Claude lo mira cada día y puede adaptarte el camino."},
+       {"h": "Mira qué surge en ti", "p": "Mientras lo haces, fíjate en lo que sientes: ¿prisa, ganas, fastidio, orgullo? Eso son dinámicas. Es exactamente lo que vivirá tu alumnado."},
+     ],
+     "hitos": [
+       {"id": "vivirlo-reto", "tipo": "auto", "comprobar": "reto:L0", "titulo": "Tu primer relámpago: «La hoja de ruta»", "como": "En tu Nave, <b>Retos</b>: el relámpago de la semana 1, sobre tu programación didáctica. Hazlo y regístralo con «Lo he hecho» y el enlace de tu evidencia.", "boton": "nave"},
+       {"id": "vivirlo-chispa", "tipo": "auto", "comprobar": "reto:L1", "titulo": "La actividad de tu alumnado: «Del boceto a la forja»", "como": "El relámpago del tema 1, el de la imagen con IA (su insignia es «La chispa»): trae una idea a medias, hazla realidad con una IA con al menos una iteración y regístralo con el enlace del antes y el después. <b>Claude lo comenta en su revisión diaria.</b>", "boton": "nave"},
+     ]},
+    {"id": "vivirlo", "titulo": "Los juegos y la clase, a tu ritmo", "sub": "La Ruta, el Simulador y una clase en diferido", "min": 25,
+     "pj": "assets/img/tripulacion/P6_joran.webp", "bg": "assets/img/fondos/p6_ludo.webp", "quien": "Joran Pike, el Ingeniero-jugador",
+     "voz": "El juego es el ensayo general del miedo. Juega tú primero y sabrás lo que siente tu gente.",
+     "bloques": [
+       {"h": "El repaso, jugado", "p": "Al cerrar cada tema, tu alumnado vuela una misión de la <b>Ruta de la Estática</b>: unos 3 minutos, con preguntas del temario en las puertas que cruza. El <b>Simulador de vuelo</b> es el mismo juego para repasar cuando quieran, en tres niveles. Dan xp: premian el saber."},
+       {"h": "La clase, también en diferido", "p": "Quien no pudo venir ve la clase en su Nave (<b>Archivo → Sesiones</b>), a su ritmo y sin lo que solo tiene sentido en directo. Es la misma que proyectas tú."},
+     ],
+     "hitos": [
+       {"id": "vivirlo-ruta", "tipo": "auto", "comprobar": "ruta:m0", "titulo": "La Ruta de la Estática: tu primer vuelo", "como": "En tu Nave, <b>Retos → La Ruta</b>, la misión 0: NEBULA te enseña a pilotar camino de Fôrge, con preguntas de la asignatura. Llega al planeta (el bronce basta).", "boton": "nave", "opinar": True},
+       {"id": "vivirlo-repaso", "tipo": "auto", "comprobar": "repaso", "titulo": "El Simulador de vuelo", "como": "En tu Nave, <b>Retos → Simulador → Simulador de vuelo</b>: juega una partida entera, en el nivel que quieras.", "boton": "nave", "opinar": True},
+       {"id": "vivirlo-diferido", "tipo": "auto", "comprobar": "dif:1", "titulo": "Sigue una clase a tu ritmo", "como": "La clase de la semana 1 (Fôrge), en diferido, como la ve quien no pudo venir: pásala entera, hasta la última diapositiva. <b>Ábrela en este mismo navegador.</b>", "boton": "diferido:1"},
+     ]},
+    {"id": "comandante", "titulo": "Tu Nave de Comandante", "sub": "La consola y la clase, en ensayo", "min": 20,
+     "pj": "assets/img/capitan/tablet.png", "bg": "assets/img/fondos/p5_umbral.webp", "quien": "El Capitán de la Nave",
+     "voz": "Una buena travesía se ensaya en tierra. Aquí nada se rompe: practica.",
+     "bloques": [
+       {"h": "Tu consola", "p": "En tu <b>Nave de Comandante</b>, cada grupo tiene su <b>Puente</b>: tu panel de control, lo que toca hoy, quién se descuelga y los consejos de NEBULA. Y sus secciones: <b>Reclutas</b> (las fichas y la Cola de nota), <b>Retos</b> (quién ha hecho cada uno, con su enlace, y anular con un porqué), <b>Rankings</b>, <b>Calendario</b>, <b>El Zoco</b>, <b>Simulador</b>, <b>Premios</b> y <b>Enlaces</b>. En <b>Piloto automático</b> ves lo esencial; en <b>Mando manual</b>, todo.",
+        "botones": [["Abrir la consola de ensayo", "consola.html?demo=1"]]},
+       {"h": "La clase en directo", "p": "<b>Empezar la clase</b> abre la sesión de la semana, lista para proyectar, en tres tiempos: la <b>apertura</b> (la pregunta, el mensaje, el vídeo), el <b>despegue</b> (tu Genially) y el <b>cierre</b> (los retos, el tripulante, la Ruta, el ticket y el juego En directo). Tu alumnado ficha con un enlace, te sigue desde el móvil y responde. Las herramientas de clase: quién ha fichado, alguien al azar, votar, el tiempo y premiar."},
+       {"h": "El ensayo", "p": "La <b>consola de ensayo</b> es la de un grupo de ejemplo, con datos de mentira: pulsa lo que quieras, que no se guarda nada. La <b>clase de ensayo</b> es la sesión de ese grupo. Y la <b>Nave en simulacro</b> es lo que ve un recluta, la semana que elijas. Ábrelas <b>en este mismo navegador</b>: la Academia lo comprueba sola."},
+     ],
+     "hitos": [
+       {"id": "sim-consola", "tipo": "auto", "comprobar": "sim:consola", "titulo": "Recorre tu consola de ensayo", "como": "En la consola de ensayo, visita el <b>Puente</b>, <b>Reclutas</b> (y abre la ficha de alguien), <b>Retos</b> y <b>Rankings</b>.", "boton": "sim:consola"},
+       {"id": "sim-clase", "tipo": "auto", "comprobar": "sim:clase", "titulo": "Da una clase entera", "como": "Abre la clase de ensayo y pásala entera con la flecha →, hasta la última diapositiva.", "boton": "sim:clase"},
+       {"id": "sim-estudiante", "tipo": "auto", "comprobar": "sim:estudiante", "titulo": "Mírala como recluta", "como": "Abre la Nave de un recluta en simulacro: es lo que ve tu alumnado en su pantalla.", "boton": "sim:estudiante"},
+       {"id": "comandante-quiz", "tipo": "quiz", "titulo": "Cinco preguntas de tu lado", "minimo": 4, "preguntas": [
+         {"p": "Quieres saber quién lleva días sin hacer nada. ¿Dónde miras?", "o": ["En el Puente y en Reclutas", "En la clase en directo", "En el foro de la UNIR"], "ok": 0, "porque": "El Puente te señala quién se descuelga, y Reclutas te da la ficha de cada uno."},
+         {"p": "Quieres quitar una diapositiva de la clase de mañana. ¿Qué pulsas?", "o": ["La rueda, junto a «Empezar la clase»", "Piloto automático", "El ticket de salida"], "ok": 0, "porque": "La rueda enseña cada sección con su miniatura: desmarcas lo que no quieras proyectar."},
+         {"p": "Un recluta ha registrado un reto sin una evidencia de verdad. ¿Qué haces?", "o": ["Lo anulas desde Retos o desde su ficha, con un porqué que le llega", "Lo borras de la base de datos", "Nada: ya no se puede"], "ok": 0, "porque": "Anular devuelve lo ganado y le explica por qué; puede volver a registrarlo bien."},
+         {"p": "¿Qué es la Cola de nota?", "o": ["Las subidas de nota del Arsenal que esperan tu visto bueno", "Las notas de la UNIR", "Los tickets de salida"], "ok": 0, "porque": "Quien compra subir la nota queda pendiente hasta que lo apruebas."},
+         {"p": "¿Qué hay que hacer para que tu grupo vea el vídeo de la semana?", "o": ["Nada especial: va dentro de la clase en directo", "Mandar los enlaces uno a uno", "Proyectar YouTube aparte"], "ok": 0, "porque": "Cada sesión trae su vídeo en su diapositiva."},
+       ]},
+     ]},
+    {"id": "tuya", "titulo": "Hazla tuya", "sub": "Lo que puede cambiar cada Comandante, y tu primera pieza", "min": 20,
+     "pj": "assets/img/tripulacion/P3_sylla.webp", "bg": "assets/img/fondos/p3_sendara.webp", "quien": "Sylla Bren, la Rastreadora",
+     "voz": "No hay una sola ruta. Coge la que hay, quita lo que sobre y traza la tuya.",
+     "bloques": [
+       {"h": "Qué puedes cambiar", "p": "<b>Tu Comandante</b>: tu nombre, tu retrato y tu cita (te lo pide la bienvenida la primera vez). <b>Tus clases</b>: qué diapositivas salen, con la rueda. <b>Tu Genially</b>: el panel de control común o tu copia. <b>El foro</b>: el mensaje de cada semana sale escrito y puedes guardar tu versión. <b>Tus premios</b>: un premio por enlace, escondido donde quieras. Y si eres referente, el grupo: el calendario, el equipo docente y los escuadrones."},
+       {"h": "Tus diapositivas", "p": "La <b>rueda</b>, junto a «Empezar la clase», enseña cada sección con su miniatura: desmarca las que no quieras proyectar. Se guarda al momento, para todas tus clases de ese grupo, y lo que quitas tampoco lo ve quien te sigue desde el móvil."},
+       {"h": "Tu Genially", "p": "Tu alumnado abre desde su Nave un Genially común a todos los grupos. Puedes poner el tuyo en <b>Tu panel de control → Cambiar el enlace</b>: vale su enlace o su código «Insertar» (en Genially, Compartir → Insertar). <b>RECUERDA: haz una copia</b> de la plantilla (Duplicar) y trabaja sobre ella; nunca modifiques la plantilla, que es la de todo el profesorado."},
+       {"h": "Que no se note el cambio", "p": "Tu Genially se abre en mitad de la clase, entre la apertura y el cierre. Si le pones <b>los mismos fondos de la clase</b> (el espacio y la superficie de cada planeta), tu alumnado no notará el salto de una presentación a otra: parecerá una sola. Están en el <b>Drive del equipo</b>, en la carpeta de fondos, junto a los personajes recortados para que los uses.",
+        "botones": [["Abrir el Drive del equipo", "https://drive.google.com/drive/folders/1Dp0il1ZQq8Cw8St0Pue_cwlabLAot6e7"]]},
+       {"h": "Esconde un premio", "p": "En <b>Premios → Premios por enlace</b> creas un premio (un sobre, un héroe, créditos…) con un enlace que no se adivina. Escóndelo en tu Genially, en el foro o en una diapositiva: quien lo encuentre, se lo lleva."},
+     ],
+     "hitos": [
+       {"id": "sim-rueda", "tipo": "auto", "comprobar": "sim:rueda", "titulo": "Quita una diapositiva", "como": "En la consola de ensayo, la <b>rueda</b> junto a «Empezar la clase»: desmarca al menos una sección.", "boton": "sim:consola"},
+       {"id": "sim-panel", "tipo": "auto", "comprobar": "sim:panel", "titulo": "Pon tu Genially", "como": "En la consola de ensayo, <b>Tu panel de control → Cambiar el enlace</b>: pega el código «Insertar» de un Genially (o su enlace) y guarda. Si no tienes ninguno a mano, vale cualquier Genially público.", "boton": "sim:consola"},
+       {"id": "tuya-diseno", "tipo": "diseno", "titulo": "Tu primera pieza", "campos": [
+         ["objetivo", "El objetivo", "Qué quieres que aprenda o practique tu alumnado"],
+         ["dinamica", "La dinámica", "Qué te gustaría que surgiera (cooperar, esforzarse, volver a intentarlo…)"],
+         ["mecanica", "La mecánica", "La regla que puede propiciarla"],
+         ["componente", "El componente", "La pieza que se ve y se gana"],
+         ["comprobar", "Cómo lo sabrás", "Qué mirarás para saber si ha surgido esa dinámica, u otra"],
+       ]},
+     ]},
+  ],
+  "final": {"titulo": "Comandante de la Cero", "texto": "Has recorrido la Academia entera: la historia sin destripes, el temario dentro de ella, los elementos y su porqué, la plataforma desde los dos lados y tu propia pieza. Ya puedes llevar a tu tripulación."},
+}
+
 # ---------- cromos: el álbum del «Sobre de cromos» ----------
 # FUENTE ÚNICA del álbum. De aquí salen (a) el catálogo que pinta la Nave del Recluta
 # (window.SG_CROMOS) y (b) el bloque «var CROMOS» del Apps Script, que _build_site.py

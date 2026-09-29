@@ -797,6 +797,9 @@
    */
   function simulacro() {
     var per = q.get("per") || "", FID = "simulacro-comandante";
+    // 29-sep · para la Academia de la Cero: «Mírala como recluta» (en ESTE navegador; no escribe en ningún servidor)
+    try { if (window.SG && window.SG.rastroAcademia) window.SG.rastroAcademia({ estudiante: true });
+          else localStorage.setItem("sgAcademia", JSON.stringify(Object.assign(JSON.parse(localStorage.getItem("sgAcademia") || "{}") || {}, { estudiante: true }))); } catch (e) {}
     var crudo = null, perfil = null, listo = null, nombre = "", evid = {}, refl = {};
     var cat = function () { return window.SG_CATALOGO || {}; };
     var avatar = function () {

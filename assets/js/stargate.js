@@ -467,6 +467,21 @@ window.SG.rotulo = function (o) {
     + (o.cita ? '<em class="rt-cita">' + e(o.cita) + '</em>' : '')   // 28-sep · la cita que eligió en su bienvenida
     + '</div></div>';
 };
+/**
+ * 🔴 29-sep · EL RASTRO DE LA ACADEMIA DE LA CERO (academia.html). Lo que un docente ensaya en la consola de ensayo
+ * (consola.html?demo=1), en la clase del grupo DEMO, en la Nave en simulacro o en la sesión en diferido del grupo de la
+ * Academia NO se escribe en ningún servidor: se apunta en ESTE navegador (localStorage `sgAcademia`) y la Academia lo lee para
+ * marcar sus hitos al momento (mismo origen, misma memoria; y el evento `storage` la avisa si está abierta en otra pestaña).
+ */
+window.SG.rastroAcademia = function (campos) {
+  try {
+    var r = JSON.parse(localStorage.getItem('sgAcademia') || '{}') || {};
+    Object.keys(campos || {}).forEach(function (k) { var v = campos[k];
+      r[k] = (v && typeof v === 'object' && !Array.isArray(v)) ? Object.assign({}, r[k] || {}, v) : v; });
+    localStorage.setItem('sgAcademia', JSON.stringify(r));
+    return r;
+  } catch (e) { return null; }
+};
 window.SG.CFGSESION = (function () {
   function e(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function ico(k, grande){ return '<img class="ico'+(grande?' grande':'')+'" src="assets/img/iconos/'+(grande?'':'p/')+k+'.png" alt="" width="20" height="20">'; }
@@ -516,6 +531,9 @@ window.SG.CFGSESION = (function () {
     var guarda = async function (revertir) {
       var off = cajas().filter(function (x) { return !x.checked; }).map(function (x) { return x.getAttribute("data-sec"); });
       var msg = capa.querySelector("#m-sec-msg"); msg.textContent = "Guardando…";
+      // 29-sep · en la consola de ensayo no se escribe nada: se apunta para la Academia (su hito «Quita una diapositiva»)
+      if (o.demo) { if (off.length && window.SG.rastroAcademia) window.SG.rastroAcademia({ rueda: true });
+        msg.textContent = off.length ? "✓ Anotado. En la consola de ensayo no se guarda: en tu grupo, esto quitaría " + (off.length === 1 ? "esa sección" : off.length + " secciones") + " de tu clase." : "✓ Sale todo."; return; }
       try {
         await guardar(o.per, o.nombre, off);
         if (typeof o.alGuardar === "function") o.alGuardar(off);

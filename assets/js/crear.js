@@ -103,6 +103,8 @@
       '<div class="card"><h3>3 · El equipo docente</h3>' +
       '<p class="small">Quien esté en esta lista verá el grupo al entrar con su correo. El <b>referente</b> ' +
       'es quien puede crear grupos y tocar los ajustes.</p>' +
+      // 29-sep · el profesorado registrado en la Academia de la Cero, para añadirlo con un clic (y a mano, como siempre)
+      '<div id="f-academia"></div>' +
       '<div id="f-docentes"></div>' +
       '<p><button class="btn min" id="btn-mas">+ Añadir docente</button></p></div>' +
 
@@ -119,6 +121,52 @@
     if (!docentes.length) docentes.push({ nombre: YO.nombre || "", correo: YO.correo, rol: "referente", panel: "" });
     pintarDocentes();
     repintar();
+    cargarAcademia();
+  }
+
+  /**
+   * 🔴 29-sep · EL PROFESORADO DE LA ACADEMIA, CON UN TIC. Norberto: «los profes se unirán a través de un enlace, así ya les
+   * obligamos a usar una cuenta de Google… así cuando cree un grupo nuevo, puedo ver ya la lista de profes registrados y marcar
+   * con tic para añadirlos además de manualmente». Quien entra en academia.html queda en `stargate_formacion` con su nombre y
+   * su correo de Google (el de verdad: sin erratas). Marcarlo lo añade a la lista de abajo como docente que imparte; se le
+   * cambia el papel ahí mismo. La lista la leen el Mando y los referentes (reglas): si no se puede leer, no sale y ya.
+   */
+  var ACADEMIA = null;
+  function cargarAcademia() {
+    if (!MOTOR.academiaProfes) return;
+    MOTOR.academiaProfes().then(function (l) { ACADEMIA = l || []; pintarAcademia(); }, function () { ACADEMIA = null; pintarAcademia(); });
+  }
+  function enLista(correo) { correo = String(correo || "").toLowerCase(); return docentes.some(function (d) { return String(d.correo || "").toLowerCase() === correo; }); }
+  function avanceDe(a) {
+    if (!a) return "Recién llegado";
+    if (a.fin) return "Comandante de la Cero";
+    return (a.sesiones || 0) + " de " + (a.total || 9) + " sesiones";
+  }
+  function pintarAcademia() {
+    var el = $("#f-academia"); if (!el) return;
+    if (!ACADEMIA || !ACADEMIA.length) {
+      el.innerHTML = ACADEMIA ? '<p class="small muted">Nadie se ha registrado todavía en la <a href="academia.html" target="_blank" rel="noopener">Academia de la Cero</a>. Cuando alguien entre por su enlace, saldrá aquí para añadirlo con un clic.</p>' : "";
+      return;
+    }
+    el.innerHTML = '<div class="cr-acd"><p class="cr-acd-t"><b>Profesorado de la Academia</b> <span class="small muted">Marca a quien quieras en este grupo: se añade abajo como docente que imparte.</span></p>' +
+      '<div class="cr-acd-lista">' + ACADEMIA.map(function (x) {
+        return '<label class="cr-acd-p"><input type="checkbox" data-acd="' + esc(x.correo) + '"' + (enLista(x.correo) ? " checked" : "") + (x.correo === String(YO.correo || "").toLowerCase() ? " disabled" : "") + '>' +
+          '<span><b>' + esc(x.nombre || x.correo) + '</b><small>' + esc(x.correo) + ' · ' + esc(avanceDe(x.avance)) + '</small></span></label>';
+      }).join("") + '</div></div>';
+    Array.prototype.forEach.call(el.querySelectorAll("[data-acd]"), function (c) {
+      c.onchange = function () {
+        var correo = c.getAttribute("data-acd"), x = ACADEMIA.filter(function (y) { return y.correo === correo; })[0] || {};
+        if (c.checked && !enLista(correo)) {
+          // si hay una fila vacía (el «+ Añadir docente» sin rellenar), se usa esa
+          var libre = docentes.filter(function (d) { return !d.nombre && !d.correo; })[0];
+          var nuevo = { nombre: x.nombre || "", correo: correo, rol: "docente", imparte: true, panel: "" };
+          if (libre) Object.assign(libre, nuevo); else docentes.push(nuevo);
+        } else if (!c.checked) {
+          docentes = docentes.filter(function (d) { return String(d.correo || "").toLowerCase() !== correo; });
+        }
+        pintarDocentes(); repintar();
+      };
+    });
   }
 
   function vacio() { return { nombre: "", correo: "", rol: "docente", imparte: true, panel: "" }; }
@@ -167,6 +215,8 @@
       cRef.onchange = guarda; cImp.onchange = guarda;
       $(".quitar", fila).onclick = function () { docentes.splice(i, 1); pintarDocentes(); repintar(); };
     });
+    // los tics de la Academia, al día con la lista (se quita a alguien con ✕, se escribe un correo a mano…)
+    Array.prototype.forEach.call(document.querySelectorAll("#f-academia [data-acd]"), function (c) { c.checked = enLista(c.getAttribute("data-acd")); });
   }
 
   function datos() {

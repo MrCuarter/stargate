@@ -12,7 +12,7 @@ from _site_data import (GOOGLE_CLIENT_ID, RUTA, SALA_JORAN, DIRECTO, ASEDIO, JUE
                         RECOMPENSAS, IMG_RECOMPENSA, SEMANAS_PER, SEMANAS_CANJE_EXTRA, SEMANA_ARSENAL, DIAS_APERTURA_ANTES,
                         HEROES, HEROES_OCULTOS, AYUDA_RETOS, GANCHO_RETOS, EJEMPLOS_RETOS, ESCAPE_UNI, EVIDENCIA_RETOS, REFLEXION_RETOS, TOPE_RETOS_SEMANA, AVISO_RETOS_DIA, SESION_SECCIONES, ACTIVIDADES, EVALUACION, EVALUACION_EXAMEN, NOTA_FINAL, NOTA_FINAL_PUA, EVALUACION_EXAMEN_PUA, RETOS_TIPO, CITAS_EPICAS, SESION_EMBARQUE, ASIGNATURA, BLOQUES_ASIGNATURA, TEMARIO, SESION_ACTIVIDAD, MATRIZ_PLANTILLA, INTELIGENCIAS, BLOOM, ORTOGRAFIA, CAPTURAS, IMG_RECOMPENSA, BONUS_PLANETA, BONUS_RACHA, BONUS_TUTORIAL, _AYUDA_DOC,
                         NOTA_MIN_PLANETAS, BONUS_SERIE, BONUS_ALBUM, BONUS_TRIPULACION, BONUS_PASE,
-                        PASOS, ESCUADRONES, PER_DEMO, PER_ESCUELA, ENLACES_EQUIPO, TICKET_URL, TICKET_TEMAS, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, PANEL_MAESTRO_EDICION, DRIVE_EQUIPO,
+                        PASOS, ESCUADRONES, PER_DEMO, PER_ESCUELA, PER_ACADEMIA, ACADEMIA, ENLACES_EQUIPO, TICKET_URL, TICKET_TEMAS, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, PANEL_MAESTRO_EDICION, DRIVE_EQUIPO,
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES,
                         HITOS_A_BORDO, CUBIERTAS_A_BORDO, HEROES_A_BORDO, CARTA_A_BORDO, BATALLA, SIN_PUA, VOTACION,
                         PLANETA_FIN, TRIPULANTES)
@@ -2315,6 +2315,21 @@ window.SG.rotulo = function (o) {
     + (o.cita ? '<em class="rt-cita">' + e(o.cita) + '</em>' : '')   // 28-sep · la cita que eligió en su bienvenida
     + '</div></div>';
 };
+/**
+ * 🔴 29-sep · EL RASTRO DE LA ACADEMIA DE LA CERO (academia.html). Lo que un docente ensaya en la consola de ensayo
+ * (consola.html?demo=1), en la clase del grupo DEMO, en la Nave en simulacro o en la sesión en diferido del grupo de la
+ * Academia NO se escribe en ningún servidor: se apunta en ESTE navegador (localStorage `sgAcademia`) y la Academia lo lee para
+ * marcar sus hitos al momento (mismo origen, misma memoria; y el evento `storage` la avisa si está abierta en otra pestaña).
+ */
+window.SG.rastroAcademia = function (campos) {
+  try {
+    var r = JSON.parse(localStorage.getItem('sgAcademia') || '{}') || {};
+    Object.keys(campos || {}).forEach(function (k) { var v = campos[k];
+      r[k] = (v && typeof v === 'object' && !Array.isArray(v)) ? Object.assign({}, r[k] || {}, v) : v; });
+    localStorage.setItem('sgAcademia', JSON.stringify(r));
+    return r;
+  } catch (e) { return null; }
+};
 window.SG.CFGSESION = (function () {
   function e(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function ico(k, grande){ return '<img class="ico'+(grande?' grande':'')+'" src="assets/img/iconos/'+(grande?'':'p/')+k+'.png" alt="" width="20" height="20">'; }
@@ -2364,6 +2379,9 @@ window.SG.CFGSESION = (function () {
     var guarda = async function (revertir) {
       var off = cajas().filter(function (x) { return !x.checked; }).map(function (x) { return x.getAttribute("data-sec"); });
       var msg = capa.querySelector("#m-sec-msg"); msg.textContent = "Guardando…";
+      // 29-sep · en la consola de ensayo no se escribe nada: se apunta para la Academia (su hito «Quita una diapositiva»)
+      if (o.demo) { if (off.length && window.SG.rastroAcademia) window.SG.rastroAcademia({ rueda: true });
+        msg.textContent = off.length ? "✓ Anotado. En la consola de ensayo no se guarda: en tu grupo, esto quitaría " + (off.length === 1 ? "esa sección" : off.length + " secciones") + " de tu clase." : "✓ Sale todo."; return; }
       try {
         await guardar(o.per, o.nombre, off);
         if (typeof o.alGuardar === "function") o.alGuardar(off);
@@ -4359,7 +4377,7 @@ def _cabeza_motor():
         '<script>window.SG_FIREBASE=' + _json.dumps(FIREBASE) + ';'
         'window.SG_CATALOGO_URL="' + _v("motor/catalogo.json") + '";'
         # el grupo de ejemplo de las pantallas ?demo=1 (la consola y el aula): un dato, un sitio
-        'window.SG_PER_DEMO=' + _json.dumps(PER_DEMO) + ';'
+        'window.SG_PER_DEMO=' + _json.dumps(PER_DEMO) + ';window.SG_PER_ACADEMIA=' + _json.dumps(PER_ACADEMIA) + ';'
         'window.SG_TICKET_URL=' + _json.dumps(TICKET_URL) + ';'
         'window.SG_TICKET_TEMAS=' + _json.dumps(TICKET_TEMAS, ensure_ascii=False) + ';'
         # 20-sep · la Nave del Comandante también lee el ticket (su caja de «Tickets de salida»)
@@ -4404,7 +4422,7 @@ def _cabeza_fuente():
     modo = _json.dumps(MOTOR_POR_DEFECTO)
     return (
         '<script>window.SG_FIREBASE=' + cfg + ';window.SG_MOTOR=' + modo + ';'
-        'window.SG_PER_DEMO=' + _json.dumps(PER_DEMO) + ';'
+        'window.SG_PER_DEMO=' + _json.dumps(PER_DEMO) + ';window.SG_PER_ACADEMIA=' + _json.dumps(PER_ACADEMIA) + ';'
         'window.SG_TICKETS_API=' + _json.dumps(TICKETS_API) + ';'
         'window.SG_TICKETS_HOJA=' + _json.dumps(TICKETS_HOJA) + ';'
         'window.SG_PANEL_MAESTRO=' + _json.dumps(PANEL_MAESTRO) + ';window.SG_PANEL_MAESTRO_EDICION=' + _json.dumps(PANEL_MAESTRO_EDICION) + ';'
@@ -4531,6 +4549,19 @@ se hace o se quita, y se añade a alguien a un grupo.</p></header>
 ''' + FOOT
 open(os.path.join(HERE, "profesores.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: profesores.html  (solo el Mando)")
+
+# ---------------------------------------------------------------- 29-sep · LA ACADEMIA DE LA CERO (el curso del profesorado)
+# El recorrido de los docentes, en asíncrono y a lo grande (assets/js/academia.js con el contenido de _site_data.py → ACADEMIA).
+# Se entra por su enlace con Google: así queda el registro del profesorado que crear.html enseña para añadirlo con un clic.
+_html = head("STARGATE · La Academia de la Cero", "El curso del profesorado de STARGATE: la historia, el temario dentro de ella, la plataforma desde los dos lados y cómo hacerla tuya.",
+             "grp").replace("</head>", _cabeza_motor() + '<meta name="robots" content="noindex,nofollow">\n'
+               + '<script>window.SG_ACADEMIA=' + json.dumps(ACADEMIA, ensure_ascii=False).replace("</", "<\\/") + ';</script>\n</head>') + '''
+<section id="academia"><div class="wrap"><div id="acd-app"><p class="muted">Cargando la Academia…</p></div>
+''' + '<script src="' + _v("assets/js/academia.js") + '" defer></script>' + '''
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "academia.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: academia.html  (la Academia de la Cero, el curso del profesorado)")
 
 # ---------------------------------------------------------------- 15-sep · LA PRUEBA MANUAL, PARA EL EQUIPO
 # Norberto: «haz una versión general de prueba manual publicada en la web para que la prueben Caridad y Anita».

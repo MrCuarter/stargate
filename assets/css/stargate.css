@@ -7244,3 +7244,112 @@ button.m.fin-b:hover{color:#fff;border-color:var(--teal)}
 #consola .eq-para .eq-desc,.eq-para .eq-desc{margin:0;font-size:.9rem;color:#a9bad1;line-height:1.45}
 #consola .eq-para .eq-sub,.eq-para .eq-sub{display:flex;align-items:center;gap:8px;margin:0;font-size:.9rem;font-weight:500;cursor:pointer;width:auto}
 @media(max-width:760px){.eq-para{grid-template-columns:minmax(0,1fr)}}
+/* 29-sep · LA ACADEMIA DE LA CERO (academia.html): el curso del profesorado, en sesiones de píldoras (una pantalla cada vez).
+   Prefijo propio (acd-): ac- ya es de otra pieza */
+#academia{padding:18px 0 40px}
+.acd{display:grid;gap:16px;max-width:900px;margin:0 auto}
+.acd-cab h1{margin:6px 0 6px;font-size:clamp(1.5rem,4vw,2.2rem)}
+.acd-sub{margin:0;color:var(--mut);max-width:62ch}
+.acd-prog{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}
+.acd-barra{flex:1 1 200px;height:10px;border-radius:999px;background:#1a2638;overflow:hidden}
+.acd-barra i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--amber));border-radius:999px}
+.acd-mapa{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.acd-parada{display:flex;gap:10px;align-items:center;text-align:left;padding:8px 12px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;cursor:pointer;max-width:100%}
+.acd-parada b{display:block;font-size:.92rem;line-height:1.25}
+.acd-parada small{display:block;color:var(--mut);font-size:.8rem;line-height:1.3}
+.acd-parada.acd-on{border-color:var(--teal);box-shadow:0 0 0 1px var(--teal) inset}
+.acd-parada.acd-ok .acd-n{background:rgba(55,224,236,.16);border-color:var(--teal)}
+.acd-n{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);font-family:'Unbounded',sans-serif;font-weight:700;font-size:.85rem}
+.acd-quedan{margin:0;color:var(--mut);font-size:.9rem;display:flex;align-items:center;gap:6px}
+.acd-ses{scroll-margin-top:80px;padding:0}   /* (section lleva 54px de relleno en todo el sitio) */
+.acd-carta{border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden}
+.acd-ses-cab{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.acd-ses-cab b{display:block;line-height:1.25}
+.acd-ses-cab>div:not(.acd-puntos){flex:1 1 0;min-width:0}
+.acd-ses-cab .kicker{margin:0}
+.acd-mini{width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:top;flex:none;background:#0d1420;border:1px solid var(--line)}
+.acd-puntos{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.acd-puntos span{width:16px;height:5px;border-radius:3px;background:#24344c}
+.acd-puntos span.h{width:9px}
+.acd-puntos span.visto{background:rgba(55,224,236,.45)}
+.acd-puntos span.on{background:var(--teal)}
+.acd-pantalla{padding:16px}
+.acd-heroe{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;padding:22px;border-radius:14px;background-size:cover;background-position:center;overflow:hidden}
+.acd-heroe h2{margin:0 0 10px;font-size:clamp(1.3rem,3vw,1.9rem)}
+.acd-voz{margin:0;font-style:italic;font-size:1.08rem;max-width:52ch}
+.acd-voz span{display:block;font-style:normal;color:var(--amber);font-size:.9rem;margin-top:4px}
+.acd-que{margin:12px 0 0;color:var(--mut)}
+.acd-pj{height:230px;width:auto;max-width:none;object-fit:contain;filter:drop-shadow(0 8px 24px rgba(0,0,0,.6));margin:-10px -8px -22px 0}
+.acd-nota{margin:12px 0 0;font-size:.95rem;color:#ffe3a1;max-width:52ch}
+.acd-idea{max-width:66ch;padding:6px 4px}
+.acd-idea h2{margin:4px 0 10px;font-size:clamp(1.2rem,2.6vw,1.6rem)}
+.acd-idea p{margin:0;font-size:1.1rem;line-height:1.65}
+.acd-ahora>.kicker{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.acd-hito h2{margin:0;font-size:clamp(1.1rem,2.4vw,1.4rem)}
+.acd-hito p{margin:8px 0}
+.acd-hito-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.acd-hito-cab h2{flex:1 1 0;min-width:12ch}
+.acd-hito-cab .chip{background:rgba(245,176,67,.14);color:var(--amber)}
+.acd-marca{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:8px;border:1px solid var(--line)}
+.acd-marca.acd-ok{border-color:var(--teal);background:rgba(55,224,236,.14)}
+.acd-bien{color:var(--teal)}
+.acd-qn{margin:10px 0 2px}
+.acd-q{font-size:1.15rem;margin:4px 0 12px}
+.acd-cuenta{font-size:1.2rem}
+.acd-botones{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.acd-ops{display:grid;gap:8px}
+.acd-ops3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.acd-ops4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.acd-op{padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.acd-op:hover:not(:disabled){border-color:rgba(55,224,236,.6)}
+.acd-op:disabled{cursor:default}
+.acd-op.acd-sel{border-color:var(--teal);background:rgba(55,224,236,.12)}
+.acd-op.acd-bien-op{border-color:var(--teal);background:rgba(55,224,236,.2)}
+.acd-op.acd-mal-op{border-color:#e0616b;background:rgba(224,97,107,.16)}
+.acd-porque{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:var(--bg2);color:var(--ink)}
+.acd-form{display:grid;gap:10px;margin-top:8px}
+.acd-form label span{display:block;font-size:.95rem;margin-bottom:4px}
+.acd textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #24304a;background:#0d1420;color:var(--ink);font:inherit;resize:vertical}
+.acd-opinar{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:8px}
+.acd-nav{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;border-top:1px solid var(--line)}
+.acd-falta{font-size:.9rem;text-align:right}
+.acd-hecha{display:flex;gap:16px;align-items:center;padding:8px 4px}
+.acd-hecha img{width:72px;flex:none}
+.acd-hecha h2{margin:0 0 6px}
+.acd-hecha p{margin:0}
+.acd-final{display:flex;gap:18px;align-items:center;padding:20px;border-radius:18px;border:1px solid var(--amber);background:linear-gradient(90deg,rgba(245,176,67,.12),transparent)}
+.acd-final img{width:88px;flex:none}
+.acd-final h2{margin:4px 0 6px}
+.acd-final p{margin:0}
+.acd-claude{padding:14px 18px;border-radius:18px;border:1px solid var(--line);background:var(--panel)}
+.acd-claude summary{cursor:pointer;list-style:none;display:grid;gap:2px}
+.acd-claude summary::-webkit-details-marker{display:none}
+.acd-claude summary h2{margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:1.1rem}
+.acd-claude summary .chip{background:rgba(55,224,236,.16);color:var(--teal)}
+.acd-cuantos{font-family:'DMSans',sans-serif;font-weight:400;font-size:.85rem}
+.acd-hilo{display:grid;gap:8px;margin:12px 0}
+.acd-msj{padding:10px 14px;border-radius:12px;max-width:80ch}
+.acd-msj p{margin:4px 0 0}
+.acd-msj small{color:var(--mut);font-weight:400}
+.acd-de-claude{background:rgba(55,224,236,.08);border:1px solid rgba(55,224,236,.3)}
+.acd-de-ti{background:var(--bg2);border:1px solid var(--line);justify-self:end}
+.acd-escribir{display:grid;gap:8px}
+@media (max-width:700px){
+  .acd-heroe{grid-template-columns:1fr;padding:16px}
+  .acd-pj{height:140px;justify-self:end;margin:-6px 0 -16px}
+  .acd-ses-cab{flex-wrap:wrap}
+  .acd-puntos{margin-left:0;flex:1 0 100%;justify-content:flex-start}
+  .acd-ops3,.acd-ops4{grid-template-columns:1fr}
+  .acd-idea p{font-size:1.05rem}
+  .acd-hecha,.acd-final{flex-direction:column;align-items:flex-start}
+  .acd-nav{flex-wrap:wrap}
+}
+/* 29-sep · crear.html: el profesorado registrado en la Academia, para añadirlo con un tic */
+.cr-acd{margin:4px 0 12px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--bg2)}
+.cr-acd-t{margin:0 0 8px}
+.cr-acd-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.cr-acd-p{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--panel);cursor:pointer}
+.cr-acd-p input{margin-top:4px;flex:none;width:auto}
+.cr-acd-p b{display:block;line-height:1.25}
+.cr-acd-p small{display:block;color:var(--mut);font-size:.82rem;word-break:break-all}
+.cr-acd-p:has(input:checked){border-color:var(--teal);background:rgba(55,224,236,.08)}

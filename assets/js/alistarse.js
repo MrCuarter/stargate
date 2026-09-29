@@ -59,6 +59,8 @@
   // después de haberlo hecho todo bien.
   function naveUrl() {
     var q = new URLSearchParams(location.search);
+    // 29-sep · quien se alista desde la Academia de la Cero vuelve a ella, a por la siguiente misión
+    if (q.get("volver") === "academia") return "academia.html";
     var m = q.get("motor");
     return "recluta.html?per=" + encodeURIComponent(PER) + (m ? "&motor=" + encodeURIComponent(m) : "");
   }
