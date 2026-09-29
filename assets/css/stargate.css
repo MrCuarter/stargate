@@ -7359,3 +7359,17 @@ button.m.fin-b:hover{color:#fff;border-color:var(--teal)}
 .cr-acd-p b{display:block;line-height:1.25}
 .cr-acd-p small{display:block;color:var(--mut);font-size:.82rem;word-break:break-all}
 .cr-acd-p:has(input:checked){border-color:var(--teal);background:rgba(55,224,236,.08)}
+/* 29-sep · la consola de ensayo (ensayo.html): su franja, siempre a la vista abajo */
+.ens-franja{position:fixed;left:0;right:0;bottom:0;z-index:90;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:center;
+  padding:9px 16px calc(9px + env(safe-area-inset-bottom,0px));background:rgba(13,20,32,.97);border-top:1px solid var(--amber);color:var(--ink);font-size:.92rem;line-height:1.35}
+.ens-franja span{flex:1 1 280px;max-width:640px}
+.ens-franja b{color:var(--amber)}
+.ens-franja .ens-bot{display:flex;gap:8px;flex:none}
+body.con-ens-franja{padding-bottom:84px}
+@media (max-width:600px){
+  .ens-franja{padding:7px 10px calc(7px + env(safe-area-inset-bottom,0px));font-size:.85rem;gap:6px}
+  .ens-franja .ens-largo{display:none}
+  .ens-franja>span:first-child{flex:1 1 100%;text-align:center}
+  .ens-franja .btn{padding:6px 10px;font-size:.82rem}
+  body.con-ens-franja{padding-bottom:96px}
+}

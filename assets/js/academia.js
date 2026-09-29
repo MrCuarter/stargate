@@ -103,7 +103,7 @@
     if (b === "alistarse") return "alistarse.html?" + per + "&codigo=" + encodeURIComponent(C.codigo || "") + "&volver=academia";
     if (b === "nave") return "recluta.html?" + per;
     if ((m = /^diferido:(.+)$/.exec(b))) return "sesion.html?" + per + "&diferido=1&sem=" + encodeURIComponent(m[1]);
-    if (b === "sim:consola") return "consola.html?demo=1";
+    if (b === "sim:consola") return "ensayo.html";
     if (b === "sim:clase") return "sesion.html?per=" + encodeURIComponent(PER_DEMO);
     if (b === "sim:estudiante") return "recluta.html?simulacro=1&per=" + encodeURIComponent(PER_DEMO) + "&semana=10";
     return "recluta.html?" + per;

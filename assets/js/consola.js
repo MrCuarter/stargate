@@ -60,6 +60,13 @@
     var m = b.getAttribute("data-modo"); if ((m === "piloto" || m === "manual") && m !== MODO) ponerModo(m);
   });
   var url = new URLSearchParams(location.search);
+  /**
+   * 🔴 29-sep · LA CONSOLA DE ENSAYO (ensayo.html, `SG_ENSAYO`): esta misma consola contra un Firebase de mentira en memoria
+   * (motor_sim.js), con la Nave Escuela y un docente de mentira. Aquí todo se pulsa y se guarda de verdad… en ESTE navegador.
+   * Lo que recorre queda apuntado para la Academia de la Cero, como en la demostración (?demo=1).
+   */
+  var ENSAYO = window.SG_ENSAYO === 1, ENSAYA = ENSAYO || url.get("demo") === "1";
+  var PAGINA = ENSAYO ? "ensayo.html" : "consola.html";   // (al recargar, el ensayo sigue siendo el ensayo)
   if (/^[a-z_]+$/.test(url.get("tab") || "")) TAB = url.get("tab");   // 15-sep · el Capitán enlaza a una pestaña (p. ej. «Mis enlaces»)
 
   // 🔴 Mientras el motor por defecto siga siendo el viejo, un enlace a un grupo nuevo SIN el
@@ -454,7 +461,7 @@
    */
   var ACADEMIA_DOC = null;
   function puertaAcademia() {
-    var a = ACADEMIA_DOC; if (!a) return "";
+    var a = ACADEMIA_DOC; if (!a || ENSAYO) return "";
     var av = a.avance || {}, t = av.fin ? "La has completado: repásala cuando quieras." : (av.total ? "Llevas " + (av.sesiones || 0) + " de " + av.total + " sesiones: sigue donde lo dejaste." : "Tu curso del profesorado: sigue donde lo dejaste.");
     return '<div class="card acd-puerta ancha"><img src="assets/img/personajes/nebula.png" alt=""><div><b>La Academia de la Cero' + (av.fin ? " · Comandante de la Cero" : "") + "</b><span>" + esc(t) + "</span></div>" +
       '<a class="btn primary" href="academia.html">Abrir la Academia →</a></div>';
@@ -518,7 +525,7 @@
       '<ul class="cn-fin-lista">' + F.map(function (p) { var e = emblemaDe(p);
         return '<li>' + (e.img ? '<img src="' + esc(e.img) + '" alt="">' : '<span class="cn-g-sin">◈</span>') +
           '<span><b>' + esc(p.nombre) + '</b><em>' + esc(lineaEstado(p, true)) + (p.reclutas != null ? ' · ' + p.reclutas + (p.reclutas === 1 ? ' recluta' : ' reclutas') : '') + '</em></span>' +
-          '<a class="btn min primary" href="consola.html?per=' + esc(p.id) + '">Abrir</a></li>'; }).join("") + '</ul></div>';
+          '<a class="btn min primary" href="' + PAGINA + '?per=' + esc(p.id) + '">Abrir</a></li>'; }).join("") + '</ul></div>';
     document.body.appendChild(c);
     var cerrar = function () { c.remove(); document.removeEventListener("keydown", tecla); };
     var tecla = function (e) { if (e.key === "Escape") cerrar(); };
@@ -663,7 +670,7 @@
   /** 17-sep · «🌐 Para todos tus grupos»: lo que se configura una vez para varios grupos, fuera de ninguno. */
   function verComunes(que) {
     PER = null; DATOS = null;
-    history.replaceState(null, "", "consola.html?comun=" + encodeURIComponent(que));
+    history.replaceState(null, "", PAGINA + "?comun=" + encodeURIComponent(que));
     var g = gestionados();
     app.innerHTML = '<div class="card cuenta c-cab"><div class="c-cab-t"><b><img class=ico src=assets/img/iconos/p/varios.png alt> Para todos tus grupos</b><span>' + g.length + (g.length === 1 ? " grupo" : " grupos") +
         ' que llevas · lo que configures aquí vale en los que elijas</span></div>' +
@@ -671,7 +678,7 @@
       '<div class="pestanas">' + [["premios", "huevos", "Premios por enlace"], ["sorteos", "sorteos", "Sorteos"], ["ofertas", "ofertas", "Ofertas"]].map(function (x) {
         return '<button class="pest' + (que === x[0] ? " activa" : "") + '" data-tab="' + x[1] + '" data-comun="' + x[0] + '">' + x[2] + "</button>"; }).join("") + '</div>' +
       '<div id="c-aviso" class="aviso" hidden></div><div id="c-cuerpo"></div>';
-    $("#c-volver").onclick = function () { url.delete("comun"); history.replaceState(null, "", "consola.html"); elegirGrupo(); };
+    $("#c-volver").onclick = function () { url.delete("comun"); history.replaceState(null, "", PAGINA); elegirGrupo(); };
     Array.prototype.forEach.call(app.querySelectorAll("[data-comun]"), function (b) { b.onclick = function () { verComunes(b.getAttribute("data-comun")); }; });
     cablearCopiar(app);
     document.body.classList.add("consola-dentro");
@@ -682,7 +689,7 @@
 
   async function abrir(perId) {
     PER = perId;
-    history.replaceState(null, "", "consola.html?per=" + encodeURIComponent(perId));
+    history.replaceState(null, "", PAGINA + "?per=" + encodeURIComponent(perId));
     try { localStorage.setItem(CLAVE_ULTIMO, perId); } catch (e) {}   // 19-sep · la próxima vez, se entra en este
     cargando("Leyendo el grupo…");
     try { DATOS = await MOTOR.leerPER(perId, true); LEIDO_EN = Date.now(); }
@@ -1034,7 +1041,7 @@
     if (dentro.length < 2) return "";
     // (17-sep · premios, sorteos y ofertas que valen para VARIOS de tus grupos: su página, desde aquí si llevas más de uno)
     var comun = sec[0] === "premios" && gestionados().length > 1
-      ? '<a class="pest cn-s cn-comun" href="consola.html?comun=' + (TAB === "sorteos" ? "sorteos" : TAB === "ofertas" ? "ofertas" : "premios") + '">' + ico("varios") + ' Para todos tus grupos</a>' : "";
+      ? '<a class="pest cn-s cn-comun" href="' + PAGINA + '?comun=' + (TAB === "sorteos" ? "sorteos" : TAB === "ofertas" ? "ofertas" : "premios") + '">' + ico("varios") + ' Para todos tus grupos</a>' : "";
     // 28-sep · COMO EN LA NAVE DEL RECLUTA (Norberto: «¿no podemos unificar como el estudiante?»): las subsecciones, puertas
     // grandes con su icono y lo que hay dentro (.bt-puerta, las mismas del Botín, Retos, Mercado y Archivo)
     return '<div class="cn-sub bt-puertas" role="tablist" aria-label="' + esc(sec[1]) + '">' + dentro.map(function (k) {
@@ -1077,7 +1084,7 @@
       '<div id="c-aviso" class="aviso" hidden></div>' +
       '<div id="c-cuerpo"></div>';
     // 29-sep · la consola de ensayo apunta lo que recorre, para la Academia de la Cero (en ESTE navegador; no escribe nada)
-    if (url.get("demo") === "1" && window.SG.rastroAcademia) { var vis = {}; vis[TAB] = true; window.SG.rastroAcademia({ consola: vis }); }
+    if (ENSAYA && window.SG.rastroAcademia) { var vis = {}; vis[TAB] = true; window.SG.rastroAcademia({ consola: vis }); }
     Array.prototype.forEach.call(app.querySelectorAll("[data-tab]"), function (b) {
       b.onclick = function () { TAB = b.getAttribute("data-tab"); if (alDia()) pintar(); else releerYPintar(); };   // (25-sep · al día)
     });
@@ -1547,7 +1554,7 @@
   }
   function verFicha(r, volver) {   // (25-sep · `volver`: {texto, fn}, si se llega desde otra ventana —la del reto—)
     var retos = retosOrdenados(), ficha = r.ficha, esRef = soyRefAqui();
-    if (url.get("demo") === "1" && window.SG.rastroAcademia) window.SG.rastroAcademia({ consola: { ficha: true } });
+    if (ENSAYA && window.SG.rastroAcademia) window.SG.rastroAcademia({ consola: { ficha: true } });
     FICHA_RF = r;   // (para quitar una reflexión o un comentario desde su ficha)
     var f = ((DATOS.proyecto && DATOS.proyecto.factions) || []).filter(function (x) { return x.teacherName === r.profe; })[0];
     var m = modalFicha(
@@ -1822,7 +1829,7 @@
     document.body.classList.add("consola-dentro");
     if (!soyRefAlguno()) {
       app.innerHTML = '<div class="card"><h3>Gestionar grupos es del referente</h3><p>Crear, graduar o borrar grupos, el equipo docente y mover reclutas lo hace tu profe referente. ' +
-        'Lo tuyo está en <a href="consola.html">tu Nave</a>.</p></div>';
+        'Lo tuyo está en <a href="' + PAGINA + '">tu Nave</a>.</p></div>';
       return;
     }
     if (GTABS.every(function (x) { return x[0] !== TAB; })) TAB = "alumnado";
@@ -1860,7 +1867,7 @@
           '<span class="gs-est ' + est.replace(/\s/g, "-") + '">' + esc(estTxt) + '</span>' +
           '<span class="gs-n">' + (p.reclutas == null ? "—" : p.reclutas) + '<em> ' + (p.reclutas === 1 ? 'recluta' : 'reclutas') + '</em></span>' +
           (eq ? '<ul class="gs-eq">' + eq + '</ul>' : '<span class="gs-eq">—</span>') +
-          '<span class="gs-b"><a class="btn min" href="consola.html?per=' + esc(p.id) + '" title="Abrirlo en tu Nave">Abrir ↗</a>' +
+          '<span class="gs-b"><a class="btn min" href="' + PAGINA + '?per=' + esc(p.id) + '" title="Abrirlo en tu Nave">Abrir ↗</a>' +
             '<button type="button" class="btn min' + (abierto ? " primary" : "") + '" data-gabrir="' + esc(p.id) + '" aria-expanded="' + abierto + '">Gestionar ' + (abierto ? "▴" : "▾") + '</button></span>' +
         '</div>' +
         (abierto ? '<div class="gs-panel">' + (DATOS
@@ -2292,6 +2299,7 @@
         pMsg.textContent = v ? "✓ Anotado. En la consola de ensayo no se guarda: en tu grupo, tu alumnado abriría este panel." : "✓ Volverían al oficial."; return; }
       pMsg.textContent = "Guardando…";
       try { await guardarMiParte("paneles", yoN, v); await refrescar();
+            if (ENSAYO && v && window.SG.rastroAcademia) window.SG.rastroAcademia({ panel: true });
             aviso(v ? "Guardado: tu alumnado abrirá tu panel." : "Quitado: tu alumnado vuelve al panel oficial.", true); }
       catch (e) { pMsg.textContent = "No se ha podido guardar: " + (e.message || e); }
     };
@@ -2754,7 +2762,7 @@
       '<p class="small muted">Un enlace que da un premio a quien lo pulse, <b>una vez por persona</b>. Una <b>recompensa</b> para quien supera un reto de clase, o un <b>huevo de Pascua</b> escondido en tu Genially. ' +
       'El mismo enlace vale en todos los grupos a los que lo apliques. Todo se guarda solo.</p></div>' +
       '<button type="button" class="btn primary" id="pe-nuevo"><img class=ico src=assets/img/iconos/p/anadir.png alt> Nuevo premio</button></div>' +
-      (contexto ? '<p class="pe-filtro small muted">Los que afectan a este grupo · <a href="consola.html?comun=premios"><img class=ico src=assets/img/iconos/p/varios.png alt> Ver los de todos tus grupos</a></p>' : "") +
+      (contexto ? '<p class="pe-filtro small muted">Los que afectan a este grupo · <a href="' + PAGINA + '?comun=premios"><img class=ico src=assets/img/iconos/p/varios.png alt> Ver los de todos tus grupos</a></p>' : "") +
       '<div id="pe-lista" class="pe-lista"><p class="muted">Buscando tus premios…</p></div></div>';
     $("#pe-nuevo").onclick = crearPremio;
     try { PE.lista = await MOTOR.premiosEnlaceDe(premiables()); }
@@ -3207,7 +3215,7 @@
             ' <button type="button" class="eq-lnk" data-ver-esc="' + esc(f.teacherName || d.nombre) + '">Ver su escuadrón →</button>'
           : '<span class="muted">Sin escuadrón (coordina, o se incorporó después)</span>' + (n ? " · " + n + " reclutas a su nombre" : "")) + "</p>" +
         (otros.length ? '<p class="small eq-otros">También en ' + otros.map(function (g) {
-            return '<a href="consola.html?per=' + encodeURIComponent(g.id) + '&tab=equipo">' + esc(g.nombre) + "</a>" + (g.rol === "referente" ? " <img class=ico src=assets/img/iconos/p/estrella.png alt>" : ""); }).join(" · ") + "</p>" : "") +
+            return '<a href="' + PAGINA + '?per=' + encodeURIComponent(g.id) + '&tab=equipo">' + esc(g.nombre) + "</a>" + (g.rol === "referente" ? " <img class=ico src=assets/img/iconos/p/estrella.png alt>" : ""); }).join(" · ") + "</p>" : "") +
         /**
          * 🔴 28-sep · SUSTITUCIONES, EN LA TARJETA. Norberto: «un profe se coge la baja y debe sustituirle otro… si un docente
          * se añade más adelante… no hay manera de ajustarlo». Con escuadrón: se le pasa ENTERO (con su alumnado) a quien
@@ -3722,7 +3730,7 @@
       '<div class="card"><h3><img class=ico src=assets/img/iconos/p/rayo.png alt> Ofertas</h3>' +
       '<p class="small">Cada semana, desde la 5 (con su capítulo de NEBULA), sale <b>sola</b> una oferta en el Mercado: un sobre, una cápsula, un héroe o una carta concretos, ' +
       'rebajados un 20-40 %, durante esa semana y con <b>unidades según los inscritos y la rareza</b> (común: sin límite; rara: la mitad; épica: una cuarta parte; legendaria: el 10 %). Una por persona.' +
-      (gestionados().length > 1 ? ' Las que crees tú pueden salir <b>en varios de tus grupos</b> a la vez (<a href="consola.html?comun=ofertas"><img class=ico src=assets/img/iconos/p/varios.png alt> ver las de todos</a>).' : "") + '</p>' +
+      (gestionados().length > 1 ? ' Las que crees tú pueden salir <b>en varios de tus grupos</b> a la vez (<a href="' + PAGINA + '?comun=ofertas"><img class=ico src=assets/img/iconos/p/varios.png alt> ver las de todos</a>).' : "") + '</p>' +
       '<label class="of-auto"><input type="checkbox" id="of-auto"' + (auto ? " checked" : "") + '> Oferta automática cada semana <span class="small muted">(solo en este grupo)</span></label>' +
       '<p><button class="btn primary" id="of-nueva">+ Crear una oferta</button></p><div id="of-nueva-f"></div></div>' +
       (L.length ? L.map(function (r) { return filaOferta(r); }).join("") : '<div class="card"><p class="small muted">Todavía no ha salido ninguna oferta. La primera sale sola en la semana 3, cuando alguien abre su Nave.</p></div>');
@@ -3772,7 +3780,7 @@
       (lista.length ? lista.map(function (o) {
         var r = o.grupos[0].oferta;
         var amb = '<p class="small of-grupos">' + (o.grupos.length > 1 || o.comun ? "<img class=ico src=assets/img/iconos/p/varios.png alt> " : "") + o.grupos.map(function (x) {
-          return '<a class="chip" href="consola.html?per=' + esc(x.per) + '">' + esc(nombreDeGrupo(x.per)) + " · " + estadoOferta(x.oferta)[1] + "</a>"; }).join(" ") + "</p>";
+          return '<a class="chip" href="' + PAGINA + '?per=' + esc(x.per) + '">' + esc(nombreDeGrupo(x.per)) + " · " + estadoOferta(x.oferta)[1] + "</a>"; }).join(" ") + "</p>";
         return filaOferta(r, amb).replace('data-of="', 'data-per="' + esc(o.grupos[0].per) + '" data-of="');
       }).join("") : '<div class="card"><p class="small muted">Ninguno de tus grupos tiene ofertas todavía.</p></div>');
     var repinta = function (texto) { return verOfertasComunes(destino).then(function () { if (texto) aviso(texto, true); }); };
@@ -3985,7 +3993,7 @@
           '<p class="small">' + cfg.ganadores + " ganador" + (cfg.ganadores === 1 ? "" : "es") + " por grupo · " + cfg.coste + " ◈ la participación" + (cfg.maximo ? " · máx. " + cfg.maximo + " por persona" : "") +
           " · a la venta del " + diaDe(cfg.desde) + " al " + diaDe(cfg.fecha) + "</p>" +
           '<p class="small sr-estados">' + s.grupos.map(function (x) {
-            return '<a class="chip" href="consola.html?per=' + esc(x.per) + '" title="Abrir ese grupo: su bombo y el sorteo en directo">' + esc(nombreDeGrupo(x.per)) + " · " + estadoSorteo(x.ticket)[1] + "</a>"; }).join(" ") + "</p></div></div>" +
+            return '<a class="chip" href="' + PAGINA + '?per=' + esc(x.per) + '" title="Abrir ese grupo: su bombo y el sorteo en directo">' + esc(nombreDeGrupo(x.per)) + " · " + estadoSorteo(x.ticket)[1] + "</a>"; }).join(" ") + "</p></div></div>" +
           '<div class="sr-ambito"></div>' +
           (s.grupos.some(function (x) { return !x.ticket.isRaffleCompleted; }) ? '<p class="sr-botones"><button class="btn sr-editar"><img class=ico src=assets/img/iconos/p/editar.png alt> Cambiar (en todos sus grupos)</button></p><div class="sr-editar-f"></div>' : "") +
           "</div>";
@@ -4480,7 +4488,7 @@
       b.disabled = true; b.textContent = "Borrando…";
       try {
         await MOTOR.llamar("deleteProject", { projectId: PER });
-        location.href = (GESTION ? "gestion.html" : "consola.html") + "?borrado=" + encodeURIComponent(nombre);
+        location.href = (GESTION ? "gestion.html" : PAGINA) + "?borrado=" + encodeURIComponent(nombre);
       } catch (e) { b.disabled = false; b.textContent = "Borrar el grupo para siempre"; aviso(e.message); }
     };
   }
@@ -4619,8 +4627,25 @@
     quizaBienvenida();   // (solo con ?bienvenida=1)
   }
 
+  /**
+   * 29-sep · la franja de la consola de ensayo: siempre a la vista, para que nadie crea que está en su grupo de verdad, con
+   * «Empezar de cero» (vuelve la Nave Escuela como estaba) y la vuelta a la Academia.
+   */
+  function franjaEnsayo() {
+    if (!ENSAYO || document.getElementById("ens-franja")) return;
+    var f = document.createElement("div"); f.id = "ens-franja"; f.className = "ens-franja"; f.setAttribute("role", "status");
+    f.innerHTML = '<span><b>Consola de ensayo</b><span class="ens-largo"> · la Nave Escuela con un docente de mentira: pulsa lo que quieras, nada sale de tu navegador</span></span>' +
+      '<span class="ens-bot"><button type="button" class="btn min" data-ens="cero">Empezar de cero</button>' +
+      '<a class="btn min primary" href="academia.html">Volver a la Academia</a></span>';
+    f.querySelector("[data-ens=cero]").onclick = function () {
+      try { localStorage.removeItem("sgEnsayo.db"); } catch (e) {}
+      location.reload();
+    };
+    document.body.appendChild(f); document.body.classList.add("con-ens-franja");
+  }
   function arrancar() {
     MOTOR = window.SG.MOTOR;
+    franjaEnsayo();
     if (url.get("demo") === "1") { MODO = "manual"; aplicarModo(); return demostracion(); }
     var mirar = function (u) {
       var q_ = u ? u.uid : null; if (q_ === mirar._v) return; mirar._v = q_;  // una vez por cuenta: sesion() y sg:sesion llegan los dos al cargar

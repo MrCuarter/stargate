@@ -2385,6 +2385,7 @@ window.SG.CFGSESION = (function () {
       try {
         await guardar(o.per, o.nombre, off);
         if (typeof o.alGuardar === "function") o.alGuardar(off);
+        if (window.SG_ENSAYO === 1 && off.length && window.SG.rastroAcademia) window.SG.rastroAcademia({ rueda: true });   // (la consola de ensayo SÍ guarda)
         msg.textContent = "✓ Guardado" + (off.length ? " · quitas " + off.length + (off.length === 1 ? " sección" : " secciones") : " · sale todo");
       } catch (err) { if (revertir) revertir(); msg.textContent = "No se ha podido guardar: " + (err.message || err); }
     };
@@ -2830,7 +2831,8 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
   // Un paso puede traer un objetivo de reserva: el enlace del que habla no siempre existe (un PER sin
   // formularios publicados todavía), y entonces se señala el bloque que lo contiene.
   function objetivo(s){ var t=document.querySelector(s.sel); return t || (s.sel2 ? document.querySelector(s.sel2) : null); }
-  function page(){var p=location.pathname.split('/').pop(); return p||'index.html';}
+  // (29-sep · la consola de ensayo es la consola: la visita no se va a la de verdad para enseñarla)
+  function page(){var p=location.pathname.split('/').pop(); return p==='ensayo.html'?'consola.html':(p||'index.html');}
   function qs(){var m=location.search.match(/[?&]tour=(\d+)/); return m?parseInt(m[1],10):null;}
   var ov=null, recien=true, vigia=null, manual=false;
   // mousedown incluido: arrastrar la barra de scroll no dispara «wheel», y ahi tambien manda el usuario
@@ -4880,6 +4882,39 @@ _html = head("STARGATE · Mi nave",
 ''' + FOOT
 open(os.path.join(HERE, "consola.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: consola.html  (el puesto de mando, sin hoja de cálculo)")
+
+# ---------------------------------------------------------------- la consola de ensayo (29-sep, la Academia de la Cero)
+def motor_simulador():
+    """29-sep · LA CONSOLA DE ENSAYO (ensayo.html): motor_sim.js es motor.js tal cual, con sus cuatro imports de Firebase
+    cambiados por el Firebase de mentira en memoria (assets/js/sim/firebase_sim.js). Así el ensayo es la consola de verdad y
+    nunca se queda atrás. El import lleva la huella del simulador y de sus datos, para que no se sirva una copia vieja.
+    🔴 Y un `localStorage` propio del módulo: el motor apunta en el navegador «esta cuenta es docente / referente» (lo que
+    enciende «Crear grupo» en el menú) y lo borra al salir. El docente de ensayo no puede tocarle esas marcas a la cuenta de
+    verdad de quien ensaya."""
+    import re as _re_s
+    sim = open(os.path.join(HERE, "assets", "js", "sim", "firebase_sim.js"), "rb").read()
+    huella = hashlib.sha1(sim + open(os.path.join(HERE, "assets", "sim", "escuela.json"), "rb").read()).hexdigest()[:10]
+    src = open(os.path.join(HERE, "assets", "js", "motor.js"), encoding="utf-8").read()
+    patron = r'from "https://www\.gstatic\.com/firebasejs/[\d.]+/firebase-(?:app|auth|firestore|functions)\.js"'
+    assert len(_re_s.findall(patron, src)) == 4, "motor.js: esperaba 4 imports de Firebase; revisa motor_simulador()"
+    src = _re_s.sub(patron, 'from "./sim/firebase_sim.js?h=' + huella + '"', src)
+    assert "window.localStorage" not in src, "motor.js usa window.localStorage: el ensayo podría tocar las marcas de verdad"
+    marcas = ('const localStorage = (() => { const L = window.localStorage, NO = /^sgEs(Docente|Referente|Recluta)$/;\n'
+              '  return { getItem: (k) => L.getItem(k), setItem: (k, v) => { if (!NO.test(k)) L.setItem(k, v); },\n'
+              '           removeItem: (k) => { if (!NO.test(k)) L.removeItem(k); } }; })();\n')
+    open(os.path.join(HERE, "assets", "js", "motor_sim.js"), "w", encoding="utf-8").write(
+        "/* GENERADO por _build_site.py desde motor.js (motor_simulador) — no editar a mano. La consola de ensayo: la misma\n"
+        " * centralita contra un Firebase de mentira en memoria (assets/js/sim/firebase_sim.js). Nada sale del navegador. */\n" + marcas + src)
+motor_simulador()
+_tag_motor = '<script type="module" src="' + _v("assets/js/motor.js") + '"></script>'
+assert _tag_motor in _html, "consola.html sin su motor: revisa la consola de ensayo"
+_ens = (_html.replace(_tag_motor, '<script>window.SG_ENSAYO=1;</script><script type="module" src="' + _v("assets/js/motor_sim.js") + '"></script>')
+             .replace("<title>STARGATE · Mi nave</title>", "<title>STARGATE · Consola de ensayo</title>")
+             .replace('<header class="hero corto"><h1>Mi nave</h1></header>', '<header class="hero corto"><h1>Consola de ensayo</h1></header>')
+             .replace("</head>", '<meta name="robots" content="noindex">\n</head>', 1))
+assert "motor_sim.js" in _ens and "Consola de ensayo</h1>" in _ens and "Consola de ensayo</title>" in _ens, "ensayo.html a medias"
+open(os.path.join(HERE, "ensayo.html"), "w", encoding="utf-8").write(_ver_assets(_ens))
+print("escrito: ensayo.html  (la consola de ensayo: la de verdad, contra un Firebase de mentira)")
 
 # ---------------------------------------------------------------- gestionar grupos (19-sep, solo referentes)
 # La misma consola en su otro modo (`window.SG_GESTION`): crear, graduar, borrar, el equipo, los escuadrones, los ajustes

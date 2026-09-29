@@ -64,7 +64,8 @@
   // Un paso puede traer un objetivo de reserva: el enlace del que habla no siempre existe (un PER sin
   // formularios publicados todavía), y entonces se señala el bloque que lo contiene.
   function objetivo(s){ var t=document.querySelector(s.sel); return t || (s.sel2 ? document.querySelector(s.sel2) : null); }
-  function page(){var p=location.pathname.split('/').pop(); return p||'index.html';}
+  // (29-sep · la consola de ensayo es la consola: la visita no se va a la de verdad para enseñarla)
+  function page(){var p=location.pathname.split('/').pop(); return p==='ensayo.html'?'consola.html':(p||'index.html');}
   function qs(){var m=location.search.match(/[?&]tour=(\d+)/); return m?parseInt(m[1],10):null;}
   var ov=null, recien=true, vigia=null, manual=false;
   // mousedown incluido: arrastrar la barra de scroll no dispara «wheel», y ahi tambien manda el usuario

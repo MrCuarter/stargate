@@ -537,6 +537,7 @@ window.SG.CFGSESION = (function () {
       try {
         await guardar(o.per, o.nombre, off);
         if (typeof o.alGuardar === "function") o.alGuardar(off);
+        if (window.SG_ENSAYO === 1 && off.length && window.SG.rastroAcademia) window.SG.rastroAcademia({ rueda: true });   // (la consola de ensayo SÍ guarda)
         msg.textContent = "✓ Guardado" + (off.length ? " · quitas " + off.length + (off.length === 1 ? " sección" : " secciones") : " · sale todo");
       } catch (err) { if (revertir) revertir(); msg.textContent = "No se ha podido guardar: " + (err.message || err); }
     };
