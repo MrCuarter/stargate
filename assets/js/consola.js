@@ -67,6 +67,9 @@
    */
   var ENSAYO = window.SG_ENSAYO === 1, ENSAYA = ENSAYO || url.get("demo") === "1";
   var PAGINA = ENSAYO ? "ensayo.html" : "consola.html";   // (al recargar, el ensayo sigue siendo el ensayo)
+  // 29-sep (noche) · el grupo de la Academia no sale en «Mi nave»: solo se abre si se pide por su nombre (su organizador, desde academia.html)
+  var CON_ACADEMIA = { academia: !!window.SG_PER_ACADEMIA && url.get("per") === window.SG_PER_ACADEMIA };
+  var ORGANIZO_ACADEMIA = function () { return !!(YO && YO.correo && String(YO.correo).toLowerCase() === String(window.SG_ACADEMIA_ORGANIZA || "").toLowerCase()); };
   if (/^[a-z_]+$/.test(url.get("tab") || "")) TAB = url.get("tab");   // 15-sep · el Capitán enlaza a una pestaña (p. ej. «Mis enlaces»)
 
   // 🔴 Mientras el motor por defecto siga siendo el viejo, un enlace a un grupo nuevo SIN el
@@ -406,7 +409,7 @@
   function soyRefAlguno() { return (PERS.some(function (p) { return p.soyReferente; }) || refGlobal()) && !modoDoc(); }
   async function elegirGrupo() {
     cargando("Buscando tus grupos…");
-    PERS = await MOTOR.misPERs(YO.correo);
+    PERS = await MOTOR.misPERs(YO.correo, CON_ACADEMIA);
     contarBuzon();   // (15-sep · el contador del buzón: si llega antes de pintar, sale ya en el botón; si no, se añade)
     if (GESTION) return verGestion();
     if (!PERS.length) {
@@ -461,7 +464,7 @@
    */
   var ACADEMIA_DOC = null;
   function puertaAcademia() {
-    var a = ACADEMIA_DOC; if (!a || ENSAYO) return "";
+    var a = ACADEMIA_DOC; if (!a || ENSAYO || ORGANIZO_ACADEMIA()) return "";   // (quien la organiza la lleva desde el menú)
     var av = a.avance || {}, t = av.fin ? "La has completado: repásala cuando quieras." : (av.total ? "Llevas " + (av.sesiones || 0) + " de " + av.total + " sesiones: sigue donde lo dejaste." : "Tu curso del profesorado: sigue donde lo dejaste.");
     return '<div class="card acd-puerta ancha"><img src="assets/img/personajes/nebula.png" alt=""><div><b>La Academia de la Cero' + (av.fin ? " · Comandante de la Cero" : "") + "</b><span>" + esc(t) + "</span></div>" +
       '<a class="btn primary" href="academia.html">Abrir la Academia →</a></div>';
@@ -544,7 +547,7 @@
     }
     try {
       await MOTOR.guardarAjustes(per, { "stargate.recuperacion": abrir ? { hasta: hasta, desde: Date.now(), por: (YO && YO.correo) || "" } : false });
-      PERS = await MOTOR.misPERs(YO.correo);
+      PERS = await MOTOR.misPERs(YO.correo, CON_ACADEMIA);
       aviso(abrir ? "Reabierto para la recuperación hasta el " + fechaCorta(hasta) + ": vuelve a tus grupos en marcha y su alumnado puede registrar retos." : "Recuperación cerrada.");
       abrir(per);
     } catch (e) { aviso("No se ha podido: " + (e.message || e)); }
@@ -1118,7 +1121,7 @@
     DATOS = await MOTOR.leerPER(PER, true); LEIDO_EN = Date.now(); EVID = null; EVID_PER = null;
     // 28-sep · Norberto: «cuando añado un docente, no se actualiza en las cajas, tengo que refrescar la página». La lista de
     // grupos (y sus docentes) sale de `misPERs`, que solo se leía al entrar: en Gestionar grupos se vuelve a leer también.
-    if (GESTION && YO && YO.correo) { try { PERS = await MOTOR.misPERs(YO.correo); } catch (e) { /* se queda la de antes */ } }
+    if (GESTION && YO && YO.correo) { try { PERS = await MOTOR.misPERs(YO.correo, CON_ACADEMIA); } catch (e) { /* se queda la de antes */ } }
     pintar();
   }
 
@@ -1925,7 +1928,7 @@
         await MOTOR.guardarAjustes(PER, { "stargate.archivado": arch ? false : Date.now() });
         AVISO_GESTION = '<div class="card borrado-ok"><p>' + ico(arch ? "envivo" : "medalla") + ' <b>«' + esc(p.nombre || PER) + '»</b> ' +
           (arch ? "reabierto." : "graduado y archivado. Lo encuentras en «Archivados».") + '</p></div>';
-        PERS = await MOTOR.misPERs(YO.correo); DATOS = await MOTOR.leerPER(PER, true); pintarGestion();
+        PERS = await MOTOR.misPERs(YO.correo, CON_ACADEMIA); DATOS = await MOTOR.leerPER(PER, true); pintarGestion();
       } catch (e) { ba.disabled = false; aviso("No se ha podido: " + (e.message || e)); }
     };
   }

@@ -80,7 +80,9 @@ FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0
 # En cuanto entrabas al material del profesorado —que es donde pasas el tiempo— desaparecían del
 # mapa. El menú llevaba a siete documentos que se leen una vez y a ninguna de las dos cosas que se
 # hacen de verdad: crear un grupo y gobernarlo.
-NAV = [("consola.html","Mi nave","cons"),("gestion.html","Gestionar grupos","gest","referente"),("guia.html","Guía","guia")]
+# 29-sep (noche) · la Academia, en el menú de todo el profesorado. Norberto: «debería ser una página en el menú de arriba.
+# Academia (para todos los docentes), así separamos docencia de aprendizaje». Su grupo ya no sale en «Mi nave».
+NAV = [("consola.html","Mi nave","cons"),("gestion.html","Gestionar grupos","gest","referente"),("academia.html","Academia","acad"),("guia.html","Guía","guia")]
 # 🔴 19-sep · «Mis grupos» es ahora la NAVE DEL COMANDANTE (se entra directo en tu grupo) y «Crear grupo» vive dentro de
 # «Gestionar grupos», con todo lo que se hace una o dos veces por curso (Norberto: «simplicidad máxima en la página
 # principal… no queremos info que se usará una o dos veces en todo el curso»). Solo el referente la ve.
@@ -4382,7 +4384,7 @@ def _cabeza_motor():
         '<script>window.SG_FIREBASE=' + _json.dumps(FIREBASE) + ';'
         'window.SG_CATALOGO_URL="' + _v("motor/catalogo.json") + '";'
         # el grupo de ejemplo de las pantallas ?demo=1 (la consola y el aula): un dato, un sitio
-        'window.SG_PER_DEMO=' + _json.dumps(PER_DEMO) + ';window.SG_PER_ACADEMIA=' + _json.dumps(PER_ACADEMIA) + ';'
+        'window.SG_PER_DEMO=' + _json.dumps(PER_DEMO) + ';window.SG_PER_ACADEMIA=' + _json.dumps(PER_ACADEMIA) + ';window.SG_ACADEMIA_ORGANIZA=' + _json.dumps(ACADEMIA["organiza"]["correo"]) + ';'
         'window.SG_TICKET_URL=' + _json.dumps(TICKET_URL) + ';'
         'window.SG_TICKET_TEMAS=' + _json.dumps(TICKET_TEMAS, ensure_ascii=False) + ';'
         # 20-sep · la Nave del Comandante también lee el ticket (su caja de «Tickets de salida»)
@@ -4427,7 +4429,7 @@ def _cabeza_fuente():
     modo = _json.dumps(MOTOR_POR_DEFECTO)
     return (
         '<script>window.SG_FIREBASE=' + cfg + ';window.SG_MOTOR=' + modo + ';'
-        'window.SG_PER_DEMO=' + _json.dumps(PER_DEMO) + ';window.SG_PER_ACADEMIA=' + _json.dumps(PER_ACADEMIA) + ';'
+        'window.SG_PER_DEMO=' + _json.dumps(PER_DEMO) + ';window.SG_PER_ACADEMIA=' + _json.dumps(PER_ACADEMIA) + ';window.SG_ACADEMIA_ORGANIZA=' + _json.dumps(ACADEMIA["organiza"]["correo"]) + ';'
         'window.SG_TICKETS_API=' + _json.dumps(TICKETS_API) + ';'
         'window.SG_TICKETS_HOJA=' + _json.dumps(TICKETS_HOJA) + ';'
         'window.SG_PANEL_MAESTRO=' + _json.dumps(PANEL_MAESTRO) + ';window.SG_PANEL_MAESTRO_EDICION=' + _json.dumps(PANEL_MAESTRO_EDICION) + ';'
@@ -4559,7 +4561,7 @@ print("escrito: profesores.html  (solo el Mando)")
 # El recorrido de los docentes, en asíncrono y a lo grande (assets/js/academia.js con el contenido de _site_data.py → ACADEMIA).
 # Se entra por su enlace con Google: así queda el registro del profesorado que crear.html enseña para añadirlo con un clic.
 _html = head("STARGATE · La Academia de la Cero", "El curso del profesorado de STARGATE: la historia, el temario dentro de ella, la plataforma desde los dos lados y cómo hacerla tuya.",
-             "grp").replace("</head>", _cabeza_motor() + '<meta name="robots" content="noindex,nofollow">\n'
+             "acad").replace("</head>", _cabeza_motor() + '<meta name="robots" content="noindex,nofollow">\n'
                + '<script>window.SG_ACADEMIA=' + json.dumps(ACADEMIA, ensure_ascii=False).replace("</", "<\\/") + ';</script>\n</head>') + '''
 <section id="academia"><div class="wrap"><div id="acd-app"><p class="muted">Cargando la Academia…</p></div>
 ''' + '<script src="' + _v("assets/js/academia.js") + '" defer></script>' + '''

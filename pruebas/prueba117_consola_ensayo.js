@@ -66,7 +66,7 @@ c(!/["']consola\.html/.test(CJS.replace(/PAGINA = ENSAYO \? "ensayo\.html" : "co
 c((CJS.match(/if \(ENSAYA && window\.SG\.rastroAcademia\)/g) || []).length === 2, "   el rastro para la Academia (pestañas y ficha), también en el ensayo");
 c(/if \(ENSAYO && v && window\.SG\.rastroAcademia\) window\.SG\.rastroAcademia\(\{ panel: true \}\);/.test(CJS), "   el panel: se guarda de verdad (en el ensayo) y apunta el hito");
 c(/window\.SG_ENSAYO === 1 && off\.length && window\.SG\.rastroAcademia\) window\.SG\.rastroAcademia\(\{ rueda: true \}\)/.test(BUILD), "   la rueda: igual");
-c(/var a = ACADEMIA_DOC; if \(!a \|\| ENSAYO\) return "";/.test(CJS), "   en el ensayo no sale la puerta de la Academia");
+c(/var a = ACADEMIA_DOC; if \(!a \|\| ENSAYO \|\| ORGANIZO_ACADEMIA\(\)\) return "";/.test(CJS), "   en el ensayo no sale la puerta de la Academia (ni a quien la organiza)");
 c(/function franjaEnsayo\(\)/.test(CJS) && /data-ens="cero">Empezar de cero/.test(CJS) && /href="academia\.html">Volver a la Academia/.test(CJS) && /localStorage\.removeItem\("sgEnsayo\.db"\)/.test(CJS),
   "🔴 la franja, siempre a la vista: «Empezar de cero» y «Volver a la Academia»");
 c(/return p==='ensayo\.html'\?'consola\.html':\(p\|\|'index\.html'\);/.test(L("assets/js/tour.js")), "   la visita guiada no se va a la consola de verdad para enseñarla");

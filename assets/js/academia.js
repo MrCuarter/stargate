@@ -398,6 +398,81 @@
     var b = document.getElementById("acd-entrar");
     if (b) b.onclick = function () { b.disabled = true; M.entrar().then(function () { location.reload(); }, function (e) { b.disabled = false; if (window.SG && window.SG.avisar) window.SG.avisar("No se ha podido entrar", String((e && e.message) || e)); }); };
   }
+  /**
+   * 🔴 29-sep (noche) · QUIEN LA ORGANIZA NO LA HACE: LA LLEVA. Norberto: «si yo accedo a esa página, puedo ver quién se ha
+   * inscrito, gestionar todo; el resto de docentes, TODOS sin excepción, accederán como estudiantes, incluyendo Caridad y Anita».
+   * Con la cuenta del organizador (C.organiza) no hay registro ni alistamiento: sale su panel. Todos los demás —también los
+   * vitalicios— la hacen como alumnado. Lo que haga falta tocar en la ficha de alguien (validar o anular un reto), en el grupo
+   * de la Academia, que solo se abre desde aquí (motor.js → misPERs no lo enseña en «Mi nave»).
+   */
+  function esOrganiza(yo) { return !!(yo && C.organiza && String(yo.correo || "").toLowerCase() === String(C.organiza.correo || "").toLowerCase()); }
+  function haceCuanto(t) {
+    if (!t) return "sin actividad";
+    var d = Math.floor((Date.now() - t) / 864e5);
+    return d <= 0 ? "hoy" : d === 1 ? "ayer" : "hace " + d + " días";
+  }
+  function hiloDe(x) {
+    var L = [], cl = ((x.claude || {}).mensajes) || {}, pr = x.preguntas || {}, fb = x.feedback || {};
+    var NOMBRE_FB = { fallo: "Algo no funciona", idea: "Una idea", otra: "Otra cosa", juego: "Un juego" };
+    Object.keys(cl).forEach(function (k) { L.push({ t: Number(cl[k].t) || Number(k) || 0, de: "claude", x: cl[k].texto }); });
+    Object.keys(pr).forEach(function (k) { L.push({ t: Number(k) || 0, de: "el", x: pr[k].texto }); });
+    Object.keys(fb).forEach(function (k) { var f = fb[k] || {}; L.push({ t: Number(k) || 0, de: "el", x: "[" + (NOMBRE_FB[f.tipo] || "Nota") + "] " + (f.texto || f.dificultad || f.nivel || "") }); });
+    return L.sort(function (a, b) { return a.t - b.t; });
+  }
+  function sinRespuesta(x) {
+    var cl = ((x.claude || {}).mensajes) || {}, ult = 0;
+    Object.keys(cl).forEach(function (k) { ult = Math.max(ult, Number(cl[k].t) || Number(k) || 0); });
+    return Object.keys(x.preguntas || {}).filter(function (k) { return Number(k) > ult; }).length +
+           Object.keys(x.feedback || {}).filter(function (k) { return Number(k) > ult && (x.feedback[k] || {}).tipo !== "juego"; }).length;
+  }
+  function pintarOrganiza() {
+    app.innerHTML = '<main class="acd"><p class="muted">Leyendo quién se ha inscrito…</p></main>';
+    M.academiaTodos().then(function (todos) {
+      var yo = String(C.organiza.correo || "").toLowerCase();
+      var P = todos.filter(function (x) { return String(x.correo).toLowerCase() !== yo; })
+        .sort(function (a, b) { return (Number(b.t) || 0) - (Number(a.t) || 0); });
+      var fin = P.filter(function (x) { return x.avance && x.avance.fin; }).length;
+      var dudas = P.reduce(function (s, x) { return s + sinRespuesta(x); }, 0);
+      var cifra = function (n, t) { return '<div class="acd-org-c"><b>' + n + "</b><span>" + t + "</span></div>"; };
+      var CAMPOS = [["objetivo", "El objetivo"], ["dinamica", "La dinámica"], ["mecanica", "La mecánica"], ["componente", "El componente"], ["comprobar", "Cómo lo sabrá"]];
+      var fila = function (x) {
+        var a = x.avance || {}, ses = Number(a.sesiones) || 0, tot = Number(a.total) || N, sr = sinRespuesta(x), H = hiloDe(x), d = x.diseno || {};
+        var conDiseno = CAMPOS.some(function (c) { return String(d[c[0]] || "").trim(); });
+        return '<details class="card acd-org-p"><summary>' +
+          '<div class="acd-org-q"><b>' + esc(x.nombre || x.alias || x.correo) + "</b><small>" + esc(x.correo) + " · " + haceCuanto(Number(x.t)) + "</small></div>" +
+          '<div class="acd-org-a"><div class="acd-barra" aria-hidden="true"><i style="width:' + Math.round(100 * Math.min(ses, tot) / Math.max(1, tot)) + '%"></i></div>' +
+          "<span>" + (a.fin ? "<b>Comandante de la Cero</b>" : ses + " de " + tot + " sesiones") + "</span></div>" +
+          (sr ? '<span class="chip acd-org-dudas">' + sr + (sr === 1 ? " sin respuesta" : " sin respuesta") + "</span>" : "") +
+          "</summary>" +
+          '<p class="small muted">Hitos: ' + (Number(a.hitos) || 0) + " de " + (Number(a.de) || "—") + (x.alias ? " · alias «" + esc(x.alias) + "»" : "") + "</p>" +
+          (conDiseno ? "<h3>Su primera pieza</h3><dl class=\"acd-org-dis\">" + CAMPOS.map(function (c) { return "<dt>" + c[1] + "</dt><dd>" + (esc(d[c[0]] || "") || "—") + "</dd>"; }).join("") + "</dl>" : "") +
+          "<h3>Mensajes</h3>" + (H.length ? '<div class="acd-hilo">' + H.map(function (m) {
+            return '<div class="acd-msj ' + (m.de === "claude" ? "acd-de-claude" : "acd-de-ti") + '"><b>' + (m.de === "claude" ? "Claude" : esc(x.alias || (x.nombre || "").split(" ")[0] || "Docente")) +
+              " <small>" + (m.t ? new Date(m.t).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</small></b><p>" + esc(m.x) + "</p></div>"; }).join("") + "</div>"
+            : '<p class="muted">Todavía no ha escrito nada.</p>') +
+          "</details>";
+      };
+      app.innerHTML = '<main class="acd acd-org">' +
+        '<section class="card acd-org-cab"><p class="kicker">La Academia de la Cero · la organizas tú</p><h1>Tu profesorado en la Academia</h1>' +
+        "<p>Quién se ha inscrito y cómo va. Todos los demás docentes, sin excepción, la hacen como alumnado. Las dudas las contesta Claude cada mañana, y aquí ves sus respuestas.</p>" +
+        '<div class="acd-org-cifras">' + cifra(P.length, P.length === 1 ? "inscrito" : "inscritos") + cifra(P.length - fin, "en marcha") + cifra(fin, "terminada") + cifra(dudas, "sin respuesta") + "</div>" +
+        '<div class="acd-botones"><button type="button" class="btn primary" id="acd-org-copiar">' + ico("enlace") + " Copiar el enlace para el profesorado</button>" +
+        '<a class="btn" href="academia.html?demo=1">' + ico("ojo") + " Verla como la ven ellos</a>" +
+        '<a class="btn" href="consola.html?per=' + encodeURIComponent(G) + '">' + ico("gente") + " Sus fichas en tu consola</a>" +
+        '<a class="btn" href="crear.html">' + ico("estrella") + " Crear un grupo con ellos</a></div>" +
+        '<p class="acd-nota small" id="acd-org-msg" aria-live="polite"></p></section>' +
+        (P.length ? P.map(fila).join("") : '<section class="card"><p class="muted">Todavía no se ha inscrito nadie. Comparte el enlace: al entrar con Google quedan registrados y alistados.</p></section>') +
+        "</main>";
+      var cp = document.getElementById("acd-org-copiar");
+      if (cp) cp.onclick = function () {
+        var u = location.origin + "/academia.html", m = document.getElementById("acd-org-msg");
+        var ok = function () { m.textContent = "Copiado: " + u; }, mal = function () { m.textContent = "El enlace: " + u; };
+        try { navigator.clipboard.writeText(u).then(ok, mal); } catch (e) { mal(); }
+      };
+    }).catch(function (e) {
+      app.innerHTML = '<main class="acd"><section class="card"><h2>No se ha podido leer la Academia</h2><p>' + esc((e && e.message) || e) + "</p></section></main>";
+    });
+  }
   function escribiendo() { return document.activeElement && document.activeElement.tagName === "TEXTAREA"; }
   // lo que se practica en otra pestaña de este navegador (la consola, la clase, la Nave) marca sus hitos al momento
   window.addEventListener("storage", function (e) { if (e.key === "sgAcademia" && !escribiendo()) pintar(); });
@@ -413,6 +488,7 @@
     M.sesion().then(function (yo) {
       YO = yo;
       if (!yo) return portadaSinCuenta();
+      if (esOrganiza(yo)) return pintarOrganiza();   // (quien la organiza no se registra ni se alista: la lleva)
       return recargar().then(function () { if (!FICHA) return alistarAuto().then(recargar); }).then(function () {
         var primeraVez = true;
         M.academiaEscuchar(function (d, err) {

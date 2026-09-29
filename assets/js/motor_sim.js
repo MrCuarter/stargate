@@ -178,7 +178,7 @@ function estadoDelPER(S) {
   return { semana: semana, estado: estado, total: total, archivado: !!S.archivado, fase: fase, recuperacionHasta: rec, cierreTotal: total + GRACIA };
 }
 
-async function misPERs(correo) {
+async function misPERs(correo, opc) {
   correo = String(correo || "").toLowerCase();
   const r = await getDocs(query(collection(db, "projects"), where("coTeacherEmails", "array-contains", correo)));
   // 🔴 Las facciones viajan con el grupo: la tarjeta necesita el EMBLEMA del escuadrón de quien mira
@@ -189,6 +189,10 @@ async function misPERs(correo) {
                                   // 19-sep · para «Archivar o borrar» desde Mis grupos: borrar es de quien lo creó (o un vitalicio)
                                   ownerId: d.data().ownerId || "", teacherId: d.data().teacherId || "" }))
                      .filter(x => x.stargate.version)
+                     // 🔴 29-sep (noche) · LA ACADEMIA NO ES UN GRUPO DE CLASE. Norberto: «debería ser una página en el menú de
+                     // arriba… así separamos docencia de aprendizaje». Su grupo no sale en «Mi nave», ni en el aula, la sesión o la
+                     // llamada: su organizador lo gestiona desde academia.html, y la consola solo lo abre si se le pide por su nombre.
+                     .filter(x => !x.stargate.academia || !!(opc && opc.academia))
                      .map(x => Object.assign(x, estadoDelPER(x.stargate)));
   // 🔴 EN QUÉ SEMANA VA CADA GRUPO, decidido UNA vez y aquí.
   //
@@ -2218,6 +2222,11 @@ function academiaEscuchar(fn) {
   return sesion().then((yo) => (yo ? onSnapshot(doc(db, "stargate_formacion", yo.uid), (d) => fn(d.exists() ? d.data() : null), (e) => fn(null, e)) : null));
 }
 /** El profesorado registrado en la Academia, para añadirlo a un grupo con un clic (lo leen el Mando y los referentes). */
+/** 29-sep (noche) · el panel del organizador (academia.html): todo lo de cada docente inscrito. Lo dejan leer las reglas al Mando y a los vitalicios. */
+async function academiaTodos() {
+  const r = await getDocs(collection(db, "stargate_formacion"));
+  return r.docs.map((d) => Object.assign({ uid: d.id }, d.data() || {})).filter((x) => x.correo);
+}
 async function academiaProfes() {
   const r = await getDocs(collection(db, "stargate_formacion"));
   return r.docs.map((d) => { const x = d.data() || {};
@@ -2416,7 +2425,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,

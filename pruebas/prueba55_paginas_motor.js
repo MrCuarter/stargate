@@ -78,7 +78,7 @@ c(anular.indexOf("applyXpDelta") >= 0 && anular.indexOf("completedMissionIds") >
   c(html.indexOf("puerta.js") < 0, "🔴 " + par[0] + " NO pide PIN: pide cuenta");
   c(/motor\.js/.test(html), "   y carga el motor");
 });
-c(/MOTOR\.misPERs\(YO\.correo\)/.test(CONSOLA),
+c(/MOTOR\.misPERs\(YO\.correo(, CON_ACADEMIA)?\)/.test(CONSOLA),
   "🔴 la consola enseña los grupos DE QUIEN ENTRA, no todos: eso el PIN no sabía hacerlo");
 
 // ---------------------------------------------------------------- g) a quién se le edita

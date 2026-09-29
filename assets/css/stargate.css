@@ -7373,3 +7373,26 @@ body.con-ens-franja{padding-bottom:84px}
   .ens-franja .btn{padding:6px 10px;font-size:.82rem}
   body.con-ens-franja{padding-bottom:96px}
 }
+/* 29-sep (noche) · la Academia, para quien la organiza: quién se ha inscrito y cómo va */
+.acd-org-cab h1{margin:4px 0 8px}
+.acd-org-cifras{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}
+.acd-org-c{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg2)}
+.acd-org-c b{display:block;font-family:'Unbounded',sans-serif;font-size:1.4rem;color:var(--teal)}
+.acd-org-c span{color:var(--mut);font-size:.9rem}
+.acd-org-p summary{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;cursor:pointer;list-style:none}
+.acd-org-p summary::-webkit-details-marker{display:none}
+.acd-org-q{flex:1 1 220px;min-width:0}
+.acd-org-q b{display:block}
+.acd-org-q small{display:block;color:var(--mut);word-break:break-all}
+.acd-org-a{display:flex;gap:10px;align-items:center;flex:1 1 240px}
+.acd-org-a span{white-space:nowrap;font-size:.92rem}
+.acd-org-dudas{border-color:var(--amber)!important;color:var(--amber)!important}
+.acd-org-p h3{margin:14px 0 6px;font-size:1rem}
+.acd-org-dis{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;margin:0}
+.acd-org-dis dt{color:var(--mut)}
+.acd-org-dis dd{margin:0}
+@media (max-width:600px){
+  .acd-org-cifras{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .acd-org-dis{grid-template-columns:1fr}
+  .acd-org-dis dd{margin-bottom:6px}
+}
