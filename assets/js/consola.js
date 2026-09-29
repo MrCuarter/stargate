@@ -33,6 +33,8 @@
   }
   function cargarFicha() {
     var local = ""; try { local = localStorage.getItem(CLAVE_MODO) || ""; } catch (e) {}
+    // 29-sep · y su camino en la Academia de la Cero (si se registró): la puerta al curso, en su Nave
+    if (MOTOR.academiaMia && !GESTION && url.get("demo") !== "1") MOTOR.academiaMia().then(function (d) { ACADEMIA_DOC = d; if (d && PER && DATOS && TAB === "portada") pintar(); }, function () {});
     return (MOTOR.miFichaDocente ? MOTOR.miFichaDocente() : Promise.resolve(null)).then(function (f) {
       FICHA = f || {};
       MODO = (FICHA.modo === "manual" || FICHA.modo === "piloto") ? FICHA.modo : (local === "manual" ? "manual" : "piloto");
@@ -446,6 +448,17 @@
    * ahora es un desplegable DENTRO de esta caja. Lo de NEBULA y las cifras del grupo se fue de aquí: TODO lo del grupo va
    * debajo de su banner (ver `bannerGrupo`), que es lo que él pedía para no mezclar lo tuyo con lo suyo.
    */
+  /**
+   * 🔴 29-sep · LA ACADEMIA, EN TU NAVE. Norberto: «en Mi Nave deben tener el curso de la Academia de la Cero, así siempre
+   * pueden acceder para consultarlo y verlo». Quien se registró en ella (stargate_formacion) la tiene aquí, con lo que lleva.
+   */
+  var ACADEMIA_DOC = null;
+  function puertaAcademia() {
+    var a = ACADEMIA_DOC; if (!a) return "";
+    var av = a.avance || {}, t = av.fin ? "La has completado: repásala cuando quieras." : (av.total ? "Llevas " + (av.sesiones || 0) + " de " + av.total + " sesiones: sigue donde lo dejaste." : "Tu curso del profesorado: sigue donde lo dejaste.");
+    return '<div class="card acd-puerta ancha"><img src="assets/img/personajes/nebula.png" alt=""><div><b>La Academia de la Cero' + (av.fin ? " · Comandante de la Cero" : "") + "</b><span>" + esc(t) + "</span></div>" +
+      '<a class="btn primary" href="academia.html">Abrir la Academia →</a></div>';
+  }
   function heroComandante() {
     var V = vivos(), nombre = (YO && (YO.nombre || YO.displayName)) || "Comandante";
     var total = V.reduce(function (a, p) { return a + (Number(p.reclutas) || 0); }, 0), mio = miNombreAqui();
@@ -1059,7 +1072,7 @@
     // las pestañas para que la encendida sea la que se ve.
     if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
     // 19-sep · tu ficha y NEBULA, solo en el Puente (como «Mi nave» del recluta); en las demás secciones, al grano
-    app.innerHTML = avisoBorrado() + (TAB === "portada" ? heroComandante() : "") +
+    app.innerHTML = avisoBorrado() + (TAB === "portada" ? heroComandante() + puertaAcademia() : "") +
       bannerGrupo(t) + barraSecciones() + subPestanas() +
       '<div id="c-aviso" class="aviso" hidden></div>' +
       '<div id="c-cuerpo"></div>';

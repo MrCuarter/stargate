@@ -7344,6 +7344,12 @@ button.m.fin-b:hover{color:#fff;border-color:var(--teal)}
   .acd-hecha,.acd-final{flex-direction:column;align-items:flex-start}
   .acd-nav{flex-wrap:wrap}
 }
+/* 29-sep · la puerta a la Academia: en la Nave del recluta (grupo de la Academia) y en la Nave del Comandante */
+.acd-puerta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-color:var(--teal)!important;background:rgba(55,224,236,.06)}
+.acd-puerta img{width:48px;height:48px;border-radius:50%;object-fit:cover;object-position:top;flex:none;background:#0d1420;border:1px solid var(--line)}
+.acd-puerta>div{flex:1 1 220px;min-width:0}
+.acd-puerta b{display:block;font-family:'Unbounded',sans-serif;font-size:1rem}
+.acd-puerta span{display:block;color:var(--mut);font-size:.95rem}
 /* 29-sep · crear.html: el profesorado registrado en la Academia, para añadirlo con un tic */
 .cr-acd{margin:4px 0 12px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--bg2)}
 .cr-acd-t{margin:0 0 8px}

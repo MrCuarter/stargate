@@ -19,7 +19,8 @@ c(/if \(ultimo && V\.some\(function \(p\) \{ return p\.id === ultimo; \}\)\) ret
 // 20-sep · «la caja de la ficha del comandante quizá pueda ocupar todo el ancho (aumenta avatar, más info del docente…)»
 c(/<div class="card cn-ficha ancha">/.test(K) && /class="cn-ficha-c"/.test(K) && /class="monedas"/.test(K) && /\.cn-ficha img\.av\{width:140px/.test(CSS),
   "🔴 la ficha del comandante ocupa todo el ancho, con el avatar grande y sus cifras");
-c(/\(TAB === "portada" \? heroComandante\(\) : ""\)/.test(K), "   solo en el Puente (en las demás secciones, al grano)");
+// (29-sep · y detrás, la puerta a la Academia de la Cero para quien se registró: también solo en el Puente)
+c(/\(TAB === "portada" \? heroComandante\(\)( \+ puertaAcademia\(\))? : ""\)/.test(K), "   solo en el Puente (en las demás secciones, al grano)");
 c(/var SECCIONES = \[\["puente"/.test(K) && ["nave", "gente", "rankings", "zoco", "premios"].every(k => new RegExp("assets/img/nave/iconos/" + k + "\\.png").test(K)), "🔴 las secciones del grupo, con los iconos del menú de la Nave");
 c(!/\["equipo", "Equipo docente", 1\]/.test(K.slice(K.indexOf("var TABS ="), K.indexOf("var TABS =") + 600)), "   sin equipo, escuadrones ni ajustes (se fueron a «Gestionar grupos»)");
 // 20-sep · «código de clase y copiar invitación muévelo a Mi gente»: ya no sale en el Puente ninguna semana

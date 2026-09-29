@@ -3308,6 +3308,19 @@
     return ((st.d&&st.d.recompensas)||[]).filter(function(x){
       return x.tipo==='sorteo'&&x.sorteo&&x.sorteo.hecho&&!localStorage.getItem('sgSorteoVisto_'+per+'_'+x.doc); });
   }
+  /**
+   * 🔴 29-sep · LA ACADEMIA DE LA CERO, SIEMPRE A MANO. Norberto: «Cuando ingresen, en Mi Nave deben tener el curso de la
+   * Academia de la Cero, así siempre pueden acceder para consultarlo y verlo». En el grupo de la Academia, arriba del todo, la
+   * puerta al curso. Y se apunta (en ESTE navegador) que ha abierto su Nave: el hito «Abre tu Nave» de la sesión 5.
+   */
+  var ACADEMIA_APUNTADA=false;
+  function avisoAcademia(){
+    if(!per||per!==window.SG_PER_ACADEMIA||SIMULACRO) return '';
+    if(!ACADEMIA_APUNTADA&&window.SG&&window.SG.rastroAcademia){ ACADEMIA_APUNTADA=true; window.SG.rastroAcademia({nave:true}); }
+    return '<div class="card acd-puerta"><img src="assets/img/personajes/nebula.png" alt=""><div><b>La Academia de la Cero</b>'
+      +'<span>Tu curso del profesorado: sigue donde lo dejaste, o repasa lo que ya has hecho.</span></div>'
+      +'<a class="btn primary" href="academia.html">Abrir la Academia →</a></div>';
+  }
   function avisoSorteo(){
     var l=sorteosHechosSinVer(); if(!l.length) return '';
     var x=l[0], S=x.sorteo, gane=(S.ganadoresFichas||[]).indexOf(st.yo.fid)>=0, nadie=!(S.ganadoresAlias||[]).length;
@@ -4977,7 +4990,7 @@
         + '<a class="btn ghost" href="index.html">Volver a la presentación</a></p></div>'
       : '';
     root.innerHTML = avisoDemo + (dentro
-      ? barraSimulacro()+login()+pestanas()+avisoCongelado()+avisoMensajes()+avisoEnVivo()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
+      ? barraSimulacro()+login()+pestanas()+avisoAcademia()+avisoCongelado()+avisoMensajes()+avisoEnVivo()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
         +'<div id="nave-panel" role="tabpanel" aria-labelledby="nb-t-'+st.tab+'">'+contenido()+'</div>'
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
     verTablero(dentro && st.tab==='rankings' && tabVisible('rankings'));

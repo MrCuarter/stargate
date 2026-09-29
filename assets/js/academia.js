@@ -40,10 +40,11 @@
     if (c === "sim:estudiante") return !!R.estudiante;
     if (c === "sim:rueda") return !!R.rueda;
     if (c === "sim:panel") return !!R.panel;
+    if (c === "nave") return !!R.nave;
     if ((m = /^dif:(.+)$/.exec(c))) { var x = (R.clase || {})[G + ":" + m[1]]; return !!(x && x.dif) && claseEntera(x); }
     return false;
   }
-  function local(c) { return /^(sim|dif):/.test(c); }
+  function local(c) { return /^(sim|dif):/.test(c) || c === "nave"; }
   // ── lo que la plataforma sabe de su ficha en el grupo de la Academia
   function autoOk(c) {
     if (local(c)) return simOk(c) || (DEMO && !!lsLeer("demo." + c, false));
@@ -351,6 +352,30 @@
   }
 
   // ══════════════════════════════════════════ ARRANCAR
+  /**
+   * 🔴 29-sep · AL ENTRAR, DOCENTE Y RECLUTA A LA VEZ. Norberto: «que cualquiera que lo abra e inicie sesión con Google se
+   * registre como docente y a la vez como estudiante del curso». Docente: su documento en stargate_formacion (lo que crear.html
+   * ofrece con un tic). Recluta: se le alista SOLO en el grupo de la Academia, con su nombre de pila de alias (si está cogido,
+   * con la inicial del apellido o un número) y en el escuadrón de quien organiza: el mismo `alistar` que la puerta del alumnado.
+   * Si algo falla, la sesión «Tu Nave de recluta» ofrece el alta a mano.
+   */
+  function alistarAuto() {
+    if (DEMO || !M || !YO || FICHA || !M.alistar || !M.aliasOcupado) return Promise.resolve();
+    var limpio = function (t) { return String(t || "").replace(/[^A-Za-zÀ-ÿ0-9 ]+/g, " ").replace(/\s+/g, " ").trim(); };
+    var partes = limpio(YO.nombre || String(YO.correo || "").split("@")[0]).split(" ").filter(Boolean);
+    var base = (partes[0] || "Docente").slice(0, 18), ini = partes[1] ? " " + partes[1].charAt(0).toUpperCase() : "";
+    var candidatos = [base, base + ini, base + ini + " 2", base + " " + (100 + Math.floor(Math.random() * 900))];
+    var probar = function (k) {
+      if (k >= candidatos.length) return Promise.resolve();
+      var alias = candidatos[k].slice(0, 24);
+      return M.aliasOcupado(G, alias, { uid: YO.uid }).then(function (ocupado) {
+        if (ocupado) return probar(k + 1);
+        return M.alistar(G, { alias: alias, comandante: (C.organiza && C.organiza.nombre) || "", avatar: null, bio: "",
+          nombre: partes[0] || "", apellidos: partes.slice(1).join(" "), correo: YO.correo, bitacora: "" });
+      });
+    };
+    return probar(0).catch(function (e) { console.warn("[Academia] no se ha podido alistar solo:", e && e.message); });
+  }
   /** Su ficha en el grupo de la Academia (si ya se ha alistado): lo que hace falta para comprobar las misiones. */
   function recargar() {
     if (DEMO || !M || !YO) return Promise.resolve();
@@ -368,7 +393,7 @@
       "<h2>" + N + " sesiones cortas, a tu ritmo</h2><p class=\"acd-voz\">«Primero la historia y su porqué; después te alistarás como tu alumnado, darás una clase de ensayo y la harás tuya. Una sesión cada vez.»<span>NEBULA</span></p>" +
       '<p class="acd-que">Unas ' + Math.round(total / 60) + " horas en total, repartidas como quieras: cada sesión se abre al terminar la anterior, y siempre sigues donde lo dejaste.</p>" +
       '<div class="acd-botones"><button type="button" class="btn primary grande btn-google" id="acd-entrar">' + ((window.SG && window.SG.LOGO_G) || "") + "<span>Entrar con mi cuenta de Google</span></button></div>" +
-      '<p class="acd-nota">' + ico("candado") + " <b>Tus estudiantes nunca verán tu correo.</b> Si lo prefieres, usa una cuenta personal: es la que quedará registrada para añadirte a tus grupos de STARGATE.</p></div>" +
+      '<p class="acd-nota">' + ico("candado") + " Al entrar quedas <b>registrado como docente</b> de STARGATE y <b>alistado como recluta</b> en el grupo de la Academia, para vivirla como tu alumnado. <b>Tus estudiantes nunca verán tu correo:</b> si lo prefieres, usa una cuenta personal.</p></div>" +
       '<img class="acd-pj" src="assets/img/personajes/nebula.png" alt="NEBULA"></div></div></div></section></main>';
     var b = document.getElementById("acd-entrar");
     if (b) b.onclick = function () { b.disabled = true; M.entrar().then(function () { location.reload(); }, function (e) { b.disabled = false; if (window.SG && window.SG.avisar) window.SG.avisar("No se ha podido entrar", String((e && e.message) || e)); }); };
@@ -388,7 +413,7 @@
     M.sesion().then(function (yo) {
       YO = yo;
       if (!yo) return portadaSinCuenta();
-      return recargar().then(function () {
+      return recargar().then(function () { if (!FICHA) return alistarAuto().then(recargar); }).then(function () {
         var primeraVez = true;
         M.academiaEscuchar(function (d, err) {
           if (err) { SIN_GUARDAR = true; if (primeraVez) { primeraVez = false; pintar(); } return; }

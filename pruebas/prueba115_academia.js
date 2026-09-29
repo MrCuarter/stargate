@@ -42,7 +42,7 @@ c(/¿Suficiente por hoy\?/.test(JS) && /seguirás justo donde lo dejaste/.test(J
 c(/sesiones más, que se abren/.test(JS) && /function abierta\(i\)/.test(JS), "   el mapa no enseña todo el camino: lo hecho, la de ahora y cuántas quedan");
 
 // ── 3 · Los hitos, autocorregibles
-const TIPOS = ["quiz", "clasificar", "auto", "diseno"], AUTO = /^(alta|reto|reto:[A-Z]\d|ruta:m\d|repaso|sim:(consola|clase|estudiante|rueda|panel)|dif:\d+)$/;
+const TIPOS = ["quiz", "clasificar", "auto", "diseno"], AUTO = /^(alta|nave|reto|reto:[A-Z]\d|ruta:m\d|repaso|sim:(consola|clase|estudiante|rueda|panel)|dif:\d+)$/;
 const hitos = [].concat(...E.map(e => e.hitos));
 c(hitos.every(h => TIPOS.indexOf(h.tipo) >= 0), "   todos los hitos son de un tipo que se corrige solo");
 c(hitos.filter(h => h.tipo === "quiz").every(h => h.preguntas.every(q => q.ok >= 0 && q.ok < q.o.length && q.porque) && h.minimo <= h.preguntas.length && h.minimo >= Math.ceil(h.preguntas.length * .6)),
@@ -89,6 +89,17 @@ c(!!f('<iframe src="https://malo.example.com/x"></iframe>').error, "   un iframe
 c(!!f('<iframe title="sin src"></iframe>').error && !!f("http://view.genially.com/x").error, "   ni sin dirección, ni sin https");
 c(f("https://view.genially.com/abc").url === "https://view.genially.com/abc" && f("").url === "", "   el enlace a secas sigue valiendo (y vacío, vuelve al oficial)");
 c(/Que no se note el cambio/.test(TODO) && /fondos/.test(TODO), "   y los fondos de la clase para su Genially («que no se note»)");
+
+// ── 9 · Al entrar, docente Y recluta; y la Academia siempre a mano en su Nave (Norberto, 29-sep)
+const REC = L("assets/js/recluta.js");
+c(/function alistarAuto\(\)/.test(JS) && /M\.alistar\(G, \{ alias: alias, comandante:/.test(JS) && /M\.aliasOcupado\(G, alias/.test(JS) && /if \(!FICHA\) return alistarAuto\(\)\.then\(recargar\)/.test(JS),
+  "🔴 al entrar se le alista SOLO como recluta en el grupo de la Academia (alias libre, escuadrón de quien organiza)");
+c(/registrado como docente/.test(JS) && /alistado como recluta/.test(JS), "   y la portada lo dice antes de entrar");
+c(/function avisoAcademia\(\)/.test(REC) && /per!==window\.SG_PER_ACADEMIA/.test(REC) && /pestanas\(\)\+avisoAcademia\(\)/.test(REC) && /rastroAcademia\(\{nave:true\}\)/.test(REC),
+  "🔴 en su Nave de recluta (grupo de la Academia), la puerta al curso arriba del todo (y apunta «Abre tu Nave»)");
+c(/function puertaAcademia\(\)/.test(CONS) && /heroComandante\(\) \+ puertaAcademia\(\)/.test(CONS) && /MOTOR\.academiaMia\(\)\.then/.test(CONS),
+  "🔴 y en su Nave de Comandante, si se registró: la puerta, con lo que lleva");
+c(/\.acd-puerta\{/.test(CSS), "   con su estilo");
 
 console.log("\n  Batería 115 · la Academia de la Cero");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
