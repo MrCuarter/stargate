@@ -528,7 +528,8 @@
     var md = ((x.mando || {}).mensajes) || {};
     Object.keys(md).forEach(function (k) { L.push({ t: Number(md[k].t) || Number(k) || 0, de: "mando", x: md[k].texto }); });
     Object.keys(pr).forEach(function (k) { L.push({ t: Number(k) || 0, de: "el", x: pr[k].texto }); });
-    Object.keys(fb).forEach(function (k) { var f = fb[k] || {}; L.push({ t: Number(k) || 0, de: "el", x: "[" + (NOMBRE_FB[f.tipo] || "Nota") + "] " + (f.texto || f.dificultad || f.nivel || "") }); });
+    Object.keys(fb).forEach(function (k) { var f = fb[k] || {}, jg = f.tipo === "juego";
+      L.push({ t: Number(k) || 0, de: "el", x: "[" + (NOMBRE_FB[f.tipo] || "Nota") + (jg && f.hito ? " · " + f.hito.replace(/-juego$/, "") : "") + (jg && f.nivel ? " · " + f.nivel : "") + "] " + (f.texto || f.dificultad || (jg ? "" : f.nivel) || "") }); });
     return L.sort(function (a, b) { return a.t - b.t; });
   }
   function sinRespuesta(x) {
@@ -599,7 +600,8 @@
       };
       function hiloOrg(x, H) {
         return H.length ? '<div class="acd-hilo">' + H.map(function (m) {
-          return '<div class="acd-msj ' + (m.de === "claude" ? "acd-de-claude" : m.de === "mando" ? "acd-de-mando" : "acd-de-ti") + '"><b>' +
+          // (aquí «tú» eres quien organiza: lo tuyo a la derecha, como en cualquier chat; lo del docente, a la izquierda)
+          return '<div class="acd-msj ' + (m.de === "claude" ? "acd-de-claude" : m.de === "mando" ? "acd-de-mando acd-mio" : "acd-de-el") + '"><b>' +
             (m.de === "claude" ? "Claude" : m.de === "mando" ? "Tú" : esc(x.alias || (x.nombre || "").split(" ")[0] || "Docente")) +
             " <small>" + (m.t ? new Date(m.t).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</small></b><p>" + esc(m.x) + "</p></div>"; }).join("") + "</div>"
           : '<p class="muted">Todavía no ha escrito nada.</p>';
@@ -638,6 +640,7 @@
             x.mando = x.mando || {}; x.mando.mensajes = x.mando.mensajes || {}; x.mando.mensajes[k] = { texto: t, t: k };
             el.querySelector(".acd-org-hilo").innerHTML = hiloOrg(x, hiloDe(x));
             var ch = el.querySelector(".acd-org-dudas"); if (ch && !sinRespuesta(x)) ch.remove();
+            var cd = app.querySelectorAll(".acd-org-c b")[3]; if (cd) cd.textContent = P.reduce(function (s2, y) { return s2 + sinRespuesta(y); }, 0);
             ta.value = ""; br.disabled = false; rst.textContent = "Enviado: lo verá en su hilo de la Academia.";
           }, function (e) { br.disabled = false; rst.textContent = "No se ha podido enviar: " + ((e && e.message) || e) + sinReglas(e); });
         };

@@ -7483,3 +7483,5 @@ body.con-ens-franja{padding-bottom:84px}
 .acd-de-mando{background:rgba(245,176,67,.09);border:1px solid rgba(245,176,67,.4)}
 .acd-org-resp{display:grid;gap:8px;margin-top:10px}
 .acd-org-resp textarea{width:100%}
+.acd-mio{justify-self:end}
+.acd-de-el{background:var(--bg2);border:1px solid var(--line)}
