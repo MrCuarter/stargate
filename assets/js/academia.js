@@ -70,7 +70,7 @@
   function extras(i) { return (((DOC.claude || {}).extra) || []).filter(function (x) { return x && x.estacion === C.estaciones[i].id; }); }
   function hitosDe(i) { return C.estaciones[i].hitos.concat(extras(i).map(function (x) { return { id: x.id, tipo: "texto", titulo: x.titulo, como: x.texto, extra: true }; })); }
   function hecha(i) { return hitosDe(i).every(function (h) { return estado(h).ok; }); }
-  function abierta(i) { for (var k = 0; k < i; k++) if (!hecha(k)) return false; return true; }
+  function abierta(i) { if (VER) return true; for (var k = 0; k < i; k++) if (!hecha(k)) return false; return true; }
   function progreso() { var t = 0, n = 0; C.estaciones.forEach(function (e, i) { hitosDe(i).forEach(function (h) { t++; if (estado(h).ok) n++; }); }); return { n: n, t: t }; }
   function hechas() { return C.estaciones.filter(function (e, i) { return hecha(i); }).length; }
 
@@ -133,8 +133,9 @@
     // la de «completada» solo se alcanza con todo hecho
     if (P[PANT].t === "fin" && !hecha(ACTUAL)) PANT = P.length - 2;
     var pr = progreso(), fin = pr.n >= pr.t;
-    app.innerHTML = '<main class="acd">' + cabecera(pr) + mapa(fin) + '<section class="acd-ses" id="acd-ses"></section>' +
-      (fin ? finalHtml() : "") + '<details class="acd-claude" id="acd-claude"' + (lsLeer("claudeAbierto", false) ? " open" : "") + "></details></main>";
+    app.innerHTML = '<main class="acd">' + (ORG ? pestanasOrg("curso") : "") + cabecera(pr) + mapa(fin) + '<section class="acd-ses" id="acd-ses"></section>' +
+      (fin ? finalHtml() : "") + (VER ? "" : '<details class="acd-claude" id="acd-claude"' + (lsLeer("claudeAbierto", false) ? " open" : "") + "></details>") + "</main>";
+    if (ORG) engancharPestanas();
     pintarPantalla();
     pintarClaude(); apuntarAvance();
     Array.prototype.forEach.call(app.querySelectorAll("[data-ses]"), function (b) {
@@ -146,18 +147,18 @@
   function cabecera(pr) {
     return '<header class="acd-cab"><div class="kicker">' + ico("estrella") + " STARGATE · formación del profesorado" + (C.organiza ? " · organiza " + esc(C.organiza.nombre) : "") + "</div><h1>" + esc(C.titulo) + "</h1>" +
       (pr ? '<div class="acd-prog"><div class="acd-barra"><i style="width:' + Math.round(100 * hechas() / N) + '%"></i></div><span><b>' + hechas() + "</b> de " + N + " sesiones" +
-        (YO && YO.nombre ? " · " + esc(YO.nombre) : "") + (DEMO ? " · demostración: se guarda en este navegador" : "") + "</span></div>" : '<p class="acd-sub">' + esc(C.sub) + "</p>") +
+        (YO && YO.nombre ? " · " + esc(YO.nombre) : "") + (VER ? " · así la ven: todas las sesiones abiertas; lo que hagas se guarda en este navegador" : DEMO ? " · demostración: se guarda en este navegador" : "") + "</span></div>" : '<p class="acd-sub">' + esc(C.sub) + "</p>") +
       (SIN_GUARDAR ? '<p class="aviso malo">Ahora mismo tu avance no se puede guardar. Puedes leer las sesiones, pero los hitos no quedarán apuntados: cuéntaselo a Norberto (o prueba dentro de un rato).</p>' : "") + "</header>";
   }
   // el camino: lo hecho (para repasarlo) y la sesión en curso; lo demás, solo cuántas quedan
   function mapa(fin) {
     var cur = ACTUAL, html = "";
     C.estaciones.forEach(function (e, k) {
-      if (!(hecha(k) || k === cur || (abierta(k) && k <= cur))) return;
+      if (!VER && !(hecha(k) || k === cur || (abierta(k) && k <= cur))) return;   // (quien la organiza, las ve todas)
       html += '<button type="button" class="acd-parada' + (k === cur ? " acd-on" : "") + (hecha(k) ? " acd-ok" : "") + '" data-ses="' + k + '"' + (k === cur ? ' aria-current="step"' : "") + ">" +
         '<span class="acd-n">' + (hecha(k) ? ico("hecho") : k + 1) + "</span><span><b>" + esc(e.titulo) + "</b><small>" + (hecha(k) ? "Hecha · repásala cuando quieras" : "Unos " + (e.min || 10) + " minutos") + "</small></span></button>";
     });
-    var siguiente = null; for (var k = 0; k < N; k++) if (!hecha(k) && k !== cur && abierta(k)) { siguiente = k; break; }
+    var siguiente = null; if (!VER) for (var k = 0; k < N; k++) if (!hecha(k) && k !== cur && abierta(k)) { siguiente = k; break; }
     if (siguiente != null) html += '<button type="button" class="acd-parada" data-ses="' + siguiente + '"><span class="acd-n">' + (siguiente + 1) + "</span><span><b>" + esc(C.estaciones[siguiente].titulo) + "</b><small>Abierta: la siguiente</small></span></button>";
     var quedan = C.estaciones.filter(function (e, k) { return !abierta(k); }).length;
     if (quedan) html += '<p class="acd-quedan">' + ico("candado") + " Y " + (quedan === 1 ? "una sesión más, que se abre" : quedan + " sesiones más, que se abren") + " al terminar la anterior.</p>";
@@ -425,53 +426,121 @@
     return Object.keys(x.preguntas || {}).filter(function (k) { return Number(k) > ult; }).length +
            Object.keys(x.feedback || {}).filter(function (k) { return Number(k) > ult && (x.feedback[k] || {}).tipo !== "juego"; }).length;
   }
+  /**
+   * 30-sep · DOS PESTAÑAS PARA QUIEN LA ORGANIZA. Norberto: «que no fuera una clase como tal, sino que en secciones estuviera
+   * Academia y ahí pudieran entrar siempre que quisieran. Si yo entro con mi correo, únicamente yo, además de ver la Academia
+   * como tal, tengo acceso a lo que ha hecho cada profesor, quién está inscrito, los emails, modificarlos, echar a un profesor
+   * antiguo». «Tu profesorado» es su panel; «La Academia» es el curso tal cual, con todas las sesiones abiertas para mirarlas
+   * (lo que haga ahí se guarda en su navegador, como la demostración: no se registra ni se alista).
+   */
+  var ORG = false, VER = false;
+  function pestanasOrg(cual) {
+    return '<nav class="acd-org-tabs" aria-label="La Academia, para quien la organiza">' +
+      '<button type="button" class="acd-org-tab' + (cual === "profes" ? " on" : "") + '" data-org="profes"' + (cual === "profes" ? ' aria-current="page"' : "") + ">" + ico("gente") + " Tu profesorado</button>" +
+      '<button type="button" class="acd-org-tab' + (cual === "curso" ? " on" : "") + '" data-org="curso"' + (cual === "curso" ? ' aria-current="page"' : "") + ">" + ico("libro") + " La Academia</button></nav>";
+  }
+  function engancharPestanas() {
+    Array.prototype.forEach.call(app.querySelectorAll("[data-org]"), function (b) {
+      b.onclick = function () { var k = b.getAttribute("data-org"); lsPoner("org.tab", k); if (k === "curso") verCurso(); else pintarOrganiza(); };
+    });
+  }
+  function verCurso() { DEMO = true; VER = true; DOC = lsLeer("doc", { pasos: {} }); ACTUAL = null; PANT = 0; pintar(); }
   function pintarOrganiza() {
-    app.innerHTML = '<main class="acd"><p class="muted">Leyendo quién se ha inscrito…</p></main>';
-    M.academiaTodos().then(function (todos) {
-      var yo = String(C.organiza.correo || "").toLowerCase();
-      var P = todos.filter(function (x) { return String(x.correo).toLowerCase() !== yo; })
+    DEMO = false; VER = false;
+    app.innerHTML = '<main class="acd">' + pestanasOrg("profes") + '<p class="muted">Leyendo quién se ha inscrito…</p></main>';
+    engancharPestanas();
+    Promise.all([M.academiaTodos(), M.academiaFichas ? M.academiaFichas(G).catch(function () { return []; }) : Promise.resolve([])]).then(function (r) {
+      var todos = r[0], fichas = r[1], yo = String(C.organiza.correo || "").toLowerCase(), uidYo = YO && YO.uid;
+      var P = todos.filter(function (x) { return String(x.correo).toLowerCase() !== yo && x.uid !== uidYo; })
         .sort(function (a, b) { return (Number(b.t) || 0) - (Number(a.t) || 0); });
+      var fichaDe = {}; fichas.forEach(function (f) { if (f.userId) fichaDe[f.userId] = f; });
+      var registrados = {}; todos.forEach(function (x) { registrados[x.uid] = true; });
+      var sueltas = fichas.filter(function (f) { return !registrados[f.userId] && f.userId !== uidYo; });
       var fin = P.filter(function (x) { return x.avance && x.avance.fin; }).length;
       var dudas = P.reduce(function (s, x) { return s + sinRespuesta(x); }, 0);
       var cifra = function (n, t) { return '<div class="acd-org-c"><b>' + n + "</b><span>" + t + "</span></div>"; };
       var CAMPOS = [["objetivo", "El objetivo"], ["dinamica", "La dinámica"], ["mecanica", "La mecánica"], ["componente", "El componente"], ["comprobar", "Cómo lo sabrá"]];
       var fila = function (x) {
-        var a = x.avance || {}, ses = Number(a.sesiones) || 0, tot = Number(a.total) || N, sr = sinRespuesta(x), H = hiloDe(x), d = x.diseno || {};
+        var a = x.avance || {}, ses = Number(a.sesiones) || 0, tot = Number(a.total) || N, sr = sinRespuesta(x), H = hiloDe(x), d = x.diseno || {}, f = fichaDe[x.uid];
         var conDiseno = CAMPOS.some(function (c) { return String(d[c[0]] || "").trim(); });
-        return '<details class="card acd-org-p"><summary>' +
+        return '<details class="card acd-org-p" data-uid="' + esc(x.uid) + '"><summary>' +
           '<div class="acd-org-q"><b>' + esc(x.nombre || x.alias || x.correo) + "</b><small>" + esc(x.correo) + " · " + haceCuanto(Number(x.t)) + "</small></div>" +
           '<div class="acd-org-a"><div class="acd-barra" aria-hidden="true"><i style="width:' + Math.round(100 * Math.min(ses, tot) / Math.max(1, tot)) + '%"></i></div>' +
           "<span>" + (a.fin ? "<b>Comandante de la Cero</b>" : ses + " de " + tot + " sesiones") + "</span></div>" +
-          (sr ? '<span class="chip acd-org-dudas">' + sr + (sr === 1 ? " sin respuesta" : " sin respuesta") + "</span>" : "") +
+          (sr ? '<span class="chip acd-org-dudas">' + sr + " sin respuesta</span>" : "") +
           "</summary>" +
-          '<p class="small muted">Hitos: ' + (Number(a.hitos) || 0) + " de " + (Number(a.de) || "—") + (x.alias ? " · alias «" + esc(x.alias) + "»" : "") + "</p>" +
-          (conDiseno ? "<h3>Su primera pieza</h3><dl class=\"acd-org-dis\">" + CAMPOS.map(function (c) { return "<dt>" + c[1] + "</dt><dd>" + (esc(d[c[0]] || "") || "—") + "</dd>"; }).join("") + "</dl>" : "") +
+          '<p class="small muted">Hitos: ' + (Number(a.hitos) || 0) + " de " + (Number(a.de) || "—") + (x.alias ? " · alias en la Academia «" + esc(x.alias) + "»" : "") +
+            " · " + (f ? "alistado en el grupo de la Academia como «" + esc(f.alias) + "» (" + f.retos + (f.retos === 1 ? " reto" : " retos") + ")" : "sin ficha de recluta todavía") + "</p>" +
+          (conDiseno ? '<h3>Su primera pieza</h3><dl class="acd-org-dis">' + CAMPOS.map(function (c) { return "<dt>" + c[1] + "</dt><dd>" + (esc(d[c[0]] || "") || "—") + "</dd>"; }).join("") + "</dl>" : "") +
           "<h3>Mensajes</h3>" + (H.length ? '<div class="acd-hilo">' + H.map(function (m) {
             return '<div class="acd-msj ' + (m.de === "claude" ? "acd-de-claude" : "acd-de-ti") + '"><b>' + (m.de === "claude" ? "Claude" : esc(x.alias || (x.nombre || "").split(" ")[0] || "Docente")) +
               " <small>" + (m.t ? new Date(m.t).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</small></b><p>" + esc(m.x) + "</p></div>"; }).join("") + "</div>"
             : '<p class="muted">Todavía no ha escrito nada.</p>') +
+          '<h3>Gestionar</h3><div class="acd-org-ed">' +
+            '<label><span>Nombre</span><input type="text" maxlength="80" data-ed="nombre" value="' + esc(x.nombre || "") + '"></label>' +
+            '<label><span>Correo</span><input type="email" maxlength="120" data-ed="correo" value="' + esc(x.correo || "") + '"></label></div>' +
+          '<p class="small muted">El correo es el que se usa al añadirle a un grupo desde «Crear un grupo». Si lo cambias, tendrá que entrar con esa cuenta de Google.</p>' +
+          '<div class="acd-botones"><button type="button" class="btn" data-guardar>Guardar los cambios</button>' +
+            '<button type="button" class="btn peligro" data-echar>Echar de la Academia</button></div><p class="small acd-org-res" aria-live="polite"></p>' +
           "</details>";
       };
-      app.innerHTML = '<main class="acd acd-org">' +
+      var suelta = function (f) {
+        return '<div class="card acd-org-p acd-org-suelta" data-ficha="' + esc(f.id) + '"><div class="acd-org-q"><b>' + esc(f.alias || "Sin alias") + "</b><small>" +
+          esc([f.nombre, f.correo].filter(Boolean).join(" · ") || "sin datos") + " · alistado " + haceCuanto(f.creado) + "</small></div>" +
+          '<button type="button" class="btn peligro min" data-echar-ficha>Echar del grupo</button><p class="small acd-org-res" aria-live="polite"></p></div>';
+      };
+      app.innerHTML = '<main class="acd acd-org">' + pestanasOrg("profes") +
         '<section class="card acd-org-cab"><p class="kicker">La Academia de la Cero · la organizas tú</p><h1>Tu profesorado en la Academia</h1>' +
-        "<p>Quién se ha inscrito y cómo va. Todos los demás docentes, sin excepción, la hacen como alumnado. Las dudas las contesta Claude cada mañana, y aquí ves sus respuestas.</p>" +
+        "<p>Quién se ha inscrito, lo que ha hecho cada uno y sus mensajes. Aquí corriges su nombre o su correo y echas a quien ya no la va a hacer. Todos los demás docentes, sin excepción, la hacen como alumnado.</p>" +
         '<div class="acd-org-cifras">' + cifra(P.length, P.length === 1 ? "inscrito" : "inscritos") + cifra(P.length - fin, "en marcha") + cifra(fin, "terminada") + cifra(dudas, "sin respuesta") + "</div>" +
         '<div class="acd-botones"><button type="button" class="btn primary" id="acd-org-copiar">' + ico("enlace") + " Copiar el enlace para el profesorado</button>" +
-        '<a class="btn" href="academia.html?demo=1">' + ico("ojo") + " Verla como la ven ellos</a>" +
-        // (30-sep · a «Gestionar grupos», no a «Mi nave»: dar de baja y congelar solo están ahí, en la ficha, bajo «Solo el referente»)
-        '<a class="btn" href="gestion.html?per=' + encodeURIComponent(G) + '">' + ico("gente") + " Gestionar sus fichas</a>" +
         '<a class="btn" href="crear.html">' + ico("estrella") + " Crear un grupo con ellos</a></div>" +
         '<p class="acd-nota small" id="acd-org-msg" aria-live="polite"></p></section>' +
         (P.length ? P.map(fila).join("") : '<section class="card"><p class="muted">Todavía no se ha inscrito nadie. Comparte el enlace: al entrar con Google quedan registrados y alistados.</p></section>') +
+        (sueltas.length ? '<h2 class="acd-org-h2">En el grupo de la Academia, sin inscribirse</h2><p class="small muted">Cuentas alistadas como recluta que no han entrado en la Academia (por ejemplo, una de pruebas).</p>' + sueltas.map(suelta).join("") : "") +
         "</main>";
+      engancharPestanas();
       var cp = document.getElementById("acd-org-copiar");
       if (cp) cp.onclick = function () {
         var u = location.origin + "/academia.html", m = document.getElementById("acd-org-msg");
         var ok = function () { m.textContent = "Copiado: " + u; }, mal = function () { m.textContent = "El enlace: " + u; };
         try { navigator.clipboard.writeText(u).then(ok, mal); } catch (e) { mal(); }
       };
+      var sinReglas = function (e) { return /permission|insufficient|denegad/i.test(String((e && (e.code || e.message)) || "")) ? " Falta desplegar las reglas nuevas de la Academia (desplegar_stargate.sh reglas)." : ""; };
+      Array.prototype.forEach.call(app.querySelectorAll("[data-uid]"), function (el) {
+        var uid = el.getAttribute("data-uid"), x = P.filter(function (y) { return y.uid === uid; })[0], res = el.querySelector(".acd-org-res");
+        el.querySelector("[data-guardar]").onclick = function () {
+          var nombre = el.querySelector('[data-ed="nombre"]').value.trim(), correo = el.querySelector('[data-ed="correo"]').value.trim();
+          res.textContent = "Guardando…";
+          M.academiaEditar(uid, { nombre: nombre, correo: correo }).then(function () { res.textContent = "Guardado."; x.nombre = nombre; x.correo = correo.toLowerCase(); },
+            function (e) { res.textContent = "No se ha podido guardar: " + ((e && e.message) || e) + sinReglas(e); });
+        };
+        el.querySelector("[data-echar]").onclick = function () {
+          var b = this, f = fichaDe[uid], nom = x.nombre || x.correo;
+          window.SG.preguntar({ aqui: b.closest(".acd-botones") || b, marca: b, titulo: "¿Echar a «" + nom + "» de la Academia?",
+            texto: "Se borra su registro (su camino, su diseño y sus mensajes)" + (f ? " y su ficha de recluta del grupo de la Academia" : "") + ". Si vuelve a entrar con el enlace, empezará de cero.",
+            si: "Echar", peligro: true }).then(function (si) {
+            if (!si) return;
+            b.disabled = true; res.textContent = "Echando…";
+            (f ? M.darDeBaja(G, f.id) : Promise.resolve()).then(function () { return M.academiaQuitar(uid); }).then(pintarOrganiza,
+              function (e) { b.disabled = false; res.textContent = "No se ha podido: " + ((e && e.message) || e) + sinReglas(e); });
+          });
+        };
+      });
+      Array.prototype.forEach.call(app.querySelectorAll("[data-ficha]"), function (el) {
+        var id = el.getAttribute("data-ficha"), f = sueltas.filter(function (y) { return y.id === id; })[0], res = el.querySelector(".acd-org-res"), b = el.querySelector("[data-echar-ficha]");
+        b.onclick = function () {
+          window.SG.preguntar({ aqui: el, marca: b, titulo: "¿Echar a «" + (f.alias || "esta cuenta") + "» del grupo de la Academia?",
+            texto: "Se borra su ficha de recluta en el grupo de la Academia.", si: "Echar", peligro: true }).then(function (si) {
+            if (!si) return;
+            b.disabled = true; res.textContent = "Echando…";
+            M.darDeBaja(G, id).then(pintarOrganiza, function (e) { b.disabled = false; res.textContent = "No se ha podido: " + ((e && e.message) || e); });
+          });
+        };
+      });
     }).catch(function (e) {
-      app.innerHTML = '<main class="acd"><section class="card"><h2>No se ha podido leer la Academia</h2><p>' + esc((e && e.message) || e) + "</p></section></main>";
+      app.innerHTML = '<main class="acd">' + pestanasOrg("profes") + '<section class="card"><h2>No se ha podido leer la Academia</h2><p>' + esc((e && e.message) || e) + "</p></section></main>";
+      engancharPestanas();
     });
   }
   function escribiendo() { return document.activeElement && document.activeElement.tagName === "TEXTAREA"; }
@@ -489,7 +558,7 @@
     M.sesion().then(function (yo) {
       YO = yo;
       if (!yo) return portadaSinCuenta();
-      if (esOrganiza(yo)) return pintarOrganiza();   // (quien la organiza no se registra ni se alista: la lleva)
+      if (esOrganiza(yo)) { ORG = true; return lsLeer("org.tab", "profes") === "curso" ? verCurso() : pintarOrganiza(); }   // (quien la organiza no se registra ni se alista: la lleva)
       return recargar().then(function () { if (!FICHA) return alistarAuto().then(recargar); }).then(function () {
         var primeraVez = true;
         M.academiaEscuchar(function (d, err) {

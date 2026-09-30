@@ -37,13 +37,22 @@ c(/if \(!a \|\| ENSAYO \|\| ORGANIZO_ACADEMIA\(\)\) return "";/.test(CJS), "   a
 // ── 3 · Quien la organiza la lleva; todos los demás la hacen
 c(/function esOrganiza\(yo\) \{ return !!\(yo && C\.organiza && String\(yo\.correo \|\| ""\)\.toLowerCase\(\) === String\(C\.organiza\.correo \|\| ""\)\.toLowerCase\(\)\); \}/.test(AJS),
   "   academia.js reconoce al organizador por su correo (y a nadie más: ni vitalicios ni referentes)");
-const iSes = AJS.indexOf("if (!yo) return portadaSinCuenta();"), iOrg = AJS.indexOf("if (esOrganiza(yo)) return pintarOrganiza();"), iAli = AJS.indexOf("alistarAuto().then(recargar)");
+const iSes = AJS.indexOf("if (!yo) return portadaSinCuenta();"), iOrg = AJS.indexOf("if (esOrganiza(yo)) { ORG = true; return"), iAli = AJS.indexOf("alistarAuto().then(recargar)");
 c(iSes > 0 && iOrg > iSes && iAli > iOrg, "🔴 el organizador ve su panel ANTES de registrarse o alistarse: no se apunta como alumno");
 c(/M\.academiaTodos\(\)/.test(AJS) && /async function academiaTodos\(\)/.test(MOT) && /academiaProfes, academiaTodos,/.test(MOT), "   el panel lee a todo el profesorado inscrito (motor.js → academiaTodos)");
 c(/String\(x\.correo\)\.toLowerCase\(\) !== yo/.test(AJS), "   y se deja fuera a sí mismo");
 ["inscritos", "en marcha", "terminada", "sin respuesta"].forEach(t => c(AJS.indexOf('"' + t + '"') >= 0 || AJS.indexOf(t) >= 0, "   la cifra «" + t + "»"));
-c(/Copiar el enlace para el profesorado/.test(AJS) && /academia\.html\?demo=1/.test(AJS) && /gestion\.html\?per=' \+ encodeURIComponent\(G\)/.test(AJS) && /Gestionar sus fichas/.test(AJS) && /href="crear\.html"/.test(AJS),
-  "   copiar el enlace, verla como ellos, gestionar sus fichas (en Gestionar grupos: dar de baja, congelar) y crear un grupo con ellos");
+c(/Copiar el enlace para el profesorado/.test(AJS) && /href="crear\.html"/.test(AJS) && !/gestion\.html\?per=/.test(AJS),
+  "   copiar el enlace y crear un grupo con ellos (y nada de mandarle a Gestionar grupos: ahí solo van los grupos de alumnado real)");
+// 30-sep · «además de ver la Academia como tal… ver los emails, modificarlos, echar a un profesor antiguo»
+c(/function pestanasOrg\(cual\)/.test(AJS) && /data-org="profes"/.test(AJS) && /data-org="curso"/.test(AJS) && /function verCurso\(\) \{ DEMO = true; VER = true;/.test(AJS),
+  "🔴 dos pestañas: «Tu profesorado» y «La Academia» (el curso tal cual, sin registrarse ni alistarse)");
+c(/function abierta\(i\) \{ if \(VER\) return true;/.test(AJS) && /if \(!VER && !\(hecha\(k\)/.test(AJS), "   en «La Academia» ve todas las sesiones abiertas");
+c(/M\.academiaEditar\(uid, \{ nombre: nombre, correo: correo \}\)/.test(AJS) && /async function academiaEditar\(uid, campos\)/.test(MOT), "🔴 corrige el nombre y el correo de cada docente");
+c(/\(f \? M\.darDeBaja\(G, f\.id\) : Promise\.resolve\(\)\)\.then\(function \(\) \{ return M\.academiaQuitar\(uid\); \}\)/.test(AJS) && /async function academiaQuitar\(uid\)/.test(MOT),
+  "🔴 echa a quien ya no la va a hacer: su ficha de recluta (la baja de siempre) y su registro");
+c(/function academiaFichas\(perId\)/.test(MOT) && /data-echar-ficha/.test(AJS) && /sin inscribirse/.test(AJS), "   y las cuentas alistadas sin inscribirse (una de pruebas), con su botón para echarlas");
+c(/window\.SG\.preguntar\(\{ aqui: b\.closest/.test(AJS), "   siempre con una pregunta antes de echar a nadie");
 c(/Su primera pieza/.test(AJS) && /function hiloDe\(x\)/.test(AJS) && /function sinRespuesta\(x\)/.test(AJS), "   de cada uno: sesiones, hitos, su diseño y sus mensajes con Claude (y los que esperan respuesta)");
 c(/\.acd-org-cifras\{display:grid;grid-template-columns:repeat\(4/.test(L("assets/css/stargate.css")) && /@media \(max-width:600px\)\{\s*\.acd-org-cifras\{grid-template-columns:repeat\(2/.test(L("assets/css/stargate.css")),
   "   las cifras, de cuatro en cuatro (de dos en dos en el móvil)");

@@ -2227,6 +2227,31 @@ async function academiaTodos() {
   const r = await getDocs(collection(db, "stargate_formacion"));
   return r.docs.map((d) => Object.assign({ uid: d.id }, d.data() || {})).filter((x) => x.correo);
 }
+/**
+ * 30-sep · QUIEN ORGANIZA LA ACADEMIA corrige y echa (Norberto: «ver los emails, modificarlos, echar a un profesor antiguo que ya
+ * no puede hacerlo»). Las reglas solo se lo dejan al Mando: corregir el nombre, el alias o el correo, y borrar el registro. Su
+ * ficha de recluta en el grupo de la Academia se quita aparte, con la baja de siempre (stargateAlumno).
+ */
+async function academiaEditar(uid, campos) {
+  const c = {};
+  ["nombre", "alias", "correo"].forEach((k) => { if (campos && campos[k] != null) c[k] = String(campos[k]).trim(); });
+  if (c.correo != null) {
+    c.correo = c.correo.toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(c.correo)) throw new Error("Ese correo no parece un correo.");
+  }
+  await updateDoc(doc(db, "stargate_formacion", uid), c);
+}
+async function academiaQuitar(uid) { await deleteDoc(doc(db, "stargate_formacion", uid)); }
+/** Las fichas de recluta del grupo de la Academia, con su nombre y su correo (solo las lee su equipo docente). */
+async function academiaFichas(perId) {
+  const r = await getDocs(query(collection(db, "student_profiles"), where("projectId", "==", perId)));
+  return Promise.all(r.docs.map(async (d) => {
+    const x = d.data(); let p = {};
+    try { const q = await getDoc(doc(db, "student_profiles", d.id, "privado", "datos")); p = q.exists() ? q.data() : {}; } catch (e) { /* sin sus datos */ }
+    return { id: d.id, userId: x.userId || "", alias: x.displayName || "", nombre: [p.firstName, p.lastName].filter(Boolean).join(" "), correo: String(p.email || "").toLowerCase(),
+             retos: (x.completedMissionIds || []).length, creado: Number(x.createdAt) || 0 };
+  }));
+}
 async function academiaProfes() {
   const r = await getDocs(collection(db, "stargate_formacion"));
   return r.docs.map((d) => { const x = d.data() || {};
@@ -2425,7 +2450,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
