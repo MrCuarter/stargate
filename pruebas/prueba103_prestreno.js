@@ -179,7 +179,7 @@ const MZ = JS.slice(JS.indexOf("function mazo()"), JS.indexOf("// ───", JS
 // 24-sep (tarde) · «los referentes, aunque sea agobiante, deben tener la radiografía completa… los profes normales, una
 // visión reducida y motivadora: ya irán descubriendo cada semana»
 const DOC = MZ.slice(0, MZ.indexOf("var secs"));
-c(/\["Bienvenida", \[portada\(\), refPapel\(\)\]\]/.test(MZ) && /\["Crear grupos", \[refCrear\(\), refEquipo\(\), refListo\(\), refProfes\(\)\]\]/.test(MZ),
+c(/\["Bienvenida", \[portada\(\), refPapel\(\), academia\(\), aBordo\(\)\]\]/.test(MZ) && /\["Crear grupos", \[refCrear\(\), refEquipo\(\), refListo\(\), refProfes\(\)\]\]/.test(MZ),
   "🔴 para referentes, al principio: su papel, crear el grupo (3 pasos) y añadir profes");
 c(/radioGestion\(\)/.test(MZ) && /radioClase\(\)/.test(MZ) && /radioNave\(\)/.test(MZ) && /radioAlumnado\(\)/.test(MZ),
   "🔴 y la radiografía completa: gestionar grupos, la clase, la Nave del docente y lo que ve el alumnado");
@@ -194,8 +194,8 @@ const PJS103 = L("assets/js/prestreno.js");
 c(/function doGeniallys\(\)/.test(PJS103) && /window\.SG_GENIALLY_CARPETA/.test(PJS103) && /window\.SG_GENIALLY_CARPETA="https:\/\/app\.genially\.com\/teams\//.test(PRE103)
   && /panel de control genérico/.test(PJS103) && /quitando todo lo del proyecto anterior/.test(PJS103),
   "🔴 la diapositiva de los Geniallys: el panel genérico por defecto, duplicar o reutilizar, y el enlace a la carpeta");
-const nDoc = (DOC.match(/\w+\(\)/g) || []).length;
-c(nDoc <= 25 && !/rankings2\(\)|comoSeGana2\(\)|semanas\(\)|enlaces\(\)/.test(DOC), "🔴 la de docentes, reducida (" + nDoc + " diapositivas, sin rankings, mecánicas ni el calendario entero)");
+const nDoc = (DOC.match(/\w+\(\)/g) || []).length;   // (30-sep · 27: +2, la Academia y quién está a bordo)
+c(nDoc <= 27 && !/rankings2\(\)|comoSeGana2\(\)|semanas\(\)|enlaces\(\)/.test(DOC), "🔴 la de docentes, reducida (" + nDoc + " diapositivas, sin rankings, mecánicas ni el calendario entero)");
 c(/function barra\(\)/.test(JS) && /pr-secs/.test(JS) && /pr-subs/.test(JS), "   la radiografía, con la barra por secciones (no 70 botones)");
 const cap = ["crear", "crear-resumen", "grupo-listo", "equipo", "puerta", "panel", "foro"].concat((JS.match(/rx\("([a-z-]+)"/g) || []).map(x => x.slice(4, -1))).filter(k => !fs.existsSync(path.join(R, "assets/img/pres/guia/" + k + ".webp")));
 c(!cap.length, "   con sus capturas (las de la guía, anotadas, y las del panel y el foro)", cap.join(", "));
@@ -221,6 +221,18 @@ c(/miFichaDocente/.test(JS) && /comandanteHd\(CMD/.test(JS) && /assets\/js\/moto
 const GUIA = fs.readFileSync(path.join(R, "..", "GUIA_PROFES_PDF.md"), "utf8");
 c(/# PARTE 0 · El guion de la reunión/.test(GUIA), "🔴 la guía del profesorado lleva su guion (Parte 0)");
 c(/Presentar STARGATE al equipo/.test(GUIA), "   y dice dónde está la presentación montada");
+
+// ── 30-sep · LA ACADEMIA EN LA REUNIÓN (Norberto: «en una de las primeras diapositivas, la academia con su enlace, y justo
+// la siguiente, los profesores que se han alistado y su porcentaje… felicitar a los que sí y tirar de las orejas a los que no»)
+c(/return \[portada\(\), encargo\(\), academia\(\), aBordo\(\), historia\(\)/.test(JS) && /\["Bienvenida", \[portada\(\), refPapel\(\), academia\(\), aBordo\(\)\]\]/.test(JS),
+  "🔴 la Academia y «¿quién ha subido ya a bordo?», justo después del encargo (y en la bienvenida de los referentes)");
+c(/function urlAcademia\(\) \{ return location\.origin \+ "\/academia\.html"; \}/.test(JS) && /id="pr-aca-copiar">Copiar el enlace/.test(JS) && /qrcode-generator@1\.4\.4/.test(JS),
+  "   con el enlace para alistarse: a la vista, con su QR y para copiarlo al chat");
+c(/M\.academiaTodos\(\), M\.misPERs\(yo\.correo\)/.test(JS) && /Aún sin subir a bordo/.test(JS) && /¡Bravo, /.test(JS) && /Comandante de la Cero/.test(JS),
+  "🔴 quién está a bordo (con su porcentaje), a quién felicitar y quién falta del equipo de sus grupos");
+c(/t = setTimeout\(cargar, 20000\)/.test(JS) && /if \(DESMONTAR\) \{ try \{ DESMONTAR\(\); \}/.test(JS), "   se actualiza sola mientras se proyecta (y deja de hacerlo al pasar de diapositiva)");
+c(/Esta lista la ve quien presenta/.test(JS) && /window\.SG_ACADEMIA_PRES=/.test(HTML) && /"no_la_hacen": \["mutecdgami@gmail\.com"\]/.test(L("_site_data.py")),
+  "   sin permiso (un docente que la repasa en la Guía), lo dice y da el enlace; la cuenta del Mando no cuenta");
 
 console.log("\n  Batería 103 · la presentación para el equipo (20-sep)");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");

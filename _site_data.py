@@ -300,6 +300,9 @@ ACADEMIA = {
   "grupo": PER_ACADEMIA,
   # 29-sep · Norberto: «ponme a mí como docente organizador» (el referente del grupo de la Academia, donde se alistan)
   "organiza": {"nombre": "Norberto Cuartero", "correo": "n.cuartero.10@gmail.com"},
+  # 30-sep · las cuentas del equipo que NO hacen la Academia (en la presentación, «quién ha subido a bordo» no las cuenta):
+  # quien la organiza ya va aparte; esta es la cuenta de servicio del Mando
+  "no_la_hacen": ["mutecdgami@gmail.com"],
   "codigo": "UT795T",   # el código de clase del grupo: lo escribe CCD/academia/academia_grupo.cjs --crear
   "titulo": "La Academia de la Cero",
   "sub": "El curso del profesorado de STARGATE: la historia, el temario dentro de ella, la plataforma desde los dos lados y cómo hacerla tuya",

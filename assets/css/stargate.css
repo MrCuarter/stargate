@@ -7485,3 +7485,30 @@ body.con-ens-franja{padding-bottom:84px}
 .acd-org-resp textarea{width:100%}
 .acd-mio{justify-self:end}
 .acd-de-el{background:var(--bg2);border:1px solid var(--line)}
+/* 🔴 30-sep · LA ACADEMIA EN LA PRESENTACIÓN: la diapositiva con su enlace (y su QR) y la de «¿quién ha subido ya a bordo?» */
+.pr-aca-l{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:clamp(.85rem,1.3vw,1.08rem);max-width:60ch}
+.pr-aca-enl{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:14px 16px;border-radius:16px;border:1px solid var(--amber);background:rgba(10,16,28,.82);max-width:620px}
+.pr-aca-qr{width:132px;height:132px;flex:none;background:#fff;border-radius:10px;padding:6px}
+.pr-aca-qr svg{width:100%;height:100%;display:block}
+.pr-aca-txt{display:flex;flex-direction:column;gap:6px;min-width:0}
+.pr-aca-txt p{margin:0}
+.pr-aca-dir{font-family:'Unbounded',sans-serif;font-size:clamp(1rem,2vw,1.45rem);color:var(--amber);word-break:break-all}
+.pr-b-cifras{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:560px}
+.pr-b-c{padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(10,16,28,.8)}
+.pr-b-c b{display:block;font-family:'Unbounded',sans-serif;font-size:clamp(1.2rem,2.4vw,1.8rem);color:var(--teal);line-height:1.1}
+.pr-b-c b small{font-size:.55em;color:var(--mut)}
+.pr-b-c span{font-size:.85rem;color:var(--mut)}
+.pr-b-bravo{margin:0;color:var(--amber);font-size:clamp(.95rem,1.4vw,1.15rem)}
+.pr-b-l{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px 14px}
+.pr-b-l li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:7px 10px;border-radius:10px;background:rgba(10,16,28,.78);border:1px solid var(--line)}
+.pr-b-l li b{min-width:0;overflow-wrap:anywhere}
+.pr-b-barra{grid-column:1/-1;height:6px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden}
+.pr-b-barra i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--amber))}
+.pr-b-p{grid-row:1;grid-column:2;font-size:.8rem;color:var(--mut);white-space:nowrap}
+.pr-b-fin{border-color:var(--amber)!important}
+.pr-b-fin .pr-b-p{color:var(--amber)}
+.pr-b-no{padding:8px 12px;border-radius:12px;border:1px dashed rgba(245,176,67,.6);background:rgba(10,16,28,.78)}
+.pr-b-no p{margin:4px 0 0;display:flex;flex-wrap:wrap;gap:4px 12px}
+.pr-b-no p.small{display:block;color:var(--mut)}
+.pr-b-otros,.pr-b-hora{margin:0;color:var(--mut)}
+@media (max-width:600px){.pr-b-cifras{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.pr-aca-qr{width:104px;height:104px}}

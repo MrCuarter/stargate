@@ -110,6 +110,109 @@
         '<p class="pr-sub">Desde hoy dirigís <b>La Constancia</b>, la nave de STARGATE. Vuestro alumnado embarca con vosotros, y el viaje dura quince semanas.</p>' +
         '<p class="pr-pie">Pasa con <b>→</b> · la barra de abajo salta a cualquier parte</p>' }) };
   }
+  /**
+   * 🔴 30-sep · LA ACADEMIA, EN LA REUNIÓN. Norberto: «en una de las primeras diapositivas haz referencia a la academia, que
+   * esté el enlace para que se alisten, y justo la siguiente, que salgan los profesores que se han alistado y el porcentaje…
+   * para animar a que la hagan antes de empezar el lunes… tirar de las orejas a los que ni se han inscrito, y felicitar y
+   * alabar el trabajo de los que sí». La presentan los referentes (Anita, Caridad): las reglas les dejan leer la lista.
+   */
+  var ACA = window.SG_ACADEMIA_PRES || {};
+  function urlAcademia() { return location.origin + "/academia.html"; }
+  function academia() {
+    var horas = Math.max(1, Math.round((ACA.min || 120) / 60));
+    return { rot: "La Academia", html: escena({ cls: "pr-aca", bg: "cero_ensenando.webp", cap: ["senala", "Antes del lunes, un paseo por la Cero. Luego la clase se da sola."],
+      cuerpo: '<div class="kicker">Antes de vuestra primera clase</div>' +
+        '<h2>' + esc(ACA.titulo || "La Academia de la Cero") + ': aprendedlo jugando</h2>' +
+        '<ul class="pr-aca-l"><li><b>' + (ACA.sesiones || 9) + ' sesiones cortas</b>, planeta a planeta: la historia y la herramienta a la vez. Unas ' + horas + ' horas en total, a vuestro ritmo.</li>' +
+          '<li>En cada una, <b>una misión en la consola de ensayo</b>: vuestra Nave con treinta reclutas de mentira. No se rompe nada.</li>' +
+          '<li>Las preguntas van <b>dentro de los minijuegos</b> de vuestro alumnado: los probáis antes que ellos.</li>' +
+          '<li>Y cada día, alguien <b>os responde las dudas</b>.</li></ul>' +
+        '<div class="pr-aca-enl"><div class="pr-aca-qr" id="pr-aca-qr" aria-hidden="true"></div>' +
+          '<div class="pr-aca-txt"><p class="pr-aca-dir">' + esc(urlAcademia().replace(/^https?:\/\//, "")) + '</p>' +
+          '<p><button type="button" class="btn primary" id="pr-aca-copiar">Copiar el enlace</button></p>' +
+          '<p class="small" id="pr-aca-msg" aria-live="polite">Pegadlo en el chat de la reunión: entrar con Google es alistarse.</p></div></div>' }),
+      montar: montarAcademia };
+  }
+  function montarAcademia(el) {
+    var b = el.querySelector("#pr-aca-copiar"), m = el.querySelector("#pr-aca-msg");
+    if (b) b.onclick = function () {
+      var u = urlAcademia(), ok = function () { m.textContent = "Copiado: " + u; }, mal = function () { m.textContent = "El enlace: " + u; };
+      try { navigator.clipboard.writeText(u).then(ok, mal); } catch (e) { mal(); }
+    };
+    var caja = el.querySelector("#pr-aca-qr");
+    var qr = function () {
+      if (!caja || !window.qrcode) { if (caja) caja.hidden = true; return; }
+      try { var q = window.qrcode(0, "M"); q.addData(urlAcademia()); q.make(); caja.innerHTML = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }); }
+      catch (e) { caja.hidden = true; }
+      reajustar();
+    };
+    if (window.qrcode) qr();
+    else { var sc = document.createElement("script"); sc.src = "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"; sc.onload = qr; sc.onerror = qr; document.head.appendChild(sc); }
+    return null;
+  }
+  /** La siguiente: quién ha subido ya a bordo, con su porcentaje, y quién no. Se actualiza sola mientras se proyecta. */
+  function aBordo() {
+    return { rot: "Quién está a bordo", html: escena({ cls: "pr-bordo", bg: "puente.webp",
+      neb: "Lo cuento en directo: quien se aliste ahora, sale aquí.",
+      cuerpo: '<div class="kicker">La Academia de la Cero · en directo</div><h2>¿Quién ha subido ya a bordo?</h2>' +
+        '<div id="pr-bordo"><p class="pr-sub">Mirando la Academia…</p></div>' }), montar: montarBordo };
+  }
+  function datosBordo() {
+    var M = window.SG && window.SG.MOTOR;
+    if (!M || !M.academiaTodos) return new Promise(function (ok) {
+      document.addEventListener("sg:motor", function () { ok(datosBordo()); }, { once: true }); });
+    return M.sesion().then(function (yo) {
+      if (!yo) return { sinSesion: true };
+      return Promise.all([M.academiaTodos(), M.misPERs(yo.correo).catch(function () { return []; })])
+        .then(function (r) { return { todos: r[0] || [], grupos: r[1] || [] }; }, function () { return { sinPermiso: true }; });
+    });
+  }
+  function montarBordo(el) {
+    var caja = el.querySelector("#pr-bordo"), vivo = true, t = 0;
+    var fuera = [String(ACA.organiza || "").toLowerCase()].concat((ACA.no_la_hacen || []).map(function (c) { return String(c).toLowerCase(); }));
+    var cuenta = function (c) { c = String(c || "").toLowerCase(); return c && fuera.indexOf(c) < 0; };
+    var pct = function (r) { var a = (r && r.avance) || {}; return a.fin ? 100 : a.de ? Math.min(99, Math.round(100 * (Number(a.hitos) || 0) / Number(a.de))) : 0; };
+    var pintarB = function (d) {
+      if (!vivo || !caja) return;
+      if (d.sinSesion || d.sinPermiso) {
+        caja.innerHTML = '<p class="pr-sub">Esta lista la ve quien presenta (los referentes), con su cuenta. Mientras, el enlace de la diapositiva anterior: ' +
+          '<b>' + esc(urlAcademia().replace(/^https?:\/\//, "")) + '</b>.</p>';
+        return reajustar();
+      }
+      var reg = {}; d.todos.forEach(function (x) { var c = String(x.correo || "").toLowerCase(); if (cuenta(c)) reg[c] = x; });
+      // el equipo de los grupos de quien presenta que van a empezar o están en su curso (sin la DEMO ni la Academia)
+      var gs = d.grupos.filter(function (g) { var S = g.stargate || {}; return !(Number(S.demoSemana) > 0) && !S.escuela && !S.academia &&
+        (g.estado === "por empezar" || (g.estado === "en marcha" && g.fase === "curso")); });
+      var equipo = {}, orden = [];
+      gs.forEach(function (g) { (g.equipo || []).forEach(function (p) { var c = String(p.correo || "").toLowerCase();
+        if (cuenta(c) && !equipo[c]) { equipo[c] = p.nombre || ""; orden.push(c); } }); });
+      var filas = (orden.length ? orden : Object.keys(reg)).map(function (c) { var r = reg[c];
+        return { nombre: (r && r.nombre) || equipo[c] || c.split("@")[0], r: r, p: r ? pct(r) : -1, fin: !!(r && r.avance && r.avance.fin),
+                 ses: r && r.avance ? Number(r.avance.sesiones) || 0 : 0, tot: r && r.avance ? Number(r.avance.total) || ACA.sesiones || 9 : ACA.sesiones || 9 }; });
+      var dentro = filas.filter(function (f) { return f.r; }).sort(function (a, b) { return b.p - a.p || a.nombre.localeCompare(b.nombre); });
+      var faltan = filas.filter(function (f) { return !f.r; }).sort(function (a, b) { return a.nombre.localeCompare(b.nombre); });
+      var otros = orden.length ? Object.keys(reg).filter(function (c) { return !(c in equipo); }).length : 0;
+      var fin = dentro.filter(function (f) { return f.fin; }).length;
+      var media = dentro.length ? Math.round(dentro.reduce(function (s2, f) { return s2 + f.p; }, 0) / dentro.length) : 0;
+      var top = dentro.filter(function (f) { return f.p > 0; }).slice(0, 3).map(function (f) { return f.nombre.split(" ")[0]; });
+      var cifra = function (n, txt) { return '<div class="pr-b-c"><b>' + n + '</b><span>' + txt + '</span></div>'; };
+      caja.innerHTML =
+        '<div class="pr-b-cifras">' + cifra(dentro.length + (orden.length ? '<small> de ' + filas.length + '</small>' : ""), "a bordo") + cifra(fin, fin === 1 ? "la ha terminado" : "la han terminado") + cifra(media + " %", "de media") + '</div>' +
+        (top.length ? '<p class="pr-b-bravo"><b>¡Bravo, ' + esc(top.length > 1 ? top.slice(0, -1).join(", ") + " y " + top[top.length - 1] : top[0]) + '!</b> Así se llega al lunes: con el viaje hecho.</p>' : "") +
+        (dentro.length ? '<ul class="pr-b-l">' + dentro.map(function (f) {
+          return '<li class="' + (f.fin ? "pr-b-fin" : "") + '"><b>' + esc(f.nombre) + '</b><span class="pr-b-barra"><i style="width:' + Math.max(f.p, 2) + '%"></i></span>' +
+            '<span class="pr-b-p">' + (f.fin ? "Comandante de la Cero" : f.p + " % · sesión " + Math.min(f.ses + 1, f.tot) + " de " + f.tot) + '</span></li>'; }).join("") + '</ul>'
+          : '<p class="pr-sub">Todavía no ha subido nadie. El primero que entre, sale aquí.</p>') +
+        (faltan.length ? '<div class="pr-b-no"><b>Aún sin subir a bordo</b><p>' + faltan.map(function (f) { return '<span>' + esc(f.nombre) + '</span>'; }).join("") + '</p>' +
+          '<p class="small">Os esperamos antes del lunes: con el enlace de la diapositiva anterior, en dos minutos estáis dentro.</p></div>' : "") +
+        (otros ? '<p class="small pr-b-otros">Y ' + otros + (otros === 1 ? " docente más de otros grupos" : " docentes más de otros grupos") + ' en la Academia.</p>' : "") +
+        '<p class="small pr-b-hora">A las ' + new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }) + ' · se actualiza sola</p>';
+      reajustar();
+    };
+    var cargar = function () { datosBordo().then(pintarB, function () { pintarB({ sinPermiso: true }); }); if (vivo) t = setTimeout(cargar, 20000); };
+    cargar();
+    return function () { vivo = false; clearTimeout(t); };
+  }
   function encargo() {
     return { rot: "El encargo", html: escena({ bg: "aula_encendida.webp", cap: ["senala", "Enseñáis gamificación. Esta vez la vais a vivir."],
       cuerpo: '<div class="kicker">El encargo</div>' +
@@ -773,11 +876,11 @@
    */
   function mazo() {
     if (MODO !== "referentes")
-      return [portada(), encargo(), historia(), nombres(), comandantes(), mapa(), material(), semanaABordo(), unReto(),
+      return [portada(), encargo(), academia(), aBordo(), historia(), nombres(), comandantes(), mapa(), material(), semanaABordo(), unReto(),
               heroes(), cromos(), simulador(), sorteo(), nota(), tranquilos(), queHace2(),
               doEntrar(), doGeniallys(), doPanel(), doForo(), loQueNo2(), preguntas2(), siguiente2(), cierre()];
     var secs = [
-      ["Bienvenida", [portada(), refPapel()]],
+      ["Bienvenida", [portada(), refPapel(), academia(), aBordo()]],
       ["Crear grupos", [refCrear(), refEquipo(), refListo(), refProfes()]],
       ["Gestionar grupos", radioGestion()],
       ["La historia", [encargo(), historia(), nombres(), comandantes(), mapa(), semanas(), material()]],
@@ -808,7 +911,9 @@
 
   // ───────────────────────────────────────────────────────────── el mazo, como el de clase
   var SLIDES = [];
+  var DESMONTAR = null;   // (30-sep · las diapositivas con datos en vivo —quién está a bordo— se montan y se desmontan)
   function pintar() {
+    if (DESMONTAR) { try { DESMONTAR(); } catch (e) {} DESMONTAR = null; }
     if (!MODO) { root.innerHTML = selector(); cablearSelector(); return; }
     SLIDES = SLIDES.length ? SLIDES : mazo();
     if (st.i < 0) st.i = 0;
@@ -824,6 +929,8 @@
     '</div>';
     cablear();
     ajustar();
+    var sl = SLIDES[st.i];
+    if (sl && sl.montar) { try { DESMONTAR = sl.montar(root.querySelector(".lienzo")) || null; } catch (e) { DESMONTAR = null; } }
   }
   /**
    * 🔴 24-sep · CADA DIAPOSITIVA, A LA MEDIDA DEL HUECO. Norberto: «en pantalla completa no aprovechamos el tamaño de la
