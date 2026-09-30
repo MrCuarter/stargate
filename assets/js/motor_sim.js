@@ -17,15 +17,15 @@ const localStorage = (() => { const L = window.localStorage, NO = /^sgEs(Docente
  * terminar deja `window.SG.MOTOR` y avisa con el evento `sg:motor` para que el resto de la web
  * —que son scripts normales— sepa que ya puede usarlo.
  */
-import { initializeApp } from "./sim/firebase_sim.js?h=46ac5fa6c9";
+import { initializeApp } from "./sim/firebase_sim.js?h=4a713fb14b";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, onAuthStateChanged,
          connectAuthEmulator }
-  from "./sim/firebase_sim.js?h=46ac5fa6c9";
+  from "./sim/firebase_sim.js?h=4a713fb14b";
 import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, getCountFromServer, writeBatch, onSnapshot,
          deleteField, connectFirestoreEmulator }
-  from "./sim/firebase_sim.js?h=46ac5fa6c9";
+  from "./sim/firebase_sim.js?h=4a713fb14b";
 import { getFunctions, httpsCallable, connectFunctionsEmulator }
-  from "./sim/firebase_sim.js?h=46ac5fa6c9";
+  from "./sim/firebase_sim.js?h=4a713fb14b";
 
 /**
  * 🔴 EL LABORATORIO. Con esto, la batería 67 recorre la web entera contra el motor DE VERDAD —las
@@ -2242,6 +2242,17 @@ async function academiaEditar(uid, campos) {
   await updateDoc(doc(db, "stargate_formacion", uid), c);
 }
 async function academiaQuitar(uid) { await deleteDoc(doc(db, "stargate_formacion", uid)); }
+/**
+ * 30-sep · …y le RESPONDE en su hilo (Norberto: «un botón Responder en el hilo de cada docente»). Va a `mando.mensajes`, que
+ * solo escribe el Mando (las reglas); el docente lo ve en su hilo, firmado con el nombre de quien organiza.
+ */
+async function academiaResponder(uid, texto, de) {
+  const t = String(texto || "").trim().slice(0, 2000);
+  if (t.length < 2) throw new Error("Escribe algo antes de enviar.");
+  const ahora = Date.now();
+  await updateDoc(doc(db, "stargate_formacion", uid), { ["mando.mensajes." + ahora]: { texto: t, t: ahora, de: String(de || "El Mando").slice(0, 80) } });
+  return ahora;
+}
 /** Las fichas de recluta del grupo de la Academia, con su nombre y su correo (solo las lee su equipo docente). */
 async function academiaFichas(perId) {
   const r = await getDocs(query(collection(db, "student_profiles"), where("projectId", "==", perId)));
@@ -2450,7 +2461,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaResponder, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,

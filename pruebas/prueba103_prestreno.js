@@ -48,13 +48,13 @@ c(/gs-prestreno/.test(CSS), "   y tiene su tarjeta con estilo propio");
 // ── 3 · 🔴 ni un dato a mano: todo sale de los globales del sitio
 [["SG_SEMANAS", "las semanas"], ["SG_PLANETAS", "los planetas"], ["SG_RETOS", "los retos"],
  ["SG_CAPITULOS", "los capítulos"], ["SG_CROMOS", "la Tripulación Cero"], ["SG_TOPE_SEMANA", "el tope semanal"],
- ["SG_PER_ESCUELA", "la Nave Escuela"]].forEach(function (x) {
+ ["SG_ENLACES", "los enlaces"]].forEach(function (x) {
   c(JS.indexOf("window." + x[0]) >= 0 && HTML.indexOf("window." + x[0] + "=") >= 0, "🔴 " + x[1] + " salen del sitio, no escritos a mano");
 });
 // los ocho planetas y las semanas, de verdad, en el HTML servido
 const plan = (HTML.match(/window\.SG_PLANETAS=(\[.*?\]\]);/) || [, "[]"])[1];
 c((JSON.parse(plan) || []).length === 8, "   los ocho planetas viajan con la página", (JSON.parse(plan) || []).length);
-c(/window\.SG_PER_ESCUELA="nave-escuela"/.test(HTML), "   y el grupo para trastear, por su identificador de verdad");
+c(/href="ensayo\.html"/.test(JS) && !/nave-escuela|SG_PER_ESCUELA/.test(JS), "   y para trastear, la consola de ensayo (30-sep: la Nave Escuela se retira)");
 
 // ── 4 · se maneja como la sesión de clase (ese es el argumento: enseña el producto funcionando)
 c(/class="mazo pr-mazo"/.test(JS) && /barra-pasos/.test(JS) && /class="nav ant"/.test(JS),
@@ -78,7 +78,7 @@ c(ENL.length >= 6 && ENL.every(e => e.length === 4 && e[1] && e[2] && e[3]),
   "   y son " + ENL.length + ", cada uno con su icono, su nombre, para qué sirve y su dirección", JSON.stringify(ENL.map(e => e[1])));
 // los tres que pidió, más los que faltaban
 [["Drive", /drive\.google\.com/], ["la carpeta de Geniallys", /app\.genially\.com\/teams/], ["la plataforma", /stargate\.mistercuarter\.es/],
- ["el panel que se proyecta", /view\.genially\.com/], ["los vídeos", /youtube\.com\/playlist/], ["la Nave Escuela", /per=nave-escuela/]]
+ ["el panel que se proyecta", /view\.genially\.com/], ["los vídeos", /youtube\.com\/playlist/], ["la consola de ensayo", /^ensayo\.html$/], ["la Academia", /^academia\.html$/]]
   .forEach(x => c(ENL.some(e => x[1].test(e[3])), "   está " + x[0]));
 // (el trozo SÍ lleva un /^https?:\/\//, pero es el que le quita el protocolo al texto; lo que no puede haber es una
 //  dirección entrecomillada, que sería una copia de la que ya vive en _site_data.py)

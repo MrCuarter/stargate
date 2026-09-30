@@ -137,6 +137,13 @@ c(/"sim:consola"\) return "ensayo\.html"/.test(L("assets/js/academia.js")) && /"
   c(f2.createdAt - antes.createdAt === 21 * 864e5, "   también las fechas en milisegundos");
   fs.rmSync(tmp, { recursive: true, force: true });
 
+  // 30-sep · la Nave Escuela de verdad se retira: el ensayo trae sus entregas (la de Cometa y el Drive sin permisos)
+  const entregas = Object.keys(DATOS.docs).filter(k => /^mission_deliveries\//.test(k)).map(k => DATOS.docs[k]);
+  c(entregas.length > 100 && entregas.some(e => /ejemplo\.html\?reto=/.test(e.enlace)) && entregas.some(e => /drive\.google\.com\/file\/d\/1sinPermisos/.test(e.enlace)),
+    "🔴 el ensayo trae las entregas: el ejemplo de cada reto y un Drive sin permisos para anular con un porqué", entregas.length);
+  c(DATOS.docs["projects/nave-escuela"].name === "STARGATE · GRUPO DE ENSAYO" && /per=nave-escuela\(&\|\$\)/.test(CJS) && /window\.SG_PER_DEMO \|\| "demo-stargate"/.test(CJS),
+    "   se llama «grupo de ensayo», y lo que sale de la consola (la clase, el aula, la Nave) va al grupo DEMO");
+
   console.log("\n  Batería 117 · la consola de ensayo");
   console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
   process.exit(fallos.length ? 1 : 0);

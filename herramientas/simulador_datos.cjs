@@ -30,13 +30,19 @@ function ponerCampo(d, campo, v) {
 function ref(ruta) {
   return {
     id: ruta.split("/").pop(), path: ruta,
-    set: async (d) => { docs[ruta] = limpio(d); },
+    set: async (d, o) => { docs[ruta] = o && o.merge && docs[ruta] ? Object.assign(docs[ruta], limpio(d)) : limpio(d); },
     update: async (d) => { if (!docs[ruta]) throw new Error("update de un documento que no existe: " + ruta); Object.keys(d).forEach((k) => ponerCampo(docs[ruta], k, d[k])); },
     get: async () => ({ exists: ruta in docs, data: () => docs[ruta] }),
     collection: (c) => col(ruta + "/" + c),
   };
 }
-function col(ruta) { return { doc: (id) => ref(ruta + "/" + (id || idNuevo())) }; }
+// (y la consulta sencilla que usa el de las entregas: where(campo, "==", valor).get())
+const hijos = (ruta) => Object.keys(docs).filter((k) => k.indexOf(ruta + "/") === 0 && k.slice(ruta.length + 1).indexOf("/") < 0);
+function col(ruta) {
+  return { doc: (id) => ref(ruta + "/" + (id || idNuevo())),
+    where: (campo, op, v) => ({ get: async () => ({ docs: hijos(ruta).filter((k) => op === "==" && docs[k][campo] === v)
+      .map((k) => ({ id: k.split("/").pop(), data: () => docs[k] })) }) }) };
+}
 const db = { collection: (c) => col(c), batch: () => { const p = []; return { set: (r, d) => p.push(() => r.set(d)), update: (r, d) => p.push(() => r.update(d)), commit: async () => { for (const f of p) await f(); } }; } };
 const ADMIN = { initializeApp: () => ({}), credential: { cert: () => ({}) }, firestore: () => db, auth: () => ({ getUserByEmail: async () => null }) };
 
@@ -60,8 +66,16 @@ const CAMBIOS = [
 ];
 const PROHIBIDO = /cuartero|norberto|feridouni|sierradaz|mutecdgami|genially\.com/i;
 
-process.on("beforeExit", () => {
-  process.removeAllListeners("beforeExit");
+// 30-sep · y LO QUE ENTREGARON (motor/entregas_prueba.js): sin esto, «La entrega de Cometa» y el Drive sin permisos de
+// Eclipse —lo que se revisa y se anula en la misión de Sendara— solo existían en la Nave Escuela de verdad, que se retira.
+// (el de las entregas acaba con process.exit(0), que aquí es la señal para escribir el fichero)
+process.once("beforeExit", () => {
+  process.exit = (c) => { if (c) { console.error("✗ el de las entregas ha parado (" + c + ")"); salir(c); } else terminar(); };
+  process.argv = [process.argv[0], path.join(RAIZ, "motor/entregas_prueba.js"), "--id=nave-escuela"];
+  require(path.join(RAIZ, "motor/entregas_prueba.js"));
+});
+
+function terminar() {
   let txt = JSON.stringify(docs);
   CAMBIOS.forEach(([a, b]) => { txt = txt.split(a).join(b); });
   const correos = (txt.match(/[\w.+-]+@[\w-]+\.[\w.-]+/g) || []).filter((c) => !/@ensayo\.invalid$/.test(c));
@@ -70,6 +84,7 @@ process.on("beforeExit", () => {
   if (malo) { console.error("✗ Queda algo de verdad en los datos: «" + malo[0] + "»"); salir(1); }
   const D = JSON.parse(txt), grupo = "nave-escuela";
   if (!D["projects/" + grupo]) { console.error("✗ No se ha sembrado el grupo " + grupo); salir(1); }
+  D["projects/" + grupo].name = "STARGATE · GRUPO DE ENSAYO";   // (30-sep · sin «Nave Escuela», que ya no existe fuera del ensayo)
   // 30-sep · DOS SUBIDAS DE NOTA ESPERANDO en la Cola de nota (la misión de Umbral en la Academia: «resuelve la Cola de nota»).
   // Como una compra de verdad: los créditos ya se han cobrado y el premio está en su inventario, a la espera del visto bueno.
   const ricos = Object.keys(D).filter((k) => /^student_profiles\/[^/]+$/.test(k)).map((k) => [k, D[k]]).sort((a, b) => (b[1].coins || 0) - (a[1].coins || 0));
@@ -86,6 +101,6 @@ process.on("beforeExit", () => {
   const fichas = Object.keys(D).filter((k) => /^student_profiles\/[^/]+$/.test(k)).length;
   console.log("✅ assets/sim/escuela.json · " + n + " documentos · " + fichas + " reclutas · " + Math.round(JSON.stringify(salida).length / 1024) + " KB");
   salir(0);
-});
+}
 
 require(path.join(RAIZ, "motor/sembrar_prueba.js"));

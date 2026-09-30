@@ -2562,7 +2562,8 @@
    * completa de lo que tiene, aunque ya se haya usado, y lo que se hace ahí NO cuenta (si contara, al llegar a su grupo de
    * verdad NEBULA ya no le enseñaría nada).
    */
-  var enEscuela=function(){ return st.per===(window.SG_PER_ESCUELA||'nave-escuela'); };
+  // 30-sep · y en el grupo DEMO: es adonde lleva «Empezar la clase» desde la consola de ensayo (la Nave Escuela se retira)
+  var enEscuela=function(){ return st.per===(window.SG_PER_ESCUELA||'nave-escuela') || st.per===(window.SG_PER_DEMO||'demo-stargate'); };
   function esDocenteEnSesion(){ return !st.alumno && !!st.per && !!st.yo && !!(window.SG && SG.GUIA); }
   // contar el uso (una vez por página y guía): lanzar, tocar, abrir…
   function vigilarUso(g){

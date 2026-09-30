@@ -473,7 +473,6 @@
       '</div>' };
   }
   function siguiente() {
-    var per = window.SG_PER_ESCUELA || "nave-escuela";
     return { rot: "El paso siguiente", html:
       '<div class="dia">' +
         '<div class="kicker">Antes de la primera clase</div>' +
@@ -481,8 +480,8 @@
         '<ol class="pr-pasos">' +
           '<li><b>Entrad</b> en <b>stargate.mistercuarter.es</b> con la cuenta de la universidad y comprobad que veis vuestro grupo. Si no, avisad: es el correo.</li>' +
           '<li><b>Haced la visita guiada</b> del Capitán, arriba a la derecha. Dos minutos.</li>' +
-          '<li><b>Trastead la Nave Escuela</b>: un grupo entero con 30 estudiantes de mentira donde no se rompe nada. ' +
-            '<a class="btn min" href="consola.html?per=' + esc(per) + '" target="_blank" rel="noopener">Abrirla ↗</a></li>' +
+          '<li><b>Trastead la consola de ensayo</b>: vuestra Nave con un grupo de 30 estudiantes de mentira donde se pulsa todo y no se rompe nada. ' +
+            '<a class="btn min" href="ensayo.html" target="_blank" rel="noopener">Abrirla ↗</a></li>' +
           '<li><b>Leed la Parte B</b> de la guía del profesorado. Veinticinco minutos.</li>' +
         '</ol>' +
       '</div>' };

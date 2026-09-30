@@ -987,11 +987,15 @@
     if (!t || !t.escuela) return "";
     var n = Number(window.SG_SEMANA_ESCUELA || 0) || sem, T = Math.max(1, Number(total) || 15);
     var ops = ""; for (var i = 1; i <= T; i++) ops += '<option value="' + i + '"' + (i === n ? " selected" : "") + '>Semana ' + i + '</option>';
+    // 30-sep · en la consola de ensayo, «el grupo de ensayo» (la Nave Escuela de verdad desaparece: Norberto no la entendía, y el
+    // ensayo hace lo mismo sin tocar nada real); su Nave, en simulacro con el grupo DEMO
+    var nom = ENSAYO ? "Grupo de ensayo" : "Nave Escuela";
     return '<div class="gr-escuela">' +
-      '<b class="ht-sub">' + ico("nave") + ' Nave Escuela</b>' +
+      '<b class="ht-sub">' + ico("nave") + " " + nom + '</b>' +
       '<p class="small">Un grupo entero para trastear: entra, valida retos, premia, abre una votación. <b>No es una clase de verdad</b> y nada de lo que hagas aquí sale de aquí.</p>' +
-      '<label class="tk-sel">Verlo en <select id="esc-sem" aria-label="En qué semana se mira la Nave Escuela">' + ops + '</select></label>' +
-      '<a class="btn min" href="recluta.html?per=' + esc(PER) + '&demo=1&semana=' + n + '" target="_blank" rel="noopener">' + ico("cohete") + ' Verla como recluta ↗</a>' +
+      '<label class="tk-sel">Verlo en <select id="esc-sem" aria-label="En qué semana se mira el ' + nom + '">' + ops + '</select></label>' +
+      '<a class="btn min" href="' + (ENSAYO ? "recluta.html?simulacro=1&per=" + encodeURIComponent(window.SG_PER_DEMO || "demo-stargate") + "&semana=" + n
+        : "recluta.html?per=" + esc(PER) + "&demo=1&semana=" + n) + '" target="_blank" rel="noopener">' + ico("cohete") + ' Verla como recluta ↗</a>' +
       '<button type="button" class="btn min tour-start">' + ico("brujula") + ' Visita guiada</button>' +
     '</div>';
   }
@@ -4632,12 +4636,12 @@
 
   /**
    * 29-sep · la franja de la consola de ensayo: siempre a la vista, para que nadie crea que está en su grupo de verdad, con
-   * «Empezar de cero» (vuelve la Nave Escuela como estaba) y la vuelta a la Academia.
+   * «Empezar de cero» (vuelve el grupo de ensayo como estaba) y la vuelta a la Academia.
    */
   function franjaEnsayo() {
     if (!ENSAYO || document.getElementById("ens-franja")) return;
     var f = document.createElement("div"); f.id = "ens-franja"; f.className = "ens-franja"; f.setAttribute("role", "status");
-    f.innerHTML = '<span><b>Consola de ensayo</b><span class="ens-largo"> · la Nave Escuela con un docente de mentira: pulsa lo que quieras, nada sale de tu navegador</span></span>' +
+    f.innerHTML = '<span><b>Consola de ensayo</b><span class="ens-largo"> · un grupo de ensayo con un docente de mentira: pulsa lo que quieras, nada sale de tu navegador</span></span>' +
       '<span class="ens-bot"><button type="button" class="btn min" data-ens="cero">Empezar de cero</button>' +
       '<a class="btn min primary" href="academia.html">Volver a la Academia</a></span>';
     f.querySelector("[data-ens=cero]").onclick = function () {
@@ -4645,6 +4649,14 @@
       location.reload();
     };
     document.body.appendChild(f); document.body.classList.add("con-ens-franja");
+    // 30-sep · el grupo de ensayo solo existe en este navegador: los enlaces que salen de la consola (la clase, el aula, la Nave)
+    // van al grupo DEMO de verdad, que es público
+    document.addEventListener("click", function (ev) {
+      var a = ev.target && ev.target.closest && ev.target.closest("a[href]"); if (!a) return;
+      var h = a.getAttribute("href") || "";
+      if (/^ensayo\.html/.test(h) || !/[?&]per=nave-escuela(&|$)/.test(h)) return;
+      a.setAttribute("href", h.replace(/([?&]per=)nave-escuela(?=&|$)/, "$1" + encodeURIComponent(window.SG_PER_DEMO || "demo-stargate")));
+    }, true);
   }
   function arrancar() {
     MOTOR = window.SG.MOTOR;

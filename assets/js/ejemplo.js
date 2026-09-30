@@ -116,7 +116,7 @@
   function ejemplo(e) {
     var r = D.retos[id] || [], enlace = e.enlace ? (/^https?:\/\//i.test(e.enlace) ? e.enlace : "https://" + e.enlace) : "";
     document.title = de ? "La entrega de " + de + " · reto " + id : "STARGATE · Ejemplo del reto " + id;
-    var html = (de ? '<div class="ej-entrega"><b>La entrega de ' + esc(de) + '</b> · un recluta de ejemplo de la Nave Escuela.' +
+    var html = (de ? '<div class="ej-entrega"><b>La entrega de ' + esc(de) + '</b> · un recluta de ejemplo del grupo de ensayo.' +
         '<span>En un grupo de verdad, este enlace abre lo que el recluta ha publicado: su Bitácora, su Genially, su vídeo… ' +
         'Aquí, para que veas cómo se revisa una entrega, abre el ejemplo de este reto.</span></div>' : '') +
       '<p class="ej-eyebrow">Ejemplo del reto ' + esc(id) + (tema(r) ? " · " + esc(tema(r)) : "") + "</p>" +

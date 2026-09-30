@@ -7475,3 +7475,11 @@ body.con-ens-franja{padding-bottom:84px}
   .acd-juego-caja.jugando{position:relative;inset:auto;aspect-ratio:3/4;margin:-22px -16px 0}
   .acd-juego-pie{position:relative;bottom:auto;flex-wrap:wrap;height:auto;padding:8px 10px}
 }
+/* 30-sep · «¿Cómo te ha resultado?» tras cada minijuego: en su diapositiva y, si aún no se ha dicho, en la del final */
+.acd-dia .acd-opinar{text-align:left;max-width:540px;margin:12px auto 0}
+.acd-dia .acd-opinar textarea{width:100%;min-height:0}
+.acd-fin .acd-dia-txt.centro:has(.acd-opinar){top:10%}
+/* 30-sep · lo que responde quien organiza la Academia, en el hilo del docente (y su caja de respuesta en el panel) */
+.acd-de-mando{background:rgba(245,176,67,.09);border:1px solid rgba(245,176,67,.4)}
+.acd-org-resp{display:grid;gap:8px;margin-top:10px}
+.acd-org-resp textarea{width:100%}

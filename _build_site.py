@@ -597,6 +597,7 @@ FAQ = [
  ("¿Tengo que cambiar mi programación para usar STARGATE?", "No. STARGATE no añade trabajo: <b>renombra y da sentido</b> al que ya existe (2 actividades + ePortfolio con 3 retos + tests). Sigue la programación oficial; la capa narrativa va encima."),
  ("¿Cómo entro? ¿Necesito algún PIN?", "No hay PIN. Entras con la <b>cuenta de Google</b> que tu profe referente puso en el equipo docente del grupo, desde la portada (<b>«Iniciar sesión con Google»</b>). El sistema te reconoce y te deja en tu <a href='consola.html'>Nave del Comandante</a>, ya dentro de tu grupo. Si te dice que esa cuenta no lleva ningún grupo, pide a tu referente que te añada con <b>ese mismo correo</b>."),
  ("¿Cómo invito a mi clase?", "Las tres primeras semanas, el <b>Puente</b> de <a href='consola.html'>tu Nave</a> enseña el <b>código de clase</b> (tapado hasta que lo pulsas: esa pantalla se proyecta) y el botón <b>«Copiar invitación»</b>, que copia solo el enlace para alistarse (lleva dentro el código de clase), listo para pegar en el foro de la plataforma de UNIR o en el chat. Después, los dos siguen en <b>Reclutas</b>. Y en las semanas 1 y 2 la sesión en directo trae la diapositiva <b>«Únete a la clase»</b>: el código en grande y «Copiar el enlace para alistarse». Tu alumnado entra con Google, escribe el código y se alista solo."),
+ ("¿Dónde practico sin romper nada?", "En la <a href='ensayo.html'>consola de ensayo</a>: tu Nave del Comandante de verdad con un grupo de mentira de 30 reclutas, que vive solo en tu navegador (no llega a nadie y <b>Empezar de cero</b> lo deja como estaba). Y si prefieres que te lo enseñen, la <a href='academia.html'>Academia de la Cero</a>: planeta a planeta, sin calendario, con misiones en esa consola y las preguntas dentro de los minijuegos."),
  ("¿Qué uso durante la clase en directo?", "Tres botones en el <b>Puente</b> de tu Nave, en su orden: <b>1 · Empezar la clase</b> (la sesión de la semana montada: planeta, vídeos, retos e insignias; pasa con las flechas), <b>2 · Llamada a filas</b> (el pase de lista: tu alumnado pulsa «Presente» en su Nave y se lleva créditos y un sobre de cromos) y <b>3 · El aula</b> (quién ha fichado, a quién felicitar, el ranking y, en Mando manual, los premios a mano). La sesión termina, todas las semanas, con <b>En directo</b>: el juego del final, tres minutos con toda la clase desde el móvil (detrás del ticket, cuando lo hay). Y <b>la primera vez que usas algo</b> —el juego, la llamada, las Herramientas, Proyectar, el relámpago, el Asedio— NEBULA te señala paso a paso qué pulsar; el botón con su cara, arriba, lo repite. Si tu referente te ha dado el <b>Genially de clase</b>, ya los lleva dentro: al abrirlo entras con tu cuenta y eliges el grupo. Si montas el tuyo, copia su código en tu Nave → <b>Enlaces</b> → «&lt;/&gt; Código» (en Mando manual; en Genially: Insertar → Otros → Código)."),
  ("Un estudiante ha marcado retos que no ha hecho. ¿Qué hago?", "En tu Nave → <b>Reclutas</b>, pulsa su fila y <b>anula</b> el reto (con <b>Mando manual</b>; en Piloto automático lo hace tu referente): se le descuentan los xp y los créditos que dio, y queda anotado. Si ya se había gastado los créditos, lo cosmético que compró se queda (el aviso te dice qué no se ha podido retirar), pero <b>la nota está a salvo</b>: ninguna subida de nota se aplica sin que la apruebes en la <b>Cola de nota</b>. Con el enlace obligatorio, y el aviso que te da NEBULA en el Puente si alguien registra " + str(AVISO_RETOS_DIA) + " retos o más en un solo día, una trampa así se ve enseguida."),
  ("¿Puedo dar un premio que se reclame desde una presentación?", "Sí: en tu Nave, con <b>Mando manual</b>, <b>Premios</b> → <b>Premios por enlace</b>. Eliges qué da (xp, créditos, un sobre de cromos, un héroe…), cuántas veces (en total, por escuadrón o por persona) y te llevas un enlace para pegar en cualquier web o presentación. Por ejemplo: «los 5 primeros de cada escuadrón que lo pulsen, un sobre». Quien llega tarde lee que ya se ha agotado."),
@@ -713,6 +714,7 @@ GUIA = head("STARGATE · Guía para el profesorado",
      al bajar no es un índice, es una portada. -->
 <nav class="guia-sub" aria-label="Secciones de la guía"><div class="wrap">
   <a href="#presentacion">En una presentación</a>
+  <a href="#aprender">Aprenderlo haciendo</a>
   <a href="#que">Visión general</a>
   <a href="cronologia.html">Cronología</a>
   <a href="actividades.html">Actividades</a>
@@ -739,6 +741,28 @@ gana, qué hacéis vosotros y —sobre todo— lo que no. Para verla otra vez, o
 <div class="gpres-marco"><iframe src="prestreno.html?embed=1" title="La presentación de STARGATE" loading="lazy" allow="fullscreen"></iframe></div>
 <p class="gpres-pie"><a class="btn" href="prestreno.html?embed=1" target="_blank" rel="noopener">Abrirla en su ventana &#8599;</a>
 <span class="small muted">Pasa con <b>←</b> y <b>→</b> (pulsa antes dentro) · la barra de abajo salta a cualquier diapositiva</span></p>
+</div></section>
+
+<!-- 🔴 30-sep · APRENDERLO HACIENDO. Norberto: «la guía debería mencionar la Academia y la consola de ensayo». Son las dos
+     puertas para aprender la herramienta sin riesgo: la Academia enseña (planeta a planeta, sin calendario) y la consola
+     de ensayo deja pulsarlo todo (la de verdad, con un grupo de mentira que vive en el navegador). -->
+<section id="aprender"><div class="wrap">
+<div class="eyebrow teal">Para empezar sin miedo</div><h2>Aprenderlo haciendo</h2>
+<p class="lead">Dos sitios para aprender la herramienta sin tocar un grupo de verdad. Ninguno sigue el calendario de
+un curso: se entra cuando se quiere.</p>
+<div class="grid cols-2">
+<div class="card"><h3><img class=ico src=assets/img/iconos/p/medalla.png alt> La Academia de la Cero</h3>
+<p>El curso del profesorado, <b>planeta a planeta</b>: un prólogo y ocho sesiones de 10-20 minutos. En cada una, su
+tripulante, una o dos piezas de la herramienta, <b>una misión en la consola de ensayo</b> que se corrige sola y
+<b>cinco preguntas dentro de un minijuego</b> (la que se falla vuelve a salir). Acaba con tu primera pieza de
+gamificación, y una revisión diaria responde tus dudas.</p>
+<p style="margin-top:12px"><a class="btn primary" href="academia.html">Ir a la Academia</a></p></div>
+<div class="card"><h3><img class=ico src=assets/img/iconos/p/gente.png alt> La consola de ensayo</h3>
+<p><b>Tu Nave del Comandante de verdad</b>, botón a botón, con un grupo de mentira: 30 reclutas, el curso entero,
+entregas que revisar (una, a propósito, sin permisos), dos subidas de nota esperando y un selector de semanas. Lo
+que pulses se queda <b>en tu navegador</b>: no llega a nadie y <b>Empezar de cero</b> lo deja como estaba.</p>
+<p style="margin-top:12px"><a class="btn primary" href="ensayo.html">Abrir la consola de ensayo</a></p></div>
+</div>
 </div></section>
 
 <section id="que"><div class="wrap">

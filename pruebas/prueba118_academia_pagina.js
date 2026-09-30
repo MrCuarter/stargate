@@ -61,6 +61,18 @@ c(/\.acd-org-cifras\{display:grid;grid-template-columns:repeat\(4/.test(L("asset
 c(/process\.argv\.includes\("--solo-organiza"\)/.test(GRUPO) && /lote\.update\(ref, \{ coTeacherEmails: \[ORGANIZA\.correo\] \}\);/.test(GRUPO) && /lote\.set\(pref, \{ docentes: solo\(/.test(GRUPO),
   "🔴 academia_grupo.cjs --solo-organiza: coTeacherEmails y el equipo privado, solo con quien la organiza");
 
+// ── 5 · 30-sep · Responderle tú (el botón «Responder» en el hilo de cada docente) y «¿Cómo te ha resultado?» tras cada juego
+const MOT5 = L("assets/js/motor.js"), DIA = L("../academia/academia_diaria.cjs");
+c(/async function academiaResponder\(uid, texto, de\)/.test(MOT5) && /\["mando\.mensajes\." \+ ahora\]: \{ texto: t, t: ahora, de:/.test(MOT5) && /academiaResponder, academiaFichas/.test(MOT5),
+  "🔴 el motor: academiaResponder escribe solo mando.mensajes.<ahora>");
+c(/data-responder>Responder<\/button>/.test(AJS) && /M\.academiaResponder\(uid, t, C\.organiza\.nombre\)/.test(AJS), "🔴 el panel: un «Responder» en el hilo de cada docente, firmado con el nombre de quien organiza");
+c(/Object\.keys\(md\)\.forEach\(function \(k\) \{ ult = Math\.max/.test(AJS), "   lo que respondes tú cuenta como respondido (se va el «sin respuesta»)");
+c(/de: "mando", quien: md\[k\]\.de/.test(AJS) && /" · organiza la Academia"/.test(AJS) && /\.acd-de-mando\{/.test(L("assets/css/stargate.css")),
+  "   y el docente lo ve en su hilo, con tu nombre y su propio color");
+c(/YA LE HA RESPONDIDO NORBERTO/.test(DIA), "   la revisión diaria de Claude lo ve (y no te repite)");
+c(/\(okJ \? opinarHtml\(hj\) : ""\)/.test(AJS) && /estado\(hjf\)\.ok && !opinado\(hjf\) \? opinarHtml\(hjf, "¿Qué tal «" \+ hjf\.n \+ "»\?"\)/.test(AJS) && /enganchaOpinar\(op\.parentNode/.test(AJS),
+  "🔴 «¿Cómo te ha resultado?» tras cada minijuego: en su diapositiva y, si aún no lo ha dicho, en la del final");
+
 console.log("\n  Batería 118 · la Academia, una página del menú");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);

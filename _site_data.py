@@ -327,7 +327,7 @@ ACADEMIA = {
      ],
      "hitos": [
        {"id": "cero-puente", "tipo": "auto", "comprobar": "ens:puente", "titulo": "Sube al puente de tu consola de ensayo",
-        "como": "Ábrela y date una vuelta por el <b>Puente</b>: es tu Nave de Comandante con la <b>Nave Escuela</b>, un grupo de 30 reclutas de mentira. Aquí nada se rompe.", "boton": "sim:consola"},
+        "como": "Ábrela y date una vuelta por el <b>Puente</b>: es tu Nave de Comandante con un <b>grupo de ensayo</b> de 30 reclutas de mentira. Aquí nada se rompe.", "boton": "sim:consola"},
      ]},
     {"id": "forge", "planeta": "Fôrge", "titulo": "Fôrge · tu tripulación", "tema": "Tema 1 · Creación de contenido multimedia", "min": 15,
      "bg": "assets/img/fondos/p1_forge_llegada.webp", "suelo": "assets/img/fondos/p1_forge.webp", "carta": "assets/img/tarjetas/P1_bran_carta.webp",
@@ -2637,14 +2637,15 @@ TICKET_TEMAS = {
 # Norberto: «añade una diapo con enlaces de interés (Drive compartido, carpeta de geniallys actualizados y
 # plataforma STARGATE). ¿Me dejo alguno?». Sí, cinco: el **panel de control** que se proyecta en clase, los
 # **enunciados y rúbricas** oficiales, la **plantilla de la Bitácora** que reutiliza el alumnado, los **vídeos** de
-# la serie y —lo primero que necesita quien empieza— la **Nave Escuela**, el grupo de mentira para trastear.
+# la serie y —lo primero que necesita quien empieza— la **consola de ensayo** (30-sep: sustituye a la Nave Escuela), el grupo de mentira para trastear.
 #
 # 🔴 Ni una dirección escrita aquí: cada una se coge de donde ya vive. Si mañana cambia el Drive del equipo o el
 # panel maestro, esta diapositiva lo dice bien sin que nadie se acuerde de ella.
 #   (icono, título, para qué sirve, dirección)
 ENLACES_EQUIPO = [
     ("nave",      "La plataforma STARGATE",      "Tu Nave del Comandante, la de tu alumnado y todo lo demás. Se entra con la cuenta de Google de la universidad.", "https://stargate.mistercuarter.es"),
-    ("gente",     "La Nave Escuela",             "El grupo de mentira, con 30 reclutas y el curso entero, para trastear sin romper nada.", "consola.html?per=" + PER_ESCUELA),
+    ("gente",     "La consola de ensayo",        "Tu Nave de Comandante con un grupo de mentira de 30 reclutas: pulsa todo, nada sale de tu navegador.", "ensayo.html"),
+    ("medalla",   "La Academia de la Cero",      "El curso del profesorado, planeta a planeta y sin calendario: la herramienta con misiones y minijuegos.", "academia.html"),
     ("notas",     "Actividades y evaluación",    "Las dos misiones mayores paso a paso, el ePortfolio, el examen y los documentos oficiales para descargar.", "actividades.html"),
     ("clase",     "El panel de control de la clase", "El Genially maestro: la teoría y la práctica guiada, ya montadas. Es el segundo tiempo de cada sesión.", PANEL_MAESTRO),
     ("varios",    "La carpeta de Geniallys",     "Los Geniallys del curso, actualizados: de aquí sale el panel de cada grupo.", GENIALLY_CARPETA),
