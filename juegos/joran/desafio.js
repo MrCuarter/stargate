@@ -6,14 +6,20 @@
 // sí hay es un bonus al final (hasta +25 % de la marca, según la precisión), para que el desafío compense y adivinar no.
 //
 // Uso en una máquina (el patrón completo está en conquista.js):
-//   import { crearDesafio } from './desafio.js?v=1066523f0d';
+//   import { crearDesafio } from './desafio.js?v=961c239091';
 //   const DES = crearDesafio({ nombre: 'Combustible', alPausar: (si) => { if (!si) soltarTeclas(); } });
 //   al empezar: await DES.preparar(); DES.empezar();   ·   en el bucle: if (!DES.abierto) tick(dt) … y dentro, DES.tick(dt)
 //   al terminar: DES.parar(); puntos += DES.bonus(puntos); filas: [...filas, ...DES.filas(bonus)], extra: DES.extra()
 // En modo arcade (sin ?modo=desafio) crearDesafio devuelve un objeto inerte: las mismas llamadas no hacen nada.
-import { $, QS, WEB, motor, esc, SON, tono, audio, aviso } from './comun.js?v=1066523f0d';
+import { $, QS, WEB, motor, esc, SON, tono, audio, aviso } from './comun.js?v=961c239091';
 
-export const MODO = QS.get('modo') === 'desafio' ? 'desafio' : 'arcade';
+// 30-sep · EL MODO ACADEMIA (?banco=academia): las preguntas son las de un planeta de la Academia de la Cero, y las pasa la
+// página que abre el juego (academia.js → window.SG_BANCO_JUEGO). Norberto: «¡usa los minijuegos para preguntar! Las preguntas que
+// fallen se vuelven a lanzar; cuando acierten todas… una ventana: Enhorabuena, has acertado todas, puedes seguir jugando o pasar
+// al siguiente módulo». Siempre en desafío, sin el botón para cambiar a arcade.
+export const ACADEMIA = QS.get('banco') === 'academia';
+export const MODO = QS.get('modo') === 'desafio' || ACADEMIA ? 'desafio' : 'arcade';
+if (ACADEMIA) { const st = document.createElement('style'); st.textContent = 'a[href="#sin-modo"]{display:none!important}'; document.head.appendChild(st); }
 const PER = QS.get('per') || '';
 const LETRAS = ['A', 'B', 'C', 'D'];
 // los temas del curso (el 0, el de la asignatura, se queda fuera: son normas, no contenidos)
@@ -21,6 +27,7 @@ const TEMAS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 // la URL de esta máquina en el otro modo (conserva ?per=, ?embed=…): para el botón de la portada de cada juego
 export function urlModo(modo) {
+  if (ACADEMIA) return '#sin-modo';
   const q = new URLSearchParams(location.search);
   if (modo === 'desafio') q.set('modo', 'desafio'); else q.delete('modo');
   const s = q.toString(); return location.pathname.split('/').pop() + (s ? '?' + s : '');
@@ -50,7 +57,7 @@ async function fuenteServidor() {
 // En el borrador, el banco local de la Ruta (solo existe en local: está en .gitignore). Aquí sí se sabe la buena, así que se
 // barajan las opciones y se marca la correcta al fallar.
 async function fuenteLocal() {
-  const ruta = location.pathname.includes('/juegos/') ? '../ruta/preguntas.js?v=1066523f0d' : '../ruta-estatica/preguntas.js?v=1066523f0d';
+  const ruta = location.pathname.includes('/juegos/') ? '../ruta/preguntas.js?v=961c239091' : '../ruta-estatica/preguntas.js?v=961c239091';
   const { PREGUNTAS } = await import(ruta);
   const todas = TEMAS.flatMap((t) => PREGUNTAS[t] || [])
     .filter((q) => q.tipo === 'una' && !q.visual && Array.isArray(q.correctas) && q.correctas.length === 1 && q.opciones && q.opciones.length >= 2);
@@ -66,6 +73,38 @@ async function fuenteLocal() {
   };
 }
 
+// En la Academia: las preguntas de su planeta (públicas: van en la página, con la buena marcada). La que se falla vuelve a la
+// cola, detrás de las demás; cuando no queda ninguna pendiente, «todas» (y se avisa a la Academia).
+function bancoAcademia() {
+  let lista = null;
+  try { lista = window.parent && window.parent !== window && window.parent.SG_BANCO_JUEGO; } catch (e) { lista = null; }
+  if (!lista) try { lista = JSON.parse(sessionStorage.getItem('sgBancoJuego') || 'null'); } catch (e) { lista = null; }
+  return Array.isArray(lista) ? lista.filter((x) => x && x.p && Array.isArray(x.o) && x.o.length >= 2) : [];
+}
+async function fuenteAcademia() {
+  const todas = bancoAcademia().map((x, i) => ({ id: 'a' + i, p: x.p, o: x.o, ok: Number(x.ok) || 0, porque: x.porque || '' }));
+  if (!todas.length) throw new Error('La Academia no ha pasado preguntas');
+  const cola = barajar(todas.slice()), pendientes = new Set(todas.map((x) => x.id));
+  return {
+    total: todas.length,
+    pendientes: () => pendientes.size,
+    async siguiente() {
+      const x = cola.shift(); cola.push(x);   // (la que se acierta sale de la cola al responder; la que se falla, vuelve detrás)
+      const orden = barajar(x.o.map((_, i) => i));
+      return { id: x.id, enunciado: x.p, opciones: orden.map((i) => x.o[i]), buena: orden.indexOf(x.ok), correccion: x.porque };
+    },
+    async responder(q, pos) {
+      const ok = pos === q.buena;
+      if (ok) { pendientes.delete(q.id); const k = cola.findIndex((x) => x.id === q.id); if (k >= 0) cola.splice(k, 1); }
+      return { ok, correccion: q.correccion, buena: q.buena, vuelve: !ok };
+    },
+  };
+}
+function avisarAcademia(que) {
+  const m = Object.assign({ tanda: QS.get('tanda') || '' }, que);
+  try { if (window.parent && window.parent !== window) window.parent.postMessage({ sgAcademia: m }, location.origin); } catch (e) { /* sin marco */ }
+}
+
 const INERTE = {
   activo: false, disponible: false, abierto: false, nivel: 100,
   preparar: async () => false, empezar() {}, tick() {}, pedir() {}, parar() {},
@@ -78,7 +117,8 @@ const INERTE = {
 export function crearDesafio(op = {}) {
   if (MODO !== 'desafio') return INERTE;
   const cfg = Object.assign({ nombre: 'Energía', segundos: 40, recarga: 40, hud: null, alPausar: () => {}, enJuego: () => true }, op);
-  let fuente = null, cargando = null, q = null, forzada = false, avisado = false;
+  if (ACADEMIA) cfg.segundos = Math.min(cfg.segundos, 25);   // (en la Academia, las preguntas llegan antes)
+  let fuente = null, cargando = null, q = null, forzada = false, avisado = false, todasDichas = false;
   const D = { activo: true, disponible: false, abierto: false, corriendo: false, nivel: 100, aciertos: 0, fallos: 0, racha: 0 };
 
   // la barra del depósito y el botón para recargar cuando quieras (Q), sin esperar a quedarte a cero
@@ -100,13 +140,16 @@ export function crearDesafio(op = {}) {
   async function cargar() {
     if (fuente) return true;
     if (!cargando) cargando = (async () => {
+      if (ACADEMIA) { try { return await fuenteAcademia(); } catch (e) { console.warn('Desafío sin las preguntas de la Academia:', e && e.message); return null; } }
       if (WEB) { try { return await fuenteServidor(); } catch (e) { console.warn('Desafío sin servidor:', e && e.message); } }
       try { return await fuenteLocal(); } catch (e) { console.warn('Desafío sin banco local:', e && e.message); return null; }
     })();
     fuente = await cargando; D.disponible = !!fuente; return D.disponible;
   }
   function pintarPregunta() {
-    caja.innerHTML = `<div class="kicker">Desafío · ${forzada ? `¡${esc(cfg.nombre)} a cero!` : 'recarga'} · acierta para seguir</div>
+    const cab = ACADEMIA ? `Academia · ${fuente.total - fuente.pendientes()} de ${fuente.total} acertadas${forzada ? ` · ¡${esc(cfg.nombre)} a cero!` : ''}`
+      : `Desafío · ${forzada ? `¡${esc(cfg.nombre)} a cero!` : 'recarga'} · acierta para seguir`;
+    caja.innerHTML = `<div class="kicker">${cab}</div>
       <div class="des-enun">${esc(q.enunciado)}</div>
       <div class="des-ops">${q.opciones.map((o, i) => `<button type="button" data-op="${i}"><b>${LETRAS[i] || i + 1}</b><span>${esc(o)}</span></button>`).join('')}</div>
       <div class="des-pie"><span>Aciertos: <b>${D.aciertos}</b> · Fallos: <b>${D.fallos}</b></span><span class="des-tecla">Teclas 1-4 o A-D</span></div>`;
@@ -139,7 +182,20 @@ export function crearDesafio(op = {}) {
     } else {
       D.fallos++; D.racha = 0; bs[pos].classList.add('mal'); if (r.buena != null && bs[r.buena]) bs[r.buena].classList.add('bien');
       tono(220, 110, 0.25, 'sawtooth', 0.05);
-      msg = `<b class="des-mal">No es esa.</b> El depósito no se recarga.`;
+      msg = `<b class="des-mal">No es esa.</b> El depósito no se recarga.${r.vuelve ? ' Esta pregunta volverá a salir.' : ''}`;
+    }
+    // 🔴 la Academia: acertadas todas, la enhorabuena (y el aviso a la página, que ya da la sesión por superada)
+    if (ACADEMIA && r.ok && !todasDichas && fuente.pendientes() === 0) {
+      todasDichas = true; pintarBarra();
+      avisarAcademia({ todas: true, aciertos: D.aciertos, fallos: D.fallos });
+      caja.innerHTML = `<div class="kicker">Academia · ${fuente.total} de ${fuente.total}</div>
+        <div class="des-enun des-enhora">Enhorabuena, has acertado todas</div>
+        <p>Puedes seguir jugando o pasar al siguiente módulo.</p>
+        <div class="botones"><button type="button" class="sec" id="des-seguir">Seguir jugando</button><button type="button" id="des-sig">Pasar al siguiente módulo</button></div>`;
+      $('des-sig').focus({ preventScroll: true });
+      $('des-seguir').onclick = () => { D.disponible = false; D.nivel = 100; hud.classList.add('oculto'); cerrar(); };
+      $('des-sig').onclick = () => { avisarAcademia({ siguiente: true }); if (window.parent === window) location.href = '../../academia.html?v=961c239091'; };
+      return;
     }
     avisado = D.nivel >= 25 ? false : avisado; pintarBarra();
     const otra = D.nivel <= 0;
@@ -176,7 +232,7 @@ export function crearDesafio(op = {}) {
     },
     pedir() {
       if (!D.corriendo || !D.disponible || D.abierto || !cfg.enJuego()) return;
-      if (D.nivel >= 99) { aviso('El depósito ya está lleno', '#5ff4ff', 1); return; }
+      if (D.nivel >= 99 && !ACADEMIA) { aviso('El depósito ya está lleno', '#5ff4ff', 1); return; }
       abrir(false);
     },
     parar() { D.corriendo = false; if (D.abierto) { D.abierto = false; panel.classList.add('oculto'); q = null; } hud.classList.add('oculto'); },
@@ -186,6 +242,7 @@ export function crearDesafio(op = {}) {
     extra() { return { modo: 'desafio', aciertos: D.aciertos, fallos: D.fallos }; },
     // el párrafo de la portada del juego
     texto() {
+      if (ACADEMIA) return `<p class="des-intro"><b>Las preguntas de este planeta van dentro del juego.</b> Tu ${esc(cfg.nombre.toLowerCase())} se gasta y se recarga acertando. La que falles <b>vuelve a salir</b> más tarde. Cuando las aciertes todas, sesión superada: puedes seguir jugando o pasar al siguiente módulo. Si no quieres esperar, pulsa <kbd>Q</kbd> y te pregunta ya.</p>`;
       return `<p class="des-intro"><b>Modo desafío.</b> Tu ${esc(cfg.nombre.toLowerCase())} se gasta con el tiempo (dura unos ${cfg.segundos} s). Si llega a cero, el juego se para y solo sigues <b>acertando una pregunta del curso</b> (+${cfg.recarga} %; cada tres seguidas, +20 % más). Puedes recargar antes cuando quieras con <kbd>Q</kbd> o el botón. Mientras contestas, el reloj no corre. Al final, <b>hasta +25 %</b> de puntos según tu precisión.</p>`;
     },
   });

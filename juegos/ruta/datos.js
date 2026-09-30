@@ -118,5 +118,5 @@ export const RUTA = {
    "final": true
   }
  ],
- "v": "1066523f0d"
+ "v": "961c239091"
 };

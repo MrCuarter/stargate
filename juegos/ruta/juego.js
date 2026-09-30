@@ -7,8 +7,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-import { PREMIOS, CRITERIOS, ORDEN, NIVELES } from './servidor-local.js?v=1066523f0d';
-import { SERVIDOR, enEnsayo } from './servidor.js?v=1066523f0d';
+import { PREMIOS, CRITERIOS, ORDEN, NIVELES } from './servidor-local.js?v=961c239091';
+import { SERVIDOR, enEnsayo } from './servidor.js?v=961c239091';
 
 const V3 = THREE.Vector3;
 const $ = (id) => document.getElementById(id);
@@ -25,6 +25,27 @@ let NIVEL = REPASO ? (NIVELES[QS.get('nivel')] ? QS.get('nivel') : 'media') : nu
 const EN_WEB = location.pathname.includes('/juegos/');
 const SALA = EN_WEB ? '../joran/' : '../sala-joran/';
 const BASE_WEB = EN_WEB ? '../../' : ''; // las ilustraciones de las preguntas (assets/img/batalla/p/…)
+// 30-sep · EL MODO ACADEMIA (?banco=academia&mision=m5): las preguntas de un planeta de la Academia de la Cero, que pasa la
+// página que abre el juego (academia.js → window.SG_BANCO_JUEGO; son públicas y traen la buena). Norberto: «¡usa los minijuegos
+// para preguntar! Las que fallen se vuelven a lanzar; cuando acierten todas… Enhorabuena, has acertado todas: puedes seguir
+// jugando o pasar al siguiente módulo». La que se falla vuelve detrás de las demás, con su hueco en el vuelo; las pendientes
+// sobreviven a una caída («Volver a volar» solo trae las que faltan). Sin servidor, sin medallas ni premios.
+const ACADEMIA = QS.get('banco') === 'academia';
+const ACA = ACADEMIA ? (() => {
+  let lista = null;
+  try { lista = window.parent && window.parent !== window && window.parent.SG_BANCO_JUEGO; } catch (e) { lista = null; }
+  if (!lista) try { lista = JSON.parse(sessionStorage.getItem('sgBancoJuego') || 'null'); } catch (e) { lista = null; }
+  const qs = (Array.isArray(lista) ? lista : []).filter((x) => x && x.p && Array.isArray(x.o) && x.o.length >= 2)
+    .map((x, i) => ({ id: 'a' + i, p: x.p, o: x.o.slice(0, 4), ok: Math.min(3, Number(x.ok) || 0), porque: x.porque || '' }));
+  return { qs, pendientes: new Set(qs.map((q) => q.id)), dicho: false };
+})() : null;
+function preguntaAcademia(x) {
+  const orden = barajar(x.o.map((_, i) => i));
+  return { id: x.id, tipo: 'una', enunciado: x.p, opciones: orden.map((i) => x.o[i]), pasos: 1, buena: orden.indexOf(x.ok), correccion: x.porque };
+}
+function avisarAcademia(que) {
+  try { if (window.parent && window.parent !== window) window.parent.postMessage({ sgAcademia: Object.assign({ tanda: QS.get('tanda') || '' }, que) }, location.origin); } catch (e) { /* sin marco */ }
+}
 
 // ───────────────────────────────────────── EL MAPA Y LAS MISIONES (un dato, un sitio)
 const NODOS = [
@@ -74,7 +95,7 @@ const MISIONES = [
 
 // 🔴 En la web, lo que se CUENTA de cada misión (título, lema, cuándo) llega de _site_data.py → datos.js (lo escribe el
 // build); aquí manda solo la jugabilidad. En el borrador no hay datos.js y se queda lo de arriba.
-try { const D = await import('./datos.js?v=1066523f0d'); for (const d of D.RUTA.misiones) { const m = MISIONES.find((x) => x.id === d.id); if (m) Object.assign(m, { titulo: d.titulo, lema: d.lema, cuando: d.cuando, tema: d.final ? 'final' : d.tema }); } } catch (e) { /* borrador: sin datos.js */ }
+try { const D = await import('./datos.js?v=961c239091'); for (const d of D.RUTA.misiones) { const m = MISIONES.find((x) => x.id === d.id); if (m) Object.assign(m, { titulo: d.titulo, lema: d.lema, cuando: d.cuando, tema: d.final ? 'final' : d.tema }); } } catch (e) { /* borrador: sin datos.js */ }
 
 // el tramo que solo existe en el repaso: preguntas de los ocho temas, rumbo a la Estática
 const VIAJE = { id: 'viaje', n: '∞', de: 0, a: 9, tema: 'todo', cuando: 'Simulador de vuelo', titulo: 'Todo el viaje',
@@ -488,6 +509,13 @@ async function briefing(m) {
     <p style="font-size:15px">El repaso <b>no da xp ni créditos</b>: tu marca (tus puntos × el nivel) va al ranking del Simulador de vuelo en la sala de Joran.</p>
     <div class="botones"><button id="b-ya">¡Despegar!</button><button class="sec" id="b-mapa">Volver al mapa</button></div>`);
     document.querySelectorAll('[data-nivel]').forEach((b) => { b.onclick = () => { NIVEL = b.dataset.nivel; document.querySelectorAll('[data-nivel]').forEach((x) => x.classList.toggle('si', x === b)); }; });
+  } else if (ACADEMIA) {
+    const quedan = ACA.pendientes.size;
+    pantalla(`<div class="kicker">Academia de la Cero · rumbo a ${esc(NODOS[m.a].n)}</div>
+    <h2>Las preguntas, en las puertas</h2>
+    <p>${quedan ? `Te esperan <b>${quedan === 1 ? 'una pregunta' : quedan + ' preguntas'}</b> de este planeta. Cuando llegue una, el tiempo se frena: vuela hacia la puerta de la respuesta buena. La que falles <b>vuelve a salir</b> más adelante; cuando las aciertes todas, sesión superada.` : 'Ya las has acertado todas: vuela por gusto.'}</p>
+    ${teclasHTML()}
+    <div class="botones"><button id="b-ya">¡Despegar!</button></div>`);
   } else {
     const tabla = ['bronce', 'plata', 'oro'].map((e) => `<span class="med ${e}">${NOMBRE_MED[e]} +${PREMIOS[e].xp} xp +${PREMIOS[e].cr} ◈</span>`).join(' ');
     pantalla(`<div class="kicker">Misión ${m.n} · ${esc(m.cuando)}</div>
@@ -575,7 +603,8 @@ async function empezar(mis) {
   }
   aviso(mis.final ? 'VAEON' : d.n.toUpperCase(), '#5ff4ff', 2.2);
   // las preguntas las da «el servidor» (sin la respuesta)
-  const r = await SERVIDOR.empezar(mis, { nivel: NIVEL });
+  const r = ACADEMIA ? { partida: null, preguntas: barajar(ACA.qs.filter((q) => ACA.pendientes.has(q.id))).map(preguntaAcademia) }
+    : await SERVIDOR.empezar(mis, { nivel: NIVEL });
   if (!M || M.m !== mis) return;
   M.partida = r.partida; M.preguntasCola = r.preguntas;
   if (!mis.final) { const n = r.preguntas.length; M.momentos = momentosDe(mis, n).filter((t) => t > M.juego); M.duracion = duracionDe(mis, n); }
@@ -797,9 +826,19 @@ async function resolverPregunta(i) {
   M.pregunta = null; M.lentaObj = 1; M.preguntas++;
   if (M.tipo === 'final') BATALLA.suave(false);
   $('pregunta').classList.add('oculto');
-  const r = await SERVIDOR.responder(M.partida, P.q.id, P.q.pasos > 1 ? P.elegidas : i);
+  const r = ACADEMIA ? { ok: i === P.q.buena, correccion: P.q.correccion } : await SERVIDOR.responder(M.partida, P.q.id, P.q.pasos > 1 ? P.elegidas : i);
   if (!M) return;
   const ok = !!r.ok;
+  let vuelve = '';
+  if (ACADEMIA) {
+    if (ok) ACA.pendientes.delete(P.q.id);
+    else { // la que se falla vuelve a salir, detrás de las demás, con su hueco en el vuelo
+      M.preguntasCola.push(preguntaAcademia(ACA.qs.find((x) => x.id === P.q.id)));
+      const t = Math.max(M.juego, ...M.momentos) + HUECO_PREG; M.momentos.push(t); M.duracion = Math.max(M.duracion, t + 14);
+      vuelve = ' Esta pregunta volverá a salir.';
+    }
+    if (ok && !ACA.pendientes.size && !ACA.dicho) { ACA.dicho = true; avisarAcademia({ todas: true, aciertos: M.aciertos + 1, respondidas: M.preguntas }); setTimeout(enhorabuena, 1800); }
+  }
   for (const c of P.puertas) c.marco.color.set(c.i === i ? (ok ? 0x5dffa0 : 0xff4d6d) : 0x5ff4ff);
   if (ok) {
     M.aciertos++; M.racha++; M.maxRacha = Math.max(M.maxRacha, M.racha);
@@ -810,12 +849,23 @@ async function resolverPregunta(i) {
   } else {
     M.racha = 0; SON.mal(); recibirDaño(10);
     aviso(i == null ? 'SIN RESPUESTA' : 'FALLO', '#ff4d6d', 1.8);
-    decir((i == null ? 'Hay que atravesar una puerta. ' : P.q.pasos > 1 ? 'No era esa combinación. ' : 'No era esa. ') + (r.correccion || ''), 9);
+    decir((i == null ? 'Hay que atravesar una puerta. ' : P.q.pasos > 1 ? 'No era esa combinación. ' : 'No era esa. ') + (r.correccion || '') + vuelve, 9);
   }
   setTimeout(() => { for (const c of P.puertas) quitar(c); }, 700);
   P.alAcabar && P.alAcabar(ok);
 }
 function quitar(c) { const i = cosas.indexOf(c); if (i >= 0) cosas.splice(i, 1); escena.remove(c.obj); }
+// la Academia: acertadas todas, la enhorabuena (el vuelo se para mientras se elige)
+function enhorabuena() {
+  if (!M || M.fin || modo !== 'mision') return;
+  pausa = true; try { if (actx) actx.suspend(); } catch (e) { /* sin audio */ }
+  pantalla(`<div class="kicker">Academia · ${ACA.qs.length} de ${ACA.qs.length}</div>
+    <h2 style="color:var(--ambar)">Enhorabuena, has acertado todas</h2>
+    <p>Puedes seguir jugando o pasar al siguiente módulo.</p>
+    <div class="botones"><button class="sec" id="b-seguir">Seguir jugando</button><button id="b-sig">Pasar al siguiente módulo</button></div>`);
+  $('b-seguir').onclick = () => { pausa = false; try { if (actx) actx.resume(); } catch (e) { /* sin audio */ } $('pantalla').classList.add('oculto'); };
+  $('b-sig').onclick = () => { avisarAcademia({ siguiente: true }); if (window.parent === window) location.href = '../../academia.html?v=961c239091'; };
+}
 
 // ───────────────────────────────────────── VAEON
 // 27-sep · Norberto: «no le quito nada de vida, no sé dónde disparar… es muy estático». Lo que pasaba: el daño SÍ
@@ -1210,11 +1260,24 @@ async function fin(llego, motivo = '') {
   const prec = M.disparos ? M.impactos / M.disparos : 0;
   if (llego) M.pericia += Math.round(M.escudo * 10) + Math.round(prec * 1000);
   const m = M.m, datos = { llego, precision: prec, escudo: M.escudo, puntos: M.saber + M.pericia };
+  if (ACADEMIA) { // la Academia: ni servidor, ni medalla; lo que falta y otra vuelta
+    const X = M, quedan = ACA.pendientes.size;
+    setTimeout(() => {
+      $('hud').classList.add('oculto');
+      pantalla(`<div class="kicker">Academia · rumbo a ${esc(NODOS[m.a].n)}</div>
+      <h2>${llego ? `¡Has llegado a ${esc(NODOS[m.a].n)}!` : 'Vuelo sin terminar'}</h2>${motivo ? `<p>${esc(motivo)}</p>` : ''}
+      <p>Aciertos en este vuelo: <b>${X.aciertos} de ${X.preguntas}</b>. ${quedan ? `Te ${quedan === 1 ? 'queda una pregunta' : 'quedan ' + quedan + ' preguntas'} por acertar: vuelve a volar y te esperarán en las puertas.` : 'Has acertado todas las preguntas de este planeta.'}</p>
+      <div class="botones"><button id="b-otra">${quedan ? 'Volver a volar' : 'Volar otra vez'}</button>${quedan ? '' : '<button class="sec" id="b-sig">Pasar al siguiente módulo</button>'}</div>`);
+      $('b-otra').onclick = () => { $('pantalla').classList.add('oculto'); briefing(m); };
+      if ($('b-sig')) $('b-sig').onclick = () => { avisarAcademia({ siguiente: true }); if (window.parent === window) location.href = '../../academia.html?v=961c239091'; };
+    }, llego ? 1200 : 1500);
+    return;
+  }
   const r = M.partida ? await SERVIDOR.terminar(M.partida, datos) : { medalla: 'nada', premio: { xp: 0, cr: 0, escalones: [] } };
   try { window.parent !== window && window.parent.postMessage({ sgRuta: { mision: m.id, medalla: r.medalla, puntos: Math.round(datos.puntos) } }, '*'); } catch (e) { /* sin padre */ }
   const X = M;
   if (r.repaso) { // el Simulador de vuelo: la marca va a la sala de Joran (su ranking y sus hitos)
-    try { const S = await import(SALA + 'comun.js?v=1066523f0d'); S.registrarPartida('vuelo', r.total, { nivel: r.nivel, mision: m.id }); } catch (e) { console.warn('sin sala', e); }
+    try { const S = await import(SALA + 'comun.js?v=961c239091'); S.registrarPartida('vuelo', r.total, { nivel: r.nivel, mision: m.id }); } catch (e) { console.warn('sin sala', e); }
     setTimeout(() => {
       $('hud').classList.add('oculto');
       pantalla(`<div class="kicker">Simulador de vuelo · nivel ${esc(NIVELES[r.nivel].n)} (×${String(NIVELES[r.nivel].mult).replace('.', ',')})</div>

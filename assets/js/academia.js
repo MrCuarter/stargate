@@ -33,8 +33,15 @@
   // ── el ENSAYO: lo que se ha practicado en este navegador (SG.rastroAcademia, en stargate.js)
   function rastro() { try { return JSON.parse(localStorage.getItem("sgAcademia") || "{}") || {}; } catch (e) { return {}; } }
   function claseEntera(x) { return !!x && Number(x.total) > 3 && Number(x.max) >= Number(x.total) - 1; }
+  // 30-sep · lo que se ha HECHO en la consola de ensayo (validar, anular, un mensaje, la Cola de nota, un premio): lo apunta su
+  // Firebase de mentira (assets/js/sim/firebase_sim.js) en ESTE navegador, y no se borra con «Empezar de cero»
+  function hechosEnsayo() { try { return JSON.parse(localStorage.getItem("sgEnsayo.hechos") || "{}") || {}; } catch (e) { return {}; } }
   function simOk(c) {
     var R = rastro(), m;
+    if (c === "ens:puente") return !!(R.consola || {}).portada;
+    if (c === "ens:ficha") return !!(R.consola || {}).ficha;
+    if (c === "ens:simulador") return !!(R.consola || {}).simulador;
+    if ((m = /^ens:(.+)$/.exec(c))) return !!hechosEnsayo()[m[1]];
     if (c === "sim:consola") { var v = R.consola || {}; return !!(v.portada && v.alumnado && v.retos && v.rankings && v.ficha); }
     if (c === "sim:clase") return Object.keys(R.clase || {}).some(function (k) { return k.indexOf(PER_DEMO + ":") === 0 && claseEntera(R.clase[k]); });
     if (c === "sim:estudiante") return !!R.estudiante;
@@ -44,9 +51,10 @@
     if ((m = /^dif:(.+)$/.exec(c))) { var x = (R.clase || {})[G + ":" + m[1]]; return !!(x && x.dif) && claseEntera(x); }
     return false;
   }
-  function local(c) { return /^(sim|dif):/.test(c) || c === "nave"; }
+  function local(c) { return String(c).split("+").every(function (x) { return /^(sim|dif|ens):/.test(x) || x === "nave"; }); }
   // ── lo que la plataforma sabe de su ficha en el grupo de la Academia
   function autoOk(c) {
+    if (String(c).indexOf("+") > 0 && !(DEMO && lsLeer("demo." + c, false))) return String(c).split("+").every(autoOk);   // (todas sus partes)
     if (local(c)) return simOk(c) || (DEMO && !!lsLeer("demo." + c, false));
     if (DEMO) return !!lsLeer("demo." + c, false);
     if (c === "alta") return !!FICHA;
@@ -68,7 +76,11 @@
     return { ok: false, p: p || null };
   }
   function extras(i) { return (((DOC.claude || {}).extra) || []).filter(function (x) { return x && x.estacion === C.estaciones[i].id; }); }
-  function hitosDe(i) { return C.estaciones[i].hitos.concat(extras(i).map(function (x) { return { id: x.id, tipo: "texto", titulo: x.titulo, como: x.texto, extra: true }; })); }
+  function hitoJuego(e) { return { id: e.id + "-juego", tipo: "juego", titulo: "Las preguntas de " + e.planeta + ", jugando", maquina: e.juego.maquina, n: e.juego.n }; }
+  function hitosDe(i) {
+    var e = C.estaciones[i];
+    return e.hitos.concat(e.juego ? [hitoJuego(e)] : []).concat(extras(i).map(function (x) { return { id: x.id, tipo: "texto", titulo: x.titulo, como: x.texto, extra: true }; }));
+  }
   function hecha(i) { return hitosDe(i).every(function (h) { return estado(h).ok; }); }
   function abierta(i) { if (VER) return true; for (var k = 0; k < i; k++) if (!hecha(k)) return false; return true; }
   function progreso() { var t = 0, n = 0; C.estaciones.forEach(function (e, i) { hitosDe(i).forEach(function (h) { t++; if (estado(h).ok) n++; }); }); return { n: n, t: t }; }
@@ -112,11 +124,16 @@
                  "sim:estudiante": "Abrir la Nave en simulacro" };
 
   // ══════════════════════════════════════════ LAS PANTALLAS DE UNA SESIÓN
-  // entrada (su personaje y su voz) → una idea por pantalla → «Ahora tú»: un hito por pantalla → sesión completada
+  // 30-sep · COMO LAS CLASES EN DIRECTO (Norberto: las diapositivas de la Academia eran «una CACA comparadas con las sesiones en
+  // vivo, tan visuales»). Cada planeta: la llegada (su fondo, su tema y su tripulante) → su historia en dos frases → las piezas
+  // de la herramienta (NEBULA o el Capitán las cuentan) → «Ahora tú»: un hito por pantalla (la misión en la consola de ensayo y
+  // lo real) → sus preguntas DENTRO de un minijuego → planeta completado. La Cero (el prólogo) no tiene tripulante ni juego.
   function pantallas(i) {
-    var e = C.estaciones[i];
-    return [{ t: "entrada" }].concat(e.bloques.map(function (b) { return { t: "idea", b: b }; }))
-      .concat(hitosDe(i).map(function (h) { return { t: "hito", h: h }; })).concat([{ t: "fin" }]);
+    var e = C.estaciones[i], P = [{ t: "llegada" }];
+    if (e.retrato) P.push({ t: "historia" });
+    e.piezas.forEach(function (b, k) { P.push({ t: "pieza", b: b, k: k }); });
+    hitosDe(i).forEach(function (h) { P.push({ t: "hito", h: h }); });
+    return P.concat([{ t: "fin" }]);
   }
   function primera() {
     var g = lsLeer("pos", null);
@@ -169,46 +186,129 @@
     return '<section class="acd-final"><img src="assets/img/iconos/medalla.png" alt=""><div><div class="kicker">Academia completada</div><h2>' + esc(C.final.titulo) + "</h2><p>" + esc(C.final.texto) + "</p>" +
       '<div class="acd-botones"><a class="btn primary" href="consola.html">Ir a mi Nave de Comandante</a><a class="btn" href="guia.html">La guía del profesorado</a></div></div></section>';
   }
-  function puntos(P) {
-    return '<div class="acd-puntos" aria-hidden="true">' + P.map(function (x, k) {
+  var POSE = { nebula: "assets/img/personajes/nebula.png", "capitan:senala": "assets/img/capitan/senala.png", "capitan:tablet": "assets/img/capitan/tablet.png",
+               "capitan:saluda": "assets/img/capitan/saluda.png", "capitan:brazos": "assets/img/capitan/brazos.png", "capitan:pulgar": "assets/img/capitan/pulgar.png",
+               "capitan:pensativo": "assets/img/capitan/pensativo.png" };
+  var MAQ = { conquista: "maq_conquista", evacuacion: "maq_evacuacion", laberinto: "maq_laberinto", "ruta-azul": "maq_rutaazul", descenso: "maq_descenso" };
+  function fondo(url, clase) { return '<div class="acd-dia-fondo' + (clase ? " " + clase : "") + '" style="background-image:url(' + esc(url) + ')"></div>'; }
+  function botonesDe(b) { return b.botones ? '<div class="acd-botones">' + b.botones.map(function (y) { return '<a class="btn" href="' + esc(y[1]) + '" target="_blank" rel="noopener">' + esc(y[0]) + " ↗</a>"; }).join("") + "</div>" : ""; }
+  function esReal(h) { return h.tipo === "auto" && !local(h.comprobar); }
+  function barraPasos(P) {
+    return '<div class="acd-dia-barra" aria-hidden="true">' + P.map(function (x, k) {
       var hechoH = x.t === "hito" && estado(x.h).ok;
-      return '<span class="' + (k === PANT ? "on" : k < PANT || hechoH ? "visto" : "") + (x.t === "hito" ? " h" : "") + '"></span>'; }).join("") + "</div>";
+      return '<i class="' + (k === PANT ? "on" : k < PANT || hechoH ? "past" : "") + (x.t === "hito" ? " h" : "") + '"></i>'; }).join("") + "<b>" + (PANT + 1) + " / " + P.length + "</b></div>";
   }
+  var JUGANDO = false;
   function pintarPantalla() {
     var i = ACTUAL, e = C.estaciones[i], P = pantallas(i), x = P[PANT], el = $("#acd-ses");
-    var nHitos = hitosDe(i).length, primerHito = 1 + e.bloques.length;
-    var cabS = '<div class="acd-ses-cab"><img class="acd-mini" src="' + esc(e.pj) + '" alt=""><div><div class="kicker">Sesión ' + (i + 1) + " de " + N + " · unos " + (e.min || 10) + " minutos</div><b>" + esc(e.titulo) + "</b></div>" + puntos(P) + "</div>";
-    var cuerpo = "";
-    if (x.t === "entrada") {
-      cuerpo = '<div class="acd-heroe" style="background-image:linear-gradient(90deg,rgba(6,10,18,.95),rgba(6,10,18,.6) 58%,rgba(6,10,18,.2)),url(' + esc(e.bg) + ')">' +
-        '<div class="acd-heroe-txt"><h2>' + esc(e.titulo) + '</h2><p class="acd-voz">«' + esc(e.voz) + "»<span>" + esc(e.quien) + "</span></p>" +
-        '<p class="acd-que">' + esc(e.sub) + ". " + e.bloques.length + (e.bloques.length === 1 ? " píldora" : " píldoras") + " y " + (nHitos === 1 ? "un hito" : nHitos + " hitos") + ".</p></div>" +
-        '<img class="acd-pj" src="' + esc(e.pj) + '" alt="' + esc(e.quien) + '"></div>';
-    } else if (x.t === "idea") {
+    var suelo = e.suelo || e.bg, cuerpo = "", cls = "";
+    JUGANDO = false;
+    if (x.t === "llegada") {
+      cls = "acd-llegada";
+      cuerpo = fondo(e.bg) + '<div class="acd-velo izq"></div>' +
+        (e.carta ? '<img class="acd-carta-trip" src="' + esc(e.carta) + '" alt="' + esc(e.quien) + '">' : '<img class="acd-corte der" src="' + esc(e.pj || POSE.nebula) + '" alt="' + esc(e.quien) + '">') +
+        '<div class="acd-dia-txt"><div class="acd-dia-k">Academia de la Cero · sesión ' + (i + 1) + " de " + N + " · unos " + (e.min || 10) + " minutos</div>" +
+        '<h2 class="acd-dia-h1">' + esc(e.planeta) + '</h2><p class="acd-dia-sub">' + esc(e.tema) + '</p><p class="acd-dia-sub acd-mut">Hoy: ' + esc(e.hoy) + "</p>" +
+        (e.retrato ? "" : '<p class="acd-cita">«' + esc(e.cita) + "» <span>" + esc(e.quien) + "</span></p>") +
+        (e.retrato ? "" : '<p class="acd-dia-sub">' + esc(e.historia) + "</p>") + "</div>";
+    } else if (x.t === "historia") {
+      cls = "acd-historia";
+      cuerpo = fondo(e.retrato, "der") + '<div class="acd-velo izq"></div>' +
+        '<div class="acd-dia-txt"><div class="acd-dia-k">La historia · ' + esc(e.quien) + '</div><p class="acd-cita grande">«' + esc(e.cita) + "»</p>" +
+        '<p class="acd-dia-sub">' + esc(e.historia) + "</p>" +
+        '<p class="acd-dia-sub acd-mut">' + esc(e.tema) + ". Tu alumnado recupera a " + esc(e.quien.split(",")[0]) + " con el relámpago de este tema.</p></div>";
+    } else if (x.t === "pieza") {
       var b = x.b;
-      cuerpo = '<article class="acd-idea"><div class="kicker">Píldora ' + PANT + " de " + e.bloques.length + "</div><h2>" + esc(b.h) + "</h2><p>" + b.p + "</p>" +
-        (b.botones ? '<div class="acd-botones">' + b.botones.map(function (y) { return '<a class="btn" href="' + esc(y[1]) + '" target="_blank" rel="noopener">' + esc(y[0]) + " ↗</a>"; }).join("") + "</div>" : "") + "</article>";
+      cls = "acd-pieza";
+      cuerpo = fondo(suelo) + '<div class="acd-velo"></div>' +
+        '<img class="acd-corte izq" src="' + esc(POSE[b.pj] || POSE.nebula) + '" alt="">' +
+        '<div class="acd-bocadillo"><div class="acd-dia-k">La herramienta · ' + (x.k + 1) + " de " + e.piezas.length + "</div><h3>" + esc(b.h) + "</h3><p>" + b.p + "</p>" +
+        (b.pasos ? '<ol class="acd-pasos">' + b.pasos.map(function (t) { return "<li>" + t + "</li>"; }).join("") + "</ol>" : "") + botonesDe(b) + "</div>" +
+        (b.img ? '<img class="acd-pantallazo" src="' + esc(b.img) + '" alt="">' : "");
+    } else if (x.t === "hito" && x.h.tipo === "juego") {
+      cls = "acd-juego";
+      var hj = x.h, okJ = estado(hj).ok, ruta = /^ruta:/.test(hj.maquina), img = "juegos/joran/img/" + (ruta ? "maq_vuelo" : (MAQ[hj.maquina] || "maq_conquista")) + ".jpg";
+      cuerpo = fondo(img, "juego") + '<div class="acd-velo"></div>' +
+        '<div class="acd-juego-caja" id="acd-juego-marco"><div class="acd-dia-k">Ahora tú · las preguntas de ' + esc(e.planeta) + ", jugando</div><h3>" + esc(hj.n) + "</h3>" +
+        "<p>Sus " + (e.preguntas || []).length + " preguntas salen <b>dentro del juego</b>. La que falles vuelve a salir más tarde; cuando las aciertes todas, sesión superada: podrás seguir jugando o pasar al siguiente módulo.</p>" +
+        '<p class="acd-juego-st" id="acd-juego-st">' + (okJ ? ico("hecho") + " <b>Todas acertadas.</b> Puedes volver a jugar cuando quieras." : "") + "</p>" +
+        '<div class="acd-botones"><button type="button" class="btn primary grande" data-jugar>' + (okJ ? "Jugar otra vez" : "Jugar") + "</button>" +
+        (DEMO && !okJ ? '<button class="btn min" type="button" data-demo-j>Marcar (demo)</button>' : "") + "</div></div>";
     } else if (x.t === "hito") {
-      var nh = PANT - primerHito + 1;
-      cuerpo = '<div class="acd-ahora"><div class="kicker">' + ico("diana") + " Ahora tú · " + nh + " de " + nHitos + '</div><div class="acd-hito" id="h-' + esc(x.h.id) + '"></div></div>';
+      var h = x.h, real = esReal(h);
+      cls = "acd-mision";
+      cuerpo = fondo(real ? suelo : "assets/img/pres/puente.webp") + '<div class="acd-velo izq"></div>' +
+        '<img class="acd-corte der" src="' + (real ? POSE["capitan:saluda"] : POSE["capitan:tablet"]) + '" alt="">' +
+        '<div class="acd-dia-txt ancho"><div class="acd-dia-k">' + (h.tipo === "diseno" ? "Ahora tú · tu primera pieza" : real ? "Ahora tú · como tu alumnado, en el grupo de la Academia" : "Tu misión · en la consola de ensayo") + "</div>" +
+        '<div class="acd-hito" id="h-' + esc(h.id) + '"></div></div>';
     } else {
-      var sig = i + 1 < N ? C.estaciones[i + 1] : null;
-      cuerpo = '<div class="acd-hecha">' + '<img src="assets/img/iconos/hecho.png" alt="">' + "<div><h2>Sesión completada</h2>" +
-        (sig ? "<p><b>¿Suficiente por hoy?</b> Puedes dejarlo aquí: cuando vuelvas, seguirás justo donde lo dejaste. La siguiente es <b>" + esc(sig.titulo) + "</b> (unos " + (sig.min || 10) + " minutos).</p>" +
-               '<div class="acd-botones"><button class="btn primary" type="button" data-sig>Empezar la sesión ' + (i + 2) + " →</button></div>"
-             : "<p>Era la última. Abajo tienes tu título.</p>") + "</div></div>";
+      var sig = i + 1 < N ? C.estaciones[i + 1] : null, pl = sig && sig.bg ? sig.bg : null;
+      cls = "acd-fin";
+      cuerpo = fondo(pl || e.bg) + '<div class="acd-velo"></div>' +
+        '<div class="acd-dia-txt centro"><div class="acd-dia-k">' + esc(e.planeta) + " · completado</div>" +
+        '<h2 class="acd-dia-h2">' + (sig ? "Rumbo a " + esc(sig.planeta) : "Has hecho el viaje entero") + "</h2>" +
+        (sig ? '<p class="acd-dia-sub"><b>¿Suficiente por hoy?</b> Puedes dejarlo aquí: cuando vuelvas, seguirás justo donde lo dejaste. La siguiente es <b>' + esc(sig.titulo) + "</b> (unos " + (sig.min || 10) + ' minutos).</p><div class="acd-botones"><button class="btn primary grande" type="button" data-sig>Empezar ' + esc(sig.planeta) + " →</button></div>"
+             : '<p class="acd-dia-sub">Abajo tienes tu título.</p>') + "</div>";
     }
-    var falta = x.t === "hito" && PANT + 1 === P.length - 1 && !hecha(i);
-    var nav = x.t === "fin" ? '<div class="acd-nav"><button class="btn" type="button" data-ant>← Anterior</button><span></span></div>'
-      : '<div class="acd-nav">' + (PANT > 0 ? '<button class="btn" type="button" data-ant>← Anterior</button>' : "<span></span>") +
-        (falta ? '<span class="muted acd-falta">Te falta: ' + esc(hitosDe(i).filter(function (h) { return !estado(h).ok; }).map(function (h) { return h.titulo; }).join(" · ")) + "</span>"
-               : '<button class="btn primary" type="button" data-sig-p>' + (x.t === "entrada" ? "Empezar →" : P[PANT + 1] && P[PANT + 1].t === "hito" && x.t === "idea" ? "Ahora tú →" : "Siguiente →") + "</button>") + "</div>";
-    el.innerHTML = '<div class="acd-carta">' + cabS + '<div class="acd-pantalla">' + cuerpo + "</div>" + nav + "</div>";
-    if (x.t === "hito") pintarHito(x.h);
+    var falta = PANT + 1 === P.length - 1 && !hecha(i);
+    el.innerHTML = '<div class="acd-dia ' + cls + '">' + cuerpo +
+      (PANT > 0 ? '<button type="button" class="acd-flecha ant" data-ant aria-label="Anterior">‹</button>' : "") +
+      (x.t !== "fin" ? '<button type="button" class="acd-flecha sig" data-sig-p aria-label="Siguiente"' + (falta ? " disabled" : "") + ">›</button>" : "") +
+      barraPasos(P) + "</div>" +
+      (falta ? '<p class="muted acd-falta">Para completar ' + esc(e.planeta) + " te falta: " + esc(hitosDe(i).filter(function (h) { return !estado(h).ok; }).map(function (h) { return h.titulo; }).join(" · ")) + "</p>" : "");
+    if (x.t === "hito" && x.h.tipo !== "juego") pintarHito(x.h);
+    if (x.t === "hito" && x.h.tipo === "juego") engancharJuego(e, x.h);
     var ant = el.querySelector("[data-ant]"); if (ant) ant.onclick = function () { PANT--; recordar(); pintarPantalla(); };
-    var sp = el.querySelector("[data-sig-p]"); if (sp) sp.onclick = function () { PANT++; recordar(); pintarPantalla(); };
+    var sp = el.querySelector("[data-sig-p]"); if (sp) sp.onclick = function () { if (sp.disabled) return; PANT++; recordar(); pintarPantalla(); };
     var sg = el.querySelector("[data-sig]"); if (sg) sg.onclick = function () { ACTUAL = i + 1; PANT = 0; recordar(); pintar(); irArriba(); };
   }
+  /**
+   * EL MINIJUEGO DE CADA PLANETA, dentro de la sesión (Norberto: «¡usa los minijuegos para preguntar!»). Una máquina de la sala
+   * de Joran o la Ruta de la Estática, en modo Academia (?banco=academia): las preguntas se le pasan por window.SG_BANCO_JUEGO y
+   * el juego avisa con postMessage (sgAcademia): «todas» (el hito, hecho) y «siguiente» (al final de la sesión). Mientras se
+   * juega, la página no se repinta: se perdería la partida.
+   */
+  function urlJuego(e, h) {
+    var m = /^ruta:(.+)$/.exec(h.maquina);
+    return (m ? "juegos/ruta/index.html?mision=" + encodeURIComponent(m[1]) : "juegos/joran/" + encodeURIComponent(h.maquina) + ".html?x=1") +
+      "&banco=academia&embed=1&tanda=" + encodeURIComponent(e.id);
+  }
+  function engancharJuego(e, h) {
+    var caja = document.getElementById("acd-juego-marco"); if (!caja) return;
+    var bj = caja.querySelector("[data-jugar]");
+    if (bj) bj.onclick = function () {
+      window.SG_BANCO_JUEGO = e.preguntas || [];
+      try { sessionStorage.setItem("sgBancoJuego", JSON.stringify(window.SG_BANCO_JUEGO)); } catch (x) { /* sin almacenamiento */ }
+      JUGANDO = true;
+      caja.classList.add("jugando");
+      caja.innerHTML = '<iframe src="' + esc(urlJuego(e, h)) + '" title="' + esc(h.n) + '" allow="fullscreen; autoplay" allowfullscreen></iframe>' +
+        '<div class="acd-juego-pie"><span id="acd-juego-st">' + (estado(h).ok ? ico("hecho") + " Todas acertadas: juega lo que quieras." : (e.preguntas || []).length + " preguntas · la que falles vuelve a salir") + "</span>" +
+        '<button type="button" class="btn min" data-pantalla>Pantalla completa</button><button type="button" class="btn min" data-salir>Salir del juego</button></div>';
+      var fr = caja.querySelector("iframe");
+      caja.querySelector("[data-pantalla]").onclick = function () { try { (fr.requestFullscreen || fr.webkitRequestFullscreen).call(fr); } catch (x) { /* sin pantalla completa */ } };
+      caja.querySelector("[data-salir]").onclick = function () { JUGANDO = false; pintar(); };
+      setTimeout(function () { try { fr.focus(); } catch (x) { /* nada */ } }, 300);
+    };
+    var bd = caja.querySelector("[data-demo-j]"); if (bd) bd.onclick = function () { guardarPaso(h.id, { ok: true, demo: true }); trasHito(); };
+  }
+  window.addEventListener("message", function (ev) {
+    if (ev.origin !== location.origin || !ev.data || !ev.data.sgAcademia || ACTUAL == null) return;
+    var m = ev.data.sgAcademia, e = C.estaciones[ACTUAL]; if (!e || !e.juego || m.tanda !== e.id) return;
+    var h = hitoJuego(e);
+    if (m.todas) {
+      guardarPaso(h.id, { ok: true, auto: true, aciertos: Number(m.aciertos) || 0, fallos: Number(m.fallos) || 0 });
+      var st = document.getElementById("acd-juego-st"); if (st) st.innerHTML = ico("hecho") + " <b>Todas acertadas.</b> Sesión superada: sigue jugando o pasa al siguiente módulo.";
+    }
+    if (m.siguiente) { JUGANDO = false; PANT = pantallas(ACTUAL).length - 1; recordar(); pintar(); irArriba(); }
+  });
+  // las flechas del teclado, como en la sesión (salvo escribiendo o jugando)
+  document.addEventListener("keydown", function (ev) {
+    if (JUGANDO || ACTUAL == null || !$("#acd-ses")) return;
+    var t = document.activeElement && document.activeElement.tagName;
+    if (t === "INPUT" || t === "TEXTAREA" || t === "SELECT" || t === "IFRAME") return;
+    if (ev.key === "ArrowRight") { var s2 = app.querySelector("[data-sig-p]"); if (s2 && !s2.disabled) { ev.preventDefault(); s2.click(); } }
+    else if (ev.key === "ArrowLeft") { var a2 = app.querySelector("[data-ant]"); if (a2) { ev.preventDefault(); a2.click(); } }
+  });
   /** Tras cumplir un hito: se repinta todo (el mapa y los puntos cambian) sin mover la pantalla en curso. */
   function trasHito() { pintar(); }
 
@@ -227,7 +327,7 @@
     // auto: lo comprueba la plataforma (o el ensayo, en este navegador)
     var necesitaFicha = h.comprobar !== "alta" && !local(h.comprobar) && !FICHA && !DEMO;
     el.innerHTML = cab + "<p>" + h.como + "</p>" + (st.ok ? '<p class="acd-bien">Hecho. La plataforma lo ha comprobado.</p>' + (h.opinar ? opinarHtml(h) : "")
-      : necesitaFicha ? '<p class="muted">Primero, alístate (sesión ' + (1 + C.estaciones.map(function (x) { return x.id; }).indexOf("alta")) + ').</p>'
+      : necesitaFicha ? '<p class="muted">Primero, alístate: es la misión de Fôrge (tu ficha de recluta).</p>'
       : '<div class="acd-botones">' + (h.boton ? '<a class="btn primary" href="' + esc(enlace(h.boton)) + '" target="' + (h.boton === "alistarse" ? "_self" : "_blank") + '" rel="noopener">' +
           esc(ROTULO[h.boton] || (/^diferido:/.test(h.boton) ? "Abrir la clase en diferido" : "Abrir")) + (h.boton === "alistarse" ? "" : " ↗") + "</a>" : "") +
         '<button class="btn" type="button" data-comprobar>Ya lo he hecho: comprobar</button>' + (DEMO ? '<button class="btn min" type="button" data-demo>Marcar (demo)</button>' : "") + '</div><p class="muted acd-aviso" hidden></p>');
@@ -391,7 +491,7 @@
     var total = C.estaciones.reduce(function (s, e) { return s + (e.min || 10); }, 0);
     app.innerHTML = '<main class="acd">' + cabecera(null) +
       '<section class="acd-ses"><div class="acd-carta"><div class="acd-pantalla"><div class="acd-heroe" style="background-image:linear-gradient(90deg,rgba(6,10,18,.95),rgba(6,10,18,.55)),url(assets/img/fondos/p1_forge_llegada.webp)"><div class="acd-heroe-txt">' +
-      "<h2>" + N + " sesiones cortas, a tu ritmo</h2><p class=\"acd-voz\">«Primero la historia y su porqué; después te alistarás como tu alumnado, darás una clase de ensayo y la harás tuya. Una sesión cada vez.»<span>NEBULA</span></p>" +
+      "<h2>" + N + " sesiones cortas, a tu ritmo</h2><p class=\"acd-voz\">«El viaje de la Cero: en cada planeta, un poco de su historia, una pieza de la herramienta, una misión en tu consola de ensayo y sus preguntas dentro de un minijuego. Una sesión cada vez.»<span>NEBULA</span></p>" +
       '<p class="acd-que">Unas ' + Math.round(total / 60) + " horas en total, repartidas como quieras: cada sesión se abre al terminar la anterior, y siempre sigues donde lo dejaste.</p>" +
       '<div class="acd-botones"><button type="button" class="btn primary grande btn-google" id="acd-entrar">' + ((window.SG && window.SG.LOGO_G) || "") + "<span>Entrar con mi cuenta de Google</span></button></div>" +
       '<p class="acd-nota">' + ico("candado") + " Al entrar quedas <b>registrado como docente</b> de STARGATE y <b>alistado como recluta</b> en el grupo de la Academia, para vivirla como tu alumnado. <b>Tus estudiantes nunca verán tu correo:</b> si lo prefieres, usa una cuenta personal.</p></div>" +
@@ -543,7 +643,7 @@
       engancharPestanas();
     });
   }
-  function escribiendo() { return document.activeElement && document.activeElement.tagName === "TEXTAREA"; }
+  function escribiendo() { return JUGANDO || (document.activeElement && document.activeElement.tagName === "TEXTAREA"); }
   // lo que se practica en otra pestaña de este navegador (la consola, la clase, la Nave) marca sus hitos al momento
   window.addEventListener("storage", function (e) { if (e.key === "sgAcademia" && !escribiendo()) pintar(); });
   // y al volver a esta pestaña, se mira otra vez la ficha (la Ruta, el Simulador y los retos los apunta el servidor)

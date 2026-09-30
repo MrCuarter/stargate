@@ -6,7 +6,7 @@
 <title>El Asedio · reto entre escuadrones</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../directo/directo.css?v=1066523f0d">
+<link rel="stylesheet" href="../directo/directo.css?v=961c239091">
 <style>
 html,body{min-height:100%}
 body{background:#01040c url(../directo/img/fondo.jpg) center/cover fixed}
@@ -195,7 +195,7 @@ document.querySelectorAll('[data-v]').forEach(function (b) { b.onclick = functio
   document.querySelectorAll('[data-v]').forEach(function (x) { x.classList.toggle('si', x === b); });
   ['nave', 'lanza', 'cierre'].forEach(function (v) { document.getElementById('v-' + v).classList.toggle('oculto', v !== b.dataset.v); });
 }; });
-document.getElementById('b-atacar').onclick = function () { if (SRV && !SRV.abierto) return; document.getElementById('marco').src = '../directo/alumno.html?solo=asedio&tema=6&v=1066523f0d' + (PER ? '&per=' + encodeURIComponent(PER) : ''); document.getElementById('capa').classList.remove('oculto'); };
+document.getElementById('b-atacar').onclick = function () { if (SRV && !SRV.abierto) return; document.getElementById('marco').src = '../directo/alumno.html?solo=asedio&tema=6&v=961c239091' + (PER ? '&per=' + encodeURIComponent(PER) : ''); document.getElementById('capa').classList.remove('oculto'); };
 document.getElementById('b-cerrar').onclick = function () { document.getElementById('capa').classList.add('oculto'); document.getElementById('marco').src = 'about:blank'; };
 // EL SALÓN: seis categorías, entre TODOS los escuadrones. Tus números salen de tus ataques; los demás, de ejemplo.
 var SALON = [
@@ -283,7 +283,7 @@ if (VISTA) { document.getElementById('vistas').style.display = 'none'; var bt = 
 </script>
 <script type="module">
 // en la web, los premios, la semana y los nombres del salón salen de _site_data.py → ASEDIO (el build escribe datos.js)
-try { const A = (await import('./datos.js?v=1066523f0d')).ASEDIO; PREMIOS.splice(0, PREMIOS.length, ...A.premios); A.salon.forEach((t, i) => { if (SALON[i]) SALON[i][1] = t; }); pintar(); } catch (e) { /* borrador: sin datos.js */ }
+try { const A = (await import('./datos.js?v=961c239091')).ASEDIO; PREMIOS.splice(0, PREMIOS.length, ...A.premios); A.salon.forEach((t, i) => { if (SALON[i]) SALON[i][1] = t; }); pintar(); } catch (e) { /* borrador: sin datos.js */ }
 </script>
 </body>
 </html>

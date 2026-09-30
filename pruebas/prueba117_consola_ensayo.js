@@ -70,7 +70,7 @@ c(/var a = ACADEMIA_DOC; if \(!a \|\| ENSAYO \|\| ORGANIZO_ACADEMIA\(\)\) return
 c(/function franjaEnsayo\(\)/.test(CJS) && /data-ens="cero">Empezar de cero/.test(CJS) && /href="academia\.html">Volver a la Academia/.test(CJS) && /localStorage\.removeItem\("sgEnsayo\.db"\)/.test(CJS),
   "🔴 la franja, siempre a la vista: «Empezar de cero» y «Volver a la Academia»");
 c(/return p==='ensayo\.html'\?'consola\.html':\(p\|\|'index\.html'\);/.test(L("assets/js/tour.js")), "   la visita guiada no se va a la consola de verdad para enseñarla");
-c(/"sim:consola"\) return "ensayo\.html"/.test(L("assets/js/academia.js")) && /\["Abrir la consola de ensayo", "ensayo\.html"\]/.test(L("_site_data.py")),
+c(/"sim:consola"\) return "ensayo\.html"/.test(L("assets/js/academia.js")) && /"boton": "sim:consola"/.test(L("_site_data.py")),
   "🔴 la Academia manda a la consola de ensayo nueva");
 
 // ── 5 · El Firebase de mentira, EJECUTADO con sus datos
@@ -110,6 +110,18 @@ c(/"sim:consola"\) return "ensayo\.html"/.test(L("assets/js/academia.js")) && /\
   c(/En la consola de ensayo no se puede hacer el Gran Sorteo/.test(sorteo), "   lo que hace el servidor, dicho con palabras", sorteo);
   const g = JSON.parse(guardado["sgEnsayo.db"] || "{}");
   c(g.v && g.c && g.c["student_profiles/" + f0.id], "   lo tocado se guarda en este navegador (sgEnsayo.db), con su versión");
+  // 30-sep · lo que hace el docente, apuntado para las misiones de la Academia (sgEnsayo.hechos)
+  const H = () => JSON.parse(guardado["sgEnsayo.hechos"] || "{}");
+  c(H().anular && !H().validar, "🔴 anular un reto se apunta («anular»), con su asiento en stargate_anulaciones (como el servidor)");
+  await F.updateDoc(F.doc(db, "student_profiles", f0.id), { stargateOtorgados: [per + "__X1"] });
+  await F.addDoc(F.collection(db, "notifications"), { userId: antes.userId, projectId: per, title: "Hola", stargate: { accion: "" } });
+  const vales = await F.getDocs(F.query(F.collection(db, "purchased_vouchers"), F.where("projectId", "==", per)));
+  c(vales.size === 2 && vales.docs.every(d => d.data().status === "pending" && /Subir/.test(d.data().rewardTitle)), "🔴 la Cola de nota sembrada: dos subidas de nota esperando", vales.size);
+  await F.updateDoc(vales.docs[0].ref, { status: "approved", resolvedAt: Date.now() });
+  await F.setDoc(F.doc(db, "projects", per, "privado", "stargate"), { premiosEnlace: { x1: { id: "x1", nombre: "Prueba" } } }, { merge: true });
+  c(H().validar && H().mensaje && H().cola && H().premio, "🔴 validar, un mensaje, la Cola de nota y un premio por enlace, apuntados", Object.keys(H()).join(","));
+  const t0 = H().validar; await F.updateDoc(F.doc(db, "student_profiles", f0.id), { coins: 3 });
+  c(H().validar === t0, "   cada cosa se apunta una vez (la primera)");
   let viva = 0; const fuera = F.onSnapshot(F.doc(db, "student_profiles", f0.id), () => viva++);
   await new Promise(r => setTimeout(r, 5)); await F.updateDoc(F.doc(db, "student_profiles", f0.id), { coins: 1 }); await new Promise(r => setTimeout(r, 5)); fuera();
   c(viva === 2, "   en vivo: onSnapshot avisa al empezar y con cada cambio", viva);

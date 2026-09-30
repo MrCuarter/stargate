@@ -8,9 +8,9 @@
 // cazar, cada uno a su manera, como los fantasmas. Y las CÉLULAS DE ENERGÍA dan unos segundos de sobrecarga: los
 // drones se vuelven azules, huyen, y si los tocas los desactivas (200, 400, 800, 1.600). El pulso sigue: aturde a los
 // cercanos, pero se recarga más despacio (es el salvavidas, no el arma).
-import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=1066523f0d';
+import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=961c239091';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
-import { crearDesafio, MODO, urlModo } from './desafio.js?v=1066523f0d';
+import { crearDesafio, MODO, urlModo } from './desafio.js?v=961c239091';
 
 const V3 = THREE.Vector3;
 const JUEGO = JUEGOS[1];
@@ -375,7 +375,7 @@ function acabar(salvado, motivo) {
 let pausa = false;
 function pausar() {
   if (!P || P.fin || DES.abierto) return; pausa = !pausa; // con la pregunta abierta el juego ya está parado
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1066523f0d">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=961c239091">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && P && !P.fin && !pausa && !DES.abierto && !window.__sinPausa) pausar(); });
@@ -393,7 +393,7 @@ function portada() {
     <div class="teclas"><kbd>Flechas / WASD</kbd><span>Moverte (en el móvil, arrastra el dedo: es un joystick)</span><kbd>Espacio</kbd><span>El pulso que aturde (en el móvil, el botón)</span><kbd>Célula verde</kbd><span>Sobrecarga: los drones huyen y se desactivan al tocarlos</span></div>
     ${DES.texto()}
     <p class="pista">Tu récord: <b>${(e.marcas.laberinto || 0).toLocaleString('es-ES')}</b></p>
-    <div class="botones"><button id="b-ya">¡Adentro!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1066523f0d">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya">¡Adentro!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=961c239091">Volver a la sala</a>'}</div>`);
   $('b-ya').onclick = async () => {
     audio();
     if (desafio) { // las preguntas tienen que estar antes de entrar: sin ellas, la batería no se podría recargar

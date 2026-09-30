@@ -70,6 +70,15 @@ process.on("beforeExit", () => {
   if (malo) { console.error("✗ Queda algo de verdad en los datos: «" + malo[0] + "»"); salir(1); }
   const D = JSON.parse(txt), grupo = "nave-escuela";
   if (!D["projects/" + grupo]) { console.error("✗ No se ha sembrado el grupo " + grupo); salir(1); }
+  // 30-sep · DOS SUBIDAS DE NOTA ESPERANDO en la Cola de nota (la misión de Umbral en la Academia: «resuelve la Cola de nota»).
+  // Como una compra de verdad: los créditos ya se han cobrado y el premio está en su inventario, a la espera del visto bueno.
+  const ricos = Object.keys(D).filter((k) => /^student_profiles\/[^/]+$/.test(k)).map((k) => [k, D[k]]).sort((a, b) => (b[1].coins || 0) - (a[1].coins || 0));
+  [["rec12", "Actividad 1"], ["rec13", "Actividad 2"]].forEach(([rec, act], i) => {
+    const [ruta, f] = ricos[i], premio = D["rewards/" + grupo + "__" + rec] || {}, coste = Number(premio.cost) || 550;
+    D["purchased_vouchers/ens-vale-" + (i + 1)] = { projectId: grupo, studentId: f.userId, studentProfileId: ruta.split("/")[1], rewardId: grupo + "__" + rec,
+      rewardTitle: premio.title || "Subir la nota", cost: coste, status: "pending", stargateActividad: act, createdAt: Date.now() - (i + 1) * 864e5 };
+    f.coins = Math.max(0, (Number(f.coins) || 0) - coste); f.inventory = (f.inventory || []).concat([grupo + "__" + rec]);
+  });
   const n = Object.keys(D).length;
   const salida = { v: new Date().toISOString().slice(0, 10) + "-" + n, generado: Date.now(), yo: YO, grupo, docs: D };
   fs.mkdirSync(path.join(RAIZ, "assets/sim"), { recursive: true });

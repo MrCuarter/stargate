@@ -22,47 +22,68 @@ const STG = L("assets/js/stargate.js"), SES = L("assets/js/sesion.js"), CONS = L
 const CREAR = L("assets/js/crear.js"), ALI = L("assets/js/alistarse.js");
 
 // ── 1 · Los objetivos, en su orden (de lo más grande a lo más concreto)
-c(JSON.stringify(E.map(e => e.id)) === JSON.stringify(["historia", "temario", "elementos", "organizacion", "alta", "retos", "vivirlo", "comandante", "tuya"]),
-  "🔴 nueve sesiones en el orden de Norberto: historia, temario, elementos, organización, alta, la parte del recluta, el panel y la personalización", E.map(e => e.id).join(","));
+// 30-sep · planeta a planeta (Norberto eligió la B del borrador: un prólogo en la Cero y una sesión por planeta)
+c(JSON.stringify(E.map(e => e.id)) === JSON.stringify(["cero", "forge", "ecos", "sendara", "reliae", "umbral", "ludo", "vinculo", "liminar"]),
+  "🔴 la Cero y los ocho planetas, en el orden del viaje", E.map(e => e.id).join(","));
+c(JSON.stringify(E.slice(1).map(e => e.planeta)) === JSON.stringify(["Fôrge", "Ecos", "Sendara", "Reliae", "Umbral", "Ludo", "Vínculo", "Liminar"]) &&
+  E.slice(1).every((e, k) => new RegExp("^Tema " + (k + 1) + " · ").test(e.tema)), "   cada planeta, con su tema (Fôrge el 1… Liminar el 8)");
 c(C.titulo === "La Academia de la Cero" && C.final.titulo === "Comandante de la Cero", "   «La Academia de la Cero» y, al terminar, «Comandante de la Cero»");
 c(C.organiza && C.organiza.correo === "n.cuartero.10@gmail.com", "   organiza Norberto (n.cuartero.10)");
 c(A.per === "academia-cero" && C.grupo === A.per, "   su grupo propio: academia-cero");
 c(/^[A-HJ-NP-Z2-9]{6}$/.test(C.codigo), "🔴 el grupo existe: su código de clase está en los datos (lo escribió academia_grupo.cjs --crear)", C.codigo);
 
-// ── 2 · Poco a poco: píldoras cortas, pocas por sesión, con su tiempo
+// ── 2 · Poco a poco y con la cara de las clases en directo
 c(E.every(e => Number(e.min) > 0 && Number(e.min) <= 25), "🔴 cada sesión dice cuánto dura (y ninguna pasa de 25 minutos)");
-c(E.every(e => e.bloques.length >= 2 && e.bloques.length <= 5), "   entre 2 y 5 píldoras por sesión");
-c(E.every(e => e.bloques.every(b => b.p.replace(/<[^>]+>/g, "").length <= 700)), "   ninguna píldora es un muro de texto (≤ 700 caracteres)",
-  E.map(e => e.bloques.map(b => b.p.replace(/<[^>]+>/g, "").length)).join(" | "));
-c(E.every(e => e.hitos.length >= 1 && e.hitos.length <= 4), "   entre 1 y 4 hitos por sesión");
-c(/function pantallas\(i\)/.test(JS) && /\{ t: "entrada" \}/.test(JS) && /t: "idea"/.test(JS) && /t: "hito"/.test(JS) && /\{ t: "fin" \}/.test(JS),
-  "🔴 cada sesión, pantalla a pantalla: entrada → una idea → un hito → completada");
-c(/function pintarPreguntas/.test(JS) && /Pregunta ' \+ \(R\.k \+ 1\)/.test(JS) && /R\.visto = true/.test(JS), "🔴 los cuestionarios, pregunta a pregunta, con su porqué al momento");
+c(E.every(e => e.piezas.length >= 2 && e.piezas.length <= 3), "   dos o tres piezas de la herramienta por sesión");
+c(E.every(e => e.piezas.every(b => b.p.replace(/<[^>]+>/g, "").length <= 700)), "   ninguna pieza es un muro de texto (≤ 700 caracteres)",
+  E.map(e => e.piezas.map(b => b.p.replace(/<[^>]+>/g, "").length)).join(" | "));
+const PLAN = E.slice(1);
+c(PLAN.every(e => e.carta && e.retrato && e.cita && e.quien && e.historia), "🔴 cada planeta, con su tripulante: su carta, su retrato, su lema y su historia");
+c(E.every(e => (e.historia.match(/[.!?](\s|$)/g) || []).length <= 2), "   la historia, en dos frases como mucho", E.map(e => (e.historia.match(/[.!?](\s|$)/g) || []).length).join(","));
+c(/function pantallas\(i\)/.test(JS) && /\{ t: "llegada" \}/.test(JS) && /t: "historia"/.test(JS) && /t: "pieza"/.test(JS) && /t: "hito"/.test(JS) && /\{ t: "fin" \}/.test(JS),
+  "🔴 cada sesión, pantalla a pantalla: la llegada → la historia → las piezas → un hito por pantalla → completada");
+c(/class="acd-dia ' \+ cls/.test(JS) && /acd-dia-barra/.test(JS) && /acd-flecha ant/.test(JS) && /\.acd-dia\{position:relative;isolation:isolate;overflow:hidden;border-radius:20px;border:1px solid var\(--line\);background:#060a12;aspect-ratio:16\/9/.test(CSS),
+  "🔴 con la cara de las clases en directo: diapositiva 16:9, fondo del planeta, flechas y barra de pasos");
+c(/@media \(max-width:980px\)\{\s*\.acd-dia\{aspect-ratio:auto/.test(CSS), "   en el móvil (y en ventanas estrechas), la diapositiva crece con su contenido");
+c(/ev\.key === "ArrowRight"/.test(JS) && /ev\.key === "ArrowLeft"/.test(JS), "   y se pasa con las flechas del teclado, como la clase");
 c(/¿Suficiente por hoy\?/.test(JS) && /seguirás justo donde lo dejaste/.test(JS) && /lsPoner\("pos"/.test(JS), "   al acabar cada sesión, «¿Suficiente por hoy?», y se sigue donde se dejó");
 c(/sesiones más, que se abren/.test(JS) && /function abierta\(i\)/.test(JS), "   el mapa no enseña todo el camino: lo hecho, la de ahora y cuántas quedan");
 
-// ── 3 · Los hitos, autocorregibles
-const TIPOS = ["quiz", "clasificar", "auto", "diseno"], AUTO = /^(alta|nave|reto|reto:[A-Z]\d|ruta:m\d|repaso|sim:(consola|clase|estudiante|rueda|panel)|dif:\d+)$/;
-const hitos = [].concat(...E.map(e => e.hitos));
-c(hitos.every(h => TIPOS.indexOf(h.tipo) >= 0), "   todos los hitos son de un tipo que se corrige solo");
-c(hitos.filter(h => h.tipo === "quiz").every(h => h.preguntas.every(q => q.ok >= 0 && q.ok < q.o.length && q.porque) && h.minimo <= h.preguntas.length && h.minimo >= Math.ceil(h.preguntas.length * .6)),
-  "🔴 cada pregunta tiene su buena y su porqué, y el mínimo es exigente (≥ 60 %)");
-c(hitos.filter(h => h.tipo === "clasificar").every(h => h.items.every(i => ["componente", "mecanica", "dinamica"].indexOf(i[1]) >= 0 && i[2])), "   clasificar: componente, mecánica o dinámica, con su porqué");
-c(hitos.filter(h => h.tipo === "auto").every(h => AUTO.test(h.comprobar)), "   cada misión dice qué comprueba la plataforma", hitos.filter(h => h.tipo === "auto").map(h => h.comprobar).join(","));
-c(hitos.some(h => h.comprobar === "reto:L1") && /imagen con IA/.test(JSON.stringify(E)), "🔴 la actividad del alumnado: el relámpago L1, la imagen con IA (la comenta Claude)");
-c(new Set(hitos.map(h => h.id)).size === hitos.length, "   ids de hito únicos");
-c(/completedMissionIds/.test(JS) && /G \+ "__" \+ m\[1\]/.test(JS) && /stargateRuta/.test(JS) && /\.medalla !== "nada"/.test(JS), "   los retos y la Ruta se leen de SU ficha en el grupo de la Academia");
+// ── 3 · Las preguntas, DENTRO de un minijuego distinto por planeta (Norberto: «¡usa los minijuegos para preguntar!»)
+c(E[0].juego == null && PLAN.every(e => e.juego && e.juego.maquina && e.juego.n), "🔴 cada planeta tiene su minijuego (la Cero, el prólogo, no)");
+const maq = PLAN.map(e => e.juego.maquina), arcade = maq.filter(m => !/^ruta:/.test(m));
+c(JSON.stringify(arcade.slice().sort()) === JSON.stringify(["conquista", "descenso", "evacuacion", "laberinto", "ruta-azul"]) && new Set(maq).size === maq.length,
+  "🔴 un minijuego distinto en cada planeta: las cinco máquinas de Joran y la Ruta (a Ludo, Vínculo y Liminar)", maq.join(","));
+c(maq.filter(m => /^ruta:m\d$/.test(m)).length === 3, "   la Ruta, en tres tramos distintos");
+c(PLAN.every(e => e.preguntas.length === 5), "🔴 cinco preguntas por planeta", PLAN.map(e => e.preguntas.length).join(","));
+c(PLAN.every(e => e.preguntas.every(q => q.p && q.o.length >= 3 && q.o.length <= 4 && q.ok === 0 && q.porque && new Set(q.o).size === q.o.length)),
+  "   cada una con 3 o 4 opciones distintas (la Ruta no admite más), su buena y su porqué");
+c(/function hitoJuego\(e\)/.test(JS) && /tipo: "juego"/.test(JS) && /e\.hitos\.concat\(e\.juego \? \[hitoJuego\(e\)\] : \[\]\)/.test(JS), "   el juego es un hito más de su sesión (se da por hecho al acertarlas todas)");
+c(/"&banco=academia&embed=1&tanda=" \+ encodeURIComponent\(e\.id\)/.test(JS) && /window\.SG_BANCO_JUEGO = e\.preguntas/.test(JS), "   se abre en modo Academia, con sus preguntas");
+c(/ev\.origin !== location\.origin/.test(JS) && /m\.tanda !== e\.id/.test(JS) && /if \(m\.todas\)/.test(JS) && /if \(m\.siguiente\)/.test(JS), "🔴 y la Academia escucha al juego: «todas» (hito hecho) y «siguiente» (sin fiarse de otros orígenes)");
+c(/function escribiendo\(\) \{ return JUGANDO \|\|/.test(JS), "   mientras se juega, la página no se repinta sola (se perdería la partida)");
 
-// ── 4 · Nada de destripes (el repo es público)
+// ── 4 · Una misión en la consola de ensayo por sesión, y lo real en el grupo de la Academia
+const hitos = [].concat(...E.map(e => e.hitos)), AUTO = /^((alta|nave|reto:[A-Z]\d|ruta:m\d|repaso|dif:\d+|sim:(clase|rueda|panel)|ens:[a-z]+)(\+|$))+$/;
+const ensayo = (h) => h.tipo === "auto" && String(h.comprobar).split("+").every(x => /^(sim|ens):/.test(x));
+c(E.every(e => e.hitos.filter(ensayo).length === 1), "🔴 UNA misión en la consola de ensayo por sesión", E.map(e => e.hitos.filter(ensayo).length).join(","));
+c(hitos.every(h => ["auto", "diseno"].indexOf(h.tipo) >= 0), "   todos los hitos se corrigen solos (o los comenta Claude: el diseño)");
+c(hitos.filter(h => h.tipo === "auto").every(h => AUTO.test(h.comprobar)), "   cada misión dice qué se comprueba", hitos.filter(h => h.tipo === "auto").map(h => h.comprobar).join(","));
+c(hitos.some(h => h.comprobar === "reto:L1") && /imagen con IA/.test(JSON.stringify(E)), "🔴 la actividad del alumnado: el relámpago L1, la imagen con IA (la comenta Claude)");
+c(hitos.some(h => h.comprobar === "alta") && hitos.some(h => h.comprobar === "ruta:m0") && hitos.some(h => h.tipo === "diseno"), "   lo real: su ficha de recluta, su primer vuelo y su primera pieza");
+c(new Set(hitos.map(h => h.id).concat(PLAN.map(e => e.id + "-juego"))).size === hitos.length + PLAN.length, "   ids de hito únicos");
+c(/completedMissionIds/.test(JS) && /G \+ "__" \+ m\[1\]/.test(JS) && /stargateRuta/.test(JS) && /\.medalla !== "nada"/.test(JS), "   los retos y la Ruta se leen de SU ficha en el grupo de la Academia");
+c(/function hechosEnsayo\(\)/.test(JS) && /sgEnsayo\.hechos/.test(JS) && /String\(c\)\.split\("\+"\)\.every\(autoOk\)/.test(JS), "   lo hecho en el ensayo se lee de este navegador, y una misión compuesta pide todas sus partes");
+
+// ── 5 · Nada de destripes (el repo es público)
 const TODO = JSON.stringify(C);
 c(!/Ashan|Archivista|Oren|Fragmento Prohibido|se convirtieron en NEBULA|antena/i.test(TODO), "🔴 sin destripes: ni qué fue de la Cero, ni quién es NEBULA, ni el pasado de Vaeon");
 // (en lo que se VE: los datos y el código sin sus comentarios, que llevan el 🔴 de la casa)
 const JS_SIN_COMENT = JS.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
 c(!/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(TODO + JS_SIN_COMENT), "   sin emojis en lo que se ve");
-
-// ── 5 · Las imágenes existen
-const imgs = [].concat(...E.map(e => [e.pj, e.bg]));
-c(imgs.every(f => fs.existsSync(path.join(R, f))), "   los personajes y los fondos de cada sesión existen", imgs.filter(f => !fs.existsSync(path.join(R, f))).join(","));
+const imgs = [].concat(...E.map(e => [e.pj, e.bg, e.suelo, e.carta, e.retrato].concat(e.piezas.map(b => b.img)))).filter(Boolean);
+c(imgs.every(f => fs.existsSync(path.join(R, f))), "   los fondos, los tripulantes y los pantallazos existen", imgs.filter(f => !fs.existsSync(path.join(R, f))).join(","));
+c(["maq_conquista", "maq_evacuacion", "maq_laberinto", "maq_rutaazul", "maq_descenso", "maq_vuelo"].every(k => fs.existsSync(path.join(R, "juegos/joran/img", k + ".jpg"))), "   y la imagen de cada máquina");
 
 // ── 6 · La página, el motor y el registro del profesorado
 c(/window\.SG_ACADEMIA=/.test(HTML) && /window\.SG_PER_ACADEMIA=/.test(HTML) && /assets\/js\/academia\.js\?v=/.test(HTML) && /noindex/.test(HTML), "   academia.html: sus datos, su script con huella y fuera de los buscadores");

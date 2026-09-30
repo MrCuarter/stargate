@@ -64,7 +64,7 @@ export const MODOS = {
     que: 'La clase se parte al azar en dos escuadrones invitados (dos de la flota que no son el vuestro) y tira de una baliza. Tras un acierto: empujar fuerte o sabotear al rival. Cuenta la media por miembro, así que da igual que un equipo tenga uno más.' },
 };
 // 🔴 en la web, los nombres y la línea de cada modo salen de _site_data.py → DIRECTO (el build escribe datos.js)
-try { const D = (await import('./datos.js?v=1066523f0d')).DIRECTO; for (const [k, largo, estructura, breve] of D.modos) if (MODOS[k]) Object.assign(MODOS[k], { largo, estructura, breve }); } catch (e) { /* borrador: sin datos.js */ }
+try { const D = (await import('./datos.js?v=961c239091')).DIRECTO; for (const [k, largo, estructura, breve] of D.modos) if (MODOS[k]) Object.assign(MODOS[k], { largo, estructura, breve }); } catch (e) { /* borrador: sin datos.js */ }
 // ── LOS AJUSTES (lo que el docente puede tocar antes de lanzar)
 export const DURACIONES = [120, 180, 240, 300];
 export const PREGUNTAS = { no: 'Sin preguntas (solo reflejos)', semana: 'El tema de la semana', vistos: 'Los temas ya vistos', todo: 'Todo el viaje' };

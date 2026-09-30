@@ -116,7 +116,23 @@ function cargar() {
 }
 cargar();
 function guardarCambios() { try { localStorage.setItem(CLAVE, aJson({ v: VERSION, c: CAMBIOS })); } catch (e) {} }
-function escribir(ruta, d) { if (d === null) DATOS.delete(ruta); else DATOS.set(ruta, d); CAMBIOS[ruta] = d; }
+function escribir(ruta, d) { if (d === null) DATOS.delete(ruta); else DATOS.set(ruta, d); CAMBIOS[ruta] = d; apuntarHecho(ruta, d); }
+/**
+ * 🔴 30-sep · LO QUE HACE EL DOCENTE, APUNTADO PARA LA ACADEMIA. Cada planeta de la Academia pide una misión en este ensayo
+ * («valida uno y anula otro», «manda un mensaje», «resuelve la Cola de nota», «esconde un premio»): aquí, en el único sitio por
+ * donde pasa toda escritura, se apunta qué se ha hecho (localStorage `sgEnsayo.hechos`, en este navegador). Aparte de los
+ * datos: «Empezar de cero» deja la Nave Escuela como estaba, pero lo conseguido no se pierde.
+ */
+function apuntarHecho(ruta, d) {
+  let k = null;
+  if (/^student_profiles\/[^/]+$/.test(ruta) && d && Array.isArray(d.stargateOtorgados) && d.stargateOtorgados.length) k = "validar";
+  else if (/^stargate_anulaciones\//.test(ruta) && d) k = "anular";
+  else if (/^notifications\//.test(ruta) && d && d.stargate) k = "mensaje";
+  else if (/^purchased_vouchers\//.test(ruta) && d && (d.status === "approved" || d.status === "rejected")) k = "cola";
+  else if (/\/privado\/stargate$/.test(ruta) && d && d.premiosEnlace && Object.keys(d.premiosEnlace).length) k = "premio";
+  if (!k) return;
+  try { const h = JSON.parse(localStorage.getItem("sgEnsayo.hechos") || "{}") || {}; if (!h[k]) { h[k] = Date.now(); localStorage.setItem("sgEnsayo.hechos", JSON.stringify(h)); } } catch (e) { /* sin almacenamiento */ }
+}
 window.addEventListener("storage", (e) => { if (e.key === CLAVE) { cargar(); avisar(); } });
 
 /**
@@ -300,6 +316,9 @@ const FUNCIONES = {
     hacerUpdate(refDoc(ruta), [{ completedMissionIds: (f.completedMissionIds || []).filter((id) => id !== m.id), missionTimestamps: sellos,
       totalPoints: Math.max(0, (Number(f.totalPoints) || 0) - xp), coins: Math.max(0, tenia - oro),
       earnedBadges: (f.earnedBadges || []).filter((b) => b !== m.d.badge) }]);
+    // (como el servidor: queda escrito quién lo deshizo y por qué)
+    escribir("stargate_anulaciones/" + idNuevo(), { projectId: x.projectId, studentProfileId: x.studentProfileId, userId: f.userId, retoId: x.retoId, missionId: m.id,
+      por: "docente", porCorreo: YO.correo, motivo: String(x.motivo || "").slice(0, 200), xp, creditos: oro, fecha: Date.now() });
     trasEscribir(); return { ok: true, xp, creditos: oro, noRetirados: Math.max(0, oro - tenia), saldo: Math.max(0, tenia - oro) };
   },
   async stargateEquipo(x) {

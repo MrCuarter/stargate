@@ -3,9 +3,9 @@
 // agachándose bajo las vigas y esquivando los bloques, con la Estática pegada a la espalda. A los 3 minutos llega la
 // cápsula de evacuación: si la alcanzas, te has salvado.
 // Arcade o DESAFÍO (desafio.js, ?modo=desafio): en el desafío se te acaba el aliento y solo lo recuperas acertando.
-import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=1066523f0d';
+import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=961c239091';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
-import { crearDesafio, MODO, urlModo } from './desafio.js?v=1066523f0d';
+import { crearDesafio, MODO, urlModo } from './desafio.js?v=961c239091';
 
 const V3 = THREE.Vector3;
 const CARRILES = [-2.4, 0, 2.4];
@@ -306,7 +306,7 @@ function tick(dt) {
 let pausa = false;
 function pausar() {
   if (!P || P.fin || DES.abierto) return; pausa = !pausa; // con la pregunta abierta el juego ya está parado
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1066523f0d">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=961c239091">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && P && !P.fin && !pausa && P.cuenta <= 0 && !DES.abierto && !window.__sinPausa) pausar(); });
@@ -327,7 +327,7 @@ function portada() {
     <p>Los <b>bloques</b> no se saltan: cambia de carril. Si tropiezas, la Estática se te echa encima unos segundos; si vuelves a tropezar antes de que se aleje, te atrapa. Cada vez corres más. Recoge <b>chispas</b>, <b>llaves</b> (+250), el <b>turbo</b> y el <b>imán</b>. A los 3 minutos llega la cápsula.</p>
     ${DES.texto()}
     <p class="pista">Tu récord: <b>${(e.marcas.evacuacion || 0).toLocaleString('es-ES')}</b> · pilotas a <b>${e.avatar === 'barbara' ? 'Bárbara' : e.avatar === 'fernando' ? 'Fernando' : 'Finn'}</b></p>
-    <div class="botones"><button id="b-ya">¡A correr!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1066523f0d">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya">¡A correr!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=961c239091">Volver a la sala</a>'}</div>`);
   $('b-ya').onclick = async () => {
     audio();
     if (desafio) { // las preguntas tienen que estar antes de salir: sin ellas, el aliento no se podría recuperar
