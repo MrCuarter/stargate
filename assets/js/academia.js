@@ -685,7 +685,9 @@
   window.addEventListener("storage", function (e) { if (e.key === "sgAcademia" && !escribiendo() && !enPanel()) pintar(); });
   // y al volver a esta pestaña, se mira otra vez la ficha (la Ruta, el Simulador y los retos los apunta el servidor)
   document.addEventListener("visibilitychange", function () {
-    if (document.visibilityState === "visible" && !DEMO && YO && !escribiendo() && !enPanel()) recargar().then(pintar);
+    // (30-sep · y si su ficha de recluta ya no está —la quitó quien organiza—, se vuelve a alistar sola, como al entrar)
+    if (document.visibilityState === "visible" && !DEMO && YO && !escribiendo() && !enPanel())
+      recargar().then(function () { if (!FICHA && !ORG) return alistarAuto().then(recargar); }).then(pintar);
   });
 
   function arrancar() {

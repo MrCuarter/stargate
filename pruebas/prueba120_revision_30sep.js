@@ -68,6 +68,10 @@ const AJS = L("assets/js/academia.js");
 c(/function enPanel\(\) \{ return ORG && !VER; \}/.test(AJS) && /!escribiendo\(\) && !enPanel\(\)\) pintar\(\)/.test(AJS) && /t === "INPUT"/.test(AJS),
   "🔴 el panel de quien organiza no se repinta con el curso encima (ni le crea un registro, ni borra lo que está escribiendo)");
 
+c(/recargar\(\)\.then\(function \(\) \{ if \(!FICHA && !ORG\) return alistarAuto\(\)\.then\(recargar\); \}\)\.then\(pintar\)/.test(AJS)
+  && /const activos = registros\.docs\.filter/.test(L("../academia/academia_grupo.cjs")) && /--aunque-esten/.test(L("../academia/academia_grupo.cjs")),
+  "🔴 si le quitan la ficha con la Academia abierta, al volver a la pestaña se alista otra vez; y --vaciar no borra a quien está en ello");
+
 // ── 8 · Textos y enlaces
 c(/pasos\.html\?camino=referente/.test(L("_build_site.py")) && !/pasos\.html#referente/.test(L("registro.html") + L("legacy.html")), "   «Montarlo paso a paso» abre el camino del referente (el ancla #referente no existía)");
 c(/Abre la <a href='ensayo\.html'>consola de ensayo<\/a>/.test(L("_build_site.py")) && !/PRUEBA · SEMANA 16/.test(L("prueba-equipo.html")), "   la prueba del equipo manda a la consola de ensayo (los grupos de prueba ya no existen)");
