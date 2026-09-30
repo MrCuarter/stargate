@@ -4929,6 +4929,10 @@ def motor_simulador():
     patron = r'from "https://www\.gstatic\.com/firebasejs/[\d.]+/firebase-(?:app|auth|firestore|functions)\.js"'
     assert len(_re_s.findall(patron, src)) == 4, "motor.js: esperaba 4 imports de Firebase; revisa motor_simulador()"
     src = _re_s.sub(patron, 'from "./sim/firebase_sim.js?h=' + huella + '"', src)
+    # 30-sep · las capturas de la Academia cargan Storage aparte (import dinámico): en el ensayo no se sube nada
+    src, n_st = _re_s.subn(r'import\("https://www\.gstatic\.com/firebasejs/[\d.]+/firebase-storage\.js"\)',
+                           'Promise.reject(new Error("En la consola de ensayo no se suben archivos."))', src)
+    assert "gstatic.com" not in src, "motor_sim.js aún llama a Google: revisa motor_simulador()"
     assert "window.localStorage" not in src, "motor.js usa window.localStorage: el ensayo podría tocar las marcas de verdad"
     marcas = ('const localStorage = (() => { const L = window.localStorage, NO = /^sgEs(Docente|Referente|Recluta)$/;\n'
               '  return { getItem: (k) => L.getItem(k), setItem: (k, v) => { if (!NO.test(k)) L.setItem(k, v); },\n'

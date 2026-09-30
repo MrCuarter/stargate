@@ -2238,6 +2238,19 @@ async function academiaEditar(uid, campos) {
 }
 async function academiaQuitar(uid) { await deleteDoc(doc(db, "stargate_formacion", uid)); }
 /**
+ * 30-sep · UNA IMAGEN EN «PREGUNTA A NEBULA». Norberto: «añade la posibilidad de añadir adjuntos (arrastrar una imagen): eso
+ * te ayudará a detectar errores». Va a la carpeta del grupo de la Academia (projects/<grupo>/mission_submissions/), cuya
+ * regla de Storage YA deja a cualquiera con sesión subir una imagen de menos de 10 MB con su uid en el nombre: sin reglas
+ * nuevas que desplegar. Llega comprimida desde academia.js. (Storage se carga aquí y solo aquí, al primer adjunto.)
+ */
+async function academiaAdjuntar(perId, blob) {
+  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta de Google.");
+  const S = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js");
+  const r = S.ref(S.getStorage(app), "projects/" + perId + "/mission_submissions/academia_" + yo.uid + "_" + Date.now() + ".jpg");
+  await S.uploadBytes(r, blob, { contentType: "image/jpeg" });
+  return S.getDownloadURL(r);
+}
+/**
  * 30-sep · …y le RESPONDE en su hilo (Norberto: «un botón Responder en el hilo de cada docente»). Va a `mando.mensajes`, que
  * solo escribe el Mando (las reglas); el docente lo ve en su hilo, firmado con el nombre de quien organiza.
  */
@@ -2456,7 +2469,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaResponder, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaResponder, academiaAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,

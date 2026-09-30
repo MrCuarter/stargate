@@ -35,7 +35,9 @@ c(ENS.replace(/<script>window\.SG_ENSAYO=1;<\/script>.*?<\/script>/, "").replace
 const cuerpo = SIM.slice(SIM.indexOf("/**\n * STARGATE · LA CENTRALITA"));
 const imps = cuerpo.match(/from "\.\/sim\/firebase_sim\.js\?h=([0-9a-f]{10})"/g) || [];
 c(imps.length === 4 && new Set(imps).size === 1 && !/gstatic\.com/.test(SIM), "🔴 motor_sim.js: los cuatro imports de Firebase van al de mentira (y ni uno a Google)", imps.length);
-c(cuerpo.replace(/from "\.\/sim\/firebase_sim\.js\?h=[0-9a-f]{10}"/g, "F") === MOT.replace(/from "https:\/\/www\.gstatic\.com\/firebasejs\/[\d.]+\/firebase-(?:app|auth|firestore|functions)\.js"/g, "F"),
+// (30-sep · salvo la carga de Storage para las capturas de la Academia, que en el ensayo es un error claro: no se sube nada)
+c(cuerpo.replace(/from "\.\/sim\/firebase_sim\.js\?h=[0-9a-f]{10}"/g, "F").replace('Promise.reject(new Error("En la consola de ensayo no se suben archivos."))', "S")
+    === MOT.replace(/from "https:\/\/www\.gstatic\.com\/firebasejs\/[\d.]+\/firebase-(?:app|auth|firestore|functions)\.js"/g, "F").replace(/import\("https:\/\/www\.gstatic\.com\/firebasejs\/[\d.]+\/firebase-storage\.js"\)/, "S"),
   "🔴 y todo lo demás, motor.js letra por letra (el ensayo es la consola de verdad)");
 c(/^\/\* GENERADO por _build_site\.py/.test(SIM) && /const localStorage = \(\(\) => \{ const L = window\.localStorage, NO = \/\^sgEs\(Docente\|Referente\|Recluta\)\$\//.test(SIM),
   "🔴 con su propio localStorage: el docente de ensayo no toca las marcas «soy docente / referente» de la cuenta de verdad");

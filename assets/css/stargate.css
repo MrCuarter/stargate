@@ -7540,3 +7540,16 @@ body.acd-jugando .acd-flota-b,body.acd-jugando .acd-flota{display:none}
   .acd-flota{right:8px;left:8px;width:auto;bottom:calc(70px + env(safe-area-inset-bottom,0px));max-height:calc(100dvh - 90px)}
   .acd-flota-b{right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}
 }
+/* 30-sep · las capturas de «Pregunta a NEBULA»: añadir (botón, arrastrar o pegar), sus miniaturas y cómo se ven en el hilo */
+.acd-adj{display:flex;gap:8px;flex-wrap:wrap}
+.acd-adj:empty{display:none}
+.acd-adj-m{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.acd-adj-m img{width:100%;height:100%;object-fit:cover;display:block}
+.acd-adj-m button{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.75);color:#fff;font-size:1rem;line-height:1;cursor:pointer}
+.acd-adj-b{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;justify-self:start;padding:7px 12px;border-radius:999px;border:1px dashed var(--teal);color:var(--teal);font-size:.88rem;font-weight:600;cursor:pointer}
+.acd-adj-b:focus-within{outline:2px solid var(--teal);outline-offset:2px}
+.acd-adj-pista{margin-top:-4px}
+.acd-flota.arrastrando{outline:2px dashed var(--teal);outline-offset:-6px;background:#10263a}
+.acd-msj-adj{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.acd-msj-adj img{width:88px;height:66px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
+@media(max-width:600px){.acd-adj-pista{display:none}}

@@ -461,6 +461,54 @@
       if (!sinFoco) { var t = document.getElementById("acd-txt"); if (t) t.focus(); }
     }
   }
+  // ── 30-sep · LAS CAPTURAS (Norberto: «añade la posibilidad de añadir adjuntos (arrastrar una imagen): eso te ayudará a
+  // detectar errores»). Hasta tres por mensaje; se comprimen aquí (≤ 1600 px, JPEG) antes de subirlas.
+  var ADJ = [], MAX_ADJ = 3;
+  function anadirAdj(files) {
+    var fs = Array.prototype.filter.call(files || [], function (f) { return /^image\//.test(f.type); });
+    var st = document.getElementById("acd-env-st");
+    if (!fs.length) { if (st && files && files.length) st.textContent = "Solo imágenes (una captura, una foto)."; return; }
+    if (ADJ.length + fs.length > MAX_ADJ && st) st.textContent = "Como mucho " + MAX_ADJ + " capturas por mensaje.";
+    fs.slice(0, Math.max(0, MAX_ADJ - ADJ.length)).forEach(function (f) {
+      comprimir(f).then(function (blob) { if (ADJ.length < MAX_ADJ) ADJ.push({ blob: blob, ver: URL.createObjectURL(blob) }); pintarAdj(); },
+        function () { if (st) st.textContent = "Esa imagen no se ha podido leer."; });
+    });
+  }
+  function comprimir(f) {
+    return new Promise(function (ok, mal) {
+      var im = new Image(), u = URL.createObjectURL(f);
+      im.onload = function () {
+        var k = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), cv = document.createElement("canvas");
+        cv.width = Math.max(1, Math.round(im.naturalWidth * k)); cv.height = Math.max(1, Math.round(im.naturalHeight * k));
+        var cx = cv.getContext("2d"); cx.fillStyle = "#fff"; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(im, 0, 0, cv.width, cv.height);
+        URL.revokeObjectURL(u);
+        cv.toBlob(function (b) { if (b) ok(b); else mal(new Error("imagen")); }, "image/jpeg", 0.85);
+      };
+      im.onerror = function () { URL.revokeObjectURL(u); mal(new Error("imagen")); };
+      im.src = u;
+    });
+  }
+  function pintarAdj() {
+    var c = document.getElementById("acd-adj"); if (!c) return;
+    c.innerHTML = ADJ.map(function (a, i) { return '<span class="acd-adj-m"><img src="' + a.ver + '" alt="Captura ' + (i + 1) + '"><button type="button" data-quita="' + i + '" aria-label="Quitar la captura ' + (i + 1) + '">&times;</button></span>'; }).join("");
+    Array.prototype.forEach.call(c.querySelectorAll("[data-quita]"), function (b) { b.onclick = function () { ADJ.splice(Number(b.getAttribute("data-quita")), 1); pintarAdj(); }; });
+  }
+  /** Sube las capturas (en la demostración, se quedan en este navegador) y devuelve sus direcciones. */
+  function subirAdj(st) {
+    var urls = [];
+    return ADJ.reduce(function (p, a, i) {
+      return p.then(function () {
+        if (st && ADJ.length > 1) st.textContent = "Subiendo la captura " + (i + 1) + " de " + ADJ.length + "…";
+        if (DEMO || !M || !M.academiaAdjuntar) return new Promise(function (ok) { var r = new FileReader(); r.onload = function () { urls.push(r.result); ok(); }; r.readAsDataURL(a.blob); });
+        return M.academiaAdjuntar(G, a.blob).then(function (u) { urls.push(u); }, function () { throw new Error("no se ha podido subir la captura"); });
+      });
+    }, Promise.resolve()).then(function () { return urls; });
+  }
+  /** Las capturas de un mensaje: solo las de nuestro almacén (o, en la demostración, las de este navegador). */
+  function adjuntosHtml(adj) {
+    var ok = (adj || []).filter(function (u) { return /^https:\/\/firebasestorage\.googleapis\.com\//.test(String(u)) || (DEMO && /^data:image\/jpeg;base64,/.test(String(u))); });
+    return ok.length ? '<div class="acd-msj-adj">' + ok.map(function (u, i) { return '<a href="' + esc(u) + '" target="_blank" rel="noopener"><img src="' + esc(u) + '" alt="Captura ' + (i + 1) + '" loading="lazy"></a>'; }).join("") + "</div>" : "";
+  }
   // ── Claude (y Norberto): sus respuestas, tus preguntas, «algo no funciona» y tus ideas
   function pintarClaude() {
     var el = document.getElementById("acd-claude"), boton = document.getElementById("acd-flota-b"); if (!el) return;
@@ -468,9 +516,9 @@
     Object.keys(cl).forEach(function (k) { L.push({ t: Number(cl[k].t) || Number(k) || 0, de: "claude", x: cl[k].texto }); });
     var md = (DOC.mando || {}).mensajes || {};   // 30-sep · lo que le responde quien organiza la Academia
     Object.keys(md).forEach(function (k) { L.push({ t: Number(md[k].t) || Number(k) || 0, de: "mando", quien: md[k].de, x: md[k].texto }); });
-    Object.keys(pr).forEach(function (k) { L.push({ t: Number(k) || 0, de: "tu", x: pr[k].texto }); });
+    Object.keys(pr).forEach(function (k) { L.push({ t: Number(k) || 0, de: "tu", x: pr[k].texto, adj: pr[k].adjuntos }); });
     var NOMBRE_FB = { fallo: "Algo no funciona", idea: "Una idea", otra: "Otra cosa" };
-    Object.keys(fb).forEach(function (k) { if (fb[k] && fb[k].tipo !== "juego") L.push({ t: Number(k) || 0, de: "tu", x: "[" + (NOMBRE_FB[fb[k].tipo] || "Nota") + "] " + fb[k].texto }); });
+    Object.keys(fb).forEach(function (k) { if (fb[k] && fb[k].tipo !== "juego") L.push({ t: Number(k) || 0, de: "tu", x: "[" + (NOMBRE_FB[fb[k].tipo] || "Nota") + "] " + fb[k].texto, adj: fb[k].adjuntos }); });
     L.sort(function (a, b) { return a.t - b.t; });
     var abierta = !el.hidden;
     if (abierta) lsPoner("claudeVisto", Date.now());
@@ -486,13 +534,28 @@
       '<p class="muted small">Una duda, algo que no funciona o una idea: cuéntamelo. Lo que yo no sepa se lo paso al Alto Mando, y te respondemos cuanto antes, aquí mismo.</p>' +
       '<div class="acd-hilo">' + (L.length ? L.map(function (m) {
         return '<div class="acd-msj ' + (m.de === "claude" ? "acd-de-claude" : m.de === "mando" ? "acd-de-mando" : "acd-de-ti") + '"><b>' +
-          (m.de === "claude" ? "NEBULA" : m.de === "mando" ? "El Alto Mando" : "Tú") + " <small>" + (m.t ? new Date(m.t).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</small></b><p>" + esc(m.x || "").replace(/\n/g, "<br>") + "</p></div>";
+          (m.de === "claude" ? "NEBULA" : m.de === "mando" ? "El Alto Mando" : "Tú") + " <small>" + (m.t ? new Date(m.t).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</small></b><p>" + esc(m.x || "").replace(/\n/g, "<br>") + "</p>" + adjuntosHtml(m.adj) + "</div>";
       }).join("") : '<p class="muted">Todavía no hay mensajes. Pregunta lo que quieras.</p>') + "</div>" +
       '<div class="acd-escribir"><div class="acd-ops acd-ops4" role="radiogroup" aria-label="Qué es">' + [["pregunta", "Una duda"], ["fallo", "Algo no funciona"], ["idea", "Una idea"], ["otra", "Otra cosa"]].map(function (o) {
         return '<button type="button" class="acd-op' + (o[0] === tipo ? " acd-sel" : "") + '" data-tipo="' + o[0] + '" role="radio" aria-checked="' + (o[0] === tipo) + '">' + o[1] + "</button>"; }).join("") + "</div>" +
         '<textarea rows="3" maxlength="1200" placeholder="Escribe aquí. Si algo falla: qué pulsaste, qué esperabas y qué pasó." id="acd-txt" aria-label="Tu mensaje para NEBULA"></textarea>' +
+        '<div class="acd-adj" id="acd-adj"></div>' +
+        '<label class="acd-adj-b"><input type="file" accept="image/*" multiple id="acd-file" hidden>' + ico("anadir") + ' Añadir una captura</label>' +
+        '<span class="muted small acd-adj-pista">(o arrástrala aquí, o pégala con Ctrl+V: ayuda mucho a ver qué ha fallado)</span>' +
         '<div class="acd-botones"><button class="btn primary" type="button" id="acd-env">Enviar a NEBULA</button><span class="muted small" id="acd-env-st" aria-live="polite"></span></div></div>';
     var txt = document.getElementById("acd-txt"); txt.value = borrador; if (conFoco) txt.focus();
+    pintarAdj();
+    var fi = document.getElementById("acd-file"); fi.onchange = function () { anadirAdj(fi.files); fi.value = ""; };
+    txt.addEventListener("paste", function (e) {
+      var fs = Array.prototype.filter.call((e.clipboardData && e.clipboardData.files) || [], function (f) { return /^image\//.test(f.type); });
+      if (fs.length) { e.preventDefault(); anadirAdj(fs); }
+    });
+    if (!el.dataset.arrastre) {   // (una vez: el panel sobrevive a los repintados)
+      el.dataset.arrastre = "1";
+      el.addEventListener("dragover", function (e) { if (e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") >= 0) { e.preventDefault(); el.classList.add("arrastrando"); } });
+      el.addEventListener("dragleave", function (e) { if (e.target === el) el.classList.remove("arrastrando"); });
+      el.addEventListener("drop", function (e) { e.preventDefault(); el.classList.remove("arrastrando"); if (e.dataTransfer) anadirAdj(e.dataTransfer.files); });
+    }
     el.querySelector(".acd-flota-x").onclick = function () { abrirFlota(false); if (boton) boton.focus(); };
     var h = el.querySelector(".acd-hilo"); if (h && abierta) h.scrollTop = h.scrollHeight;
     Array.prototype.forEach.call(el.querySelectorAll("[data-tipo]"), function (b) { b.onclick = function () { tipo = b.getAttribute("data-tipo"); Array.prototype.forEach.call(el.querySelectorAll("[data-tipo]"), function (x) { x.classList.toggle("acd-sel", x === b); x.setAttribute("aria-checked", String(x === b)); }); }; });
@@ -500,10 +563,14 @@
     env.onclick = function () {
       var t = txt.value.trim(), st = document.getElementById("acd-env-st"); if (!t) { st.textContent = "Escribe algo primero."; txt.focus(); return; }
       var k = String(Date.now()), est = C.estaciones[ACTUAL] ? C.estaciones[ACTUAL].id : "";
-      env.disabled = true; st.textContent = "Enviando…";
-      (tipo === "pregunta" ? guardar({ preguntas: obj(k, { texto: t.slice(0, 1200), estacion: est }) }) : guardar({ feedback: obj(k, { tipo: tipo, texto: t.slice(0, 1200), estacion: est, t: Date.now() }) }))
-        .then(function () { txt.value = ""; pintarClaude(); var s2 = document.getElementById("acd-env-st"); if (s2) s2.textContent = "Enviado. Te contestamos aquí mismo."; },
-          function () { env.disabled = false; st.textContent = "No se ha podido enviar. Prueba otra vez."; });
+      env.disabled = true; st.textContent = ADJ.length ? "Subiendo la captura…" : "Enviando…";
+      subirAdj(st).then(function (urls) {
+        var extra = urls.length ? { adjuntos: urls } : {};
+        st.textContent = "Enviando…";
+        return tipo === "pregunta" ? guardar({ preguntas: obj(k, Object.assign({ texto: t.slice(0, 1200), estacion: est }, extra)) })
+          : guardar({ feedback: obj(k, Object.assign({ tipo: tipo, texto: t.slice(0, 1200), estacion: est, t: Date.now() }, extra)) });
+      }).then(function () { txt.value = ""; ADJ = []; pintarClaude(); var s2 = document.getElementById("acd-env-st"); if (s2) s2.textContent = "Enviado. Te contestamos aquí mismo."; },
+        function (e) { env.disabled = false; st.textContent = "No se ha podido enviar" + (e && /captura/.test(e.message || "") ? ": " + e.message + "." : ". Prueba otra vez."); });
     };
   }
 
@@ -574,9 +641,9 @@
     Object.keys(cl).forEach(function (k) { L.push({ t: Number(cl[k].t) || Number(k) || 0, de: "claude", x: cl[k].texto }); });
     var md = ((x.mando || {}).mensajes) || {};
     Object.keys(md).forEach(function (k) { L.push({ t: Number(md[k].t) || Number(k) || 0, de: "mando", x: md[k].texto }); });
-    Object.keys(pr).forEach(function (k) { L.push({ t: Number(k) || 0, de: "el", x: pr[k].texto }); });
+    Object.keys(pr).forEach(function (k) { L.push({ t: Number(k) || 0, de: "el", x: pr[k].texto, adj: pr[k].adjuntos }); });
     Object.keys(fb).forEach(function (k) { var f = fb[k] || {}, jg = f.tipo === "juego";
-      L.push({ t: Number(k) || 0, de: "el", x: "[" + (NOMBRE_FB[f.tipo] || "Nota") + (jg && f.hito ? " · " + f.hito.replace(/-juego$/, "") : "") + (jg && f.nivel ? " · " + f.nivel : "") + "] " + (f.texto || f.dificultad || (jg ? "" : f.nivel) || "") }); });
+      L.push({ t: Number(k) || 0, de: "el", adj: f.adjuntos, x: "[" + (NOMBRE_FB[f.tipo] || "Nota") + (jg && f.hito ? " · " + f.hito.replace(/-juego$/, "") : "") + (jg && f.nivel ? " · " + f.nivel : "") + "] " + (f.texto || f.dificultad || (jg ? "" : f.nivel) || "") }); });
     return L.sort(function (a, b) { return a.t - b.t; });
   }
   function sinRespuesta(x) {
@@ -703,7 +770,7 @@
           // (aquí «tú» eres quien organiza: lo tuyo a la derecha, como en cualquier chat; lo del docente, a la izquierda)
           return '<div class="acd-msj ' + (m.de === "claude" ? "acd-de-claude" : m.de === "mando" ? "acd-de-mando acd-mio" : "acd-de-el") + '"><b>' +
             (m.de === "claude" ? "NEBULA" : m.de === "mando" ? "Tú" : esc(x.alias || (x.nombre || "").split(" ")[0] || "Docente")) +
-            " <small>" + (m.t ? new Date(m.t).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</small></b><p>" + esc(m.x) + "</p></div>"; }).join("") + "</div>"
+            " <small>" + (m.t ? new Date(m.t).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</small></b><p>" + esc(m.x) + "</p>" + adjuntosHtml(m.adj) + "</div>"; }).join("") + "</div>"
           : '<p class="muted">Todavía no ha escrito nada.</p>';
       }
       var suelta = function (f) {

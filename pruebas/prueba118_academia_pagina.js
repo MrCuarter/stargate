@@ -63,7 +63,7 @@ c(/process\.argv\.includes\("--solo-organiza"\)/.test(GRUPO) && /lote\.update\(r
 
 // ── 5 · 30-sep · Responderle tú (el botón «Responder» en el hilo de cada docente) y «¿Cómo te ha resultado?» tras cada juego
 const MOT5 = L("assets/js/motor.js"), DIA = L("../academia/academia_diaria.cjs");
-c(/async function academiaResponder\(uid, texto, de\)/.test(MOT5) && /\["mando\.mensajes\." \+ ahora\]: \{ texto: t, t: ahora, de:/.test(MOT5) && /academiaResponder, academiaFichas/.test(MOT5),
+c(/async function academiaResponder\(uid, texto, de\)/.test(MOT5) && /\["mando\.mensajes\." \+ ahora\]: \{ texto: t, t: ahora, de:/.test(MOT5) && /academiaResponder, academiaAdjuntar, academiaFichas/.test(MOT5),
   "🔴 el motor: academiaResponder escribe solo mando.mensajes.<ahora>");
 c(/data-responder>Responder<\/button>/.test(AJS) && /M\.academiaResponder\(uid, t, C\.organiza\.nombre\)/.test(AJS), "🔴 el panel: un «Responder» en el hilo de cada docente, firmado con el nombre de quien organiza");
 c(/Object\.keys\(md\)\.forEach\(function \(k\) \{ ult = Math\.max/.test(AJS), "   lo que respondes tú cuenta como respondido (se va el «sin respuesta»)");
@@ -100,6 +100,18 @@ const SD8 = L("_site_data.py");
 c(!/nave Cero|pasillos de la Cero|Laberinto de la Cero|Comandante de la Cero/.test(SD8) && /"planeta": "La Constancia"/.test(SD8) && /"titulo": "Comandante de La Constancia"/.test(SD8),
   "🔴 la nave es La Constancia (el prólogo, el título final, los juegos); «la Cero» es la Tripulación Cero");
 c(/\.pest\.cn-t \.pest-n\{position:absolute/.test(L("assets/css/stargate.css")), "   en el móvil, el aviso de la Cola de nota va en la esquina de la pestaña (empujaba el icono)");
+
+// ── 9 · 30-sep · las capturas (Norberto: «añade la posibilidad de añadir adjuntos (arrastrar una imagen): eso te ayudará a
+// detectar errores»): botón, arrastrar o pegar; comprimidas; a la carpeta del grupo de la Academia, sin reglas nuevas
+const MOT9 = L("assets/js/motor.js");
+c(/async function academiaAdjuntar\(perId, blob\)/.test(MOT9) && /"projects\/" \+ perId \+ "\/mission_submissions\/academia_" \+ yo\.uid \+ "_" \+ Date\.now\(\) \+ "\.jpg"/.test(MOT9)
+  && /import\("https:\/\/www\.gstatic\.com\/firebasejs\/12\.1\.0\/firebase-storage\.js"\)/.test(MOT9),
+  "🔴 la captura se sube a projects/<grupo>/mission_submissions/academia_<uid>_<t>.jpg (la regla de Storage ya lo permite)");
+c(/id="acd-file"/.test(AJS) && /txt\.addEventListener\("paste"/.test(AJS) && /el\.addEventListener\("drop"/.test(AJS) && /1600 \/ Math\.max\(im\.naturalWidth, im\.naturalHeight\)/.test(AJS) && /MAX_ADJ = 3/.test(AJS),
+  "   con el botón (en el móvil, la galería), arrastrándola o pegándola; comprimida y como mucho tres");
+c(/adjuntos: urls/.test(AJS) && /function adjuntosHtml\(adj\)/.test(AJS) && /\^https:\\\/\\\/firebasestorage\\\.googleapis\\\.com\\\//.test(AJS),
+  "   se ven en el hilo (del docente y de quien organiza), solo si son de nuestro almacén");
+c(/capturas: " \+ a\.join/.test(L("../academia/academia_diaria.cjs")), "   y la revisión diaria las lista para mirarlas antes de responder");
 
 console.log("\n  Batería 118 · la Academia, una página del menú");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
