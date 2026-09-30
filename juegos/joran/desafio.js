@@ -6,12 +6,12 @@
 // sí hay es un bonus al final (hasta +25 % de la marca, según la precisión), para que el desafío compense y adivinar no.
 //
 // Uso en una máquina (el patrón completo está en conquista.js):
-//   import { crearDesafio } from './desafio.js?v=df75ade81b';
+//   import { crearDesafio } from './desafio.js?v=4443d42b89';
 //   const DES = crearDesafio({ nombre: 'Combustible', alPausar: (si) => { if (!si) soltarTeclas(); } });
 //   al empezar: await DES.preparar(); DES.empezar();   ·   en el bucle: if (!DES.abierto) tick(dt) … y dentro, DES.tick(dt)
 //   al terminar: DES.parar(); puntos += DES.bonus(puntos); filas: [...filas, ...DES.filas(bonus)], extra: DES.extra()
 // En modo arcade (sin ?modo=desafio) crearDesafio devuelve un objeto inerte: las mismas llamadas no hacen nada.
-import { $, QS, WEB, motor, esc, SON, tono, audio, aviso } from './comun.js?v=df75ade81b';
+import { $, QS, WEB, motor, esc, SON, tono, audio, aviso } from './comun.js?v=4443d42b89';
 
 // 30-sep · EL MODO ACADEMIA (?banco=academia): las preguntas son las de un planeta de la Academia de la Cero, y las pasa la
 // página que abre el juego (academia.js → window.SG_BANCO_JUEGO). Norberto: «¡usa los minijuegos para preguntar! Las preguntas que
@@ -57,7 +57,7 @@ async function fuenteServidor() {
 // En el borrador, el banco local de la Ruta (solo existe en local: está en .gitignore). Aquí sí se sabe la buena, así que se
 // barajan las opciones y se marca la correcta al fallar.
 async function fuenteLocal() {
-  const ruta = location.pathname.includes('/juegos/') ? '../ruta/preguntas.js?v=df75ade81b' : '../ruta-estatica/preguntas.js?v=df75ade81b';
+  const ruta = location.pathname.includes('/juegos/') ? '../ruta/preguntas.js?v=4443d42b89' : '../ruta-estatica/preguntas.js?v=4443d42b89';
   const { PREGUNTAS } = await import(ruta);
   const todas = TEMAS.flatMap((t) => PREGUNTAS[t] || [])
     .filter((q) => q.tipo === 'una' && !q.visual && Array.isArray(q.correctas) && q.correctas.length === 1 && q.opciones && q.opciones.length >= 2);
@@ -194,7 +194,7 @@ export function crearDesafio(op = {}) {
         <div class="botones"><button type="button" class="sec" id="des-seguir">Seguir jugando</button><button type="button" id="des-sig">Pasar al siguiente módulo</button></div>`;
       $('des-sig').focus({ preventScroll: true });
       $('des-seguir').onclick = () => { D.disponible = false; D.nivel = 100; hud.classList.add('oculto'); cerrar(); };
-      $('des-sig').onclick = () => { avisarAcademia({ siguiente: true }); if (window.parent === window) location.href = '../../academia.html?v=df75ade81b'; };
+      $('des-sig').onclick = () => { avisarAcademia({ siguiente: true }); if (window.parent === window) location.href = '../../academia.html?v=4443d42b89'; };
       return;
     }
     avisado = D.nivel >= 25 ? false : avisado; pintarBarra();

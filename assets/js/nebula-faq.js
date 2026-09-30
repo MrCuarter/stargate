@@ -393,7 +393,7 @@ window.SG_NEBULA_FAQ = [
   // ───────────────────────────── EL SIMULADOR DE JORAN ─────────────────────────────
   { id: "joran", p: ["qué es el simulador de joran", "la sala de joran", "máquinas arcade", "juegos de joran"],
     claves: ["joran", "simulador", "sala", "arcade", "maquinas"],
-    r: "La sala de juegos de Joran (desde la semana 10, Ludo): cinco máquinas arcade (La Evacuación, El Laberinto de la Cero, RUTA AZUL, El Descenso y La conquista de Fôrge), el Simulador de vuelo para repasar, récords, Cuaderno de vuelo y la Galería. En <b>Retos → Simulador de Joran</b>.", ir: "simulador" },
+    r: "La sala de juegos de Joran (desde la semana 10, Ludo): cinco máquinas arcade (La Evacuación, El Laberinto de La Constancia, RUTA AZUL, El Descenso y La conquista de Fôrge), el Simulador de vuelo para repasar, récords, Cuaderno de vuelo y la Galería. En <b>Retos → Simulador de Joran</b>.", ir: "simulador" },
   { id: "joran_desbloquear", p: ["cómo desbloqueo la siguiente máquina", "cómo enciendo otra máquina", "máquina cerrada"],
     claves: ["desbloquear", "encender", "maquina", "cerrada", "siguiente"],
     r: "La primera está abierta; cada una se enciende con la <b>plata</b> de la anterior o pagando créditos.", ir: "simulador" },

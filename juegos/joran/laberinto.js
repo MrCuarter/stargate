@@ -8,9 +8,9 @@
 // cazar, cada uno a su manera, como los fantasmas. Y las CÉLULAS DE ENERGÍA dan unos segundos de sobrecarga: los
 // drones se vuelven azules, huyen, y si los tocas los desactivas (200, 400, 800, 1.600). El pulso sigue: aturde a los
 // cercanos, pero se recarga más despacio (es el salvavidas, no el arma).
-import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=df75ade81b';
+import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=4443d42b89';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
-import { crearDesafio, MODO, urlModo } from './desafio.js?v=df75ade81b';
+import { crearDesafio, MODO, urlModo } from './desafio.js?v=4443d42b89';
 
 const V3 = THREE.Vector3;
 const JUEGO = JUEGOS[1];
@@ -375,7 +375,7 @@ function acabar(salvado, motivo) {
 let pausa = false;
 function pausar() {
   if (!P || P.fin || DES.abierto) return; pausa = !pausa; // con la pregunta abierta el juego ya está parado
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=df75ade81b">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=4443d42b89">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && P && !P.fin && !pausa && !DES.abierto && !window.__sinPausa) pausar(); });
@@ -387,13 +387,13 @@ function empezar() {
 }
 function portada() {
   const e = estado(), desafio = MODO === 'desafio';
-  pantalla(`<div class="kicker">El simulador de Joran · máquina 2${desafio ? ' · modo desafío' : ''}</div><h2>El Laberinto de la Cero</h2>
+  pantalla(`<div class="kicker">El simulador de Joran · máquina 2${desafio ? ' · modo desafío' : ''}</div><h2>El Laberinto de La Constancia</h2>
     <p>La nave se ha quedado a oscuras y la Estática ha soltado sus drones por los pasillos. Solo tienes tu linterna.</p>
     <p>Encuentra las <b>tres llaves</b> de cada nivel y corre a la <b>cápsula</b>, que se enciende en verde cuando las tienes. Los drones patrullan y, a ratos, salen a cazarte: <b>si te tocan, pierdes una vida</b>, y de frente no se esquivan. Coge una <b>célula de energía</b> (verde) y durante unos segundos se vuelven azules y huyen: tócalos y los desactivas. El <b>pulso</b> aturde a los que tengas cerca (se recarga en ${PULSO_RECARGA} s). Tres niveles, cada uno más grande. El minimapa solo enseña lo que ya has explorado.</p>
     <div class="teclas"><kbd>Flechas / WASD</kbd><span>Moverte (en el móvil, arrastra el dedo: es un joystick)</span><kbd>Espacio</kbd><span>El pulso que aturde (en el móvil, el botón)</span><kbd>Célula verde</kbd><span>Sobrecarga: los drones huyen y se desactivan al tocarlos</span></div>
     ${DES.texto()}
     <p class="pista">Tu récord: <b>${(e.marcas.laberinto || 0).toLocaleString('es-ES')}</b></p>
-    <div class="botones"><button id="b-ya">¡Adentro!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=df75ade81b">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya">¡Adentro!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=4443d42b89">Volver a la sala</a>'}</div>`);
   $('b-ya').onclick = async () => {
     audio();
     if (desafio) { // las preguntas tienen que estar antes de entrar: sin ellas, la batería no se podría recargar

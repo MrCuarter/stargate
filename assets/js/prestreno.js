@@ -120,7 +120,7 @@
   function urlAcademia() { return location.origin + "/academia.html"; }
   function academia() {
     var horas = Math.max(1, Math.round((ACA.min || 120) / 60));
-    return { rot: "La Academia", html: escena({ cls: "pr-aca", bg: "cero_ensenando.webp", cap: ["senala", "Antes del lunes, un paseo por la Cero. Luego la clase se da sola."],
+    return { rot: "La Academia", html: escena({ cls: "pr-aca", bg: "cero_ensenando.webp", cap: ["senala", "Antes del lunes, un paseo por la Academia. Luego la clase se da sola."],
       cuerpo: '<div class="kicker">Antes de vuestra primera clase</div>' +
         '<h2>' + esc(ACA.titulo || "La Academia de la Cero") + ': aprendedlo jugando</h2>' +
         '<ul class="pr-aca-l"><li><b>' + (ACA.sesiones || 9) + ' sesiones cortas</b>, planeta a planeta: la historia y la herramienta a la vez. Unas ' + horas + ' horas en total, a vuestro ritmo.</li>' +
@@ -201,7 +201,7 @@
         (top.length ? '<p class="pr-b-bravo"><b>¡Bravo, ' + esc(top.length > 1 ? top.slice(0, -1).join(", ") + " y " + top[top.length - 1] : top[0]) + '!</b> Así se llega al lunes: con el viaje hecho.</p>' : "") +
         (dentro.length ? '<ul class="pr-b-l">' + dentro.map(function (f) {
           return '<li class="' + (f.fin ? "pr-b-fin" : "") + '"><b>' + esc(f.nombre) + '</b><span class="pr-b-barra"><i style="width:' + Math.max(f.p, 2) + '%"></i></span>' +
-            '<span class="pr-b-p">' + (f.fin ? "Comandante de la Cero" : f.p + " % · sesión " + Math.min(f.ses + 1, f.tot) + " de " + f.tot) + '</span></li>'; }).join("") + '</ul>'
+            '<span class="pr-b-p">' + (f.fin ? "Comandante de La Constancia" : f.p + " % · sesión " + Math.min(f.ses + 1, f.tot) + " de " + f.tot) + '</span></li>'; }).join("") + '</ul>'
           : '<p class="pr-sub">Todavía no ha subido nadie. El primero que entre, sale aquí.</p>') +
         (faltan.length ? '<div class="pr-b-no"><b>Aún sin subir a bordo</b><p>' + faltan.map(function (f) { return '<span>' + esc(f.nombre) + '</span>'; }).join("") + '</p>' +
           '<p class="small">Os esperamos antes del lunes: con el enlace de la diapositiva anterior, en dos minutos estáis dentro.</p></div>' : "") +

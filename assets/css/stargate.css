@@ -5270,6 +5270,10 @@ a.pest.cn-t-fin{margin-left:auto}                /* y va al final de la fila */
   .pest.cn-t{flex:none}
   .pest.cn-t b{display:none}
   .pest.cn-t{width:46px;padding:0;justify-content:center}
+  /* 30-sep · el aviso (la Cola de nota) va en la esquina: en línea no cabía en una pestaña de solo icono y empujaba el
+     icono fuera, encima de la pestaña de al lado (Norberto lo vio en el móvil) */
+  .pest.cn-t{position:relative}
+  .pest.cn-t .pest-n{position:absolute;top:1px;right:1px;margin:0;min-width:18px;height:18px;padding:0 4px;font-size:.75rem;line-height:1}
   .cn-grupos{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   .cn-g{flex:none}
 }
@@ -7514,8 +7518,10 @@ body.con-ens-franja{padding-bottom:84px}
 @media (max-width:600px){.pr-b-cifras{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.pr-aca-qr{width:104px;height:104px}}
 /* 🔴 30-sep · «¿Dudas?» en la Academia: una píldora flotante abajo a la derecha que despliega el hilo con Claude y Norberto
    (el mismo gesto que «Pregunta a NEBULA» en la Nave del alumnado) */
-.acd-flota-b{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:900;display:flex;align-items:center;gap:8px;padding:7px 16px 7px 7px;border-radius:999px;border:1px solid var(--amber);background:#0b1626;color:#fff;font:inherit;font-size:.95rem;font-weight:700;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 16px rgba(245,176,67,.35)}
-.acd-flota-b:hover,.acd-flota-b.abierta{box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 24px rgba(245,176,67,.6)}
+.acd-flota-b{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:900;display:flex;align-items:center;gap:8px;padding:6px 16px 6px 6px;border-radius:999px;border:1px solid var(--teal);background:#0b1626;color:#fff;font:inherit;font-size:.95rem;font-weight:700;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 18px rgba(55,224,236,.4)}
+.acd-flota-b:hover,.acd-flota-b.abierta{box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 26px rgba(55,224,236,.7)}
+.acd-flota-neb{width:38px;height:38px;border-radius:50%;object-fit:cover;background:#050a14;flex:none}
+.acd-flota-cab h2 .acd-flota-neb{width:30px;height:30px}
 .acd-flota-i{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--amber)}
 .acd-flota-i .ico{width:20px;height:20px;filter:brightness(0)}
 .acd-flota-b[hidden],.acd-flota[hidden]{display:none}

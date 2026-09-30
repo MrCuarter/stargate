@@ -228,7 +228,7 @@ c(/return \[portada\(\), encargo\(\), academia\(\), aBordo\(\), historia\(\)/.te
   "🔴 la Academia y «¿quién ha subido ya a bordo?», justo después del encargo (y en la bienvenida de los referentes)");
 c(/function urlAcademia\(\) \{ return location\.origin \+ "\/academia\.html"; \}/.test(JS) && /id="pr-aca-copiar">Copiar el enlace/.test(JS) && /qrcode-generator@1\.4\.4/.test(JS),
   "   con el enlace para alistarse: a la vista, con su QR y para copiarlo al chat");
-c(/M\.academiaTodos\(\), M\.misPERs\(yo\.correo\)/.test(JS) && /Aún sin subir a bordo/.test(JS) && /¡Bravo, /.test(JS) && /Comandante de la Cero/.test(JS),
+c(/M\.academiaTodos\(\), M\.misPERs\(yo\.correo\)/.test(JS) && /Aún sin subir a bordo/.test(JS) && /¡Bravo, /.test(JS) && /Comandante de La Constancia/.test(JS),
   "🔴 quién está a bordo (con su porcentaje), a quién felicitar y quién falta del equipo de sus grupos");
 c(/t = setTimeout\(cargar, 20000\)/.test(JS) && /if \(DESMONTAR\) \{ try \{ DESMONTAR\(\); \}/.test(JS), "   se actualiza sola mientras se proyecta (y deja de hacerlo al pasar de diapositiva)");
 c(/Esta lista la ve quien presenta/.test(JS) && /window\.SG_ACADEMIA_PRES=/.test(HTML) && /"no_la_hacen": \["mutecdgami@gmail\.com"\]/.test(L("_site_data.py")),

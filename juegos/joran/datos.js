@@ -10,7 +10,7 @@ export const SALA_JORAN = {
   [
    "evacuacion",
    "La Evacuación",
-   "Corre por los pasillos de la Cero antes de que la Estática te alcance.",
+   "Corre por los pasillos de La Constancia antes de que la Estática te alcance.",
    null,
    0,
    [
@@ -21,7 +21,7 @@ export const SALA_JORAN = {
   ],
   [
    "laberinto",
-   "El Laberinto de la Cero",
+   "El Laberinto de La Constancia",
    "La nave se ha apagado: tres llaves y la cápsula… a oscuras.",
    [
     "evacuacion",
@@ -152,5 +152,5 @@ export const SALA_JORAN = {
  "premio_cuaderno": "el título «As de Joran» y el marco holográfico para tu avatar",
  "galeria_reto": "B6",
  "fama": 10,
- "v": "df75ade81b"
+ "v": "4443d42b89"
 };

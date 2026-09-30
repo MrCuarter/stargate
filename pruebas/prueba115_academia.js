@@ -27,7 +27,7 @@ c(JSON.stringify(E.map(e => e.id)) === JSON.stringify(["cero", "forge", "ecos", 
   "🔴 la Cero y los ocho planetas, en el orden del viaje", E.map(e => e.id).join(","));
 c(JSON.stringify(E.slice(1).map(e => e.planeta)) === JSON.stringify(["Fôrge", "Ecos", "Sendara", "Reliae", "Umbral", "Ludo", "Vínculo", "Liminar"]) &&
   E.slice(1).every((e, k) => new RegExp("^Tema " + (k + 1) + " · ").test(e.tema)), "   cada planeta, con su tema (Fôrge el 1… Liminar el 8)");
-c(C.titulo === "La Academia de la Cero" && C.final.titulo === "Comandante de la Cero", "   «La Academia de la Cero» y, al terminar, «Comandante de la Cero»");
+c(C.titulo === "La Academia de la Cero" && C.final.titulo === "Comandante de La Constancia", "   «La Academia de la Cero» y, al terminar, «Comandante de La Constancia» (la nave es La Constancia; la Cero, la tripulación)");
 c(C.organiza && C.organiza.correo === "n.cuartero.10@gmail.com", "   organiza Norberto (n.cuartero.10)");
 c(A.per === "academia-cero" && C.grupo === A.per, "   su grupo propio: academia-cero");
 c(/^[A-HJ-NP-Z2-9]{6}$/.test(C.codigo), "🔴 el grupo existe: su código de clase está en los datos (lo escribió academia_grupo.cjs --crear)", C.codigo);

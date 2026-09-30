@@ -306,7 +306,7 @@ ACADEMIA = {
   "codigo": "UT795T",   # el código de clase del grupo: lo escribe CCD/academia/academia_grupo.cjs --crear
   "titulo": "La Academia de la Cero",
   "sub": "El curso del profesorado de STARGATE: la historia, el temario dentro de ella, la plataforma desde los dos lados y cómo hacerla tuya",
-  # 🔴 30-sep · LA ACADEMIA, PLANETA A PLANETA (borradores/academia-planetas: Norberto eligió la B). Un prólogo en la Cero y
+  # 🔴 30-sep · LA ACADEMIA, PLANETA A PLANETA (borradores/academia-planetas: Norberto eligió la B). Un prólogo a bordo de La Constancia y
   # una sesión por planeta: su tripulante y su historia en dos frases (sin destripes), el tema que representa, una o dos
   # piezas de la herramienta, UNA misión en la consola de ensayo que se corrige sola y lo real (en el grupo de la Academia).
   # Y las cinco preguntas de cada planeta van DENTRO de su minijuego (Norberto: «¡usa los minijuegos para preguntar!»): la
@@ -314,10 +314,10 @@ ACADEMIA = {
   # Las preguntas: {p, o (la buena, la primera), ok, porque}. Son públicas (el curso del profesorado), NO el banco del alumnado.
   # juego: una máquina de la sala de Joran (conquista, evacuacion, laberinto, ruta-azul, descenso) o la Ruta («ruta:m5»…).
   "estaciones": [
-    {"id": "cero", "planeta": "La Cero", "titulo": "La Cero · la premisa", "tema": "Prólogo · la historia y tu papel", "min": 5,
+    {"id": "cero", "planeta": "La Constancia", "titulo": "La Constancia · la premisa", "tema": "Prólogo · la historia y tu papel", "min": 5,
      "bg": "assets/img/pres/puente.webp", "pj": "assets/img/personajes/nebula.png", "quien": "NEBULA",
      "cita": "No hace falta que veas cada capítulo. Te cuento lo justo para que guíes a tu tripulación.",
-     "historia": "Una fuerza llamada la Estática apaga mundos: no los destruye, los deja en silencio. Contra ella, la agencia STARGATE envía la nave Cero, heredera de una tripulación que desapareció haciendo ese mismo viaje.",
+     "historia": "Una fuerza llamada la Estática apaga mundos: no los destruye, los deja en silencio. Contra ella, la agencia STARGATE envía La Constancia, tu nave, tras la pista de la Tripulación Cero —la Cero, que da nombre a esta Academia—, el primer equipo que hizo ese viaje y nunca volvió.",
      "hoy": "La historia sin destripes, tu papel y cómo va esta Academia.",
      "piezas": [
        {"h": "Tu alumnado son los reclutas", "pj": "nebula", "img": "assets/img/sesion/embarque.jpg",
@@ -326,7 +326,7 @@ ACADEMIA = {
         "p": "Nadie tiene que ver la serie en casa: <b>cada clase trae su vídeo</b>, el <b>foro</b> de cada semana lleva el mensaje ya escrito y el <b>relámpago</b> de cada tema recupera a su tripulante. Qué fue de la Tripulación Cero, quién es de verdad NEBULA y qué hay detrás de Vaeon se descubre al final: si guías sin saberlo, reaccionarás a la vez que tu tripulación.",
         "botones": [["Ver la sinopsis (opcional, 3 minutos)", "https://youtu.be/5CqyMqs8zE8"]]},
        {"h": "Ocho planetas, ocho sesiones", "pj": "nebula", "img": "assets/img/pres/ocho_mundos.webp",
-        "p": "Fôrge, Ecos, Sendara, Reliae, Umbral, Ludo, Vínculo y Liminar: <b>un planeta por tema</b>, y en cada uno te espera un tripulante de la Cero. Esta Academia hace el mismo viaje: en cada planeta, una pieza de la herramienta, una misión en tu <b>consola de ensayo</b> (un grupo de mentira donde pulsas de verdad) y sus preguntas <b>dentro de un minijuego</b>."},
+        "p": "Fôrge, Ecos, Sendara, Reliae, Umbral, Ludo, Vínculo y Liminar: <b>un planeta por tema</b>, y en cada uno te espera uno de la Tripulación Cero. Esta Academia hace el mismo viaje: en cada planeta, una pieza de la herramienta, una misión en tu <b>consola de ensayo</b> (un grupo de mentira donde pulsas de verdad) y sus preguntas <b>dentro de un minijuego</b>."},
      ],
      "hitos": [
        {"id": "cero-puente", "tipo": "auto", "comprobar": "ens:puente", "titulo": "Sube al puente de tu consola de ensayo",
@@ -352,7 +352,7 @@ ACADEMIA = {
      "juego": {"maquina": "conquista", "n": "La conquista de Fôrge"},
      "preguntas": [
        {"p": "¿Qué hace la Estática?", "o": ["Silencia mundos: la gente deja de crear, de dejar constancia y de compartir", "Destruye planetas enteros", "Es una enfermedad de la tripulación"], "ok": 0, "porque": "No destruye nada: apaga las ganas de crear y de compartir. Es justo lo que la asignatura combate."},
-       {"p": "¿Quién es tu alumnado en la historia?", "o": ["Reclutas de la nave Cero, cada uno en un escuadrón", "La Tripulación Cero", "Los soldados de Vaeon"], "ok": 0, "porque": "Cada estudiante es un recluta con su alias y su avatar, en el escuadrón de su Comandante."},
+       {"p": "¿Quién es tu alumnado en la historia?", "o": ["Reclutas de La Constancia, cada uno en un escuadrón", "La Tripulación Cero", "Los soldados de Vaeon"], "ok": 0, "porque": "Cada estudiante es un recluta con su alias y su avatar, en el escuadrón de su Comandante."},
        {"p": "¿Quién es el Capitán de la Nave?", "o": ["Un personaje de los vídeos: tú eres el Comandante", "Tú, el docente", "El recluta que más xp lleva"], "ok": 0, "porque": "El Capitán es un personaje de la serie. Tú eres el Comandante, con tu nombre y tu retrato."},
        {"p": "¿Qué necesita tu alumnado para alistarse?", "o": ["El enlace de invitación y su cuenta de Google", "Que le des de alta tú, uno a uno", "Un PIN que le mandas por correo"], "ok": 0, "porque": "Se alistan solos desde el enlace de tu grupo (Reclutas → Copiar invitación), con su cuenta de Google."},
        {"p": "¿Tiene que ver tu grupo la serie en casa?", "o": ["No: cada clase trae su vídeo, y el foro y los relámpagos completan la historia", "Sí, antes de cada clase", "Solo la sinopsis"], "ok": 0, "porque": "La historia llega sola: el vídeo va dentro de la clase, el mensaje en el foro y cada tripulante en su relámpago."},
@@ -393,10 +393,10 @@ ACADEMIA = {
      ],
      "hitos": [
        {"id": "vivirlo-reto", "tipo": "auto", "comprobar": "reto:L0", "titulo": "Tu primer relámpago: «La hoja de ruta»", "como": "En tu Nave de recluta, <b>Retos</b>: el relámpago de la semana 1, sobre tu programación didáctica. Hazlo y regístralo con «Lo he hecho» y el enlace de tu evidencia.", "boton": "nave"},
-       {"id": "vivirlo-chispa", "tipo": "auto", "comprobar": "reto:L1", "titulo": "El de tu alumnado: «Del boceto a la forja»", "como": "El relámpago del tema 1, la imagen con IA (su insignia es «La chispa»): trae una idea a medias, hazla realidad con una IA con al menos una iteración y regístralo con el enlace del antes y el después. <b>Claude lo comenta en su revisión diaria.</b>", "boton": "nave"},
+       {"id": "vivirlo-chispa", "tipo": "auto", "comprobar": "reto:L1", "titulo": "El de tu alumnado: «Del boceto a la forja»", "como": "El relámpago del tema 1, la imagen con IA (su insignia es «La chispa»): trae una idea a medias, hazla realidad con una IA con al menos una iteración y regístralo con el enlace del antes y el después. <b>NEBULA te lo comenta en tu hilo (abajo a la derecha).</b>", "boton": "nave"},
        {"id": "sendara-validar", "tipo": "auto", "comprobar": "ens:validar+ens:anular", "titulo": "Valida uno y anula otro", "como": "En la consola de ensayo, abre la ficha de alguien y <b>valida</b> un reto que no tenga; en otra ficha, <b>anula</b> uno con su porqué.", "boton": "sim:consola"},
      ],
-     "juego": {"maquina": "laberinto", "n": "El Laberinto de la Cero"},
+     "juego": {"maquina": "laberinto", "n": "El Laberinto de La Constancia"},
      "preguntas": [
        {"p": "Sylla traza 48 senderos para que nadie se quede fuera del mapa. ¿Qué tema es?", "o": ["T3 · Interactivos y paisajes de aprendizaje", "T1 · Contenido multimedia", "T7 · Gamificación"], "ok": 0, "porque": "Muchas rutas para aprender lo mismo: el paisaje de aprendizaje."},
        {"p": "¿Qué diferencia hay entre el relámpago y el principal?", "o": ["El relámpago practica en clase lo del día; el principal deja la página de la Bitácora", "El relámpago da más xp", "El principal se hace siempre en clase"], "ok": 0, "porque": "El relámpago es la práctica de clase; el principal, el portfolio jugado."},
@@ -407,7 +407,7 @@ ACADEMIA = {
     {"id": "reliae", "planeta": "Reliae", "titulo": "Reliae · el directo", "tema": "Tema 4 · M-learning", "min": 15,
      "bg": "assets/img/fondos/p4_reliae_llegada.webp", "suelo": "assets/img/fondos/p4_reliae.webp", "carta": "assets/img/tarjetas/P4_amara_carta.webp",
      "retrato": "assets/img/tripulacion/P4_amara.webp", "quien": "Amara Sol, la Operadora", "cita": "Compartir a tiempo salva más que compartir perfecto.",
-     "historia": "Amara es la Operadora de la Cero: la que hace que cada mensaje llegue. En Reliae aprende que un aviso a tiempo vale más que uno perfecto que llega tarde.",
+     "historia": "Amara es la Operadora de la Tripulación Cero: la que hace que cada mensaje llegue. En Reliae aprende que un aviso a tiempo vale más que uno perfecto que llega tarde.",
      "hoy": "La clase desde el móvil y los mensajes a tu tripulación.",
      "piezas": [
        {"h": "La clase, en su móvil", "pj": "nebula", "img": "assets/img/sesion/llamada.jpg",
@@ -475,7 +475,7 @@ ACADEMIA = {
     {"id": "vinculo", "planeta": "Vínculo", "titulo": "Vínculo · los elementos", "tema": "Tema 7 · Gamificación", "min": 15,
      "bg": "assets/img/fondos/p7_vinculo_llegada.webp", "suelo": "assets/img/fondos/p7_vinculo.webp", "carta": "assets/img/tarjetas/P7_mara_carta.webp",
      "retrato": "assets/img/tripulacion/P7_mara.webp", "quien": "Mara Voss, el Mando", "cita": "Una orden mueve cuerpos. Un porqué mueve personas.",
-     "historia": "Mara manda en la Cero, pero no a gritos: explica el porqué de cada orden. Para ella, una insignia registra un acto con significado.",
+     "historia": "Mara manda en la Tripulación Cero, pero no a gritos: explica el porqué de cada orden. Para ella, una insignia registra un acto con significado.",
      "hoy": "Los elementos de la gamificación, su porqué, y lo que se abre con el curso.",
      "piezas": [
        {"h": "Componentes, mecánicas y dinámicas", "pj": "nebula", "img": "assets/img/sesion/coleccion.jpg",
@@ -525,7 +525,7 @@ ACADEMIA = {
        {"p": "Noa enseña lo que todavía no existe. ¿Qué tema es?", "o": ["T8 · Realidad Aumentada y Virtual", "T1 · Contenido multimedia", "T5 · Evaluación"], "ok": 0, "porque": "Capas sobre el mundo: la realidad aumentada y la virtual."},
      ]},
   ],
-  "final": {"titulo": "Comandante de la Cero", "texto": "Has hecho el viaje entero: la Cero y los ocho planetas, la historia sin destripes, el temario dentro de ella, los elementos y su porqué, la plataforma desde los dos lados y tu propia pieza. Ya puedes llevar a tu tripulación."},
+  "final": {"titulo": "Comandante de La Constancia", "texto": "Has hecho el viaje entero: el prólogo y los ocho planetas, la historia sin destripes, el temario dentro de ella, los elementos y su porqué, la plataforma desde los dos lados y tu propia pieza. Ya puedes llevar a tu tripulación."},
 }
 
 # ---------- cromos: el álbum del «Sobre de cromos» ----------
@@ -1893,7 +1893,7 @@ RUTA = {
     # saltándose casi medio viaje: entre XP_VIAJE y el nivel 10 solo hay 610 de margen). Espejo: juegos/ruta/servidor-local.js
     "premios": {"bronce": [15, 5], "plata": [10, 5], "oro": [5, 10]},
     "misiones": [
-        {"id": "m0", "n": 0, "de": "La Cero", "a": "Fôrge", "tema": 0, "cuando": "Tras la presentación", "titulo": "Primer vuelo",
+        {"id": "m0", "n": 0, "de": "La Constancia", "a": "Fôrge", "tema": 0, "cuando": "Tras la presentación", "titulo": "Primer vuelo",
          "lema": "NEBULA te enseña a pilotar camino de Fôrge. Las preguntas son de la asignatura."},
         {"id": "m1", "n": 1, "de": "Fôrge", "a": "Ecos", "tema": 1, "cuando": "Al cerrar el tema 1", "titulo": "La tormenta de chatarra",
          "lema": "Los restos de las fundiciones de Fôrge flotan en la ruta a Ecos."},
@@ -1928,8 +1928,8 @@ RUTA = {
 # [clave, nombre, lema, abre (marca en otra máquina) o None, precio ◈, hitos [bronce, plata, oro]]
 # (juegos/joran/comun.js → JUEGOS manda en la jugabilidad; lo que se cuenta, AQUÍ: el build lo lleva a juegos/joran/datos.js)
 SALA_JORAN = {"juego": "juegos/joran/", "hito_cr": {"bronce": 5, "plata": 10, "oro": 15}, "maquinas": [
-    ["evacuacion", "La Evacuación", "Corre por los pasillos de la Cero antes de que la Estática te alcance.", None, 0, [3000, 7500, 18000]],
-    ["laberinto", "El Laberinto de la Cero", "La nave se ha apagado: tres llaves y la cápsula… a oscuras.", ["evacuacion", 7500], 40, [2000, 4500, 12000]],
+    ["evacuacion", "La Evacuación", "Corre por los pasillos de La Constancia antes de que la Estática te alcance.", None, 0, [3000, 7500, 18000]],
+    ["laberinto", "El Laberinto de La Constancia", "La nave se ha apagado: tres llaves y la cápsula… a oscuras.", ["evacuacion", 7500], 40, [2000, 4500, 12000]],
     ["ruta-azul", "RUTA AZUL", "El arcade que Joran programó para entrenar pilotos: oleadas de la Estática y el jefe final.", ["laberinto", 4500], 60, [8000, 18000, 38000]],
     ["descenso", "El Descenso", "Posa el Módulo Lunar planeta a planeta: cada uno con su gravedad, su viento y su truco, y el siguiente un poco más difícil.", ["ruta-azul", 18000], 80, [2000, 4000, 10000]],
     ["conquista", "La conquista de Fôrge", "Trepa por la chimenea de Fôrge mientras la lava sube cada vez más rápido. ¿Hasta dónde aguantas?", ["descenso", 4000], 100, [3000, 12000, 40000]],

@@ -67,8 +67,8 @@ c(/async function academiaResponder\(uid, texto, de\)/.test(MOT5) && /\["mando\.
   "🔴 el motor: academiaResponder escribe solo mando.mensajes.<ahora>");
 c(/data-responder>Responder<\/button>/.test(AJS) && /M\.academiaResponder\(uid, t, C\.organiza\.nombre\)/.test(AJS), "🔴 el panel: un «Responder» en el hilo de cada docente, firmado con el nombre de quien organiza");
 c(/Object\.keys\(md\)\.forEach\(function \(k\) \{ ult = Math\.max/.test(AJS), "   lo que respondes tú cuenta como respondido (se va el «sin respuesta»)");
-c(/de: "mando", quien: md\[k\]\.de/.test(AJS) && /" · organiza la Academia"/.test(AJS) && /\.acd-de-mando\{/.test(L("assets/css/stargate.css")),
-  "   y el docente lo ve en su hilo, con tu nombre y su propio color");
+c(/de: "mando", quien: md\[k\]\.de/.test(AJS) && /m\.de === "mando" \? "El Alto Mando"/.test(AJS) && /\.acd-de-mando\{/.test(L("assets/css/stargate.css")),
+  "   y el docente lo ve en su hilo, firmado «El Alto Mando» y con su propio color (NEBULA contesta lo demás)");
 c(/YA LE HA RESPONDIDO NORBERTO/.test(DIA), "   la revisión diaria de Claude lo ve (y no te repite)");
 c(/\(okJ \? opinarHtml\(hj\) : ""\)/.test(AJS) && /estado\(hjf\)\.ok && !opinado\(hjf\) \? opinarHtml\(hjf, "¿Qué tal «" \+ hjf\.n \+ "»\?"\)/.test(AJS) && /enganchaOpinar\(op\.parentNode/.test(AJS),
   "🔴 «¿Cómo te ha resultado?» tras cada minijuego: en su diapositiva y, si aún no lo ha dicho, en la del final");
@@ -90,6 +90,16 @@ c(/class="neb-aviso" aria-label="' \+ nuevos/.test(AJS) && /var txt0 = document\
   "   con el número de respuestas nuevas, y lo que se escribe no se pierde cuando la página se actualiza");
 c(/body\.acd-jugando \.acd-flota-b/.test(CSS7) && /JUGANDO = true; document\.body\.classList\.add\("acd-jugando"\)/.test(AJS) && !/<details class="acd-claude"/.test(AJS),
   "   se aparta mientras se juega; y la caja plegada del final ya no existe");
+
+// ── 8 · 30-sep · Sin romper la ficción. Norberto: «que pregunten a NEBULA; si NEBULA no lo sabe llamará al Alto Mando…
+// No digas nada de Claude». Y la nave es La Constancia: «la Cero» es la Tripulación Cero, no la nave.
+const textosAJS = AJS.split("\n").filter(l => !/^\s*(\/\/|\*)/.test(l)).join("\n").replace(/pintarClaude|claudeVisto|claudeAbierto|m\.de === "claude"|de: "claude"|"claude"/g, "");
+c(!/Claude/.test(textosAJS) && /Pregunta a NEBULA/.test(AJS) && /Enviar a NEBULA/.test(AJS) && /se lo paso al Alto Mando/.test(AJS),
+  "🔴 en la Academia no sale Claude: se pregunta a NEBULA, y lo que no sabe lo pasa al Alto Mando");
+const SD8 = L("_site_data.py");
+c(!/nave Cero|pasillos de la Cero|Laberinto de la Cero|Comandante de la Cero/.test(SD8) && /"planeta": "La Constancia"/.test(SD8) && /"titulo": "Comandante de La Constancia"/.test(SD8),
+  "🔴 la nave es La Constancia (el prólogo, el título final, los juegos); «la Cero» es la Tripulación Cero");
+c(/\.pest\.cn-t \.pest-n\{position:absolute/.test(L("assets/css/stargate.css")), "   en el móvil, el aviso de la Cola de nota va en la esquina de la pestaña (empujaba el icono)");
 
 console.log("\n  Batería 118 · la Academia, una página del menú");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");

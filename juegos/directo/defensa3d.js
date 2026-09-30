@@ -9,7 +9,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
-import { imagen } from './canal.js?v=df75ade81b';
+import { imagen } from './canal.js?v=4443d42b89';
 
 const azar = (a, b) => a + Math.random() * (b - a);
 const V3 = THREE.Vector3;

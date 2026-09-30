@@ -69,7 +69,7 @@
   function ajuste(id) { return ((DOC.claude || {}).ajustes || {})[id] || null; }
   function estado(h) {
     var a = ajuste(h.id);
-    if (a && a.saltar) return { ok: true, conv: a.motivo || "Convalidado por Claude." };
+    if (a && a.saltar) return { ok: true, conv: a.motivo || "Convalidado por NEBULA." };
     var p = (DOC.pasos || {})[h.id];
     if (p && p.ok) return { ok: true, p: p };
     if (h.tipo === "auto" && autoOk(h.comprobar)) { guardarPaso(h.id, { ok: true, auto: true }); return { ok: true }; }
@@ -100,7 +100,7 @@
     GUARDANDO[id] = true;
     guardar({ pasos: obj(id, Object.assign({ t: Date.now() }, v)) }).then(function () { GUARDANDO[id] = false; }, function () { GUARDANDO[id] = false; });
   }
-  // cuánto lleva, en su documento: es lo que enseña crear.html junto a su nombre («Comandante de la Cero» o «4 de 8 sesiones»)
+  // cuánto lleva, en su documento: es lo que enseña crear.html junto a su nombre («Comandante de La Constancia» o «4 de 9 sesiones»)
   function apuntarAvance() {
     if (DEMO || !M || !YO) return;
     var pr = progreso(), a = DOC.avance || {};
@@ -127,7 +127,7 @@
   // 30-sep · COMO LAS CLASES EN DIRECTO (Norberto: las diapositivas de la Academia eran «una CACA comparadas con las sesiones en
   // vivo, tan visuales»). Cada planeta: la llegada (su fondo, su tema y su tripulante) → su historia en dos frases → las piezas
   // de la herramienta (NEBULA o el Capitán las cuentan) → «Ahora tú»: un hito por pantalla (la misión en la consola de ensayo y
-  // lo real) → sus preguntas DENTRO de un minijuego → planeta completado. La Cero (el prólogo) no tiene tripulante ni juego.
+  // lo real) → sus preguntas DENTRO de un minijuego → planeta completado. El prólogo (a bordo de La Constancia) no tiene tripulante ni juego.
   function pantallas(i) {
     var e = C.estaciones[i], P = [{ t: "llegada" }];
     if (e.retrato) P.push({ t: "historia" });
@@ -324,7 +324,7 @@
   function pintarHito(h) {
     var el = document.getElementById("h-" + h.id); if (!el) return;
     var st = estado(h), cab = '<div class="acd-hito-cab"><span class="acd-marca' + (st.ok ? " acd-ok" : "") + '">' + (st.ok ? ico("hecho") : "") + "</span><h2>" + esc(h.titulo) + "</h2>" +
-      (h.extra ? '<span class="chip">de Claude, para ti</span>' : "") + (st.conv ? '<span class="chip">convalidado</span>' : "") + "</div>";
+      (h.extra ? '<span class="chip">de NEBULA, para ti</span>' : "") + (st.conv ? '<span class="chip">convalidado</span>' : "") + "</div>";
     if (st.conv) { el.innerHTML = cab + '<p class="muted">' + esc(st.conv) + "</p>"; return; }
     if (h.tipo === "quiz") return pintarPreguntas(el, h, st, cab, h.preguntas.map(function (p) { return { p: p.p, o: p.o, ok: p.ok, porque: p.porque }; }));
     if (h.tipo === "clasificar") return pintarPreguntas(el, h, st, cab, h.items.map(function (it) {
@@ -347,8 +347,8 @@
     var av = el.querySelector(".acd-aviso"); if (av) { av.hidden = false; av.textContent = "Comprobando…"; }
     recargar().then(function () {
       if (estado(h).ok) trasHito();
-      else if (av) av.textContent = local(h.comprobar) ? "Todavía no aparece. Hazlo en ESTE navegador (la misma ventana, otra pestaña) y vuelve a comprobar; si no llega, cuéntaselo en «¿Dudas?», abajo a la derecha."
-        : "Todavía no aparece. Si acabas de hacerlo, espera unos segundos y vuelve a comprobar; si no llega, cuéntaselo en «¿Dudas?», abajo a la derecha.";
+      else if (av) av.textContent = local(h.comprobar) ? "Todavía no aparece. Hazlo en ESTE navegador (la misma ventana, otra pestaña) y vuelve a comprobar; si no llega, cuéntaselo a NEBULA (abajo a la derecha)."
+        : "Todavía no aparece. Si acabas de hacerlo, espera unos segundos y vuelve a comprobar; si no llega, cuéntaselo a NEBULA (abajo a la derecha).";
     });
   }
   /** El orden de las opciones: barajado, pero siempre el mismo para cada pregunta (en los datos, la buena va la primera). */
@@ -388,7 +388,7 @@
   }
   function pintarDiseno(el, h, st, cab) {
     var d = DOC.diseno || {};
-    el.innerHTML = cab + (st.ok ? '<p class="acd-bien">Enviado. Claude te lo comenta en su revisión diaria (en «¿Dudas?», abajo a la derecha).</p>' : "<p>Una pieza pequeña para tu aula, pensada al revés de como se juega: del objetivo a la pieza.</p>") +
+    el.innerHTML = cab + (st.ok ? '<p class="acd-bien">Enviado. NEBULA te lo comenta en tu hilo: «Pregunta a NEBULA», abajo a la derecha.</p>' : "<p>Una pieza pequeña para tu aula, pensada al revés de como se juega: del objetivo a la pieza.</p>") +
       '<div class="acd-form">' + h.campos.map(function (c) {
         return '<label><span><b>' + esc(c[1]) + "</b> " + esc(c[2]) + '</span><textarea rows="2" maxlength="600" data-c="' + c[0] + '">' + esc(d[c[0]] || "") + "</textarea></label>";
       }).join("") + '</div><div class="acd-botones"><button class="btn primary" type="button" data-env>' + (st.ok ? "Actualizar" : "Enviar mi diseño") + '</button><span class="muted" data-res></span></div>';
@@ -442,7 +442,7 @@
       b = document.createElement("button"); b.type = "button"; b.id = "acd-flota-b"; b.className = "acd-flota-b";
       b.setAttribute("aria-controls", "acd-claude"); b.setAttribute("aria-expanded", "false");
       el = document.createElement("section"); el.id = "acd-claude"; el.className = "acd-flota"; el.hidden = true;
-      el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Dudas, problemas e ideas");
+      el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Pregunta a NEBULA");
       document.body.appendChild(el); document.body.appendChild(b);
       b.onclick = function () { abrirFlota(el.hidden); };
       document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !el.hidden) { abrirFlota(false); b.focus(); } });
@@ -476,21 +476,22 @@
     if (abierta) lsPoner("claudeVisto", Date.now());
     var visto = Number(lsLeer("claudeVisto", 0)) || 0,
         nuevos = L.filter(function (m) { return (m.de === "claude" || m.de === "mando") && m.t > visto; }).length;
-    if (boton) boton.innerHTML = '<span class="acd-flota-i">' + ico("mensaje") + '</span><span class="acd-flota-t">¿Dudas?<span class="acd-flota-mas"> Escríbenos</span></span>' +
+    // (30-sep · Norberto: «no rompas la magia de la gamificación: que pregunten a NEBULA; si no lo sabe, llamará al Alto Mando»)
+    if (boton) boton.innerHTML = '<img class="acd-flota-neb" src="assets/img/personajes/nebula.png" alt=""><span class="acd-flota-t"><span class="acd-flota-mas">Pregunta a </span>NEBULA</span>' +
       (nuevos ? '<span class="neb-aviso" aria-label="' + nuevos + (nuevos === 1 ? " respuesta nueva" : " respuestas nuevas") + '">' + nuevos + "</span>" : "");
     // lo que se estaba escribiendo sobrevive al repintado (llega una respuesta, se guarda un paso…)
     var txt0 = document.getElementById("acd-txt"), borrador = txt0 ? txt0.value : "", conFoco = !!txt0 && document.activeElement === txt0;
     var sel0 = el.querySelector("[data-tipo].acd-sel"), tipo = sel0 ? sel0.getAttribute("data-tipo") : "pregunta";
-    el.innerHTML = '<div class="acd-flota-cab"><h2>' + ico("mensaje") + ' Dudas, problemas e ideas</h2><button type="button" class="acd-flota-x" aria-label="Cerrar">&times;</button></div>' +
-      '<p class="muted small">Una duda, algo que no funciona o una idea: cada día, Claude —la IA con la que Norberto ha construido STARGATE— lo lee y te contesta. Y a veces, el propio Norberto.</p>' +
+    el.innerHTML = '<div class="acd-flota-cab"><h2><img class="acd-flota-neb" src="assets/img/personajes/nebula.png" alt=""> Pregunta a NEBULA</h2><button type="button" class="acd-flota-x" aria-label="Cerrar">&times;</button></div>' +
+      '<p class="muted small">Una duda, algo que no funciona o una idea: cuéntamelo. Lo que yo no sepa se lo paso al Alto Mando, y te respondemos cuanto antes, aquí mismo.</p>' +
       '<div class="acd-hilo">' + (L.length ? L.map(function (m) {
         return '<div class="acd-msj ' + (m.de === "claude" ? "acd-de-claude" : m.de === "mando" ? "acd-de-mando" : "acd-de-ti") + '"><b>' +
-          (m.de === "claude" ? "Claude" : m.de === "mando" ? esc(m.quien || C.organiza.nombre) + " · organiza la Academia" : "Tú") + " <small>" + (m.t ? new Date(m.t).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</small></b><p>" + esc(m.x || "").replace(/\n/g, "<br>") + "</p></div>";
+          (m.de === "claude" ? "NEBULA" : m.de === "mando" ? "El Alto Mando" : "Tú") + " <small>" + (m.t ? new Date(m.t).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</small></b><p>" + esc(m.x || "").replace(/\n/g, "<br>") + "</p></div>";
       }).join("") : '<p class="muted">Todavía no hay mensajes. Pregunta lo que quieras.</p>') + "</div>" +
       '<div class="acd-escribir"><div class="acd-ops acd-ops4" role="radiogroup" aria-label="Qué es">' + [["pregunta", "Una duda"], ["fallo", "Algo no funciona"], ["idea", "Una idea"], ["otra", "Otra cosa"]].map(function (o) {
         return '<button type="button" class="acd-op' + (o[0] === tipo ? " acd-sel" : "") + '" data-tipo="' + o[0] + '" role="radio" aria-checked="' + (o[0] === tipo) + '">' + o[1] + "</button>"; }).join("") + "</div>" +
-        '<textarea rows="3" maxlength="1200" placeholder="Escribe aquí. Si algo falla: qué pulsaste, qué esperabas y qué pasó." id="acd-txt" aria-label="Tu mensaje"></textarea>' +
-        '<div class="acd-botones"><button class="btn primary" type="button" id="acd-env">Enviar</button><span class="muted small" id="acd-env-st" aria-live="polite"></span></div></div>';
+        '<textarea rows="3" maxlength="1200" placeholder="Escribe aquí. Si algo falla: qué pulsaste, qué esperabas y qué pasó." id="acd-txt" aria-label="Tu mensaje para NEBULA"></textarea>' +
+        '<div class="acd-botones"><button class="btn primary" type="button" id="acd-env">Enviar a NEBULA</button><span class="muted small" id="acd-env-st" aria-live="polite"></span></div></div>';
     var txt = document.getElementById("acd-txt"); txt.value = borrador; if (conFoco) txt.focus();
     el.querySelector(".acd-flota-x").onclick = function () { abrirFlota(false); if (boton) boton.focus(); };
     var h = el.querySelector(".acd-hilo"); if (h && abierta) h.scrollTop = h.scrollHeight;
@@ -546,7 +547,7 @@
     var total = C.estaciones.reduce(function (s, e) { return s + (e.min || 10); }, 0);
     app.innerHTML = '<main class="acd">' + cabecera(null) +
       '<section class="acd-ses"><div class="acd-carta"><div class="acd-pantalla"><div class="acd-heroe" style="background-image:linear-gradient(90deg,rgba(6,10,18,.95),rgba(6,10,18,.55)),url(assets/img/fondos/p1_forge_llegada.webp)"><div class="acd-heroe-txt">' +
-      "<h2>" + N + " sesiones cortas, a tu ritmo</h2><p class=\"acd-voz\">«El viaje de la Cero: en cada planeta, un poco de su historia, una pieza de la herramienta, una misión en tu consola de ensayo y sus preguntas dentro de un minijuego. Una sesión cada vez.»<span>NEBULA</span></p>" +
+      "<h2>" + N + " sesiones cortas, a tu ritmo</h2><p class=\"acd-voz\">«El viaje de La Constancia: en cada planeta, un poco de su historia, una pieza de la herramienta, una misión en tu consola de ensayo y sus preguntas dentro de un minijuego. Una sesión cada vez.»<span>NEBULA</span></p>" +
       '<p class="acd-que">Unas ' + Math.round(total / 60) + " horas en total, repartidas como quieras: cada sesión se abre al terminar la anterior, y siempre sigues donde lo dejaste.</p>" +
       '<div class="acd-botones"><button type="button" class="btn primary grande btn-google" id="acd-entrar">' + ((window.SG && window.SG.LOGO_G) || "") + "<span>Entrar con mi cuenta de Google</span></button></div>" +
       '<p class="acd-nota">' + ico("candado") + " Al entrar quedas <b>registrado como docente</b> de STARGATE y <b>alistado como recluta</b> en el grupo de la Academia, para vivirla como tu alumnado. <b>Tus estudiantes nunca verán tu correo:</b> si lo prefieres, usa una cuenta personal.</p></div>" +
@@ -633,7 +634,7 @@
           var a = x.avance || {}, p = pctDe(x), ses = Number(a.sesiones) || 0, tot = Number(a.total) || N;
           return '<div class="card acd-org-p acd-vig-p"><div class="acd-org-q"><b>' + esc(x.nombre || x.alias || x.correo) + (YO && x.uid === YO.uid ? " (tú)" : "") + "</b><small>" + esc(x.correo) + " · " + haceCuanto(Number(x.t)) + "</small></div>" +
             '<div class="acd-org-a"><div class="acd-barra" aria-hidden="true"><i style="width:' + Math.max(p, 2) + '%"></i></div>' +
-            "<span>" + (a.fin ? "<b>Comandante de la Cero</b>" : p + " % · " + ses + " de " + tot + " sesiones") + "</span></div></div>";
+            "<span>" + (a.fin ? "<b>" + esc(C.final.titulo) + "</b>" : p + " % · " + ses + " de " + tot + " sesiones") + "</span></div></div>";
         }).join("") : '<section class="card"><p class="muted">Todavía no se ha inscrito nadie.</p></section>') + "</main>";
       engancharVigia();
       var cp = document.getElementById("acd-vig-copiar");
@@ -678,7 +679,7 @@
         return '<details class="card acd-org-p" data-uid="' + esc(x.uid) + '"><summary>' +
           '<div class="acd-org-q"><b>' + esc(x.nombre || x.alias || x.correo) + "</b><small>" + esc(x.correo) + " · " + haceCuanto(Number(x.t)) + "</small></div>" +
           '<div class="acd-org-a"><div class="acd-barra" aria-hidden="true"><i style="width:' + Math.round(100 * Math.min(ses, tot) / Math.max(1, tot)) + '%"></i></div>' +
-          "<span>" + (a.fin ? "<b>Comandante de la Cero</b>" : ses + " de " + tot + " sesiones") + "</span></div>" +
+          "<span>" + (a.fin ? "<b>" + esc(C.final.titulo) + "</b>" : ses + " de " + tot + " sesiones") + "</span></div>" +
           (sr ? '<span class="chip acd-org-dudas">' + sr + " sin respuesta</span>" : "") +
           "</summary>" +
           '<p class="small muted">Hitos: ' + (Number(a.hitos) || 0) + " de " + (Number(a.de) || "—") + (x.alias ? " · alias en la Academia «" + esc(x.alias) + "»" : "") +
@@ -701,7 +702,7 @@
         return H.length ? '<div class="acd-hilo">' + H.map(function (m) {
           // (aquí «tú» eres quien organiza: lo tuyo a la derecha, como en cualquier chat; lo del docente, a la izquierda)
           return '<div class="acd-msj ' + (m.de === "claude" ? "acd-de-claude" : m.de === "mando" ? "acd-de-mando acd-mio" : "acd-de-el") + '"><b>' +
-            (m.de === "claude" ? "Claude" : m.de === "mando" ? "Tú" : esc(x.alias || (x.nombre || "").split(" ")[0] || "Docente")) +
+            (m.de === "claude" ? "NEBULA" : m.de === "mando" ? "Tú" : esc(x.alias || (x.nombre || "").split(" ")[0] || "Docente")) +
             " <small>" + (m.t ? new Date(m.t).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</small></b><p>" + esc(m.x) + "</p></div>"; }).join("") + "</div>"
           : '<p class="muted">Todavía no ha escrito nada.</p>';
       }

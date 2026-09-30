@@ -139,7 +139,7 @@
   function enLista(correo) { correo = String(correo || "").toLowerCase(); return docentes.some(function (d) { return String(d.correo || "").toLowerCase() === correo; }); }
   function avanceDe(a) {
     if (!a) return "Recién llegado";
-    if (a.fin) return "Comandante de la Cero";
+    if (a.fin) return "Comandante de La Constancia";
     return (a.sesiones || 0) + " de " + (a.total || 9) + " sesiones";
   }
   function pintarAcademia() {
