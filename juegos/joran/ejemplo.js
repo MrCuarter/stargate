@@ -1,7 +1,7 @@
 // DATOS DE EJEMPLO para ver la sala «como en clase» sin servidor: una tripulación de 22 reclutas, los otros grupos del
 // curso (el Salón de la fama) y la Galería de juegos. Siempre los mismos (semilla fija). En la web esto lo da el servidor
 // (stargateSala: ranking y galería) y este fichero NO se usa.
-import { JUEGOS, estado, galeria } from './comun.js?v=961c239091';
+import { JUEGOS, estado, galeria } from './comun.js?v=df75ade81b';
 
 export const EN_WEB = location.pathname.includes('/juegos/');
 export const AV = (k) => (EN_WEB ? '../../assets/img/avatares/evo/' : 'img/av/') + k + '.jpg';

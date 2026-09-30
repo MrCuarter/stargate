@@ -24,7 +24,8 @@
    * que docentes nuevos se agobien y permitir a los experimentados DISFRUTAR». Por defecto, todos en piloto automático.
    * El piloto solo OCULTA (lo marcado con data-av y las pestañas de AV_TABS): no hay dos consolas que mantener.
    */
-  var FICHA = null, MODO = "piloto", CLAVE_MODO = "sgModoNivel";
+  // (30-sep · la consola de ensayo guarda su modo aparte: si no, cambiarlo ahí cambiaba el de la consola de verdad)
+  var FICHA = null, MODO = "piloto", CLAVE_MODO = window.SG_ENSAYO === 1 ? "sgEnsayo.modo" : "sgModoNivel";
   var AV_TABS = ["zoco", "mios", "huevos", "sorteos", "ofertas"];
   function manual() { return MODO === "manual"; }
   function aplicarModo() {
@@ -37,9 +38,12 @@
     if (MOTOR.academiaMia && !GESTION && url.get("demo") !== "1") MOTOR.academiaMia().then(function (d) { ACADEMIA_DOC = d; if (d && PER && DATOS && TAB === "portada") pintar(); }, function () {});
     return (MOTOR.miFichaDocente ? MOTOR.miFichaDocente() : Promise.resolve(null)).then(function (f) {
       FICHA = f || {};
-      MODO = (FICHA.modo === "manual" || FICHA.modo === "piloto") ? FICHA.modo : (local === "manual" ? "manual" : "piloto");
-    }, function () { MODO = local === "manual" ? "manual" : "piloto"; }).then(aplicarModo);
+      MODO = (FICHA.modo === "manual" || FICHA.modo === "piloto") ? FICHA.modo : modoLocal(local);
+    }, function () { MODO = modoLocal(local); }).then(aplicarModo);
   }
+  // 30-sep · la consola de ensayo empieza en Mando manual: las misiones de la Academia (validar, anular, mensajes, premios)
+  // están ahí, y en Piloto automático esas secciones no salen
+  function modoLocal(local) { return local === "manual" || (window.SG_ENSAYO === 1 && local !== "piloto") ? "manual" : "piloto"; }
   function ponerModo(m) {
     MODO = m === "manual" ? "manual" : "piloto"; aplicarModo();
     // (se guarda en su ficha; si el servidor aún no lo admite, se queda en este navegador)
@@ -363,7 +367,7 @@
     var W = (window.screen && screen.availWidth) || 1440, H = (window.screen && screen.availHeight) || 900;
     var w = Math.min(1440, W - 40), h = Math.min(920, H - 60);
     var x = Math.max(0, Math.round((W - w) / 2)), y = Math.max(0, Math.round((H - h) / 2));
-    var u = new URL(ruta, location.href);
+    var u = new URL(haciaFuera(ruta), location.href);
     if (!u.searchParams.has("embed")) u.searchParams.set("embed", "1");
     var v = window.open(u.href, "sg_" + String(clave || "embed").replace(/[^\w-]/g, "_"),
       "popup=yes,width=" + w + ",height=" + h + ",left=" + x + ",top=" + y);
@@ -404,7 +408,7 @@
    *   · crear, graduar, borrar, el equipo, los escuadrones, los ajustes del grupo y editar el calendario viven en
    *     «Gestionar grupos» (gestion.html), solo para referentes.
    */
-  var CLAVE_ULTIMO = "sgConsolaPer";
+  var CLAVE_ULTIMO = window.SG_ENSAYO === 1 ? "sgEnsayo.per" : "sgConsolaPer";   // (30-sep · el ensayo no pisa el último grupo de verdad)
   function vivos() { return PERS.filter(function (p) { return p.estado !== "pasado"; }); }
   function soyRefAlguno() { return (PERS.some(function (p) { return p.soyReferente; }) || refGlobal()) && !modoDoc(); }
   async function elegirGrupo() {
@@ -536,9 +540,9 @@
     document.addEventListener("keydown", tecla);
   }
   /** Reabrir un curso terminado para la recuperación (hasta una fecha) o cerrar la recuperación antes de tiempo. */
-  async function recuperacion(per, abrir) {
+  async function recuperacion(per, reabrir) {   // (30-sep · «reabrir»: con «abrir», la función de abrir el grupo quedaba tapada y fallaba al final)
     var hasta = 0;
-    if (abrir) {
+    if (reabrir) {
       var def = new Date(Date.now() + 28 * 864e5).toISOString().slice(0, 10);
       var r = window.prompt("¿Hasta qué día abres el curso para la recuperación? (AAAA-MM-DD)", def);
       if (!r) return;
@@ -546,9 +550,9 @@
       if (!(hasta > Date.now())) { aviso("Esa fecha no vale: tiene que ser posterior a hoy."); return; }
     }
     try {
-      await MOTOR.guardarAjustes(per, { "stargate.recuperacion": abrir ? { hasta: hasta, desde: Date.now(), por: (YO && YO.correo) || "" } : false });
+      await MOTOR.guardarAjustes(per, { "stargate.recuperacion": reabrir ? { hasta: hasta, desde: Date.now(), por: (YO && YO.correo) || "" } : false });
       PERS = await MOTOR.misPERs(YO.correo, CON_ACADEMIA);
-      aviso(abrir ? "Reabierto para la recuperación hasta el " + fechaCorta(hasta) + ": vuelve a tus grupos en marcha y su alumnado puede registrar retos." : "Recuperación cerrada.");
+      aviso(reabrir ? "Reabierto para la recuperación hasta el " + fechaCorta(hasta) + ": vuelve a tus grupos en marcha y su alumnado puede registrar retos." : "Recuperación cerrada.");
       abrir(per);
     } catch (e) { aviso("No se ha podido: " + (e.message || e)); }
   }
@@ -839,7 +843,7 @@
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState !== "visible" || !PER || !DATOS || alDia()) return;
     if (["alumnado", "retos", "rankings"].indexOf(TAB) < 0) return;
-    if (document.querySelector(".c-modal, .sgp-capa, .sgp-caja.en-linea")) return;
+    if (document.querySelector(".c-modal.abierto, .sgp-capa, .sgp-caja.en-linea")) return;   // (30-sep · .abierto: la capa de la ficha se queda en la página cerrada, y sin esto ya no se refrescaba nunca)
     releerYPintar();
   });
 
@@ -2278,7 +2282,7 @@
           '<div class="pt-seg" role="group" aria-label="A quién">' +
             [["todos", "Todos"], ["silencio", "En silencio"], ["sin", "Sin estrenarse"]].filter(function (x) { return x[0] === "todos" || DEST[x[0]].length; }).map(function (x) {
               return '<button type="button" data-dest="' + x[0] + '" aria-pressed="' + (x[0] === "todos") + '"' + (x[0] === "todos" ? ' class="on"' : '') + '>' + x[1] + ' · ' + DEST[x[0]].length + '</button>'; }).join("") + '</div>' +
-          '<textarea id="pt-msg-txt" rows="3" maxlength="400" placeholder="Por ejemplo: el jueves repasamos el reto B2; traed la Bitácora al día."></textarea>' +
+          '<textarea id="pt-msg-txt" rows="3" maxlength="400" aria-label="Tu mensaje" placeholder="Por ejemplo: el jueves repasamos el reto B2; traed la Bitácora al día."></textarea>' +
           '<p class="pt-fila pt-msg-pie"><span class="small muted" id="pt-msg-n">0/400</span>' +
             '<button type="button" class="btn primary" id="pt-msg-ok" disabled>Enviar a ' + conUid.length + (conUid.length === 1 ? " recluta" : " reclutas") + '</button></p>' +
           '<p class="small m-sec-msg" id="pt-msg-res" aria-live="polite"></p></details>' +
@@ -2685,7 +2689,7 @@
    * «</> Código» copia el embed listo para Genially (Insertar → Otros → Código), con embed=1 para que salga sin la
    * cabecera ni el menú. El código solo en lo que tiene sentido incrustar; un enlace externo como el padlet, no.
    */
-  function absoluta(url) { return /^https?:\/\//i.test(url) ? url : location.origin + "/" + String(url).replace(/^\/+/, ""); }
+  function absoluta(url) { url = haciaFuera(url); return /^https?:\/\//i.test(url) ? url : location.origin + "/" + String(url).replace(/^\/+/, ""); }
   function conEmbed(url) { return url + (url.indexOf("?") >= 0 ? "&" : "?") + "embed=1"; }
 
 
@@ -4532,8 +4536,8 @@
       '</div>' +
       '<div class="card"><h3>Enlaces de este grupo</h3>' +
       '<p class="small">Alistamiento (dáselo a tu alumnado):<br><code>' + location.origin + '/alistarse.html?per=' + esc(PER) + MOTOR_EN_ENLACES + (DATOS.proyecto.joinCode ? '&codigo=' + esc(DATOS.proyecto.joinCode) : '') + '</code></p>' +
-      '<p class="small">La Nave:<br><code>' + location.origin + '/recluta.html?per=' + esc(PER) + MOTOR_EN_ENLACES + '</code></p>' +
-      '<p class="small">La sesión para proyectar:<br><code>' + location.origin + '/sesion.html?per=' + esc(PER) + MOTOR_EN_ENLACES + '</code></p></div>' +
+      '<p class="small">La Nave:<br><code>' + esc(absoluta('recluta.html?per=' + PER)) + MOTOR_EN_ENLACES + '</code></p>' +
+      '<p class="small">La sesión para proyectar:<br><code>' + esc(absoluta('sesion.html?per=' + PER)) + MOTOR_EN_ENLACES + '</code></p></div>' +
       '<div class="card"><h3>Para los Geniallys · se montan UNA vez</h3>' +
       '<p class="small muted">Ninguno lleva el grupo dentro: piden la cuenta de quien los abre y, si lleva varios grupos, le preguntan cuál. ' +
       'Valen en todos los grupos y todas las convocatorias. En Genially: <b>Insertar → Otros → Código</b> y pegar.</p>' +
@@ -4638,6 +4642,10 @@
    * 29-sep · la franja de la consola de ensayo: siempre a la vista, para que nadie crea que está en su grupo de verdad, con
    * «Empezar de cero» (vuelve el grupo de ensayo como estaba) y la vuelta a la Academia.
    */
+  /** 30-sep · lo que sale de la consola de ensayo hacia otra página (la clase, el aula, la Nave, un enlace copiado) va al grupo DEMO. */
+  function haciaFuera(u) {
+    return ENSAYO ? String(u).replace(/([?&]per=)nave-escuela(?=&|$)/, "$1" + encodeURIComponent(window.SG_PER_DEMO || "demo-stargate")) : u;
+  }
   function franjaEnsayo() {
     if (!ENSAYO || document.getElementById("ens-franja")) return;
     var f = document.createElement("div"); f.id = "ens-franja"; f.className = "ens-franja"; f.setAttribute("role", "status");
@@ -4651,12 +4659,14 @@
     document.body.appendChild(f); document.body.classList.add("con-ens-franja");
     // 30-sep · el grupo de ensayo solo existe en este navegador: los enlaces que salen de la consola (la clase, el aula, la Nave)
     // van al grupo DEMO de verdad, que es público
-    document.addEventListener("click", function (ev) {
+    var cambiar = function (ev) {
       var a = ev.target && ev.target.closest && ev.target.closest("a[href]"); if (!a) return;
       var h = a.getAttribute("href") || "";
       if (/^ensayo\.html/.test(h) || !/[?&]per=nave-escuela(&|$)/.test(h)) return;
-      a.setAttribute("href", h.replace(/([?&]per=)nave-escuela(?=&|$)/, "$1" + encodeURIComponent(window.SG_PER_DEMO || "demo-stargate")));
-    }, true);
+      a.setAttribute("href", haciaFuera(h));
+    };
+    // (el clic, el clic central y el «abrir en otra pestaña» del menú contextual o de una pulsación larga)
+    ["click", "auxclick", "contextmenu", "pointerdown"].forEach(function (t) { document.addEventListener(t, cambiar, true); });
   }
   function arrancar() {
     MOTOR = window.SG.MOTOR;

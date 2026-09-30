@@ -526,9 +526,9 @@
         + '<p class="small muted">La responden desde su Nave durante la semana y la resuelves en la siguiente clase. '
         + 'Ejemplo: «' + esc((CFGV.ejemplos || [])[0] || "¿Qué herramienta prefieres que veamos la semana que viene?") + '»</p>'
         + '<label class="au-et">La pregunta</label>'
-        + '<input id="au-vt-preg" class="au-inp" maxlength="' + (CFGV.pregunta_max || 120) + '" placeholder="' + esc((CFGV.ejemplos || [])[0] || "") + '">'
+        + '<input id="au-vt-preg" class="au-inp" aria-label="La pregunta" maxlength="' + (CFGV.pregunta_max || 120) + '" placeholder="' + esc((CFGV.ejemplos || [])[0] || "") + '">'
         + '<label class="au-et">Las opciones</label><div id="au-vt-ops">'
-        + [0, 1].map(function (i) { return '<input class="au-inp au-vt-op-inp" maxlength="' + (CFGV.opcion_max || 60) + '" placeholder="Opción ' + (i + 1) + '">'; }).join("")
+        + [0, 1].map(function (i) { return '<input class="au-inp au-vt-op-inp" aria-label="Opción ' + (i + 1) + '" maxlength="' + (CFGV.opcion_max || 60) + '" placeholder="Opción ' + (i + 1) + '">'; }).join("")
         + '</div><button class="btn min" id="au-vt-mas">+ Añadir opción</button>'
         + '<div class="au-vt-ajustes">'
         + '<label class="au-check"><input type="checkbox" id="au-vt-extra" checked> Dejar <b>comprar voto extra</b> por ' + (CFGV.voto_extra || 15) + ' ◈ (hasta ' + (CFGV.max_extra || 2) + ')</label>'
@@ -659,7 +659,7 @@
       html += '<div class="au-tarjeta"><div class="eyebrow verde">Pregunta en directo</div>'
         + '<h3>Lanza una pregunta a tu clase</h3>'
         + '<p class="small muted">Contestan escribiendo, desde su Nave o desde la sesión, y ves sus respuestas aparecer aquí en tiempo real. Ejemplo: «¿Qué es lo que más os ha costado de la actividad?»</p>'
-        + '<textarea id="au-pq-inp" class="au-inp au-pq-inp" maxlength="300" rows="3" placeholder="Escribe la pregunta"></textarea>'
+        + '<textarea id="au-pq-inp" class="au-inp au-pq-inp" maxlength="300" rows="3" aria-label="La pregunta" placeholder="Escribe la pregunta"></textarea>'
         + '<button class="btn primary" id="au-pq-lanzar">Lanzar la pregunta</button><p class="ll-pie" id="au-pq-msg"></p></div>';
       if (p && PQ.resp.length) html += '<div class="au-tarjeta"><div class="eyebrow">La última (cerrada)</div><h3>' + esc(p.texto) + '</h3>'
         + '<div class="au-pq-muro" id="au-pq-muro">' + muroHtml() + '</div></div>';
@@ -705,6 +705,9 @@
       // clase— hasta que la siguiente consulta lo pisara. Ver a gente que no está delante es peor
       // que no ver a nadie.
       PER = selG.value; SESION = null; PRESENTES = []; PRESENTES_HOY = null; ELEGIDOS = {}; FUENTE_P = "";
+      // (30-sep · y las votaciones: salían las del otro grupo. Primero se deja de escuchar al viejo)
+      if (VOT.parar) { try { VOT.parar(); } catch (e) {} }
+      VOT = { lista: null, cargando: false, error: "" };
       pinta('<div class="au-caja"><p class="ll-esperando">Cambiando de grupo…</p></div>');
       MOTOR.tablero(PER, true).then(function (t) { D = t; render(); vigilar(); cargarPresentesHoy(); })
         .catch(function (e) { puerta("No he podido leer ese grupo: " + e.message); });

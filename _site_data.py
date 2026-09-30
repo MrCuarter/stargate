@@ -459,7 +459,7 @@ ACADEMIA = {
      ],
      "hitos": [
        {"id": "vivirlo-ruta", "tipo": "auto", "comprobar": "ruta:m0", "titulo": "Tu primer vuelo en la Ruta", "como": "En tu Nave de recluta, <b>Retos → La Ruta</b>, la misión 0: NEBULA te enseña a pilotar camino de Fôrge. Llega al planeta (el bronce basta).", "boton": "nave", "opinar": True},
-       {"id": "ludo-simulador", "tipo": "auto", "comprobar": "ens:simulador", "titulo": "¿Quién ha vencido a Joran?", "como": "En la consola de ensayo, la sección <b>Simulador</b>: mira quién ha llegado más lejos en la Nave Escuela.", "boton": "sim:consola"},
+       {"id": "ludo-simulador", "tipo": "auto", "comprobar": "ens:simulador", "titulo": "¿Quién ha vencido a Joran?", "como": "En la consola de ensayo, la sección <b>Simulador</b>: mira quién ha llegado más lejos en el grupo de ensayo.", "boton": "sim:consola"},
      ],
      "juego": {"maquina": "ruta:m5", "n": "La Ruta de la Estática, rumbo a Ludo"},
      "preguntas": [

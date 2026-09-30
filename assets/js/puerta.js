@@ -35,7 +35,9 @@
   // alumnado se encontraria con una puerta dentro de su propio Genially. Lo mismo con el panorama
   // de tickets, que se proyecta apaisado.
   var q = new URLSearchParams(location.search);
-  if (q.get('embed') === '1' || q.get('solo') === '1' || q.get('panorama') === '1') { abrir(); return; }
+  // 30-sep · y `seguir=1`: el enlace que el docente pega en el chat para que su clase siga la sesión y fiche
+  // (sesion.js → enlaceClase, aula.js → enlaceSesion). Sin esto, el alumnado se topaba con «Material del profesorado».
+  if (q.get('embed') === '1' || q.get('solo') === '1' || q.get('panorama') === '1' || q.get('seguir') === '1') { abrir(); return; }
 
   /**
    * LA MARCA. La pone el motor cuando el servidor confirma que esa cuenta lleva algún grupo (ver

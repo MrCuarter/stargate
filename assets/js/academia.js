@@ -678,12 +678,14 @@
       engancharPestanas();
     });
   }
-  function escribiendo() { return JUGANDO || (document.activeElement && document.activeElement.tagName === "TEXTAREA"); }
+  function escribiendo() { var t = document.activeElement && document.activeElement.tagName; return JUGANDO || t === "TEXTAREA" || t === "INPUT"; }
+  // 30-sep · en el panel de quien organiza no se repinta el curso por encima (y así tampoco se le crea un registro)
+  function enPanel() { return ORG && !VER; }
   // lo que se practica en otra pestaña de este navegador (la consola, la clase, la Nave) marca sus hitos al momento
-  window.addEventListener("storage", function (e) { if (e.key === "sgAcademia" && !escribiendo()) pintar(); });
+  window.addEventListener("storage", function (e) { if (e.key === "sgAcademia" && !escribiendo() && !enPanel()) pintar(); });
   // y al volver a esta pestaña, se mira otra vez la ficha (la Ruta, el Simulador y los retos los apunta el servidor)
   document.addEventListener("visibilitychange", function () {
-    if (document.visibilityState === "visible" && !DEMO && YO && !escribiendo()) recargar().then(pintar);
+    if (document.visibilityState === "visible" && !DEMO && YO && !escribiendo() && !enPanel()) recargar().then(pintar);
   });
 
   function arrancar() {

@@ -14,8 +14,8 @@
 // Gráficos: TODO dibujado por código en este fichero (rocas, lava, piloto, Estática, cristales, enfriadores), salvo el
 // cielo del fondo, que es el arte de Fôrge de la propia serie STARGATE (p1_forge_llegada) y el retrato del piloto que
 // elegiste en la sala. Sin recursos de terceros ni generadores de pago.
-import { $, estado, SON, tono, ruido, audio, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, AVATARES, EMBED } from './comun.js?v=961c239091';
-import { crearDesafio, MODO, urlModo } from './desafio.js?v=961c239091';
+import { $, estado, SON, tono, ruido, audio, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, AVATARES, EMBED } from './comun.js?v=df75ade81b';
+import { crearDesafio, MODO, urlModo } from './desafio.js?v=df75ade81b';
 
 const JUEGO = JUEGOS.find((j) => j.id === 'conquista') || { id: 'conquista', n: 'La conquista de Fôrge' };
 const EN_WEB = location.pathname.includes('/juegos/');
@@ -577,7 +577,7 @@ function pintarHUD() {
 function pausar() {
   if (!jugando || !P || P.fin || DES.abierto) return;
   pausa = !pausa; soltar();
-  if (pausa) { pantalla(`<h2>Pausa</h2><p>La lava también espera.</p><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=961c239091">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><p>La lava también espera.</p><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=df75ade81b">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && jugando && !pausa && !DES.abierto && !window.__sinPausa) pausar(); });
@@ -609,7 +609,7 @@ function portada() {
     <p>Cada pocos minutos <b>la lava acelera</b> y todo vale más: ${FASES.slice(1).map((F) => `${mmss(F.t)} ${fmtX(F.x)}`).join(' · ')}. A partir de los 10 minutos, la <b>zona roja</b>.</p>
     ${DES.texto()}
     <p class="pista">Tu récord: <b>${(e.marcas[JUEGO.id] || 0).toLocaleString('es-ES')}</b> · La chimenea es la misma para todos · Dibujado por código · el cielo, de la serie STARGATE</p>
-    <div class="botones"><button id="b-ya">¡A trepar!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=961c239091">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya">¡A trepar!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=df75ade81b">Volver a la sala</a>'}</div>`);
   $('b-ya').onclick = async () => {
     audio();
     if (desafio) { // las preguntas tienen que estar antes de salir: sin ellas, el depósito no se podría rellenar

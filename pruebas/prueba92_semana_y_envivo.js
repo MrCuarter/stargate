@@ -46,8 +46,8 @@ c(/id="ev-resp" maxlength="280"/.test(NAVE) && /M\.responderPregunta\(per, p\.id
 
 // ── 5 · la sesión sincronizada
 c(/function emitir\(\)/.test(SES) && /publicarEnVivo\(st\.per, \{sesion:\{activa:true, sem:st\.sem, pres:!!st\.pres, act:st\.act\|\|0, k:o\.k, n:o\.n/.test(SES), "🔴 sesión · el docente emite semana (o la presentación) y diapositiva (clave y cuál de ellas)");
-c(/if\(EMBED && !st\.alumno && st\.per && st\.yo\) encenderDirecto\(\)/.test(SES) && /encenderDirecto\(\);   \/\/ 17-sep · quien proyecta, emite/.test(SES) && /id="ses-directo"/.test(SES),
-  "   al proyectar (en su Genially o a pantalla completa) emite solo, y un botón lo apaga");
+c(/if\(EMBED && !st\.alumno && st\.per && st\.yo && !DIRECTO\.aMano\) encenderDirecto\(\)/.test(SES) && /DIRECTO\.aMano=true; apagarDirecto\(\);/.test(SES) && /encenderDirecto\(\);   \/\/ 17-sep · quien proyecta, emite/.test(SES) && /id="ses-directo"/.test(SES),
+  "   al proyectar (en su Genially o a pantalla completa) emite solo, y un botón lo apaga (y apagado a mano, se queda apagado)");
 c(/function seguirDocente\(\)/.test(SES) && /ir\(i, false, true\)/.test(SES) && /Siguiendo a tu Comandante/.test(SES), "🔴 sesión · el recluta va a la diapositiva del docente, sola");
 // 18-sep · Norberto: «el estudiante tiene bloqueado cambiar de diapositiva; la suya cambia sola cuando el docente cambia»
 c(/if\(st\.alumno && !desdeDirecto && i!==st\.i && enDirecto\(\)\)\{ avisoBloqueo\(\); return; \}/.test(SES) && /function enDirecto\(\)/.test(SES),

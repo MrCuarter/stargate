@@ -55,6 +55,11 @@ def _versionar_juegos():
     def rep(m):
         q = (m.group(3) or "").lstrip("?")
         q = "&".join(x for x in q.split("&") if x and not x.startswith("v="))
+        # 🔴 30-sep · una dirección A MEDIAS no se toca: la que acaba en «=» sigue concatenada ('recluta.html?per=' + PER:
+        # con la huella en medio, el QR del directo perdía el grupo) y la que sigue con « + '?…'» lleva su consulta aparte
+        # (le salían dos «?» y se perdía la segunda).
+        if q.endswith("=") or _re_j.match(r"""['"`]\s*\+\s*['"`]\?""", m.string[m.end():]):
+            return m.group(1) + m.group(2) + ("?" + q if q else "")
         return m.group(1) + m.group(2) + "?" + (q + "&" if q else "") + "v=" + JV
     n = 0
     for f in _jfiles() + [os.path.join(HERE, "juegos", d, "datos.js") for d in ("ruta", "joran", "directo", "asedio")]:
@@ -1670,7 +1675,7 @@ lo que no puede faltar es tu ceremonia:</p>
 <div class="eyebrow teal">Dos papeles, un sistema</div><h2>¿Quién hace qué?</h2>
 <div class="grid cols-2">
 <div class="card"><h3><img class=ico src=assets/img/iconos/p/envivo.png alt> Profesorado referente <span class="pill">gestiona el PER</span></h3>
-<p><b>Crea el grupo</b> desde <a href="gestion.html">Gestionar grupos</a> → «+ Crear un grupo» (con la fecha de la semana 1, que marca el ritmo de todo el sistema), <b>pone el equipo docente</b> —quien esté en esa lista entra con su propia cuenta, sin PIN que repartir—, <b>monta y actualiza el Genially del grupo</b> y lleva desde ahí lo que se hace una o dos veces por curso: el equipo, los escuadrones, los traspasos de alumnado, los ajustes, el calendario y el cierre del curso. El día a día, en <a href="consola.html">su Nave</a>, como cualquier docente. La chuleta completa está en <a href="pasos.html#referente">Cómo se hace</a>.</p></div>
+<p><b>Crea el grupo</b> desde <a href="gestion.html">Gestionar grupos</a> → «+ Crear un grupo» (con la fecha de la semana 1, que marca el ritmo de todo el sistema), <b>pone el equipo docente</b> —quien esté en esa lista entra con su propia cuenta, sin PIN que repartir—, <b>monta y actualiza el Genially del grupo</b> y lleva desde ahí lo que se hace una o dos veces por curso: el equipo, los escuadrones, los traspasos de alumnado, los ajustes, el calendario y el cierre del curso. El día a día, en <a href="consola.html">su Nave</a>, como cualquier docente. La chuleta completa está en <a href="pasos.html?camino=referente">Cómo se hace</a>.</p></div>
 <div class="card"><h3><img class=ico src=assets/img/iconos/p/medalla.png alt> Profesorado que imparte <span class="pill">dinamiza el aula</span></h3>
 <p>No toca ninguna hoja: sigue la <a href="cronologia.html">cronología</a>, publica el mensaje de la semana en el foro de la plataforma de UNIR, entrega las insignias <b>con ceremonia</b> y usa <a href="consola.html">su Nave</a> (proyectar la clase, la llamada a filas, el aula, su gente) y los <a href="tickets.html">tickets</a>, todo con su propia cuenta de Google. Si quiere un <b>panel de control Genially propio</b>, lo pega él mismo en su Nave → <b>Tu panel de control</b> (con Mando manual).</p></div>
 </div>
@@ -3343,7 +3348,7 @@ LEGACY = head("STARGATE · El archivo: la hoja de cálculo",
 formularios por grupo. Funcionaba. Esta página cuenta cómo era, <b>qué pasó con los grupos que la
 usaban</b> y cómo volver atrás si algún día hiciera falta.</p>
 <p class="small muted">Si buscas cómo se crea un grupo <b>hoy</b>, está en
-<a href="pasos.html#referente">Cómo se hace</a>.</p></header>
+<a href="pasos.html?camino=referente">Cómo se hace</a>.</p></header>
 
 <section><div class="wrap">
 
@@ -4603,8 +4608,8 @@ _PE = [
     "«¡Bienvenida al puente, Comandante!»: esa cuenta ya es <b>profe referente</b>. (Si Norberto te ha hecho referente con tu correo, entra sin más por la portada.)"),
    ("Ten a mano, si puedes, <b>otra cuenta de Google</b> (una personal) para hacer de estudiante al final.",
     "No hace falta para casi nada; solo para ver la Nave del alumnado por dentro."),
-   ("Pide a Norberto que te añada a los grupos de prueba con alumnado: <b>PRUEBA · SEMANA 16</b> (el viaje terminado) y <b>PRUEBA · SEMANA 8</b> (a mitad).",
-    "Así verás rankings, fichas y entregas de verdad. Mientras, puedes crear tu propio grupo (paso 2)."),
+   ("Abre la <a href='ensayo.html'>consola de ensayo</a>: tu Nave con un grupo de mentira de 30 reclutas y el curso entero.",
+    "Así verás rankings, fichas y entregas de verdad, sin tocar ningún grupo: nada sale de tu navegador. Para aprenderlo con calma, la <a href='academia.html'>Academia de la Cero</a>."),
  ]),
  ("1 · Tu Nave (la Nave del Comandante)", [
    ("Entra en <a href='consola.html'>Mi nave</a>.",

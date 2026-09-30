@@ -178,8 +178,8 @@
   function pintarDocentes() {
     $("#f-docentes").innerHTML = docentes.map(function (d, i) {
       return '<div class="docente" data-i="' + i + '">' +
-        '<input class="d-nombre" placeholder="Nombre y apellidos" value="' + esc(d.nombre) + '">' +
-        '<input class="d-correo" placeholder="correo@unir.net" value="' + esc(d.correo) + '" inputmode="email">' +
+        '<input class="d-nombre" aria-label="Nombre y apellidos" placeholder="Nombre y apellidos" value="' + esc(d.nombre) + '">' +
+        '<input class="d-correo" aria-label="Correo" placeholder="correo@unir.net" value="' + esc(d.correo) + '" inputmode="email">' +
         /**
          * 🔴 LOS DOS PAPELES NO SON EXCLUYENTES, y el desplegable obligaba a elegir. Norberto:
          * «un docente puede ser referente, docente o los dos a la vez. En ocasiones el referente NO
@@ -194,7 +194,7 @@
           '<label><input type="checkbox" class="d-ref"' + (esRef(d) ? " checked" : "") + '> Referente</label>' +
           '<label><input type="checkbox" class="d-imp"' + (imparte(d) ? " checked" : "") + '> Imparte</label>' +
         '</div>' +
-        '<input class="d-panel" placeholder="Su Genially propio (opcional)" value="' + esc(d.panel) + '">' +
+        '<input class="d-panel" aria-label="Su Genially propio (opcional)" placeholder="Su Genially propio (opcional)" value="' + esc(d.panel) + '">' +
         '<button class="btn min quitar" title="Quitar">✕</button></div>';
     }).join("");
     Array.prototype.forEach.call($("#f-docentes").children, function (fila) {

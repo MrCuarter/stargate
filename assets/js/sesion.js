@@ -1187,6 +1187,9 @@
   function montarTicket(el, semLista, iTema, que, op){
     op=op||{};
     var caja=el.querySelector('#ses-tk'), vivo=true;
+    // 🔴 30-sep · quien sigue la clase desde su móvil no ve los comentarios: su Comandante oculta los que no deben
+    // proyectarse, y esas marcas solo las lee el equipo docente. Los ve en la pantalla de clase, como todos.
+    if(st.alumno && que==='textos' && caja){ caja.innerHTML='<p class="sub">Tu Comandante las está leyendo en la pantalla de clase.</p>'; return null; }
     // (26-sep · el título, según la diapositiva: en «Cómo os fue» no faltan comentarios, faltan valoraciones)
     var nada=function(txt){ caja.innerHTML='<div class="tk-nada"><b>'+(que==='notas'?'Todavía no hay valoraciones':'¡No hay comentarios!')+'</b><p class="sub">'+txt+'</p></div>'; };
     var pinta=function(lista){
@@ -2490,8 +2493,9 @@
     montar();
     marcarTramo();
     // 17-sep · en directo: el docente que proyecta dentro de su Genially emite solo; el recluta, sigue
-    var bd=root.querySelector('#ses-directo'); if(bd) bd.onclick=function(){ DIRECTO.on?apagarDirecto():encenderDirecto(); };
-    if(EMBED && !st.alumno && st.per && st.yo) encenderDirecto(); else emitir();
+    // (30-sep · si el docente la apaga a mano, se queda apagada: antes cada repintado la volvía a encender)
+    var bd=root.querySelector('#ses-directo'); if(bd) bd.onclick=function(){ if(DIRECTO.on){ DIRECTO.aMano=true; apagarDirecto(); } else { DIRECTO.aMano=false; encenderDirecto(); } };
+    if(EMBED && !st.alumno && st.per && st.yo && !DIRECTO.aMano) encenderDirecto(); else emitir();
     if(st.alumno && !DIFERIDO){ seguirDocente(); SEG.dibujado=''; pintarSeguir(); }
   }
   /**
@@ -2979,6 +2983,7 @@
       +'<button type="button" class="btn min" id="ses-salir">⏻ Cerrar sesión</button></p>';
   }
   function salir(){
+    apagarDirecto();   // (30-sep · quien sale deja de emitir: si no, su clase se quedaba siguiendo una sesión parada)
     if(st.fuera){ try{ st.fuera(); }catch(e){} st.fuera=null; }
     var M=window.SG&&window.SG.MOTOR, fin=function(){ st.yo=null; st.grupos=null; st.slides=[]; if(!q.get('per')) st.per=''; puertaSesion(); };
     if(M&&M.salir) M.salir().then(fin, fin); else fin();
@@ -2994,7 +2999,7 @@
       }).join('')+'</div>'+(st.yo?quienSoy(st.yo):''));
     cablearSalir();
     Array.prototype.forEach.call(root.querySelectorAll('.ses-grupo'),function(b){
-      b.onclick=function(){ st.per=b.getAttribute('data-per'); st.i=0; st.sem=0; cargarYArrancar(); };
+      b.onclick=function(){ var nuevo=b.getAttribute('data-per'); if(nuevo!==st.per){ apagarDirecto(); DIRECTO.aMano=false; } st.per=nuevo; st.i=0; st.sem=0; cargarYArrancar(); };
     });
   }
   function sinGrupo(msg){
@@ -3083,7 +3088,9 @@
       if(!yo) return cargarYArrancar();
       return M.misGruposDeAlumno(yo.uid).then(function(gs){
         var g=(gs||[]).filter(function(x){ return x.per===per; })[0];
-        if(g){ st.alumno=true; st.ficha=g.ficha; st.profeMio=g.profe||''; }
+        if(g){ st.alumno=true; st.ficha=g.ficha; st.profeMio=g.profe||'';
+          // (30-sep · el recluta que llega por el enlace del chat ve la sesión limpia: sin la cabecera de «Solo profesorado»)
+          if(SEGUIR) document.body.classList.add('embed'); }
         cargarYArrancar();
       });
     }).catch(function(){ cargarYArrancar(); });

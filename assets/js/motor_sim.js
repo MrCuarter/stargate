@@ -17,15 +17,15 @@ const localStorage = (() => { const L = window.localStorage, NO = /^sgEs(Docente
  * terminar deja `window.SG.MOTOR` y avisa con el evento `sg:motor` para que el resto de la web
  * —que son scripts normales— sepa que ya puede usarlo.
  */
-import { initializeApp } from "./sim/firebase_sim.js?h=4a713fb14b";
+import { initializeApp } from "./sim/firebase_sim.js?h=e95a15e3a9";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, onAuthStateChanged,
          connectAuthEmulator }
-  from "./sim/firebase_sim.js?h=4a713fb14b";
+  from "./sim/firebase_sim.js?h=e95a15e3a9";
 import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, getCountFromServer, writeBatch, onSnapshot,
          deleteField, connectFirestoreEmulator }
-  from "./sim/firebase_sim.js?h=4a713fb14b";
+  from "./sim/firebase_sim.js?h=e95a15e3a9";
 import { getFunctions, httpsCallable, connectFunctionsEmulator }
-  from "./sim/firebase_sim.js?h=4a713fb14b";
+  from "./sim/firebase_sim.js?h=e95a15e3a9";
 
 /**
  * 🔴 EL LABORATORIO. Con esto, la batería 67 recorre la web entera contra el motor DE VERDAD —las

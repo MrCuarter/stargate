@@ -27,7 +27,11 @@ const semilla = await fetch(new URL("../../sim/escuela.json?h=" + encodeURICompo
   return r.json();
 });
 const SEMANA = 7 * 864e5;
-const CORRE = Math.max(0, Math.floor((Date.now() - Number(semilla.generado || Date.now())) / SEMANA)) * SEMANA;
+// 🔴 30-sep · semanas enteras contadas desde el LUNES de la semana en que se sembró, no desde la hora exacta: sembrado un
+// miércoles, el lunes siguiente aún no «había pasado una semana», el ensayo no se corría y caía en la semana 16 («curso
+// terminado») cada lunes y martes. Lunes contra lunes, en días redondeados: el cambio de hora no descuadra la cuenta.
+const lunesDe = (ms) => { const d = new Date(ms); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getTime(); };
+const CORRE = Math.max(0, Math.floor(Math.round((lunesDe(Date.now()) - lunesDe(Number(semilla.generado || Date.now()))) / 864e5) / 7)) * SEMANA;
 const VERSION = semilla.v + "+" + Math.round(CORRE / SEMANA);
 
 // ── los valores: Timestamp y centinelas

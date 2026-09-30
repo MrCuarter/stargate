@@ -79,7 +79,8 @@
         // Firestore devuelve Timestamp; de una exportación puede llegar una cadena o un número.
         var d = ultima && ultima.toDate ? ultima.toDate() : new Date(ultima);
         if (isNaN(d.getTime())) return;
-        fechas[porDoc[doc] || doc] = d.toISOString().slice(0, 10);
+        // (30-sep · el día LOCAL: con toISOString, lo registrado un lunes antes de las 2:00 contaba como del domingo)
+        fechas[porDoc[doc] || doc] = window.SGSEMANAS ? window.SGSEMANAS.iso(d) : d.toISOString().slice(0, 10);
       });
       return fechas;
     };

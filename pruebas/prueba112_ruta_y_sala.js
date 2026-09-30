@@ -40,7 +40,12 @@ c(/import\('\.\/datos\.js(\?v=[0-9a-f]{10})?'\)/.test(L("juegos/ruta/juego.js"))
   const REF = /(['"`(])((?:\.\.?\/|(?![\w-]+\/))[\w./-]*?\.(?:js|html|css|json))(\?[^'"`)\s]*)?(?=['"`)])/g;
   (function andar(d) { for (const f of fs.readdirSync(path.join(R, d))) { const r = d + "/" + f, st = fs.statSync(path.join(R, r));
     if (st.isDirectory()) andar(r); else if (/\.(js|html|css)$/.test(f)) { const t = fs.readFileSync(path.join(R, r), "utf8"); let m;
-      while ((m = REF.exec(t))) { const v = /[?&]v=([0-9a-f]{10})$/.exec(m[3] || ""); if (!v) sinV.push(r + " → " + m[2]); else otras.add(v[1]); } } } })("juegos");
+      while ((m = REF.exec(t))) {
+        // (30-sep · como el build: una dirección A MEDIAS —acaba en «=» o sigue con « + '?…'»— no lleva huella: con ella en
+        // medio, el QR del directo perdía el grupo)
+        if (/=$/.test(m[3] || "") || /^['"`]\s*\+\s*['"`]\?/.test(t.slice(REF.lastIndex))) continue;
+        const v = /[?&]v=([0-9a-f]{10})$/.exec(m[3] || ""); if (!v) sinV.push(r + " → " + m[2]); else otras.add(v[1]); } } } })("juegos");
+  c(/new URL\('\.\.\/\.\.\/recluta\.html\?per=' \+ encodeURIComponent\(PER\)/.test(L("juegos/directo/proyector.js")), "🔴 el QR del directo lleva el grupo (recluta.html?per=<grupo>, sin la huella en medio)");
   c(/^[0-9a-f]{10}$/.test(JV || "") && !sinV.length && otras.size === 1 && otras.has(JV), "🔴 cada fichero de juegos/ se pide con la huella ?v= del build (y la misma que llevan los enlaces de la Nave)" + (sinV.length ? ": " + sinV.slice(0, 3).join(", ") : ""));
 }
 // 🔴 28-sep · NEBULA GUÍA AL DOCENTE EN LA SESIÓN: el motor se carga, y hay guía para el juego, la llamada, el relámpago,

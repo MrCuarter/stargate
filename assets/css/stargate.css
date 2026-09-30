@@ -655,7 +655,7 @@ img.av.marco-oro{border:2px solid var(--amber) !important;box-shadow:0 0 14px rg
 .vent-carga{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   color:#55606a;background:#0b141d;font-family:'DMSans';font-size:.9rem}
 body.vent-abierta{overflow:hidden}
-@media (max-width:640px){.vent-caja{width:100vw;height:100vh;border-radius:0;border:0}}
+@media (max-width:640px){.vent-caja{width:100vw;height:100vh;height:100dvh;border-radius:0;border:0}}
 
 /* ===== 29-ago · LA NAVE, POR PESTAÑAS =====
    La página crecía sin fin hacia abajo (ficha + vestuario + semana + planetas + recompensas +

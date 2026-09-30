@@ -127,7 +127,7 @@
 
   // ---------- estado ----------
   var KEY_MAIL='sgNaveEmail_'+per;
-  var st={d:null,semanas:[],actual:1,estado:'curso',email:localStorage.getItem(KEY_MAIL)||'',yo:null,cargandoYo:false,msgYo:'',
+  var st={d:null,semanas:[],actual:1,estado:'curso',email:(function(){try{return localStorage.getItem(KEY_MAIL)||'';}catch(e){return '';}})(),yo:null,cargandoYo:false,msgYo:'',
           // la pestaña abierta sale del #hash: así un enlace a #retos abre esa, y F5 no te devuelve al principio
           tab:(location.hash||'').replace('#','')||'ficha'};
 
@@ -265,7 +265,14 @@
       if(st.yo) celebrar(st.yo);      // después de pintar: el cartel cae encima de su propia ficha
     });
   }
-  function olvidar(){st.yo=null;st.email='';st.msgYo='';localStorage.removeItem(KEY_MAIL);render();}
+  // 🔴 30-sep · «No soy yo / salir» cierra también la sesión de Google: si no, al recargar volvía a entrar la misma cuenta
+  // (en un ordenador compartido, el siguiente veía la Nave, los créditos y los retos del anterior).
+  function olvidar(){
+    st.yo=null;st.email='';st.msgYo='';try{localStorage.removeItem(KEY_MAIL);}catch(e){}
+    var M=motorNuevo()&&window.SG&&window.SG.MOTOR;
+    if(M&&M.salir) return M.salir().then(function(){ location.replace('entrar.html'); },function(){ render(); });
+    render();
+  }
 
   // ---------- secciones ----------
   // v3.14 · fecha bonita a partir de un ISO (2026-12-27 -> 27/12/2026)
@@ -348,7 +355,7 @@
       // sesión y el servidor lo sabe sin preguntar. Dejar el campo sería ofrecer una puerta que no
       // lleva a ningún sitio — y era justo la puerta por la que se veía la ficha del vecino.
       +(motorNuevo()?''
-        :'<div class="selrow"><input id="in-mail" type="email" placeholder="tu.correo@ejemplo.com" autocomplete="email"><button class="btn primary" id="btn-mail" type="button">Entrar en la nave</button></div>')
+        :'<div class="selrow"><input id="in-mail" type="email" aria-label="Tu correo de Google" placeholder="tu.correo@ejemplo.com" autocomplete="email"><button class="btn primary" id="btn-mail" type="button">Entrar en la nave</button></div>')
       +(st.msgYo?'<p class="small" style="margin-top:8px;color:var(--amber)">'+st.msgYo+'</p>':'')
       +(alta?'<div class="nave-alta"><span class="o">¿aún no te has alistado?</span>'
         +(motorNuevo()
@@ -1092,13 +1099,13 @@
     var R=reflexionDe(id), mia=((st.yo&&st.yo.reflexiones)||{})[id]||'';
     return '<div class="rh">'
       +(R?'<div class="rf-caja rf-mia"><label class="rf-et" for="rfh-'+esc(id)+'"><img class=ico src=assets/img/iconos/p/editar.png alt> Tu reflexión <span class="rf-preg">'+esc(R.pide)+'</span></label>'
-        +'<textarea class="rh-rf rf-txt" id="rfh-'+esc(id)+'" data-rfh="'+esc(id)+'" rows="5" maxlength="2000" placeholder="Escríbela aquí: al menos '+R.min+' letras">'+esc(mia)+'</textarea>'
+        +'<textarea class="rh-rf rf-txt" id="rfh-'+esc(id)+'" data-rfh="'+esc(id)+'" rows="5" maxlength="2000" aria-label="Tu respuesta" placeholder="Escríbela aquí: al menos '+R.min+' letras">'+esc(mia)+'</textarea>'
         +'<div class="rf-pie"><span class="rf-n'+(mia.length>=R.min?' ok':'')+'" data-rfn-min="'+R.min+'">'+mia.length+' / '+R.min+'</span>'
         +'<button class="btn min" type="button" data-guardarf="'+esc(id)+'">'+(mia?'Guardar cambios':'Guardar mi reflexión')+'</button></div></div>':'')
       +(los.length?'<p class="rh-ya"><img class=ico src=assets/img/iconos/p/enlace.png alt> '+(los.length>1?'Tus enlaces: ':'Tu enlace: ')+los.map(function(u){
           return '<a href="'+esc(/^https?:\/\//i.test(u)?u:'https://'+u)+'" target="_blank" rel="noopener">'+esc(u.replace(/^https?:\/\//,'').slice(0,60))+'</a>'; }).join(' · ')+'</p>':'')
       +'<div class="rh-ev"><input class="rh-in" data-evid="'+esc(id)+'" type="text" inputmode="url" value="'+esc(ya)+'" '
-        +'placeholder="Enlace de tu evidencia (si son dos, sepáralos con un espacio)" autocomplete="off">'
+        +'aria-label="El enlace de tu evidencia" placeholder="Enlace de tu evidencia (si son dos, sepáralos con un espacio)" autocomplete="off">'
       +'<button class="btn min" type="button" data-guardaev="'+esc(id)+'">'+(ya?'Cambiar enlace':'Guardar enlace')+'</button></div>'
       +'<button class="btn min rh-desHacer" type="button" data-deshacer="'+esc(id)+'">'
       +'↩︎ No lo he hecho todavía</button>'
@@ -1659,7 +1666,7 @@
       html+='<div class="card ev-pregunta"><div class="eyebrow amber">Pregunta en directo'+(p.por?' · '+esc(p.por):'')+'</div>'
         +'<h3>'+esc(p.texto)+'</h3>'
         +(ENV.mia?'<p class="small ev-mia">Tu respuesta: «'+esc(ENV.mia.texto)+'». Puedes cambiarla mientras siga abierta.</p>':'')
-        +'<textarea id="ev-resp" maxlength="280" rows="3" placeholder="Escribe tu respuesta (tu Comandante la verá al momento, con tu alias)">'+esc(ENV.borrador||(ENV.mia?ENV.mia.texto:''))+'</textarea>'
+        +'<textarea id="ev-resp" maxlength="280" rows="3" aria-label="Tu respuesta" placeholder="Escribe tu respuesta (tu Comandante la verá al momento, con tu alias)">'+esc(ENV.borrador||(ENV.mia?ENV.mia.texto:''))+'</textarea>'
         +'<p class="ev-acc"><button type="button" class="btn primary" id="ev-enviar"'+(ENV.enviando?' disabled':'')+'>'+(ENV.mia?'Cambiar mi respuesta':'Enviar respuesta')+'</button>'
         +'<span class="small muted" id="ev-msg"></span></p></div>';
     }
@@ -2878,6 +2885,8 @@
       // se avisa aquí para que ni lo intente (el script también lo deniega sin cobrar).
       var veces=(r&&r.canjeados?r.canjeados[x.nombre]:0)||0;
       var repetible=!x.max||x.max>=99, tope=!repetible&&veces>=x.max;
+      // (30-sep · se calcula ANTES de la etiqueta: abajo llegaba tarde y la etiqueta decía «te lo puedes permitir» sin botón)
+      var faltanRepes = x.tipo === 'cromo_repes' && (r ? (r.repes_disponibles || 0) : 0) < 3;
       var afford=!r?'':faltanRepes
         ? '<span class="chip wip">Necesitas 3 repetidas · tienes '+((r&&r.repes_disponibles)||0)+'</span>'
         :tope?'<span class="chip done">Ya la tienes'+(x.max>1?' ('+veces+'/'+x.max+')':'')+'</span>'
@@ -2896,7 +2905,6 @@
        * la pantalla dejaba pulsar, abría la ventana de NEBULA y solo entonces decía que no. Hacer
        * pulsar para decir «no» es la forma más barata de parecer roto.
        */
-      var faltanRepes = x.tipo === 'cromo_repes' && (r ? (r.repes_disponibles || 0) : 0) < 3;
       var boton = (motorNuevo() && r && !tope && !faltanRepes && mis>=x.coste && x.id)
         ? '<button class="btn primary" type="button" data-canje="'+esc(x.doc||x.id)+'" '
           +'data-nombre="'+esc(x.nombre)+'" data-coste="'+x.coste+'" data-tipo="'+esc(x.tipo||'')+'"'
@@ -4305,7 +4313,7 @@
     // —el de Reclutamiento, al alistarse— y contarlos le quitaba un hueco el primer día.
     // 16-sep · los relámpago (L…) tampoco cuentan, A PROPÓSITO: se hacen en clase en diez minutos, y no pueden
     // quitarle a nadie el hueco de registrar ese mismo día un reto de dos horas. (El cerrojo de fuente.js, igual.)
-    return Object.keys(f).filter(function(k){ return /^[ABXS]\d/.test(k) && otorgados.indexOf(k)<0 && new Date(f[k])>=hoy; }).length;
+    return Object.keys(f).filter(function(k){ return /^[ABXS]\d/.test(k) && otorgados.indexOf(k)<0 && (window.SGSEMANAS ? SGSEMANAS.fecha(f[k]) : new Date(f[k]))>=hoy; }).length;   // (30-sep · el día, en hora local)
   }
   document.addEventListener('click', function(ev){
     var b=ev.target&&ev.target.closest&&ev.target.closest('[data-voto]'); if(!b||b.disabled) return;
@@ -4561,8 +4569,9 @@
         + '</div></div>';
       document.body.appendChild(capa);
       // El primer foco va al botón que NO hace nada: quien pulsa Intro por inercia no compra.
-      var bNo = capa.querySelector('[data-no]'), bSi = capa.querySelector('[data-si]');
-      setTimeout(function(){ bNo.focus(); }, 30);
+      // (30-sep · con `no: ''` es un aviso de un solo botón: no hay «no», y «Entendido» cierra la ventana)
+      var bNo = capa.querySelector('[data-no]'), bSi = capa.querySelector('[data-si]'), soloAviso = !bNo;
+      setTimeout(function(){ (bNo || bSi).focus(); }, 30);
 
       /**
        * 🔴 DECIR QUE SÍ NO CIERRA LA VENTANA. Y no es un detalle de estilo: el «sí» encadena con la
@@ -4574,26 +4583,26 @@
       function cerrar(v){
         if(!capa.parentNode) return;
         document.removeEventListener('keydown', tecla, true);
-        if(v){ resolve(true); return; }
+        if(v && !soloAviso){ resolve(true); return; }
         capa.classList.add('cerrando');
         setTimeout(function(){
           if(capa.parentNode) capa.parentNode.removeChild(capa);
           if(previo && previo.focus) { try{ previo.focus(); }catch(e){} }
         }, 140);
-        resolve(false);
+        resolve(!!v);
       }
       // 🔴 El foco no puede escaparse a la página de detrás: si se va, quien navega con teclado
       // acaba pulsando botones que no ve y el diálogo deja de ser modal de verdad.
       function tecla(e){
         if(e.key === 'Escape'){ e.preventDefault(); cerrar(false); return; }
         if(e.key !== 'Tab') return;
-        var f = [bNo, bSi];
+        var f = [bNo, bSi].filter(Boolean);
         var i = f.indexOf(document.activeElement);
         e.preventDefault();
         f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
       }
       document.addEventListener('keydown', tecla, true);
-      bNo.onclick = function(){ cerrar(false); };
+      if(bNo) bNo.onclick = function(){ cerrar(false); };
       bSi.onclick = function(){ cerrar(true); };
       capa.onclick = function(e){ if(e.target === capa) cerrar(false); };
     });

@@ -61,7 +61,7 @@ c(PLAN.every(e => e.preguntas.every(q => q.p && q.o.length >= 3 && q.o.length <=
 c(/function hitoJuego\(e\)/.test(JS) && /tipo: "juego"/.test(JS) && /e\.hitos\.concat\(e\.juego \? \[hitoJuego\(e\)\] : \[\]\)/.test(JS), "   el juego es un hito más de su sesión (se da por hecho al acertarlas todas)");
 c(/"&banco=academia&embed=1&tanda=" \+ encodeURIComponent\(e\.id\)/.test(JS) && /window\.SG_BANCO_JUEGO = e\.preguntas/.test(JS), "   se abre en modo Academia, con sus preguntas");
 c(/ev\.origin !== location\.origin/.test(JS) && /m\.tanda !== e\.id/.test(JS) && /if \(m\.todas\)/.test(JS) && /if \(m\.siguiente\)/.test(JS), "🔴 y la Academia escucha al juego: «todas» (hito hecho) y «siguiente» (sin fiarse de otros orígenes)");
-c(/function escribiendo\(\) \{ return JUGANDO \|\|/.test(JS), "   mientras se juega, la página no se repinta sola (se perdería la partida)");
+c(/function escribiendo\(\) \{ var t = document\.activeElement && document\.activeElement\.tagName; return JUGANDO \|\|/.test(JS), "   mientras se juega, la página no se repinta sola (se perdería la partida)");
 
 // ── 4 · Una misión en la consola de ensayo por sesión, y lo real en el grupo de la Academia
 const hitos = [].concat(...E.map(e => e.hitos)), AUTO = /^((alta|nave|reto:[A-Z]\d|ruta:m\d|repaso|dif:\d+|sim:(clase|rueda|panel)|ens:[a-z]+)(\+|$))+$/;

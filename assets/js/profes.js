@@ -76,7 +76,7 @@
   function detalle(p,retos){var box=document.getElementById('detalle');var tiene={};Object.keys(p.retos||{}).forEach(function(k){tiene[k]=p.retos[k];});
     var filas=[['H1','Reclutamiento']].concat(retos.map(function(x){return [x[0],x[1]];})).map(function(x){var t=tiene[x[0]];
       return '<tr><td>'+esc(x[1])+'</td><td>'+(t?'<span class="chip ok">✓ '+esc(f(t.fecha))+' · '+esc(t.origen)+'</span>':'<span class="chip wip">pendiente</span>')+'</td><td>'+(t?'<button class="btn small" data-a="anular" data-r="'+x[0]+'">Anular</button>':'<button class="btn small" data-a="otorgar" data-r="'+x[0]+'">Otorgar</button>')+'</td></tr>';}).join('');
-    box.innerHTML='<div class="card" style="margin-top:14px"><div class="tab-head"><div><h3>'+SG.avatarImg(p.avatar,p.alias,'',p.xp,st.datos.tipo)+esc(p.alias)+' <span class="small muted">'+esc(p.nombre)+' · '+esc(p.email)+'</span></h3>'+(p.bitacora?'<a href="'+esc(p.bitacora)+'" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/notas.png alt> Abrir su Bitácora ↗</a>':'<span class="muted small">sin enlace de Bitácora</span>')+'</div><button class="btn small" id="cerrarDet">✕</button></div>'
+    box.innerHTML='<div class="card" style="margin-top:14px"><div class="tab-head"><div><h3>'+SG.avatarImg(p.avatar,p.alias,'',p.xp,st.datos.tipo)+esc(p.alias)+' <span class="small muted">'+esc(p.nombre)+' · '+esc(p.email)+'</span></h3>'+(p.bitacora?'<a href="'+esc(p.bitacora)+'" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/notas.png alt> Abrir su Bitácora ↗</a>':'<span class="muted small">sin enlace de Bitácora</span>')+'</div><button class="btn small" id="cerrarDet" aria-label="Cerrar">✕</button></div>'
       +'<div class="dots" style="margin:10px 0">'+Object.keys(N).filter(function(k){return p.insignias.indexOf(k)>=0;}).map(function(k){return '<img class="dot" src="assets/img/insignias/'+k+'.webp" title="'+esc(N[k])+'">';}).join('')+'</div>'
       +'<div class="tablewrap"><table><thead><tr><th>Reto</th><th>Estado</th><th>Acción</th></tr></thead><tbody>'+filas+'</tbody></table></div>'
       +(p.canjes&&p.canjes.length?'<h4 class="small" style="margin-top:12px">Canjes</h4><ul class="small">'+p.canjes.map(function(c){return '<li>'+esc(f(c.fecha))+' · '+esc(c.recompensa)+' · '+esc(c.actividad)+(c.entregado?' · <b>entregado</b>':'')+'</li>';}).join('')+'</ul>':'')+'</div>';
@@ -94,7 +94,7 @@
       +'<td><input class="dc" type="email" value="'+e(x.correo)+'" placeholder="correo@unir.net" style="width:100%;padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:#fff"></td>'
       +'<td style="text-align:center"><input class="dr" type="checkbox"'+(/referente/.test(x.rol||'')?' checked':'')+'></td>'
       +'<td style="text-align:center"><input class="di" type="checkbox"'+(/imparte/.test(x.rol||'')?' checked':'')+'></td>'
-      +'<td><button class="btn small" data-quitar="'+i+'">✕</button></td></tr>';}
+      +'<td><button class="btn small" data-quitar="'+i+'" aria-label="Quitar">✕</button></td></tr>';}
   // v3.14 · 2026-12-27 -> 27/12/2026
   function fecha(iso){ if(!iso) return '—'; var p=String(iso).split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:esc(String(iso)); }
   // v3.62 · el diálogo de traspaso. Se enseña UNA vez por docente huérfano, con la cuenta delante:

@@ -46,7 +46,9 @@ export const LETRAS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // sin I ni O: no se confunden
 export const nuevoCodigo = () => Array.from({ length: 4 }, () => LETRAS[Math.floor(Math.random() * LETRAS.length)]).join('');
 export const EN_WEB = location.pathname.includes('/juegos/');
 // el avatar: una clave del borrador (p3f_r2) o, en la web, la imagen de la ficha (la que pinta la Nave)
-export const AV = (k) => { k = String(k || ''); if (/^https?:\/\//.test(k)) return k; if (k.includes('/')) return (EN_WEB ? '../../' : '') + k;
+// 🔴 30-sep · el avatar llega de Firestore y cada jugador escribe el suyo: con comillas, < >, espacios o barras invertidas no
+// es una imagen, es un intento de colar código en el proyector del docente (se pinta dentro de src="…"). Se descarta.
+export const AV = (k) => { k = String(k || ''); if (/["'<>`\\\s]/.test(k)) k = ''; if (/^https?:\/\//.test(k)) return k; if (k.includes('/')) return (EN_WEB ? '../../' : '') + k;
   return (EN_WEB ? '../../assets/img/avatares/evo/' : '../sala-joran/img/av/') + (k || 'p3f_r2') + '.jpg'; };
 export const AVATARES = ['p1f', 'p1m', 'p2f', 'p2m', 'p3f', 'p3m', 'p4f', 'p4m', 'p5f', 'p5m', 'p6f', 'p6m', 'p7f', 'p7m'].map((p) => p + '_r2');
 export const TEMAS = ['', 'Fôrge', 'Ecos', 'Sendara', 'Reliae', 'Umbral', 'Ludo', 'Vínculo', 'Liminar'];
@@ -64,7 +66,7 @@ export const MODOS = {
     que: 'La clase se parte al azar en dos escuadrones invitados (dos de la flota que no son el vuestro) y tira de una baliza. Tras un acierto: empujar fuerte o sabotear al rival. Cuenta la media por miembro, así que da igual que un equipo tenga uno más.' },
 };
 // 🔴 en la web, los nombres y la línea de cada modo salen de _site_data.py → DIRECTO (el build escribe datos.js)
-try { const D = (await import('./datos.js?v=961c239091')).DIRECTO; for (const [k, largo, estructura, breve] of D.modos) if (MODOS[k]) Object.assign(MODOS[k], { largo, estructura, breve }); } catch (e) { /* borrador: sin datos.js */ }
+try { const D = (await import('./datos.js?v=df75ade81b')).DIRECTO; for (const [k, largo, estructura, breve] of D.modos) if (MODOS[k]) Object.assign(MODOS[k], { largo, estructura, breve }); } catch (e) { /* borrador: sin datos.js */ }
 // ── LOS AJUSTES (lo que el docente puede tocar antes de lanzar)
 export const DURACIONES = [120, 180, 240, 300];
 export const PREGUNTAS = { no: 'Sin preguntas (solo reflejos)', semana: 'El tema de la semana', vistos: 'Los temas ya vistos', todo: 'Todo el viaje' };
