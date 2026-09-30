@@ -208,7 +208,7 @@
       cuerpo = fondo(e.bg) + '<div class="acd-velo izq"></div>' +
         (e.carta ? '<img class="acd-carta-trip" src="' + esc(e.carta) + '" alt="' + esc(e.quien) + '">' : '<img class="acd-corte der" src="' + esc(e.pj || POSE.nebula) + '" alt="' + esc(e.quien) + '">') +
         '<div class="acd-dia-txt"><div class="acd-dia-k">Academia de la Cero · sesión ' + (i + 1) + " de " + N + " · unos " + (e.min || 10) + " minutos</div>" +
-        '<h2 class="acd-dia-h1">' + esc(e.planeta) + '</h2><p class="acd-dia-sub">' + esc(e.tema) + '</p><p class="acd-dia-sub acd-mut">Hoy: ' + esc(e.hoy) + "</p>" +
+        '<h2 class="acd-dia-h1">' + esc(e.planeta) + '</h2><p class="acd-dia-sub">' + esc(e.tema) + '</p><p class="acd-dia-sub acd-mut">Hoy: ' + esc(e.hoy.charAt(0).toLowerCase() + e.hoy.slice(1)) + "</p>" +
         (e.retrato ? "" : '<p class="acd-cita">«' + esc(e.cita) + "» <span>" + esc(e.quien) + "</span></p>") +
         (e.retrato ? "" : '<p class="acd-dia-sub">' + esc(e.historia) + "</p>") + "</div>";
     } else if (x.t === "historia") {
