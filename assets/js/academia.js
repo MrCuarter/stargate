@@ -150,9 +150,11 @@
     // la de «completada» solo se alcanza con todo hecho
     if (P[PANT].t === "fin" && !hecha(ACTUAL)) PANT = P.length - 2;
     var pr = progreso(), fin = pr.n >= pr.t;
-    app.innerHTML = '<main class="acd">' + (ORG ? pestanasOrg("curso") : "") + cabecera(pr) + mapa(fin) + '<section class="acd-ses" id="acd-ses"></section>' +
+    EN_LISTA = false;
+    app.innerHTML = '<main class="acd">' + (ORG ? pestanasOrg("curso") : VIGIA ? pestanasVigia("curso") : "") + cabecera(pr) + mapa(fin) + '<section class="acd-ses" id="acd-ses"></section>' +
       (fin ? finalHtml() : "") + (VER ? "" : '<details class="acd-claude" id="acd-claude"' + (lsLeer("claudeAbierto", false) ? " open" : "") + "></details>") + "</main>";
     if (ORG) engancharPestanas();
+    if (VIGIA) engancharVigia();
     pintarPantalla();
     pintarClaude(); apuntarAvance();
     Array.prototype.forEach.call(app.querySelectorAll("[data-ses]"), function (b) {
@@ -547,6 +549,59 @@
    * (lo que haga ahí se guarda en su navegador, como la demostración: no se registra ni se alista).
    */
   var ORG = false, VER = false;
+  /**
+   * 🔴 30-sep · LAS COORDINADORAS. Norberto: «es importante que Anita y Caridad puedan ver las personas que estén haciendo el
+   * curso en la academia, pero también que ellas lo puedan hacer como estudiantes… son las primeras que van a hacer esta
+   * formación». Quien puede leer la lista (las reglas: el Mando, los vitalicios y los referentes activos) y no la organiza, la
+   * hace como todos y además tiene una segunda pestaña, «Tu profesorado»: quién la está haciendo y cuánto lleva, sin tocar nada.
+   */
+  var VIGIA = false, EN_LISTA = false;
+  function pestanasVigia(cual) {
+    return '<nav class="acd-org-tabs" aria-label="La Academia y tu profesorado">' +
+      '<button type="button" class="acd-org-tab' + (cual === "curso" ? " on" : "") + '" data-vig="curso"' + (cual === "curso" ? ' aria-current="page"' : "") + ">" + ico("libro") + " Tu Academia</button>" +
+      '<button type="button" class="acd-org-tab' + (cual === "profes" ? " on" : "") + '" data-vig="profes"' + (cual === "profes" ? ' aria-current="page"' : "") + ">" + ico("gente") + " Tu profesorado</button></nav>";
+  }
+  function engancharVigia() {
+    Array.prototype.forEach.call(app.querySelectorAll("[data-vig]"), function (b) {
+      b.onclick = function () { if (b.getAttribute("data-vig") === "profes") pintarVigia(); else pintar(); };
+    });
+  }
+  function pctDe(x) { var a = x.avance || {}; return a.fin ? 100 : a.de ? Math.min(99, Math.round(100 * (Number(a.hitos) || 0) / Number(a.de))) : 0; }
+  function pintarVigia() {
+    EN_LISTA = true;
+    app.innerHTML = '<main class="acd acd-org">' + pestanasVigia("profes") + '<p class="muted">Leyendo quién la está haciendo…</p></main>';
+    engancharVigia();
+    M.academiaTodos().then(function (todos) {
+      if (!EN_LISTA) return;
+      var org = String((C.organiza || {}).correo || "").toLowerCase();
+      var P = todos.filter(function (x) { return String(x.correo).toLowerCase() !== org; })
+        .sort(function (a, b) { return pctDe(b) - pctDe(a) || (Number(b.t) || 0) - (Number(a.t) || 0); });
+      var fin = P.filter(function (x) { return x.avance && x.avance.fin; }).length;
+      var cifra = function (n, t) { return '<div class="acd-org-c"><b>' + n + "</b><span>" + t + "</span></div>"; };
+      app.innerHTML = '<main class="acd acd-org">' + pestanasVigia("profes") +
+        '<section class="card acd-org-cab"><p class="kicker">La Academia de la Cero · tu profesorado</p><h1>Quién la está haciendo</h1>' +
+        "<p>Cada docente, cuánto lleva y cuándo entró por última vez. Para animar a quien va parado y felicitar a quien la termina. Lo de gestionar (correos, bajas, respuestas) lo lleva " + esc((C.organiza || {}).nombre || "quien la organiza") + ".</p>" +
+        '<div class="acd-org-cifras">' + cifra(P.length, P.length === 1 ? "inscrito" : "inscritos") + cifra(P.length - fin, "en marcha") + cifra(fin, "terminada") +
+          cifra(P.length ? Math.round(P.reduce(function (s2, x) { return s2 + pctDe(x); }, 0) / P.length) + " %" : "—", "de media") + "</div>" +
+        '<div class="acd-botones"><button type="button" class="btn" id="acd-vig-copiar">' + ico("enlace") + " Copiar el enlace para el profesorado</button></div>" +
+        '<p class="acd-nota small" id="acd-vig-msg" aria-live="polite"></p></section>' +
+        (P.length ? P.map(function (x) {
+          var a = x.avance || {}, p = pctDe(x), ses = Number(a.sesiones) || 0, tot = Number(a.total) || N;
+          return '<div class="card acd-org-p acd-vig-p"><div class="acd-org-q"><b>' + esc(x.nombre || x.alias || x.correo) + (YO && x.uid === YO.uid ? " (tú)" : "") + "</b><small>" + esc(x.correo) + " · " + haceCuanto(Number(x.t)) + "</small></div>" +
+            '<div class="acd-org-a"><div class="acd-barra" aria-hidden="true"><i style="width:' + Math.max(p, 2) + '%"></i></div>' +
+            "<span>" + (a.fin ? "<b>Comandante de la Cero</b>" : p + " % · " + ses + " de " + tot + " sesiones") + "</span></div></div>";
+        }).join("") : '<section class="card"><p class="muted">Todavía no se ha inscrito nadie.</p></section>') + "</main>";
+      engancharVigia();
+      var cp = document.getElementById("acd-vig-copiar");
+      if (cp) cp.onclick = function () {
+        var u = location.origin + "/academia.html", m = document.getElementById("acd-vig-msg");
+        var ok = function () { m.textContent = "Copiado: " + u; }, mal = function () { m.textContent = "El enlace: " + u; };
+        try { navigator.clipboard.writeText(u).then(ok, mal); } catch (e) { mal(); }
+      };
+    }, function () {
+      if (EN_LISTA) app.querySelector("main").insertAdjacentHTML("beforeend", '<p class="aviso malo">No se ha podido leer la lista. Prueba dentro de un rato.</p>');
+    });
+  }
   function pestanasOrg(cual) {
     return '<nav class="acd-org-tabs" aria-label="La Academia, para quien la organiza">' +
       '<button type="button" class="acd-org-tab' + (cual === "profes" ? " on" : "") + '" data-org="profes"' + (cual === "profes" ? ' aria-current="page"' : "") + ">" + ico("gente") + " Tu profesorado</button>" +
@@ -680,7 +735,7 @@
   }
   function escribiendo() { var t = document.activeElement && document.activeElement.tagName; return JUGANDO || t === "TEXTAREA" || t === "INPUT"; }
   // 30-sep · en el panel de quien organiza no se repinta el curso por encima (y así tampoco se le crea un registro)
-  function enPanel() { return ORG && !VER; }
+  function enPanel() { return (ORG && !VER) || EN_LISTA; }
   // lo que se practica en otra pestaña de este navegador (la consola, la clase, la Nave) marca sus hitos al momento
   window.addEventListener("storage", function (e) { if (e.key === "sgAcademia" && !escribiendo() && !enPanel()) pintar(); });
   // y al volver a esta pestaña, se mira otra vez la ficha (la Ruta, el Simulador y los retos los apunta el servidor)
@@ -705,7 +760,10 @@
           SIN_GUARDAR = false;
           DOC = d || { pasos: {} };
           // 🔴 entrar ES registrarse: su documento nace al entrar (con su nombre y su correo de Google), aunque no haga nada más
-          if (primeraVez) { primeraVez = false; if (!d) guardar({ alias: (yo.nombre || "").split(" ")[0] || "" }).catch(function () {}); }
+          if (primeraVez) { primeraVez = false; if (!d) guardar({ alias: (yo.nombre || "").split(" ")[0] || "" }).catch(function () {});
+            // ¿puede leer la lista del profesorado? (las coordinadoras y los referentes): entonces, su segunda pestaña
+            if (M.academiaTodos) M.academiaTodos().then(function () { VIGIA = true; if (!EN_LISTA && !escribiendo()) pintar(); }, function () {}); }
+          if (EN_LISTA) return;   // (mirando «Tu profesorado»: su propio avance no repinta el curso por encima)
           if (!escribiendo()) pintar(); else pintarClaude();
         });
       });

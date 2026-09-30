@@ -65,7 +65,7 @@ c(/if \(VOT\.parar\) \{ try \{ VOT\.parar\(\); \} catch \(e\) \{\} \}\n      VOT
 
 // ── 7 · La Academia
 const AJS = L("assets/js/academia.js");
-c(/function enPanel\(\) \{ return ORG && !VER; \}/.test(AJS) && /!escribiendo\(\) && !enPanel\(\)\) pintar\(\)/.test(AJS) && /t === "INPUT"/.test(AJS),
+c(/function enPanel\(\) \{ return \(ORG && !VER\) \|\| EN_LISTA; \}/.test(AJS) && /!escribiendo\(\) && !enPanel\(\)\) pintar\(\)/.test(AJS) && /t === "INPUT"/.test(AJS),
   "🔴 el panel de quien organiza no se repinta con el curso encima (ni le crea un registro, ni borra lo que está escribiendo)");
 
 c(/recargar\(\)\.then\(function \(\) \{ if \(!FICHA && !ORG\) return alistarAuto\(\)\.then\(recargar\); \}\)\.then\(pintar\)/.test(AJS)

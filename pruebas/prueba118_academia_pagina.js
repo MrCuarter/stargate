@@ -73,6 +73,14 @@ c(/YA LE HA RESPONDIDO NORBERTO/.test(DIA), "   la revisión diaria de Claude lo
 c(/\(okJ \? opinarHtml\(hj\) : ""\)/.test(AJS) && /estado\(hjf\)\.ok && !opinado\(hjf\) \? opinarHtml\(hjf, "¿Qué tal «" \+ hjf\.n \+ "»\?"\)/.test(AJS) && /enganchaOpinar\(op\.parentNode/.test(AJS),
   "🔴 «¿Cómo te ha resultado?» tras cada minijuego: en su diapositiva y, si aún no lo ha dicho, en la del final");
 
+// ── 6 · 30-sep · las coordinadoras (Anita, Caridad): la hacen como alumnado Y ven quién la está haciendo
+c(/if \(M\.academiaTodos\) M\.academiaTodos\(\)\.then\(function \(\) \{ VIGIA = true;/.test(AJS) && /function pintarVigia\(\)/.test(AJS) && /" Tu profesorado<\/button><\/nav>"/.test(AJS),
+  "🔴 quien puede leer la lista (vitalicios, referentes) y no la organiza: su curso y una pestaña «Tu profesorado»");
+c(/if \(EN_LISTA\) return;   \/\/ \(mirando «Tu profesorado»/.test(AJS) && /function enPanel\(\) \{ return \(ORG && !VER\) \|\| EN_LISTA; \}/.test(AJS),
+  "   mirando la lista, su propio avance no le repinta el curso por encima");
+c(!/academiaEditar|academiaQuitar|academiaResponder|darDeBaja/.test(AJS.slice(AJS.indexOf("function pintarVigia()"), AJS.indexOf("function pintarVigia()") + 4000)),
+  "   y es de solo lectura: corregir, echar y responder siguen siendo de quien la organiza");
+
 console.log("\n  Batería 118 · la Academia, una página del menú");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);
