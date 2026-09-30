@@ -81,6 +81,16 @@ c(/if \(EN_LISTA\) return;   \/\/ \(mirando «Tu profesorado»/.test(AJS) && /fu
 c(!/academiaEditar|academiaQuitar|academiaResponder|darDeBaja/.test(AJS.slice(AJS.indexOf("function pintarVigia()"), AJS.indexOf("function pintarVigia()") + 4000)),
   "   y es de solo lectura: corregir, echar y responder siguen siendo de quien la organiza");
 
+// ── 7 · 30-sep · «¿Dudas?», una píldora flotante (Norberto: «haz más visible el botón para preguntar… una píldora flotante
+// en la parte inferior derecha; al pulsar se despliega»)
+const CSS7 = L("assets/css/stargate.css");
+c(/function montarFlota\(\)/.test(AJS) && /b\.className = "acd-flota-b"/.test(AJS) && /document\.body\.appendChild\(el\); document\.body\.appendChild\(b\);/.test(AJS)
+  && /\.acd-flota-b\{position:fixed;right:16px;bottom:calc\(16px/.test(CSS7), "🔴 «¿Dudas?»: una píldora fija abajo a la derecha, fuera de la página que se repinta");
+c(/class="neb-aviso" aria-label="' \+ nuevos/.test(AJS) && /var txt0 = document\.getElementById\("acd-txt"\), borrador = txt0 \? txt0\.value : ""/.test(AJS),
+  "   con el número de respuestas nuevas, y lo que se escribe no se pierde cuando la página se actualiza");
+c(/body\.acd-jugando \.acd-flota-b/.test(CSS7) && /JUGANDO = true; document\.body\.classList\.add\("acd-jugando"\)/.test(AJS) && !/<details class="acd-claude"/.test(AJS),
+  "   se aparta mientras se juega; y la caja plegada del final ya no existe");
+
 console.log("\n  Batería 118 · la Academia, una página del menú");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);

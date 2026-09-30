@@ -152,7 +152,9 @@
     var pr = progreso(), fin = pr.n >= pr.t;
     EN_LISTA = false;
     app.innerHTML = '<main class="acd">' + (ORG ? pestanasOrg("curso") : VIGIA ? pestanasVigia("curso") : "") + cabecera(pr) + mapa(fin) + '<section class="acd-ses" id="acd-ses"></section>' +
-      (fin ? finalHtml() : "") + (VER ? "" : '<details class="acd-claude" id="acd-claude"' + (lsLeer("claudeAbierto", false) ? " open" : "") + "></details>") + "</main>";
+      (fin ? finalHtml() : "") + "</main>";
+    document.body.classList.remove("acd-jugando");
+    montarFlota();
     if (ORG) engancharPestanas();
     if (VIGIA) engancharVigia();
     pintarPantalla();
@@ -160,7 +162,6 @@
     Array.prototype.forEach.call(app.querySelectorAll("[data-ses]"), function (b) {
       b.onclick = function () { ACTUAL = Number(b.getAttribute("data-ses")); PANT = 0; recordar(); pintar(); irArriba(); };
     });
-    var cl = $("#acd-claude"); if (cl) cl.addEventListener("toggle", function () { lsPoner("claudeAbierto", cl.open); });
   }
   function irArriba() { var s = $("#acd-ses"); if (s) s.scrollIntoView({ behavior: "smooth", block: "start" }); }
   function cabecera(pr) {
@@ -285,7 +286,7 @@
     if (bj) bj.onclick = function () {
       window.SG_BANCO_JUEGO = e.preguntas || [];
       try { sessionStorage.setItem("sgBancoJuego", JSON.stringify(window.SG_BANCO_JUEGO)); } catch (x) { /* sin almacenamiento */ }
-      JUGANDO = true;
+      JUGANDO = true; document.body.classList.add("acd-jugando");
       caja.classList.add("jugando");
       caja.innerHTML = '<iframe src="' + esc(urlJuego(e, h)) + '" title="' + esc(h.n) + '" allow="fullscreen; autoplay" allowfullscreen></iframe>' +
         '<div class="acd-juego-pie"><span id="acd-juego-st">' + (estado(h).ok ? ico("hecho") + " Todas acertadas: juega lo que quieras." : (e.preguntas || []).length + " preguntas · la que falles vuelve a salir") + "</span>" +
@@ -346,8 +347,8 @@
     var av = el.querySelector(".acd-aviso"); if (av) { av.hidden = false; av.textContent = "Comprobando…"; }
     recargar().then(function () {
       if (estado(h).ok) trasHito();
-      else if (av) av.textContent = local(h.comprobar) ? "Todavía no aparece. Hazlo en ESTE navegador (la misma ventana, otra pestaña) y vuelve a comprobar; si no llega, cuéntaselo a Claude, abajo."
-        : "Todavía no aparece. Si acabas de hacerlo, espera unos segundos y vuelve a comprobar; si no llega, cuéntaselo a Claude, abajo.";
+      else if (av) av.textContent = local(h.comprobar) ? "Todavía no aparece. Hazlo en ESTE navegador (la misma ventana, otra pestaña) y vuelve a comprobar; si no llega, cuéntaselo en «¿Dudas?», abajo a la derecha."
+        : "Todavía no aparece. Si acabas de hacerlo, espera unos segundos y vuelve a comprobar; si no llega, cuéntaselo en «¿Dudas?», abajo a la derecha.";
     });
   }
   /** El orden de las opciones: barajado, pero siempre el mismo para cada pregunta (en los datos, la buena va la primera). */
@@ -387,7 +388,7 @@
   }
   function pintarDiseno(el, h, st, cab) {
     var d = DOC.diseno || {};
-    el.innerHTML = cab + (st.ok ? '<p class="acd-bien">Enviado. Claude te lo comenta en su revisión diaria (abajo, «Claude, cada día»).</p>' : "<p>Una pieza pequeña para tu aula, pensada al revés de como se juega: del objetivo a la pieza.</p>") +
+    el.innerHTML = cab + (st.ok ? '<p class="acd-bien">Enviado. Claude te lo comenta en su revisión diaria (en «¿Dudas?», abajo a la derecha).</p>' : "<p>Una pieza pequeña para tu aula, pensada al revés de como se juega: del objetivo a la pieza.</p>") +
       '<div class="acd-form">' + h.campos.map(function (c) {
         return '<label><span><b>' + esc(c[1]) + "</b> " + esc(c[2]) + '</span><textarea rows="2" maxlength="600" data-c="' + c[0] + '">' + esc(d[c[0]] || "") + "</textarea></label>";
       }).join("") + '</div><div class="acd-botones"><button class="btn primary" type="button" data-env>' + (st.ok ? "Actualizar" : "Enviar mi diseño") + '</button><span class="muted" data-res></span></div>';
@@ -426,9 +427,43 @@
     };
   }
 
-  // ── Claude: sus respuestas, tus preguntas, «algo no funciona» y tus ideas (plegado: se abre cuando hace falta)
+  /**
+   * 🔴 30-sep · «¿DUDAS?», UNA PÍLDORA FLOTANTE. Norberto: «haz más visible el botón para preguntar, enviar dudas, sugerencias,
+   * problemas… ¿puede ser una píldora flotante en la parte inferior derecha? Al pulsar se despliega». Antes era una caja plegada
+   * al final de la página, debajo de la sesión: quien tenía una duda a mitad de un planeta no la veía. Ahora está siempre a
+   * mano (como «Pregunta a NEBULA» en la Nave del alumnado), con el número de respuestas nuevas. Vive fuera de la página que
+   * se repinta: abrirla, escribir y seguir navegando no pierde lo escrito.
+   */
+  function montarFlota() {
+    var quiere = !VER && !ORG && (YO || DEMO);
+    var b = document.getElementById("acd-flota-b"), el = document.getElementById("acd-claude");
+    if (!quiere) { if (b) b.hidden = true; if (el) el.hidden = true; return; }
+    if (!b) {
+      b = document.createElement("button"); b.type = "button"; b.id = "acd-flota-b"; b.className = "acd-flota-b";
+      b.setAttribute("aria-controls", "acd-claude"); b.setAttribute("aria-expanded", "false");
+      el = document.createElement("section"); el.id = "acd-claude"; el.className = "acd-flota"; el.hidden = true;
+      el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Dudas, problemas e ideas");
+      document.body.appendChild(el); document.body.appendChild(b);
+      b.onclick = function () { abrirFlota(el.hidden); };
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !el.hidden) { abrirFlota(false); b.focus(); } });
+    }
+    b.hidden = false;
+    pintarClaude();
+    if (lsLeer("claudeAbierto", false) && el.hidden) abrirFlota(true, true);
+  }
+  function abrirFlota(abrir, sinFoco) {
+    var b = document.getElementById("acd-flota-b"), el = document.getElementById("acd-claude"); if (!b || !el) return;
+    el.hidden = !abrir; b.setAttribute("aria-expanded", String(!!abrir)); b.classList.toggle("abierta", !!abrir);
+    lsPoner("claudeAbierto", !!abrir);
+    if (abrir) {
+      lsPoner("claudeVisto", Date.now()); pintarClaude();
+      var h = el.querySelector(".acd-hilo"); if (h) h.scrollTop = h.scrollHeight;
+      if (!sinFoco) { var t = document.getElementById("acd-txt"); if (t) t.focus(); }
+    }
+  }
+  // ── Claude (y Norberto): sus respuestas, tus preguntas, «algo no funciona» y tus ideas
   function pintarClaude() {
-    var el = document.getElementById("acd-claude"); if (!el) return;
+    var el = document.getElementById("acd-claude"), boton = document.getElementById("acd-flota-b"); if (!el) return;
     var cl = (DOC.claude || {}).mensajes || {}, pr = DOC.preguntas || {}, fb = DOC.feedback || {}, L = [];
     Object.keys(cl).forEach(function (k) { L.push({ t: Number(cl[k].t) || Number(k) || 0, de: "claude", x: cl[k].texto }); });
     var md = (DOC.mando || {}).mensajes || {};   // 30-sep · lo que le responde quien organiza la Academia
@@ -437,31 +472,40 @@
     var NOMBRE_FB = { fallo: "Algo no funciona", idea: "Una idea", otra: "Otra cosa" };
     Object.keys(fb).forEach(function (k) { if (fb[k] && fb[k].tipo !== "juego") L.push({ t: Number(k) || 0, de: "tu", x: "[" + (NOMBRE_FB[fb[k].tipo] || "Nota") + "] " + fb[k].texto }); });
     L.sort(function (a, b) { return a.t - b.t; });
-    var deClaude = Object.keys(cl).length + Object.keys(md).length, visto = Number(lsLeer("claudeVisto", 0)) || 0,
+    var abierta = !el.hidden;
+    if (abierta) lsPoner("claudeVisto", Date.now());
+    var visto = Number(lsLeer("claudeVisto", 0)) || 0,
         nuevos = L.filter(function (m) { return (m.de === "claude" || m.de === "mando") && m.t > visto; }).length;
-    el.innerHTML = '<summary><h2>' + ico("mensaje") + " Claude, cada día" + (nuevos ? ' <span class="chip">' + nuevos + (nuevos === 1 ? " mensaje nuevo" : " mensajes nuevos") + "</span>" : deClaude ? ' <span class="muted acd-cuantos">' + deClaude + (deClaude === 1 ? " mensaje" : " mensajes") + "</span>" : "") + "</h2>" +
-      '<span class="muted">Una duda, algo que no funciona o una idea: una vez al día, Claude lo lee y te contesta.</span></summary>' +
-      '<p class="muted">Claude es la IA con la que Norberto ha construido STARGATE. Responde tus dudas, comenta tu diseño y tu imagen, apunta lo que no funcione y, si hace falta, adapta tu camino.</p>' +
+    if (boton) boton.innerHTML = '<span class="acd-flota-i">' + ico("mensaje") + '</span><span class="acd-flota-t">¿Dudas?<span class="acd-flota-mas"> Escríbenos</span></span>' +
+      (nuevos ? '<span class="neb-aviso" aria-label="' + nuevos + (nuevos === 1 ? " respuesta nueva" : " respuestas nuevas") + '">' + nuevos + "</span>" : "");
+    // lo que se estaba escribiendo sobrevive al repintado (llega una respuesta, se guarda un paso…)
+    var txt0 = document.getElementById("acd-txt"), borrador = txt0 ? txt0.value : "", conFoco = !!txt0 && document.activeElement === txt0;
+    var sel0 = el.querySelector("[data-tipo].acd-sel"), tipo = sel0 ? sel0.getAttribute("data-tipo") : "pregunta";
+    el.innerHTML = '<div class="acd-flota-cab"><h2>' + ico("mensaje") + ' Dudas, problemas e ideas</h2><button type="button" class="acd-flota-x" aria-label="Cerrar">&times;</button></div>' +
+      '<p class="muted small">Una duda, algo que no funciona o una idea: cada día, Claude —la IA con la que Norberto ha construido STARGATE— lo lee y te contesta. Y a veces, el propio Norberto.</p>' +
       '<div class="acd-hilo">' + (L.length ? L.map(function (m) {
         return '<div class="acd-msj ' + (m.de === "claude" ? "acd-de-claude" : m.de === "mando" ? "acd-de-mando" : "acd-de-ti") + '"><b>' +
           (m.de === "claude" ? "Claude" : m.de === "mando" ? esc(m.quien || C.organiza.nombre) + " · organiza la Academia" : "Tú") + " <small>" + (m.t ? new Date(m.t).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</small></b><p>" + esc(m.x || "").replace(/\n/g, "<br>") + "</p></div>";
       }).join("") : '<p class="muted">Todavía no hay mensajes. Pregunta lo que quieras.</p>') + "</div>" +
-      (YO || DEMO ? '<div class="acd-escribir"><div class="acd-ops acd-ops4" role="radiogroup" aria-label="Qué es">' + [["pregunta", "Una duda"], ["fallo", "Algo no funciona"], ["idea", "Una idea"], ["otra", "Otra cosa"]].map(function (o, k) {
-        return '<button type="button" class="acd-op' + (k === 0 ? " acd-sel" : "") + '" data-tipo="' + o[0] + '" role="radio" aria-checked="' + (k === 0) + '">' + o[1] + "</button>"; }).join("") + "</div>" +
-        '<textarea rows="3" maxlength="1200" placeholder="Escribe aquí. Si algo falla: qué pulsaste, qué esperabas y qué pasó." id="acd-txt" aria-label="Tu mensaje para Claude"></textarea><div class="acd-botones"><button class="btn primary" type="button" id="acd-env">Enviar a Claude</button><span class="muted" id="acd-env-st" aria-live="polite"></span></div></div>' : "");
-    if (el.open && deClaude) lsPoner("claudeVisto", Date.now());
-    el.addEventListener("toggle", function () { if (el.open) lsPoner("claudeVisto", Date.now()); });
-    var tipo = "pregunta";
+      '<div class="acd-escribir"><div class="acd-ops acd-ops4" role="radiogroup" aria-label="Qué es">' + [["pregunta", "Una duda"], ["fallo", "Algo no funciona"], ["idea", "Una idea"], ["otra", "Otra cosa"]].map(function (o) {
+        return '<button type="button" class="acd-op' + (o[0] === tipo ? " acd-sel" : "") + '" data-tipo="' + o[0] + '" role="radio" aria-checked="' + (o[0] === tipo) + '">' + o[1] + "</button>"; }).join("") + "</div>" +
+        '<textarea rows="3" maxlength="1200" placeholder="Escribe aquí. Si algo falla: qué pulsaste, qué esperabas y qué pasó." id="acd-txt" aria-label="Tu mensaje"></textarea>' +
+        '<div class="acd-botones"><button class="btn primary" type="button" id="acd-env">Enviar</button><span class="muted small" id="acd-env-st" aria-live="polite"></span></div></div>';
+    var txt = document.getElementById("acd-txt"); txt.value = borrador; if (conFoco) txt.focus();
+    el.querySelector(".acd-flota-x").onclick = function () { abrirFlota(false); if (boton) boton.focus(); };
+    var h = el.querySelector(".acd-hilo"); if (h && abierta) h.scrollTop = h.scrollHeight;
     Array.prototype.forEach.call(el.querySelectorAll("[data-tipo]"), function (b) { b.onclick = function () { tipo = b.getAttribute("data-tipo"); Array.prototype.forEach.call(el.querySelectorAll("[data-tipo]"), function (x) { x.classList.toggle("acd-sel", x === b); x.setAttribute("aria-checked", String(x === b)); }); }; });
     var env = document.getElementById("acd-env");
-    if (env) env.onclick = function () {
-      var t = document.getElementById("acd-txt").value.trim(), st = document.getElementById("acd-env-st"); if (!t) { st.textContent = "Escribe algo primero."; return; }
+    env.onclick = function () {
+      var t = txt.value.trim(), st = document.getElementById("acd-env-st"); if (!t) { st.textContent = "Escribe algo primero."; txt.focus(); return; }
       var k = String(Date.now()), est = C.estaciones[ACTUAL] ? C.estaciones[ACTUAL].id : "";
       env.disabled = true; st.textContent = "Enviando…";
       (tipo === "pregunta" ? guardar({ preguntas: obj(k, { texto: t.slice(0, 1200), estacion: est }) }) : guardar({ feedback: obj(k, { tipo: tipo, texto: t.slice(0, 1200), estacion: est, t: Date.now() }) }))
-        .then(function () { pintarClaude(); }, function () { env.disabled = false; st.textContent = "No se ha podido enviar. Prueba otra vez."; });
+        .then(function () { txt.value = ""; pintarClaude(); var s2 = document.getElementById("acd-env-st"); if (s2) s2.textContent = "Enviado. Te contestamos aquí mismo."; },
+          function () { env.disabled = false; st.textContent = "No se ha podido enviar. Prueba otra vez."; });
     };
   }
+
 
   // ══════════════════════════════════════════ ARRANCAR
   /**

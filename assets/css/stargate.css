@@ -7512,3 +7512,25 @@ body.con-ens-franja{padding-bottom:84px}
 .pr-b-no p.small{display:block;color:var(--mut)}
 .pr-b-otros,.pr-b-hora{margin:0;color:var(--mut)}
 @media (max-width:600px){.pr-b-cifras{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.pr-aca-qr{width:104px;height:104px}}
+/* 🔴 30-sep · «¿Dudas?» en la Academia: una píldora flotante abajo a la derecha que despliega el hilo con Claude y Norberto
+   (el mismo gesto que «Pregunta a NEBULA» en la Nave del alumnado) */
+.acd-flota-b{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:900;display:flex;align-items:center;gap:8px;padding:7px 16px 7px 7px;border-radius:999px;border:1px solid var(--amber);background:#0b1626;color:#fff;font:inherit;font-size:.95rem;font-weight:700;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 16px rgba(245,176,67,.35)}
+.acd-flota-b:hover,.acd-flota-b.abierta{box-shadow:0 6px 24px rgba(0,0,0,.5),0 0 24px rgba(245,176,67,.6)}
+.acd-flota-i{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--amber)}
+.acd-flota-i .ico{width:20px;height:20px;filter:brightness(0)}
+.acd-flota-b[hidden],.acd-flota[hidden]{display:none}
+.acd-flota{position:fixed;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:901;width:min(420px,calc(100vw - 32px));max-height:calc(100vh - 110px);max-height:calc(100dvh - 110px);display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:16px;border:1px solid var(--line);background:var(--panel,#0e1826);box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.acd-flota-cab{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.acd-flota-cab h2{margin:0;font-size:1.05rem;display:flex;align-items:center;gap:8px}
+.acd-flota-x{border:0;background:none;color:var(--mut);font-size:1.6rem;line-height:1;cursor:pointer;padding:0 4px}
+.acd-flota>p{margin:0}
+.acd-flota .acd-hilo{margin:0;overflow:auto;min-height:60px;flex:1 1 auto}
+.acd-flota .acd-escribir textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #24304a;background:#0d1420;color:var(--ink);font:inherit;resize:vertical}
+.acd-flota .acd-ops4{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.acd-jugando .acd-flota-b,body.acd-jugando .acd-flota{display:none}
+#academia .acd{padding-bottom:72px}
+@media(max-width:600px){
+  .acd-flota-mas{display:none}
+  .acd-flota{right:8px;left:8px;width:auto;bottom:calc(70px + env(safe-area-inset-bottom,0px));max-height:calc(100dvh - 90px)}
+  .acd-flota-b{right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+}
