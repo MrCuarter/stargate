@@ -458,7 +458,8 @@
         '<div class="acd-org-cifras">' + cifra(P.length, P.length === 1 ? "inscrito" : "inscritos") + cifra(P.length - fin, "en marcha") + cifra(fin, "terminada") + cifra(dudas, "sin respuesta") + "</div>" +
         '<div class="acd-botones"><button type="button" class="btn primary" id="acd-org-copiar">' + ico("enlace") + " Copiar el enlace para el profesorado</button>" +
         '<a class="btn" href="academia.html?demo=1">' + ico("ojo") + " Verla como la ven ellos</a>" +
-        '<a class="btn" href="consola.html?per=' + encodeURIComponent(G) + '">' + ico("gente") + " Sus fichas en tu consola</a>" +
+        // (30-sep · a «Gestionar grupos», no a «Mi nave»: dar de baja y congelar solo están ahí, en la ficha, bajo «Solo el referente»)
+        '<a class="btn" href="gestion.html?per=' + encodeURIComponent(G) + '">' + ico("gente") + " Gestionar sus fichas</a>" +
         '<a class="btn" href="crear.html">' + ico("estrella") + " Crear un grupo con ellos</a></div>" +
         '<p class="acd-nota small" id="acd-org-msg" aria-live="polite"></p></section>' +
         (P.length ? P.map(fila).join("") : '<section class="card"><p class="muted">Todavía no se ha inscrito nadie. Comparte el enlace: al entrar con Google quedan registrados y alistados.</p></section>') +

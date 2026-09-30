@@ -42,8 +42,8 @@ c(iSes > 0 && iOrg > iSes && iAli > iOrg, "🔴 el organizador ve su panel ANTES
 c(/M\.academiaTodos\(\)/.test(AJS) && /async function academiaTodos\(\)/.test(MOT) && /academiaProfes, academiaTodos,/.test(MOT), "   el panel lee a todo el profesorado inscrito (motor.js → academiaTodos)");
 c(/String\(x\.correo\)\.toLowerCase\(\) !== yo/.test(AJS), "   y se deja fuera a sí mismo");
 ["inscritos", "en marcha", "terminada", "sin respuesta"].forEach(t => c(AJS.indexOf('"' + t + '"') >= 0 || AJS.indexOf(t) >= 0, "   la cifra «" + t + "»"));
-c(/Copiar el enlace para el profesorado/.test(AJS) && /academia\.html\?demo=1/.test(AJS) && /consola\.html\?per=' \+ encodeURIComponent\(G\)/.test(AJS) && /href="crear\.html"/.test(AJS),
-  "   copiar el enlace, verla como ellos, sus fichas en tu consola y crear un grupo con ellos");
+c(/Copiar el enlace para el profesorado/.test(AJS) && /academia\.html\?demo=1/.test(AJS) && /gestion\.html\?per=' \+ encodeURIComponent\(G\)/.test(AJS) && /Gestionar sus fichas/.test(AJS) && /href="crear\.html"/.test(AJS),
+  "   copiar el enlace, verla como ellos, gestionar sus fichas (en Gestionar grupos: dar de baja, congelar) y crear un grupo con ellos");
 c(/Su primera pieza/.test(AJS) && /function hiloDe\(x\)/.test(AJS) && /function sinRespuesta\(x\)/.test(AJS), "   de cada uno: sesiones, hitos, su diseño y sus mensajes con Claude (y los que esperan respuesta)");
 c(/\.acd-org-cifras\{display:grid;grid-template-columns:repeat\(4/.test(L("assets/css/stargate.css")) && /@media \(max-width:600px\)\{\s*\.acd-org-cifras\{grid-template-columns:repeat\(2/.test(L("assets/css/stargate.css")),
   "   las cifras, de cuatro en cuatro (de dos en dos en el móvil)");
