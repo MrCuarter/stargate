@@ -311,6 +311,39 @@ recompensas_html = tabla_recompensas()
 CRED_VIAJE = {t: (CREDITOS["reclutamiento"] + 2*CREDITOS["actividad"] + 2*CREDITOS["derivada"] + 8*CREDITOS["relampago"]
                   + (8*CREDITOS["retoB"] + CREDITOS["final"] if t == "REGULAR" else 8*CREDITOS["retoB_pua"]))
               for t in ("REGULAR", "PUA")}
+# 🔴 1-oct · LAS CIFRAS DE LA ECONOMÍA, DEL MOTOR (no a mano). Tras las cinco respuestas a Anita (29, 32, «20 retos» que eran 22),
+# la guía decía «hitos 300» (Mano rápida da 150), «el viaje da 1000 ◈» (la cuenta de arriba se dejaba el alistamiento, «La hoja
+# de ruta», el secreto y una insignia automática: son 1080), «Batalla final 100» (da 60) y «lo cosmético cuesta 280» (215). Ahora
+# se calcula con el MISMO paquete que se siembra en cada grupo; la cuenta de arriba solo queda si el motor no responde.
+_ECO_JS = r"""
+const {catalogo}=require("./motor/catalogo.js"),P=require("./motor/paquete.js"),c=catalogo(),o={credViaje:{}};
+const premio=(x,t)=>(x.rewards.find(r=>r.type===t)||{}).value||0;
+for(const t of ["REGULAR","PUA"]){
+  const pq=P.paquete({nombre:"x",tipo:t,inicio:"2026-01-05",pausas:[]},c),der=pq.campanas.filter(x=>/^derivada/.test(x.id)),m=id=>pq.misiones.find(x=>x.id===id)||{};
+  o.credViaje[t]=pq.misiones.reduce((a,x)=>a+x.coinsReward,0)+der.reduce((a,x)=>a+premio(x,"coins"),0);
+  if(t==="REGULAR"){
+    o.xp={alta:m("H1").points,relampago:m("L1").points,principal:m("B1").points,actividad:m("X1").points,simulacro:m("XS").points};
+    o.cr={alta:m("H1").coinsReward,relampago:m("L1").coinsReward,principal:m("B1").coinsReward,actividad:m("X1").coinsReward,simulacro:m("XS").coinsReward};
+    o.xpHitos=[...new Set(der.map(x=>premio(x,"xp_extra")))].sort((a,b)=>a-b);o.crHitos=[...new Set(der.map(x=>premio(x,"coins")))].sort((a,b)=>a-b);
+  }
+}
+console.log(JSON.stringify(o));
+"""
+try:
+    _ECO = json.loads(subprocess.run(["node", "-e", _ECO_JS], cwd=HERE, capture_output=True, text=True, check=True).stdout)
+    CRED_VIAJE = _ECO["credViaje"]
+except Exception as _eE:
+    print("🔴 no he podido calcular la economía con el motor (la guía usará la cuenta a mano):", _eE)
+    _ECO = {"xp": {"alta": 100, "relampago": 100, "principal": 250, "actividad": 500, "simulacro": 300}, "xpHitos": [300],
+            "cr": {"alta": CREDITOS["reclutamiento"], "relampago": CREDITOS["relampago"], "principal": CREDITOS["retoB"], "actividad": CREDITOS["actividad"], "simulacro": CREDITOS["simulacro"]},
+            "crHitos": [CREDITOS["derivada"]]}
+_o = lambda L: " o ".join(str(x) for x in L)
+XP_LINEA = (f"relámpago {_ECO['xp']['relampago']} · reto principal {_ECO['xp']['principal']} · Actividad {_ECO['xp']['actividad']} · "
+            f"simulacro {_ECO['xp']['simulacro']} · hitos {_o(_ECO['xpHitos'])}")
+CR_LINEA = (f"relámpago {_ECO['cr']['relampago']} · reto principal {_ECO['cr']['principal']} · Actividad {_ECO['cr']['actividad']} · "
+            f"simulacro {_ECO['cr']['simulacro']} · hitos {_o(_ECO['crHitos'])}")
+COSMETICO = sum(r[1] * r[2] for r in RECOMPENSAS if r[5] in ("titulo", "fondo", "marco"))   # todo lo que se pone, una vez cada cosa
+N_INSIGNIAS_MISION = len(PERS) + len(ESP) + len(RETO) + len(HITO)
 planetas_html="\n".join(planeta(*p) for p in PLANETAS)
 
 # ================= PORTADA (index.html) =================
@@ -627,7 +660,7 @@ FAQ = [
  ("¿Cómo registran los alumnos sus retos e insignias?", "Solos, desde su <b>Nave</b>: abren el reto, lo hacen y pulsan <b>«Lo he hecho»</b>. Todos los retos son prácticos y <b>piden el enlace</b> (o la captura) de lo que se ha hecho: sin él no se registra. No hay tope: quien quiera repasar al final, puede; pero si alguien registra <b>" + str(AVISO_RETOS_DIA) + " o más en un solo día</b>, NEBULA te avisa en el Puente para que revises sus enlaces. Los xp, el nivel, los créditos, las insignias y el <b>avatar que evoluciona</b> se calculan solos. Tú ves cada enlace en <b>Reclutas</b> (pulsa la fila) y un aviso «<img class=ico src=assets/img/iconos/p/aviso.png alt> sin enlace» donde falte."),
  ("¿Qué es la Nave del Recluta?", "La web del alumnado, en <b>seis pestañas</b>: <b>Mi nave</b> (su personaje con rango y la orden de la semana) · <b>Retos</b> (los retos, La Ruta y el Simulador de Joran) · <b>Botín</b> (insignias, cromos y héroes) · <b>Mercado</b> (Bazar y Zoco) · <b>Archivo</b> (la narrativa y los vídeos, y las sesiones de clase en diferido) · <b>Rankings</b>. Todas se ven desde el primer día; las que aún no se han abierto, apagadas y con candado: al pulsarlas dicen qué son y en qué semana llegan. <b>En vivo</b> solo aparece mientras emites la clase. Y un botón, <b>Pregunta a NEBULA</b>, para sus dudas. Entran por la <b>misma puerta que tú</b>, la portada, con «Iniciar sesión con Google»: si ya están alistados van directos a su Nave, y si no, escriben el <b>código de clase</b> y se alistan en un minuto. La primera vez NEBULA les enseña cada rincón. Para <b>enseñarla sin cuenta</b> (en una charla, a un compañero) está el botón <b>«Ver la demo»</b> de la portada."),
  ("¿Qué es el panel de control de los planetas?", "El <a href='panel.html'>mapa de la galaxia</a>: los ocho planetas sobre el universo, cada uno enlazando a la presentación de su tema. Con <code>?per=</code> los planetas se <b>desbloquean solos</b> según el calendario del grupo. Sirve como página o incrustado en Genially. El <b>referente</b> pone el panel oficial del grupo en <b>Gestionar grupos → Ajustes del grupo</b>, y cada docente puede poner su copia en su Nave, con Mando manual: <b>Tu panel de control</b> → «Cambiar el enlace»."),
- ("¿Qué son los xp, los niveles y los créditos?", f"Son <b>dos marcadores distintos</b>. Los <b>xp</b> (relámpago 100 · reto principal 250 · Actividad 500 · simulacro 300 · hitos 300) miden el viaje, <b>nunca bajan</b> y dan el <b>nivel del 1 al 10</b>: el personaje <b>evoluciona</b> al entrar en los niveles 3 (Cadete), 5 (Oficial), 8 (Comandante) y 10 (<b>Leyenda</b>, el viaje completo). Los <b>créditos ◈</b> (relámpago {CREDITOS['relampago']} · reto principal {CREDITOS['retoB']} · Actividad {CREDITOS['actividad']} · hitos {CREDITOS['derivada']}) son la moneda: es lo único que se descuenta al canjear recompensas. Comprar cromos no baja de nivel a nadie. Todo automático; tabla completa en <a href='registro.html#economia'>El tablero → Dos marcadores</a>."),
+ ("¿Qué son los xp, los niveles y los créditos?", f"Son <b>dos marcadores distintos</b>. Los <b>xp</b> ({XP_LINEA}) miden el viaje, <b>nunca bajan</b> y dan el <b>nivel del 1 al 10</b>: el personaje <b>evoluciona</b> al entrar en los niveles 3 (Cadete), 5 (Oficial), 8 (Comandante) y 10 (<b>Leyenda</b>, el viaje completo). Los <b>créditos ◈</b> (relámpago {CREDITOS['relampago']} · reto principal {CREDITOS['retoB']} · Actividad {CREDITOS['actividad']} · hitos {CREDITOS['derivada']}) son la moneda: es lo único que se descuenta al canjear recompensas. Comprar cromos no baja de nivel a nadie. Todo automático; tabla completa en <a href='registro.html#economia'>El tablero → Dos marcadores</a>."),
  ("¿Cómo abro un grupo nuevo?", "Lo hace el <b>profesor/a referente</b> en <b>Gestionar grupos</b> → <a href='crear.html'>«+ Crear un grupo»</a>, con su cuenta de Google: nombre, tipo REGULAR/PUA, primer día de la semana 1, el <b>equipo docente por su correo</b> y los enlaces de la clase (el padlet, el panel). En un minuto el grupo queda sembrado entero —los retos con sus insignias, los 8 planetas, la tienda, los escuadrones y el álbum— y sale un <b>código de clase</b> para repartir. Sin hojas de cálculo ni PIN. <span class='small muted'>Cómo era antes, en <a href='legacy.html'>el archivo</a>.</span>"),
  ("¿Qué hago si un alumno falta el día del relámpago?", f"Nada: lo hace esa misma semana, en diferido, desde su Nave. Si no lo hace, el tripulante sigue «sin recuperar» y esos 100 xp y {CREDITOS['relampago']} ◈ se quedan sin ganar (su fragmento se abre igual para todos dos semanas después): usa la narrativa como invitación, no como castigo."),
 ]
@@ -760,7 +793,7 @@ un curso: se entra cuando se quiere.</p>
 <p>El curso del profesorado, <b>planeta a planeta</b>: un prólogo y ocho sesiones de 10-20 minutos. En cada una, su
 tripulante, una o dos piezas de la herramienta, <b>una misión en la consola de ensayo</b> que se corrige sola y
 <b>cinco preguntas dentro de un minijuego</b> (la que se falla vuelve a salir). Acaba con tu primera pieza de
-gamificación, y una revisión diaria responde tus dudas.</p>
+gamificación. Tus dudas, con «Pregunta a NEBULA»: llegan al mismo buzón y se contestan en la hora, de 8 a 22 h.</p>
 <p style="margin-top:12px"><a class="btn primary" href="academia.html">Ir a la Academia</a></p></div>
 <div class="card"><h3><img class=ico src=assets/img/iconos/p/gente.png alt> La consola de ensayo</h3>
 <p><b>Tu Nave del Comandante de verdad</b>, botón a botón, con un grupo de mentira: 30 reclutas, el curso entero,
@@ -903,18 +936,18 @@ separados, y conviene explicarlo en clase porque <b>es el contenido del Tema 7 e
 <div class="grid cols-2" style="gap:14px">
 <div class="card"><h3><img class=ico src=assets/img/iconos/p/estrella.png alt> xp — el viaje</h3><p class="small">Solo suben, <b>nunca se gastan</b>. Dan el
 <b>nivel</b> (1 a 10), el puesto en el ranking y hacen <b>evolucionar al personaje</b> (5 versiones de arte,
-en los niveles 3, 5, 8 y 10). Relámpago 100 · reto principal 250 · Actividad 500 · simulacro 300 · hitos 300.</p></div>
+en los niveles 3, 5, 8 y 10). {XP_LINEA[0].upper() + XP_LINEA[1:]}.</p></div>
 <div class="card"><h3>◈ créditos — el bolsillo</h3><p class="small">Se ganan con el mismo trabajo
-(relámpago {CREDITOS['relampago']} · reto principal {CREDITOS['retoB']} · Actividad {CREDITOS['actividad']} · hitos {CREDITOS['derivada']}) y son <b>lo único que se descuenta</b> en el canje.
-El viaje completo da <b>{CRED_VIAJE['REGULAR']} ◈</b> y todo lo cosmético cuesta 280: <b>hay que elegir</b>.</p></div>
+({CR_LINEA}) y son <b>lo único que se descuenta</b> en el canje.
+El viaje completo da <b>{CRED_VIAJE['REGULAR']} ◈</b> y todo lo cosmético cuesta {COSMETICO}: <b>hay que elegir</b>.</p></div>
 </div>
 <p class="small muted" style="margin-top:10px">Tabla completa de niveles y precios en
 <a href="registro.html#economia">Registro → Dos marcadores</a>.</p></div>
 
-<h3 style="margin-top:1.8em">Las 8 insignias de reto</h3>
+<h3 style="margin-top:1.8em">Las {len(RETO)} insignias de reto</h3>
 <p class="lead">Solo imagen, sin texto. Su icono refleja la tarea. Pulsa para ver qué hay que hacer.</p>
 <div class="badges">{reto_html}</div>
-<h3 style="margin-top:1.8em">Las 5 insignias de hito</h3>
+<h3 style="margin-top:1.8em">Las {len(HITO)} insignias de hito</h3>
 <div class="badges sm5">{hito_html}</div>
 <table style="margin-top:1.4em"><thead><tr><th>Tema</th><th>El reto principal produce…</th><th>…que es un trozo de</th></tr></thead><tbody>
 <tr><td>T1 Fôrge</td><td>La Bitácora abierta, con su primera experiencia (lo creado con IA)</td><td>La página de la <b>Actividad 1</b></td></tr>
@@ -973,7 +1006,7 @@ guarda nada.</p></div>
 <div class="tip"><b>Empieza con el gancho, no con el temario.</b> Primera sesión: vídeo de sinopsis, preséntate como su <b>Comandante</b>, reparte la insignia de <b>Reclutamiento</b> y deja una pregunta en el aire.</div>
 <div class="tip"><b>Un mensaje por semana para el foro de la plataforma de UNIR</b> (ya redactados, en la <a href="cronologia.html">cronología</a>): introducen el tema con la narrativa y cierran con la "Bitácora de esta semana". Solo pon tu nombre y el enlace de la herramienta del momento.</div>
 <div class="tip"><b>Separa los dos retos en tu discurso.</b> El <b><img class=ico src=assets/img/iconos/p/rayo.png alt> relámpago</b> como lo que es: <i>quince minutos, aquí y ahora, en clase</i>, que recuperan a un tripulante ("recupera a Bran"); y el <b>reto principal</b> como <i>encargo</i> con criterios, para casa.</div>
-<div class="tip"><b>Entrega las insignias en público.</b> El refuerzo funciona cuando se ve: publica el medallón y nombra el logro con la frase del personaje. Un tablero con las 24 hace visible el avance.</div>
+<div class="tip"><b>Entrega las insignias en público.</b> El refuerzo funciona cuando se ve: publica el medallón y nombra el logro con la frase del personaje. Un tablero con las {N_INSIGNIAS_MISION} hace visible el avance.</div>
 <div class="tip"><b>Vincula siempre reto → Bitácora.</b> Cada reto principal <i>ya es</i> una página del ePortfolio (y a veces media actividad grande resuelta). Así no acumulan tareas: construyen.</div>
 <div class="tip"><b>Usa la distinción Ludo/Vínculo como momento estrella.</b> En T6 <b>se juega</b> (el juego ES la actividad); en T7 <b>no</b> (se toman elementos del juego). Apóyate en Joran y Mara.</div>
 <div class="tip"><b>Reserva a Vaeon para subir la tensión.</b> Haz que la Estática aparezca en T5: justo cuando saben medir, surge el enemigo que silencia.</div>
@@ -1717,16 +1750,14 @@ canjeable</b> no son lo mismo y no deben compartir marcador.</p>
 <div class="card"><h3><img class=ico src=assets/img/iconos/p/estrella.png alt> Los xp — el viaje</h3><p class="small"><b>Solo suben. No se gastan nunca.</b>
 Miden lo que el recluta ha recorrido: marcan su <b>nivel</b> (del 1 al 10), su puesto en el ranking y hacen
 <b>evolucionar a su personaje</b>. Comprar cromos no le baja de nivel: lo que ha aprendido no se devuelve.</p>
-<p class="small">Reclutamiento 100 · relámpago 100 · reto principal 250 · Actividad entregada 500 · simulacro 300 ·
-hitos derivados 300. Viaje completo = <b>{_mil(XP_VIAJE["REGULAR"])} xp</b> (PUA: los mismos retos,
+<p class="small">Reclutamiento {_ECO["xp"]["alta"]} · {XP_LINEA}. Viaje completo = <b>{_mil(XP_VIAJE["REGULAR"])} xp</b> (PUA: los mismos retos,
 {_mil(XP_VIAJE["PUA"])} xp). Los xp <b>no son nota</b>.</p></div>
 <div class="card"><h3>◈ Los créditos — el bolsillo</h3><p class="small"><b>Es lo único que se descuenta.</b>
 Se ganan con el mismo trabajo que da xp, pero en otra escala, y se gastan en el canje. Cuando un recluta
 compra un sobre de cromos pierde créditos, no progreso.</p>
-<p class="small">Reclutamiento {CREDITOS["reclutamiento"]} ◈ · relámpago {CREDITOS["relampago"]} · reto principal {CREDITOS["retoB"]} ·
-Actividad {CREDITOS["actividad"]} · Batalla final {CREDITOS["final"]} · hitos derivados {CREDITOS["derivada"]}.
+<p class="small">Reclutamiento {_ECO["cr"]["alta"]} ◈ · {CR_LINEA} (en PUA, el simulacro es la batalla final).
 Un viaje completo da <b>{CRED_VIAJE["REGULAR"]} ◈</b> (PUA: {CRED_VIAJE["PUA"]} ◈). Todo lo cosmético del catálogo
-cuesta 280 ◈: <b>hay que elegir</b>, y esa elección es la mitad de la gracia.</p></div>
+cuesta {COSMETICO} ◈: <b>hay que elegir</b>, y esa elección es la mitad de la gracia.</p></div>
 </div>
 <h4 style="margin-top:1.4em">Los 10 niveles (y cuándo evoluciona el personaje)</h4>
 <p class="lead">El personaje tiene <b>cinco versiones de arte</b> y cambia al entrar en los niveles 3, 5, 8 y 10.
