@@ -3639,6 +3639,9 @@ body.fragmento{background:var(--bg)}
 .bz-r p{margin:4px 0;white-space:pre-wrap}
 .bz-r time{font-size:.78rem;color:var(--mut)}
 .bz-contesta{display:flex;flex-direction:column;gap:8px}
+/* 1-oct · «¿Te ha resuelto la duda?» tras una respuesta del Mando */
+.bz-valora{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0;padding:8px 12px;border:1px solid rgba(245,176,67,.45);border-radius:12px;background:rgba(245,176,67,.08)}
+.bz-valora b{margin-right:4px}
 .bz-contesta-b{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .bz-contesta-b select{width:auto}
 /* el acceso desde la consola, la sesión, el aula y la llamada */

@@ -5014,3 +5014,21 @@ for _html in _glob2.glob(os.path.join(HERE, "*.html")):
     if _s2 != _s:
         open(_html, "w", encoding="utf-8").write(_s2)
 print("semanas.js en:", len(_con_sem), "páginas")
+
+# ---------------------------------------------------------------- el aviso de respuestas (1-oct)
+# Norberto: «¿cómo saben ellos que les has respondido? Necesito algo llamativo: que cuando tengan mensajes, nada más entrar se
+# les abra una ventana… y junto con la respuesta un botón de ¿He resuelto la pregunta? ¿Necesitas algo más?». assets/js/aviso-buzon.js
+# va SOLO en las páginas del docente que no se proyectan (nunca en la sesión, el aula, la presentación ni la consola de ensayo).
+AVISO_EN = ("consola.html", "academia.html", "gestion.html", "profesores.html", "crear.html")
+_TAG_AVISO = '<script src="assets/js/aviso-buzon.js?v=' + _ver("assets/js/aviso-buzon.js") + '" defer></script>'
+for _f in AVISO_EN:
+    _ruta = os.path.join(HERE, _f)
+    if not os.path.exists(_ruta):
+        continue
+    _s = open(_ruta, encoding="utf-8").read()
+    _s2 = _re2.sub(r'<script src="assets/js/aviso-buzon\.js(\?v=[0-9a-f]+)?" defer></script>', '', _s)
+    assert "assets/js/motor.js" in _s2, _f + " sin motor: el aviso de respuestas no podría leer el buzón"
+    _s2 = _s2.replace("</head>", _TAG_AVISO + "\n</head>", 1)
+    if _s2 != _s:
+        open(_ruta, "w", encoding="utf-8").write(_s2)
+print("aviso de respuestas en:", ", ".join(AVISO_EN))

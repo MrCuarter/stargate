@@ -395,6 +395,10 @@
     var cx = m.contexto || {}, clase = m.tipo === "recluta" ? (cx.clase || "duda") : m.tipo;
     var tipo = TIPOS.filter(function (t) { return t[0] === clase; })[0] || TIPOS[0], e = ESTADOS[m.estado] || ESTADOS.nuevo;
     var nuevoParaMi = !comoMando && m.visto === false;
+    // 1-oct · «¿Te ha resuelto la duda?» (Norberto: «así analizamos la utilidad del buzón»): tras una respuesta del Mando que
+    // lo dejó resuelto. «Sí» y «Necesito algo más» viajan como una respuesta suya, con las frases de motor.js (BUZON_VALORA)
+    var rsM = m.respuestas || [], ultM = rsM[rsM.length - 1];
+    var valorar = !comoMando && m.tipo !== "recluta" && m.estado === "resuelto" && ultM && ultM.de === "mando";
     // 1-oct · lo de la Academia lo firma NEBULA (en su ficción, el Mando no aparece); lo de las clases, el Mando
     var firma = m.projectId === PER_ACADEMIA ? "<img class=ico src=assets/img/iconos/p/cohete.png alt> NEBULA" : "<img class=ico src=assets/img/iconos/p/envivo.png alt> El Mando";
     return '<article class="bz-msg ' + esc(m.estado || "nuevo") + (m.urgente ? " urgente" : "") + (nuevoParaMi ? " fresco" : "") + '" data-m="' + esc(m.id) + '">'
@@ -411,6 +415,8 @@
       + ((m.respuestas || []).length ? '<div class="bz-hilo">' + m.respuestas.map(function (r) {
           return '<div class="bz-r ' + (r.de === "mando" ? "mando" : "docente") + '"><b>' + (r.de === "mando" ? firma : (comoMando ? esc(m.nombre || "Docente") : "Tú")) + '</b>'
             + '<p>' + esc(r.texto) + '</p><time>' + cuando(r.fecha) + '</time></div>'; }).join("") + '</div>' : '')
+      + (valorar ? '<div class="bz-valora"><b>¿Te ha resuelto la duda?</b> <button class="btn min primary" type="button" data-val-si>Sí, resuelta</button>'
+          + ' <button class="btn min" type="button" data-val-mas>Necesito algo más</button></div>' : '')
       + '<div class="bz-contesta"><textarea rows="2" maxlength="2000" placeholder="' + (comoMando ? "Responder como el Mando…" : "Contestar…") + '"></textarea>'
       + '<div class="bz-contesta-b">'
       + (comoMando
@@ -426,9 +432,19 @@
       var id = art.getAttribute("data-m"), ta = art.querySelector("textarea"), sel = art.querySelector("select");
       var r = art.querySelector("[data-responder]"), c = art.querySelector("[data-cerrar]");
       if (!r) return;   // (el hilo de la Academia solo se lee: no tiene «Contestar»)
+      var V = MOTOR.BUZON_VALORA || {}, vSi = art.querySelector("[data-val-si]"), vMas = art.querySelector("[data-val-mas]");
+      if (vSi) vSi.onclick = function () {
+        vSi.disabled = true;
+        MOTOR.buzonResponder(id, V.si || "✓ Me ha resuelto la duda.", { estado: "resuelto" }).then(function () { return MOTOR.buzonVisto(id); })
+          .then(function () { return cargar(); }).then(function () { pintar(); aviso("<img class=ico src=assets/img/iconos/p/hecho.png alt> ¡Gracias, Comandante! Nos ayuda a saber que el buzón sirve.", true); })
+          .catch(function (e) { vSi.disabled = false; aviso("No ha salido: " + esc((e && e.message) || e)); });
+      };
+      // «Necesito algo más»: escribe qué le falta y sale con la frase delante (el mensaje vuelve a la guardia, que lo cuenta)
+      if (vMas) vMas.onclick = function () { art.setAttribute("data-mas", "1"); ta.placeholder = "Cuéntanos qué te falta o qué no ha funcionado…"; ta.focus(); };
       r.onclick = function () {
         var t = ta.value.trim();
         if (!t && !comoMando) { ta.focus(); return; }
+        if (!comoMando && t && art.getAttribute("data-mas")) t = (V.mas || "Necesito algo más: ") + t;
         r.disabled = true;
         MOTOR.buzonResponder(id, t, comoMando ? { comoMando: true, estado: sel.value } : {})
           .then(function () { return cargar(); }).then(function () { pintar(); aviso(comoMando ? "Respondido." : "<img class=ico src=assets/img/iconos/p/envivo.png alt> Enviado al Mando.", true); })

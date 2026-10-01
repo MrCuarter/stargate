@@ -1107,6 +1107,10 @@ async function buzonResponder(id, texto, opciones) {
 }
 /** «Ya lo he leído»: se apaga el aviso de respuesta nueva. */
 async function buzonVisto(id) { try { await updateDoc(doc(db, BUZON, id), { visto: true }); } catch (e) {} }
+// 1-oct · «¿Te ha resuelto la duda?»: las dos frases con las que el docente valora una respuesta del Mando, en el aviso de
+// respuestas (aviso-buzon.js) y en el hilo del buzón (buzon.js). Viajan como una respuesta suya más (las reglas ya lo dejan) y
+// la guardia las cuenta LEYENDO ESTA LÍNEA (mando/buzon.cjs → utilidad): un dato, un sitio. No la cambies de forma.
+const BUZON_VALORA = {"si": "✓ Me ha resuelto la duda.", "mas": "Necesito algo más: "};
 
 /**
  * ════════════ LAS REFLEXIONES DE LOS RETOS Y SUS COMENTARIOS (15-sep, noche) ════════════
@@ -2480,7 +2484,7 @@ window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs
                     zocoDatos, zocoTratosGrupo, zocoAnunciosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
                     crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta, sorteosDeGrupos, sorteoEnGrupos, retirarSorteo, participacionesEn,
                     ofertasDeGrupos, crearOfertaEnGrupos, ofertaEnGrupos,
-                    buzonEnviar, buzonMios, buzonTodos, buzonResponder, buzonVisto, invitacion, codigoGenially,
+                    buzonEnviar, buzonMios, buzonTodos, buzonResponder, buzonVisto, BUZON_VALORA, invitacion, codigoGenially,
                     guardarReflexion, enlaceDeReflexion, reflexionesDe, misReflexiones, comentariosDe, comentar, borrarComentario,
                     borrarReflexion, idReflexion, hitos, batalla,
                     votaciones, crearVotacion, cerrarVotacion, borrarVotacion, votar, miPapeleta,
