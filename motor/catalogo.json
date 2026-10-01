@@ -708,6 +708,27 @@
       "como": "Se otorga sola al completar y publicar la Bitácora.",
       "cuando": "Repaso final",
       "tarea": "Una Bitácora abierta, copiada y compartida no se puede apagar: la Estática retrocede y la puerta a la Tierra se abre. Tu ePortfolio es el camino a casa."
+    },
+    "R0_bitacora-en-marcha": {
+      "nombre": "La Bitácora en marcha",
+      "tipo": "Insignia de reto",
+      "como": "Completando el reto principal del Tema 1.",
+      "cuando": "Tema 1 · Fôrge",
+      "tarea": "(1) Crea tu Bitácora (tu ePortfolio) en la plataforma que quieras —Google Sites, Genially, Wix, un blog…— o parte de la plantilla oficial en Genially. (2) Publica su primera experiencia: los recursos multimedia que has creado con IA —el del relámpago y uno más: un texto, un audio o una infografía—, con su evidencia, su contexto, tu reflexión y tu autoevaluación. (3) Comprueba que el enlace es público (ábrelo en una ventana de incógnito) y pégalo aquí y en tu BIO de la Nave. Es la experiencia del portfolio de este tema y la página donde irá la Actividad 1 (el 20 % de su nota)."
+    },
+    "H6_mano-rapida": {
+      "nombre": "Mano rápida",
+      "tipo": "Insignia de hito",
+      "como": "Se otorga sola al completar cinco de los ocho relámpagos de los planetas (del Tema 1 al 8).",
+      "cuando": "A lo largo del viaje",
+      "tarea": "Los relámpagos se hacen en clase, en quince minutos. Cinco de los ocho bastan: quien no pudo venir a una clase hace el suyo esa misma semana."
+    },
+    "H7_listo-para-la-batalla": {
+      "nombre": "Listo para la batalla",
+      "tipo": "Insignia de hito",
+      "como": "Completando el reto «El simulacro del examen» (en PUA, «La batalla final»).",
+      "cuando": "Clase de repaso (la última semana)",
+      "tarea": "Noventa minutos de reloj para resolver un caso como el del examen: una plataforma con su portada, su logo, dos módulos y tres productos digitales, y la lista de comprobación repasada delante de todos."
     }
   },
   "temas": [

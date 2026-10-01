@@ -1778,6 +1778,12 @@ BADGE_INFO = {
  "H3_cartografo":{"nombre":"Cartógrafo","tipo":"Insignia de hito","como":"Se entrega con la Actividad 2.","cuando":"Tema 3 (se resuelve en el 8)","tarea":"Dibujas un territorio, no un camino: entregas el paisaje de aprendizaje con su matriz de programación."},
  "H4_tripulacion-cero":{"nombre":"Tripulación Cero","tipo":"Insignia de hito","como":"Se otorga sola al desbloquear a los 8 personajes de la Cero.","cuando":"A lo largo del viaje","tarea":"Recuperas a Bran, Tomás, Sylla, Amara, Vera, Joran, Mara y Noa. NEBULA vuelve a estar completa."},
  "H5_la-liberacion":{"nombre":"La Liberación","tipo":"Insignia de hito","como":"Se otorga sola al completar y publicar la Bitácora.","cuando":"Repaso final","tarea":"Una Bitácora abierta, copiada y compartida no se puede apagar: la Estática retrocede y la puerta a la Tierra se abre. Tu ePortfolio es el camino a casa."},
+ # 🔴 1-oct · las tres que entraron el 23-sep (27 retos → 20) se ganaban pero no tenían ficha: la Nave no las explicaba y el
+ # motor sembraba en GamificaPro la misión B1 y el simulacro sin descripción y la campaña «H6_mano-rapida» con su clave por título.
+ # La «tarea» de R0 la pone el bucle de abajo (el enunciado de B1).
+ "R0_bitacora-en-marcha":{"nombre":"La Bitácora en marcha","tipo":"Insignia de reto","como":"Completando el reto principal del Tema 1.","cuando":"Tema 1 · Fôrge","tarea":""},
+ "H6_mano-rapida":{"nombre":"Mano rápida","tipo":"Insignia de hito","como":"Se otorga sola al completar cinco de los ocho relámpagos de los planetas (del Tema 1 al 8).","cuando":"A lo largo del viaje","tarea":"Los relámpagos se hacen en clase, en quince minutos. Cinco de los ocho bastan: quien no pudo venir a una clase hace el suyo esa misma semana."},
+ "H7_listo-para-la-batalla":{"nombre":"Listo para la batalla","tipo":"Insignia de hito","como":"Completando el reto «El simulacro del examen» (en PUA, «La batalla final»).","cuando":"Clase de repaso (la última semana)","tarea":"Noventa minutos de reloj para resolver un caso como el del examen: una plataforma con su portada, su logo, dos módulos y tres productos digitales, y la lista de comprobación repasada delante de todos."},
 }
 # 🔴 15-sep · «QUÉ HAY QUE HACER» DE LAS INSIGNIAS DE RETO = EL ENUNCIADO DEL RETO. Estaba escrito a mano aquí, una
 # segunda copia de cada reto, y ya discrepaba (la de Vera pedía «un indicador observable» cuando el reto pedía otra cosa).
