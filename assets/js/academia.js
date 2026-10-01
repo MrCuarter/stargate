@@ -201,6 +201,16 @@
       var hechoH = x.t === "hito" && estado(x.h).ok;
       return '<i class="' + (k === PANT ? "on" : k < PANT || hechoH ? "past" : "") + (x.t === "hito" ? " h" : "") + '"></i>'; }).join("") + "<b>" + (PANT + 1) + " / " + P.length + "</b></div>";
   }
+  /**
+   * 1-oct · LA FLECHA APAGADA SE EXPLICA (Caridad Sierra: «al superar el juego no puedo acceder a la última diapositiva»).
+   * La última de cada sesión se abre al completar sus hitos; el aviso iba DEBAJO de la diapositiva, en gris, y en un portátil
+   * no se veía. Ahora va encima, a la vista, con un botón que lleva a cada misión que falta.
+   */
+  function faltaHtml(i, P) {
+    var botones = P.map(function (x, k) { return x.t === "hito" && !estado(x.h).ok ? '<button type="button" class="btn primary" data-ir="' + k + '">' + esc(x.h.titulo) + " →</button>" : ""; }).join("");
+    return '<div class="acd-falta-caja">' + ico("candado") + " <b>Para cerrar " + esc(C.estaciones[i].planeta) + " te falta:</b>" + '<div class="acd-botones">' + botones + "</div></div>";
+  }
+  function primeraQueFalta(i) { var P = pantallas(i); for (var k = 0; k < P.length; k++) if (P[k].t === "hito" && !estado(P[k].h).ok) return k; return P.length - 1; }
   var JUGANDO = false;
   function pintarPantalla() {
     var i = ACTUAL, e = C.estaciones[i], P = pantallas(i), x = P[PANT], el = $("#acd-ses");
@@ -256,15 +266,15 @@
              : '<p class="acd-dia-sub">Abajo tienes tu título.</p>') + opinaFin + "</div>";
     }
     var falta = PANT + 1 === P.length - 1 && !hecha(i);
-    el.innerHTML = '<div class="acd-dia ' + cls + '">' + cuerpo +
+    el.innerHTML = (falta ? faltaHtml(i, P) : "") + '<div class="acd-dia ' + cls + '">' + cuerpo +
       (PANT > 0 ? '<button type="button" class="acd-flecha ant" data-ant aria-label="Anterior">‹</button>' : "") +
       (x.t !== "fin" ? '<button type="button" class="acd-flecha sig" data-sig-p aria-label="Siguiente"' + (falta ? " disabled" : "") + ">›</button>" : "") +
-      barraPasos(P) + "</div>" +
-      (falta ? '<p class="muted acd-falta">Para completar ' + esc(e.planeta) + " te falta: " + esc(hitosDe(i).filter(function (h) { return !estado(h).ok; }).map(function (h) { return h.titulo; }).join(" · ")) + "</p>" : "");
+      barraPasos(P) + "</div>";
     if (x.t === "hito" && x.h.tipo !== "juego") pintarHito(x.h);
     if (x.t === "hito" && x.h.tipo === "juego") engancharJuego(e, x.h);
     // 30-sep · «¿Cómo te ha resultado?» después de cada minijuego (en su diapositiva y, si aún no lo ha dicho, al final)
     var op = el.querySelector("[data-op]"); if (op) enganchaOpinar(op.parentNode, { id: op.getAttribute("data-op") }, pintarPantalla);
+    [].forEach.call(el.querySelectorAll("[data-ir]"), function (b) { b.onclick = function () { PANT = Number(b.getAttribute("data-ir")); recordar(); pintarPantalla(); }; });
     var ant = el.querySelector("[data-ant]"); if (ant) ant.onclick = function () { PANT--; recordar(); pintarPantalla(); };
     var sp = el.querySelector("[data-sig-p]"); if (sp) sp.onclick = function () { if (sp.disabled) return; PANT++; recordar(); pintarPantalla(); };
     var sg = el.querySelector("[data-sig]"); if (sg) sg.onclick = function () { ACTUAL = i + 1; PANT = 0; recordar(); pintar(); irArriba(); };
@@ -306,7 +316,7 @@
       guardarPaso(h.id, { ok: true, auto: true, aciertos: Number(m.aciertos) || 0, fallos: Number(m.fallos) || 0 });
       var st = document.getElementById("acd-juego-st"); if (st) st.innerHTML = ico("hecho") + " <b>Todas acertadas.</b> Sesión superada: sigue jugando o pasa al siguiente módulo.";
     }
-    if (m.siguiente) { JUGANDO = false; PANT = pantallas(ACTUAL).length - 1; recordar(); pintar(); irArriba(); }
+    if (m.siguiente) { JUGANDO = false; PANT = hecha(ACTUAL) ? pantallas(ACTUAL).length - 1 : primeraQueFalta(ACTUAL); recordar(); pintar(); irArriba(); }
   });
   // las flechas del teclado, como en la sesión (salvo escribiendo o jugando)
   document.addEventListener("keydown", function (ev) {

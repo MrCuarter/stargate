@@ -7454,6 +7454,8 @@ body.con-ens-franja{padding-bottom:84px}
 .acd-dia-barra i.h{height:7px}
 .acd-dia-barra b{margin-left:10px;font-size:.8rem;color:var(--mut);white-space:nowrap}
 .acd-falta{margin:8px 4px 0}
+.acd-falta-caja{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 14px;margin:0 0 10px;padding:10px 16px;border-radius:14px;border:1px solid var(--amber);background:rgba(245,176,67,.1);color:var(--ink);text-align:center}
+.acd-falta-caja .acd-botones{justify-content:center;margin:0}
 /* el minijuego, dentro de la diapositiva */
 .acd-juego-caja{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:min(620px,86%);background:rgba(10,16,28,.95);border:1px solid var(--amber);border-radius:18px;padding:18px 22px;text-align:center}
 .acd-juego-caja h3{font-family:'Unbounded',sans-serif;color:var(--amber);margin:.2em 0 .4em}
