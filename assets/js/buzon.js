@@ -18,7 +18,17 @@
   var q = new URLSearchParams(location.search);
   var DESDE = String(q.get("desde") || "").slice(0, 30), PER0 = q.get("per") || "";
   var MOTOR = null, YO = null, GRUPOS = [], MANDO = false, MIOS = [], TODOS = [], FILTRO = "abiertas", SIN_LEER = false;
-  var ST = { tipo: "problema", urgente: false, grupo: PER0, texto: "", sugeridas: [] };
+  /**
+   * 🔴 1-oct · UN SOLO BOTÓN DE AYUDA. Norberto: «el botón de ayuda debe ser el mismo siempre, debe dar prioridad desde donde se
+   * activa, pero si hay discrepancias o puede haber dudas, se pregunta… Para Anita y Caridad es la misma vía». Hasta hoy la
+   * Academia tenía su propio «Pregunta a NEBULA» (otro buzón, otra tarea que contestaba) y dos respuestas distintas llegaron a
+   * la misma persona. Ahora la Academia abre ESTA página (incrustada, ?embed=1&desde=academia) y todo va a `stargate_buzon`.
+   * El paso intermedio, «¿Sobre qué es?»: la Academia (su formación), una de sus clases con estudiantes o «No lo sé / de todo»,
+   * ya marcado según desde dónde se abre. Lo de la Academia lo contesta NEBULA; lo de las clases, el Mando.
+   */
+  var PER_ACADEMIA = "academia-cero", ESTACION = String(q.get("estacion") || "").slice(0, 20), ACA = null, ADJ = [], MAX_ADJ = 3;
+  if (q.get("embed") === "1") document.body.classList.add("embed");
+  var ST = { tipo: "problema", urgente: false, grupo: PER0, ambito: "", texto: "", sugeridas: [] };
   var VITALICIOS = ["n.cuartero.10@gmail.com", "mutecdgami@gmail.com"];
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -187,6 +197,11 @@
   // ── la transmisión nueva y las sugerencias del Capitán
   function sugerencias() {
     var caja = document.getElementById("bz-sugiere"); if (!caja) return;
+    if (ST.ambito === "academia") {   // 1-oct · en la Academia habla NEBULA (las averías de las clases no son de aquí)
+      caja.innerHTML = '<div class="bz-cap"><img src="assets/img/personajes/nebula.png" alt=""><p><b>NEBULA</b>Cuéntamelo: una duda de la Academia, algo que falla en un planeta o una idea. '
+        + 'Lo que yo no sepa se lo paso al Alto Mando, y te respondemos aquí mismo.</p></div>';
+      return;
+    }
     var L = ST.sugeridas;
     caja.innerHTML = L.length
       ? '<div class="bz-cap"><img src="assets/img/capitan/senala.png" alt=""><p><b>El Capitán</b>' + (L[0] && typeof L[0].x === "function"
@@ -213,35 +228,95 @@
       };
     });
   }
+  // ── 1-oct · ¿sobre qué es? La Academia, una de sus clases o «no lo sé»
+  function puedeAcademia() { return !!ACA; }
+  function ambitos() {
+    var L = [];
+    if (puedeAcademia()) L.push({ v: "academia", t: "<img class=ico src=assets/img/iconos/p/cohete.png alt> La Academia (tu formación)" });
+    GRUPOS.forEach(function (g) { L.push({ v: "grupo:" + g.id, t: "<img class=ico src=assets/img/iconos/p/clase.png alt> Mi clase · " + esc(g.nombre || g.id) }); });
+    L.push({ v: "nolose", t: "<img class=ico src=assets/img/iconos/p/pregunta.png alt> No lo sé / de todo" });
+    return L;
+  }
+  function ambitoActual() { return ST.ambito === "grupo" ? "grupo:" + ST.grupo : ST.ambito; }
+  /** Lo que se marca solo: desde la Academia, la Academia; desde un grupo, ese grupo; si solo hay una opción, esa. */
+  function ambitoInicial() {
+    if (DESDE === "academia" && puedeAcademia()) { ST.ambito = "academia"; return; }
+    if (PER0 && GRUPOS.some(function (g) { return g.id === PER0; })) { ST.ambito = "grupo"; ST.grupo = PER0; return; }
+    if (puedeAcademia() && !GRUPOS.length) { ST.ambito = "academia"; return; }
+    if (!puedeAcademia() && GRUPOS.length === 1) { ST.ambito = "grupo"; ST.grupo = GRUPOS[0].id; return; }
+    ST.ambito = "";   // hay varias y no sabemos desde dónde: que lo elija
+  }
   function nueva() {
-    var tipo = TIPOS.filter(function (t) { return t[0] === ST.tipo; })[0];
-    var grupos = GRUPOS.length > 1
-      ? '<label class="bz-campo">¿De qué grupo?<select id="bz-grupo">' + GRUPOS.map(function (g) {
-          return '<option value="' + esc(g.id) + '"' + (g.id === ST.grupo ? " selected" : "") + '>' + esc(g.nombre || g.id) + '</option>'; }).join("") + '</select></label>'
-      : '';
-    return '<div class="bz-grid"><section class="card bz-nueva"><h2>Nueva transmisión</h2>'
-      + '<p class="bz-chips-t">Dudas rápidas · te contesto al momento</p>'
+    var tipo = TIPOS.filter(function (t) { return t[0] === ST.tipo; })[0], aca = ST.ambito === "academia", act = ambitoActual();
+    return '<div class="bz-grid"><section class="card bz-nueva"><h2>' + (aca ? "Pregunta a NEBULA" : "Nueva transmisión") + '</h2>'
+      + '<p class="bz-chips-t">¿Sobre qué es?</p>'
+      + '<div class="bz-chips bz-ambito" role="radiogroup" aria-label="Sobre qué es">' + ambitos().map(function (o) {
+          return '<button type="button" role="radio" aria-checked="' + (o.v === act) + '" class="bz-chip' + (o.v === act ? " on" : "") + '" data-ambito="' + esc(o.v) + '">' + o.t + '</button>'; }).join("") + '</div>'
+      + (!ST.ambito ? '<p class="small bz-ambito-nota">Elige una: así te contesta quien toca y con lo de ese sitio.</p>'
+         : ST.ambito === "nolose" ? '<p class="small bz-ambito-nota">Sin problema: te responderemos para los dos casos (la Academia y tu clase con estudiantes) o te preguntaremos lo justo.</p>'
+         : aca ? '<p class="small bz-ambito-nota">La Academia es tu formación: el grupo de práctica y la consola de ensayo, sin nada real. Te contesto yo, NEBULA.</p>' : '')
+      + (aca ? '' : '<p class="bz-chips-t">Dudas rápidas · te contesto al momento</p>'
       + '<div class="bz-chips" role="group" aria-label="Dudas rápidas">' + DUDAS.map(function (c) {
           return '<button type="button" class="bz-chip duda" data-duda="' + c[0] + '">' + c[1] + '</button>'; }).join("") + '</div>'
       + '<p class="bz-chips-t">Averías conocidas</p>'
       + '<div class="bz-chips" role="group" aria-label="Averías conocidas">' + CHIPS.map(function (c) {
-          return '<button type="button" class="bz-chip" data-chip="' + c[0] + '">' + c[1] + '</button>'; }).join("") + '</div>'
+          return '<button type="button" class="bz-chip" data-chip="' + c[0] + '">' + c[1] + '</button>'; }).join("") + '</div>')
       + '<div class="bz-tipos" role="radiogroup" aria-label="Qué es">' + TIPOS.map(function (t) {
           return '<button type="button" role="radio" aria-checked="' + (t[0] === ST.tipo) + '" class="bz-tipo' + (t[0] === ST.tipo ? " on" : "") + '" data-tipo="' + t[0] + '">'
             + '<span>' + t[1] + '</span>' + t[2] + '</button>'; }).join("") + '</div>'
-      + grupos
       + '<label class="bz-campo">Cuéntanoslo<textarea id="bz-texto" maxlength="2000" rows="6" placeholder="' + esc(tipo[3]) + '">' + esc(ST.texto) + '</textarea>'
       + '<span class="bz-cuenta" id="bz-cuenta">' + ST.texto.length + ' / 2000</span></label>'
-      + (ST.tipo === "problema" ? '<label class="bz-urg"><input type="checkbox" id="bz-urgente"' + (ST.urgente ? " checked" : "") + '> <img class=ico src=assets/img/iconos/p/aviso.png alt> Me está bloqueando la clase ahora mismo</label>' : '')
-      + '<p class="bz-acciones"><button class="btn primary grande" id="bz-enviar" type="button"><img class=ico src=assets/img/iconos/p/envivo.png alt> Transmitir al Mando</button></p>'
+      + (puedeAcademia() ? '<div class="bz-adj" id="bz-adj"></div><p class="bz-adj-fila"><label class="btn min"><input type="file" accept="image/*" multiple id="bz-file" hidden><img class=ico src=assets/img/iconos/p/anadir.png alt> Añadir una captura</label>'
+          + ' <span class="small muted">o pégala con Ctrl+V en el texto: ayuda mucho a ver qué ha fallado.</span></p>' : '')
+      + (ST.tipo === "problema" && ST.ambito !== "academia" ? '<label class="bz-urg"><input type="checkbox" id="bz-urgente"' + (ST.urgente ? " checked" : "") + '> <img class=ico src=assets/img/iconos/p/aviso.png alt> Me está bloqueando la clase ahora mismo</label>' : '')
+      + '<p class="bz-acciones"><button class="btn primary grande" id="bz-enviar" type="button"><img class=ico src=assets/img/iconos/p/envivo.png alt> ' + (aca ? "Enviar a NEBULA" : "Transmitir al Mando") + '</button></p>'
       + '<p class="small muted">Con tu mensaje viaja desde dónde escribes (la página, el grupo, la semana y tu navegador): así encontramos el fallo sin tener que preguntarte.</p>'
       + '</section><aside class="bz-sugiere" id="bz-sugiere" aria-live="polite"></aside></div>';
+  }
+  // ── las capturas (las de la Academia, ahora en el mismo buzón): ≤ 1600 px, JPEG, tres por mensaje; se suben al enviar
+  function anadirAdj(files) {
+    var fs = Array.prototype.filter.call(files || [], function (f) { return /^image\//.test(f.type); });
+    if (!fs.length) { if (files && files.length) aviso("Solo imágenes (una captura, una foto)."); return; }
+    if (ADJ.length + fs.length > MAX_ADJ) aviso("Como mucho " + MAX_ADJ + " capturas por mensaje.");
+    fs.slice(0, Math.max(0, MAX_ADJ - ADJ.length)).forEach(function (f) {
+      comprimir(f).then(function (blob) { if (ADJ.length < MAX_ADJ) ADJ.push({ blob: blob, ver: URL.createObjectURL(blob) }); pintarAdj(); },
+        function () { aviso("Esa imagen no se ha podido leer."); });
+    });
+  }
+  function comprimir(f) {
+    return new Promise(function (ok, mal) {
+      var im = new Image(), u = URL.createObjectURL(f);
+      im.onload = function () {
+        var k = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), cv = document.createElement("canvas");
+        cv.width = Math.max(1, Math.round(im.naturalWidth * k)); cv.height = Math.max(1, Math.round(im.naturalHeight * k));
+        var cx = cv.getContext("2d"); cx.fillStyle = "#fff"; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(im, 0, 0, cv.width, cv.height);
+        URL.revokeObjectURL(u);
+        cv.toBlob(function (b) { if (b) ok(b); else mal(new Error("imagen")); }, "image/jpeg", 0.85);
+      };
+      im.onerror = function () { URL.revokeObjectURL(u); mal(new Error("imagen")); };
+      im.src = u;
+    });
+  }
+  function pintarAdj() {
+    var c = document.getElementById("bz-adj"); if (!c) return;
+    c.innerHTML = ADJ.map(function (a, i) { return '<span class="bz-adj-m"><img src="' + a.ver + '" alt="Captura ' + (i + 1) + '"><button type="button" data-quita="' + i + '" aria-label="Quitar la captura ' + (i + 1) + '">&times;</button></span>'; }).join("");
+    Array.prototype.forEach.call(c.querySelectorAll("[data-quita]"), function (b) { b.onclick = function () { ADJ.splice(Number(b.getAttribute("data-quita")), 1); pintarAdj(); }; });
+  }
+  function subirAdj() {
+    var urls = [];
+    return ADJ.reduce(function (p, a) {
+      return p.then(function () { return MOTOR.academiaAdjuntar(PER_ACADEMIA, a.blob).then(function (u) { urls.push(u); }, function () { throw new Error("no se ha podido subir la captura"); }); });
+    }, Promise.resolve()).then(function () { return urls; });
+  }
+  function adjuntosHtml(adj) {
+    var ok = (adj || []).filter(function (u) { return /^https:\/\/firebasestorage\.googleapis\.com\//.test(String(u)); });
+    return ok.length ? '<div class="bz-adj">' + ok.map(function (u, i) { return '<a class="bz-adj-m" href="' + esc(u) + '" target="_blank" rel="noopener"><img src="' + esc(u) + '" alt="Captura ' + (i + 1) + '" loading="lazy"></a>'; }).join("") + "</div>" : "";
   }
   function cablearNueva() {
     var txt = document.getElementById("bz-texto"), cuenta = document.getElementById("bz-cuenta"), espera = null;
     txt.oninput = function () {
       ST.texto = txt.value; cuenta.textContent = txt.value.length + " / 2000";
-      clearTimeout(espera); espera = setTimeout(function () { ST.sugeridas = ST.tipo === "idea" ? [] : buscar(ST.texto); sugerencias(); }, 250);
+      clearTimeout(espera); espera = setTimeout(function () { ST.sugeridas = ST.tipo === "idea" || ST.ambito === "academia" ? [] : buscar(ST.texto); sugerencias(); }, 250);
     };
     Array.prototype.forEach.call(app.querySelectorAll("[data-tipo]"), function (b) {
       b.onclick = function () { ST.tipo = b.getAttribute("data-tipo"); if (ST.tipo !== "problema") ST.urgente = false; pintar(); var t = document.getElementById("bz-texto"); if (t) t.focus(); };
@@ -260,31 +335,53 @@
         pintar(); var t = document.getElementById("bz-texto"); if (t) { t.focus(); t.setSelectionRange(t.value.length, t.value.length); }
       };
     });
-    var g = document.getElementById("bz-grupo"); if (g) g.onchange = function () { ST.grupo = g.value; };
+    Array.prototype.forEach.call(app.querySelectorAll("[data-ambito]"), function (b) {
+      b.onclick = function () {
+        var v = b.getAttribute("data-ambito");
+        if (v.indexOf("grupo:") === 0) { ST.ambito = "grupo"; ST.grupo = v.slice(6); } else ST.ambito = v;
+        if (ST.ambito === "academia") { ST.urgente = false; ST.sugeridas = []; }
+        pintar(); var t = document.getElementById("bz-texto"); if (t) t.focus();
+      };
+    });
+    var fi = document.getElementById("bz-file"); if (fi) fi.onchange = function () { anadirAdj(fi.files); fi.value = ""; };
+    txt.addEventListener("paste", function (e) {
+      if (!puedeAcademia()) return;
+      var fs = Array.prototype.filter.call((e.clipboardData && e.clipboardData.files) || [], function (f) { return /^image\//.test(f.type); });
+      if (fs.length) { e.preventDefault(); anadirAdj(fs); }
+    });
+    pintarAdj();
     var u = document.getElementById("bz-urgente"); if (u) u.onchange = function () { ST.urgente = u.checked; };
     document.getElementById("bz-enviar").onclick = enviar;
     sugerencias();
   }
   function enviar() {
     var b = document.getElementById("bz-enviar"), texto = String(ST.texto || "").trim();
+    if (!ST.ambito) { aviso("Dinos arriba sobre qué es: la Academia, una de tus clases o «No lo sé / de todo»."); var a0 = app.querySelector("[data-ambito]"); if (a0) a0.focus(); return; }
     if (texto.length < 8) { aviso("Cuéntanos un poco más (qué ha pasado, dónde y con quién): así lo resolvemos a la primera."); document.getElementById("bz-texto").focus(); return; }
-    var g = GRUPOS.filter(function (x) { return x.id === ST.grupo; })[0] || GRUPOS[0] || {};
-    b.disabled = true; b.textContent = "Transmitiendo…";
-    MOTOR.buzonEnviar({
-      tipo: ST.tipo, urgente: ST.tipo === "problema" && ST.urgente, texto: texto, projectId: g.id || "", grupo: g.nombre || "",
-      autoayuda: ST.sugeridas.map(function (e) { return e.id; }),
-      contexto: { desde: DESDE || "buzon", semana: g.semana || null, estado: g.estado || "", referente: !!g.soyReferente,
-                  navegador: String(navigator.userAgent || "").slice(0, 180), pantalla: window.innerWidth + "x" + window.innerHeight,
-                  idioma: navigator.language || "", hora: new Date().toISOString() }
+    // 1-oct · adónde va: la Academia (projectId «academia-cero»), una clase, o «no lo sé» (va con su primer grupo, o con la
+    // Academia si no lleva ninguno, y marcado «dudoso»: la guardia contesta para los dos casos o pregunta)
+    var aca = ST.ambito === "academia", g = ST.ambito === "grupo" ? (GRUPOS.filter(function (x) { return x.id === ST.grupo; })[0] || {}) : {};
+    var pid = aca ? PER_ACADEMIA : ST.ambito === "grupo" ? g.id : ((GRUPOS[0] || {}).id || (puedeAcademia() ? PER_ACADEMIA : ""));
+    var nombreGrupo = aca ? "La Academia de la Cero" : ST.ambito === "grupo" ? (g.nombre || "") : "Sin concretar (no lo sé / de todo)";
+    b.disabled = true; b.textContent = ADJ.length ? "Subiendo la captura…" : "Transmitiendo…";
+    (ADJ.length ? subirAdj() : Promise.resolve([])).then(function (urls) {
+      return MOTOR.buzonEnviar({
+        tipo: ST.tipo, urgente: !aca && ST.tipo === "problema" && ST.urgente, texto: texto, projectId: pid || "", grupo: nombreGrupo, adjuntos: urls,
+        autoayuda: ST.sugeridas.map(function (e) { return e.id; }),
+        contexto: { desde: DESDE || "buzon", ambito: aca ? "academia" : ST.ambito === "grupo" ? "clase" : "dudoso", estacion: aca ? ESTACION : "",
+                    semana: g.semana || null, estado: g.estado || "", referente: !!g.soyReferente,
+                    navegador: String(navigator.userAgent || "").slice(0, 180), pantalla: window.innerWidth + "x" + window.innerHeight,
+                    idioma: navigator.language || "", hora: new Date().toISOString() }
+      });
     }).then(function () {
-      ST.texto = ""; ST.urgente = false; ST.sugeridas = [];
+      ST.texto = ""; ST.urgente = false; ST.sugeridas = []; ADJ = [];
       return cargar().then(function () {
         pintar();
-        aviso('<img class="bz-ok-cap" src="assets/img/capitan/pulgar.png" alt=""> <b>Transmisión recibida, Comandante.</b> El Mando la revisa cada día' +
-          ' y te responde aquí mismo (y te avisa por correo); lo urgente, lo primero.', true);
+        aviso('<img class="bz-ok-cap" src="assets/img/' + (aca ? 'personajes/nebula.png' : 'capitan/pulgar.png') + '" alt=""> <b>' + (aca ? "Recibido, Comandante." : "Transmisión recibida, Comandante.") + '</b> ' +
+          'Te respondemos aquí mismo en menos de una hora, de 8 a 22 h (y te avisamos por correo)' + (aca ? "" : "; lo urgente, lo primero") + '.', true);
       });
     }).catch(function (e) {
-      b.disabled = false; b.innerHTML = "<img class=ico src=assets/img/iconos/p/envivo.png alt> Transmitir al Mando";
+      b.disabled = false; b.innerHTML = "<img class=ico src=assets/img/iconos/p/envivo.png alt> " + (aca ? "Enviar a NEBULA" : "Transmitir al Mando");
       aviso(/permission|insufficient/i.test(String(e && (e.code || e.message)))
         ? "La frecuencia no me deja transmitir desde esta cuenta ahora mismo. Recarga la página y vuelve a probar en un rato; si sigue igual, avisa a tu referente."
         : "No ha salido: " + esc((e && e.message) || e));
@@ -298,6 +395,8 @@
     var cx = m.contexto || {}, clase = m.tipo === "recluta" ? (cx.clase || "duda") : m.tipo;
     var tipo = TIPOS.filter(function (t) { return t[0] === clase; })[0] || TIPOS[0], e = ESTADOS[m.estado] || ESTADOS.nuevo;
     var nuevoParaMi = !comoMando && m.visto === false;
+    // 1-oct · lo de la Academia lo firma NEBULA (en su ficción, el Mando no aparece); lo de las clases, el Mando
+    var firma = m.projectId === PER_ACADEMIA ? "<img class=ico src=assets/img/iconos/p/cohete.png alt> NEBULA" : "<img class=ico src=assets/img/iconos/p/envivo.png alt> El Mando";
     return '<article class="bz-msg ' + esc(m.estado || "nuevo") + (m.urgente ? " urgente" : "") + (nuevoParaMi ? " fresco" : "") + '" data-m="' + esc(m.id) + '">'
       + '<header><span class="bz-tipo-et">' + tipo[1] + ' ' + (m.tipo === "recluta" ? "Recluta · " : "") + tipo[2] + '</span>'
       + (m.urgente ? '<span class="chip bz-urgente"><img class=ico src=assets/img/iconos/p/aviso.png alt> Urgente</span>' : '')
@@ -306,11 +405,11 @@
       + '<time>' + cuando(m.creado) + '</time>'
       + (comoMando ? '<span class="bz-quien">' + esc(m.nombre || m.correo || "") + ' · ' + esc(m.grupo || m.projectId || "") + '</span>' : (m.grupo ? '<span class="bz-quien">' + esc(m.grupo) + '</span>' : ''))
       + '</header>'
-      + '<p class="bz-texto">' + esc(m.texto) + '</p>'
+      + '<p class="bz-texto">' + esc(m.texto) + '</p>' + adjuntosHtml(m.adjuntos)
       + (comoMando ? '<p class="bz-cx">' + ["desde " + (cx.desde || "—"), cx.semana ? "semana " + cx.semana : "", cx.pantalla || "", cx.referente ? "referente" : "",
            (cx.navegador || "").replace(/^.*?\) /, "").slice(0, 60)].filter(Boolean).map(esc).join(" · ") + '</p>' : '')
       + ((m.respuestas || []).length ? '<div class="bz-hilo">' + m.respuestas.map(function (r) {
-          return '<div class="bz-r ' + (r.de === "mando" ? "mando" : "docente") + '"><b>' + (r.de === "mando" ? "<img class=ico src=assets/img/iconos/p/envivo.png alt> El Mando" : (comoMando ? esc(m.nombre || "Docente") : "Tú")) + '</b>'
+          return '<div class="bz-r ' + (r.de === "mando" ? "mando" : "docente") + '"><b>' + (r.de === "mando" ? firma : (comoMando ? esc(m.nombre || "Docente") : "Tú")) + '</b>'
             + '<p>' + esc(r.texto) + '</p><time>' + cuando(r.fecha) + '</time></div>'; }).join("") + '</div>' : '')
       + '<div class="bz-contesta"><textarea rows="2" maxlength="2000" placeholder="' + (comoMando ? "Responder como el Mando…" : "Contestar…") + '"></textarea>'
       + '<div class="bz-contesta-b">'
@@ -326,6 +425,7 @@
     Array.prototype.forEach.call(raiz.querySelectorAll(".bz-msg"), function (art) {
       var id = art.getAttribute("data-m"), ta = art.querySelector("textarea"), sel = art.querySelector("select");
       var r = art.querySelector("[data-responder]"), c = art.querySelector("[data-cerrar]");
+      if (!r) return;   // (el hilo de la Academia solo se lee: no tiene «Contestar»)
       r.onclick = function () {
         var t = ta.value.trim();
         if (!t && !comoMando) { ta.focus(); return; }
@@ -366,13 +466,41 @@
   function filtraCon(f) { var antes = FILTRO; FILTRO = f; var r = filtra(TODOS); FILTRO = antes; return r; }
 
   // ── pintar y cargar
+  /**
+   * 1-oct · LO DE LA ACADEMIA QUE NO ES UNA PREGUNTA SUYA: los comentarios de NEBULA (su imagen del relámpago, su diseño, el
+   * ánimo si se para, lo convalidado), lo del Alto Mando y lo que preguntó antes del 1-oct en el «Pregunta a NEBULA» viejo.
+   * Vive en su ficha de formación (`stargate_formacion`, lo escribe la revisión diaria); aquí sale como un hilo más, para que
+   * todo lo que se le ha dicho esté en un solo sitio. Solo se lee: para contestar, se escribe arriba con «La Academia».
+   */
+  function hiloAcademia() {
+    if (!ACA) return null;
+    var L = [], cl = (ACA.claude || {}).mensajes || {}, md = (ACA.mando || {}).mensajes || {}, pr = ACA.preguntas || {}, fb = ACA.feedback || {};
+    var NOMBRE_FB = { fallo: "Algo no funciona", idea: "Una idea", otra: "Otra cosa" };
+    Object.keys(cl).forEach(function (k) { L.push({ t: Number(cl[k].t) || Number(k) || 0, de: "NEBULA", x: cl[k].texto }); });
+    Object.keys(md).forEach(function (k) { L.push({ t: Number(md[k].t) || Number(k) || 0, de: "El Alto Mando", x: md[k].texto }); });
+    Object.keys(pr).forEach(function (k) { L.push({ t: Number(k) || 0, de: "Tú", x: pr[k].texto, adj: pr[k].adjuntos }); });
+    Object.keys(fb).forEach(function (k) { if (fb[k] && fb[k].tipo !== "juego" && fb[k].texto) L.push({ t: Number(k) || 0, de: "Tú", x: "[" + (NOMBRE_FB[fb[k].tipo] || "Nota") + "] " + fb[k].texto, adj: fb[k].adjuntos }); });
+    if (!L.length) return null;
+    L.sort(function (a, b) { return a.t - b.t; });
+    var ult = L[L.length - 1].t, visto = 0; try { visto = Number(JSON.parse(localStorage.getItem("sgAcademia.claudeVisto") || "0")) || 0; } catch (e) {}
+    var fresco = L.some(function (m) { return m.de !== "Tú" && m.t > visto; });
+    return { t: ult, html: '<article class="bz-msg resuelto' + (fresco ? " fresco" : "") + '"><header><span class="bz-tipo-et"><img class=ico src=assets/img/iconos/p/cohete.png alt> La Academia · tu formación</span>'
+      + (fresco ? '<span class="chip bz-nueva-r"><img class=ico src=assets/img/iconos/p/envivo.png alt> Mensaje nuevo</span>' : '') + '<time>' + cuando(ult) + '</time></header>'
+      + '<div class="bz-hilo">' + L.map(function (m) {
+          return '<div class="bz-r ' + (m.de === "Tú" ? "docente" : "mando") + '"><b>' + esc(m.de) + '</b><p>' + esc(m.x || "") + '</p>' + adjuntosHtml(m.adj) + '<time>' + cuando(m.t) + '</time></div>'; }).join("") + '</div>'
+      + '<p class="small muted">Para contestar o preguntar algo nuevo, escribe arriba con «La Academia» marcada.</p></article>' };
+  }
   function pintar() {
+    var L = MIOS.map(function (m) { return { t: m.actualizado || m.creado || 0, html: mensaje(m, false) }; }), ha = hiloAcademia();
+    if (ha) L.push(ha);
+    L.sort(function (a, b) { return b.t - a.t; });
     app.innerHTML = '<div id="bz-aviso" class="aviso" hidden></div>' + nueva()
-      + '<section class="bz-lista"><h2>Tus transmisiones</h2>'
-      + (MIOS.length ? MIOS.map(function (m) { return mensaje(m, false); }).join("")
+      + '<section class="bz-lista"><h2>Tus mensajes y sus respuestas</h2>'
+      + (L.length ? L.map(function (x) { return x.html; }).join("")
          : SIN_LEER ? '<p class="muted">Ahora mismo no puedo leer tus transmisiones. Recarga la página en un rato.</p>'
          : '<p class="muted">Aún no has escrito nada. Cuando lo hagas, las respuestas llegarán aquí.</p>')
       + '</section>' + (MANDO ? vistaMando() : '');
+    if (ha) try { localStorage.setItem("sgAcademia.claudeVisto", JSON.stringify(Date.now())); } catch (e) {}
     cablearNueva();
     cablearMensajes(app.querySelector(".bz-lista"), false);
     var vm = app.querySelector(".bz-mando");
@@ -399,9 +527,12 @@
     MOTOR.sesion().then(function (yo) {
       if (!yo) return puerta();
       YO = yo; MANDO = VITALICIOS.indexOf(String(yo.correo || "").toLowerCase()) >= 0;
-      return MOTOR.misPERs(yo.correo).then(function (ps) {
-        GRUPOS = (ps || []).filter(function (g) { return g.estado !== "archivado"; });
-        if (!GRUPOS.length && !MANDO) {
+      return Promise.all([MOTOR.misPERs(yo.correo), MOTOR.academiaMia ? MOTOR.academiaMia().catch(function () { return null; }) : null]).then(function (r) {
+        var ps = r[0];
+        // (el grupo de práctica de la Academia no es «una clase»: sale como «La Academia», no en la lista de grupos)
+        GRUPOS = (ps || []).filter(function (g) { return g.estado !== "archivado" && g.id !== PER_ACADEMIA; });
+        ACA = r[1] || null;
+        if (!GRUPOS.length && !MANDO && !ACA) {
           app.innerHTML = '<div class="card bz-puerta"><h2>Esta frecuencia es del profesorado de STARGATE</h2>'
             + '<p>Has entrado como <b>' + esc(yo.correo) + '</b>, y esta cuenta no está en el equipo docente de ningún grupo. '
             + 'Si das clase en STARGATE, entra con la cuenta que te dio de alta tu referente.</p>'
@@ -410,6 +541,7 @@
           return;
         }
         if (!GRUPOS.some(function (g) { return g.id === ST.grupo; })) ST.grupo = (GRUPOS[0] || {}).id || "";
+        ambitoInicial();
         return cargar().then(pintar);
       });
     }).catch(function (e) { app.innerHTML = '<p class="malo">No he podido abrir la frecuencia: ' + esc((e && e.message) || e) + '</p>'; });

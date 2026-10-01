@@ -111,7 +111,7 @@ c(/id="acd-file"/.test(AJS) && /txt\.addEventListener\("paste"/.test(AJS) && /el
   "   con el botón (en el móvil, la galería), arrastrándola o pegándola; comprimida y como mucho tres");
 c(/adjuntos: urls/.test(AJS) && /function adjuntosHtml\(adj\)/.test(AJS) && /\^https:\\\/\\\/firebasestorage\\\.googleapis\\\.com\\\//.test(AJS),
   "   se ven en el hilo (del docente y de quien organiza), solo si son de nuestro almacén");
-c(/capturas: " \+ a\.join/.test(L("../academia/academia_diaria.cjs")), "   y la revisión diaria las lista para mirarlas antes de responder");
+c(/captura\(s\): bájalas con/.test(L("../academia/academia_diaria.cjs")), "   y la revisión diaria las lista para mirarlas antes de responder (1-oct: con su comando para bajarlas)");
 
 console.log("\n  Batería 118 · la Academia, una página del menú");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");

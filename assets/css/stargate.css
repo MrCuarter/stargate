@@ -7553,3 +7553,19 @@ body.acd-jugando .acd-flota-b,body.acd-jugando .acd-flota{display:none}
 .acd-msj-adj{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .acd-msj-adj img{width:88px;height:66px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
 @media(max-width:600px){.acd-adj-pista{display:none}}
+/* 1-oct · UN SOLO BOTÓN DE AYUDA: «¿Sobre qué es?», las capturas en el buzón y el buzón dentro de la píldora de la Academia */
+.bz-ambito{margin-bottom:4px}
+.bz-ambito-nota{margin:2px 0 10px;color:var(--muted)}
+.bz-adj{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.bz-adj:empty{display:none}
+.bz-adj-m{position:relative;display:block;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.bz-adj-m img{width:100%;height:100%;object-fit:cover;display:block}
+.bz-adj-m button{position:absolute;top:2px;right:2px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font-size:1rem;line-height:1;cursor:pointer}
+.bz-adj-fila{margin:4px 0 10px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+body.embed #buzon{padding:8px 0}
+body.embed #buzon .wrap{padding:0 10px}
+body.embed .bz-grid{grid-template-columns:1fr}
+body.embed .bz-nueva h2,body.embed .bz-lista h2{font-size:1.05rem}
+.acd-flota.con-buzon{padding:10px 10px 8px;width:min(560px,calc(100vw - 32px))}
+.acd-flota-if{display:block;width:100%;height:min(72vh,720px);height:min(72dvh,720px);border:0;border-radius:10px;background:#0b1220}
+@media (max-width:640px){.acd-flota.con-buzon{width:auto}.acd-flota-if{height:calc(100dvh - 150px)}}

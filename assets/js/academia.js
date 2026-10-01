@@ -449,12 +449,34 @@
     }
     b.hidden = false;
     pintarClaude();
+    if (!DEMO) { contarBuzon(); if (!montarFlota.reloj) montarFlota.reloj = setInterval(contarBuzon, 120000); }
     if (lsLeer("claudeAbierto", false) && el.hidden) abrirFlota(true, true);
+  }
+  /**
+   * 🔴 1-oct · UN SOLO BOTÓN DE AYUDA. Norberto: «el botón de ayuda debe ser el mismo siempre… para Anita y Caridad es la misma
+   * vía». La píldora sigue aquí («Pregunta a NEBULA»), pero lo que abre es el buzón del Mando (buzon.html, incrustado y con «La
+   * Academia» marcada): el mismo que el de la consola, con todos sus mensajes juntos y una sola guardia que contesta. En la
+   * demostración (sin cuenta) se queda el hilo de antes, en este navegador.
+   */
+  var BZ_NUEVOS = 0;
+  function contarBuzon() {
+    if (DEMO || !M || !M.buzonMios) return;
+    M.buzonMios().then(function (L) { BZ_NUEVOS = (L || []).filter(function (m) { return m.visto === false; }).length; pintarClaude(); }, function () {});
   }
   function abrirFlota(abrir, sinFoco) {
     var b = document.getElementById("acd-flota-b"), el = document.getElementById("acd-claude"); if (!b || !el) return;
     el.hidden = !abrir; b.setAttribute("aria-expanded", String(!!abrir)); b.classList.toggle("abierta", !!abrir);
     lsPoner("claudeAbierto", !!abrir);
+    if (!DEMO) {
+      if (abrir) {
+        pintarClaude();
+        var fr = el.querySelector("iframe"), est = C.estaciones[ACTUAL] ? C.estaciones[ACTUAL].id : "";
+        var src = "buzon.html?desde=academia&embed=1" + (est ? "&estacion=" + encodeURIComponent(est) : "");
+        if (fr && fr.getAttribute("data-src") !== src) { fr.setAttribute("data-src", src); fr.src = src; }
+        BZ_NUEVOS = 0; lsPoner("claudeVisto", Date.now()); pintarClaude();
+      } else contarBuzon();
+      return;
+    }
     if (abrir) {
       lsPoner("claudeVisto", Date.now()); pintarClaude();
       var h = el.querySelector(".acd-hilo"); if (h) h.scrollTop = h.scrollHeight;
@@ -523,10 +545,19 @@
     var abierta = !el.hidden;
     if (abierta) lsPoner("claudeVisto", Date.now());
     var visto = Number(lsLeer("claudeVisto", 0)) || 0,
-        nuevos = L.filter(function (m) { return (m.de === "claude" || m.de === "mando") && m.t > visto; }).length;
+        nuevos = L.filter(function (m) { return (m.de === "claude" || m.de === "mando") && m.t > visto; }).length + (DEMO ? 0 : BZ_NUEVOS);
     // (30-sep · Norberto: «no rompas la magia de la gamificación: que pregunten a NEBULA; si no lo sabe, llamará al Alto Mando»)
     if (boton) boton.innerHTML = '<img class="acd-flota-neb" src="assets/img/personajes/nebula.png" alt=""><span class="acd-flota-t"><span class="acd-flota-mas">Pregunta a </span>NEBULA</span>' +
       (nuevos ? '<span class="neb-aviso" aria-label="' + nuevos + (nuevos === 1 ? " respuesta nueva" : " respuestas nuevas") + '">' + nuevos + "</span>" : "");
+    if (!DEMO) {   // 1-oct · con cuenta, el panel es el buzón del Mando (ver abrirFlota): se monta una vez y no se repinta
+      if (!el.querySelector("iframe")) {
+        el.classList.add("con-buzon");
+        el.innerHTML = '<div class="acd-flota-cab"><h2><img class="acd-flota-neb" src="assets/img/personajes/nebula.png" alt=""> Pregunta a NEBULA</h2><button type="button" class="acd-flota-x" aria-label="Cerrar">&times;</button></div>' +
+          '<iframe class="acd-flota-if" title="Pregunta a NEBULA: tus mensajes y sus respuestas"></iframe>';
+        el.querySelector(".acd-flota-x").onclick = function () { abrirFlota(false); if (boton) boton.focus(); };
+      }
+      return;
+    }
     // lo que se estaba escribiendo sobrevive al repintado (llega una respuesta, se guarda un paso…)
     var txt0 = document.getElementById("acd-txt"), borrador = txt0 ? txt0.value : "", conFoco = !!txt0 && document.activeElement === txt0;
     var sel0 = el.querySelector("[data-tipo].acd-sel"), tipo = sel0 ? sel0.getAttribute("data-tipo") : "pregunta";
@@ -783,7 +814,10 @@
         "<p>Quién se ha inscrito, lo que ha hecho cada uno y sus mensajes. Aquí corriges su nombre o su correo y echas a quien ya no la va a hacer. Todos los demás docentes, sin excepción, la hacen como alumnado.</p>" +
         '<div class="acd-org-cifras">' + cifra(P.length, P.length === 1 ? "inscrito" : "inscritos") + cifra(P.length - fin, "en marcha") + cifra(fin, "terminada") + cifra(dudas, "sin respuesta") + "</div>" +
         '<div class="acd-botones"><button type="button" class="btn primary" id="acd-org-copiar">' + ico("enlace") + " Copiar el enlace para el profesorado</button>" +
-        '<a class="btn" href="crear.html">' + ico("estrella") + " Crear un grupo con ellos</a></div>" +
+        '<a class="btn" href="crear.html">' + ico("estrella") + " Crear un grupo con ellos</a>" +
+        '<a class="btn" href="buzon.html?desde=academia">' + ico("mensaje") + " Sus dudas, en el buzón del Mando</a></div>" +
+        // 1-oct · un solo botón de ayuda: desde hoy sus dudas van al buzón (las contesta la guardia, firmadas por NEBULA)
+        '<p class="acd-nota small">Desde el 1-oct sus dudas y lo que no funciona llegan al <b>buzón del Mando</b>, como las de las clases (marcadas «La Academia de la Cero»), y las contesta la guardia como NEBULA. Aquí quedan sus mensajes anteriores y los comentarios de NEBULA a lo que entregan.</p>' +
         '<p class="acd-nota small" id="acd-org-msg" aria-live="polite"></p></section>' +
         (P.length ? P.map(fila).join("") : '<section class="card"><p class="muted">Todavía no se ha inscrito nadie. Comparte el enlace: al entrar con Google quedan registrados y alistados.</p></section>') +
         (sueltas.length ? '<h2 class="acd-org-h2">En el grupo de la Academia, sin inscribirse</h2><p class="small muted">Cuentas alistadas como recluta que no han entrado en la Academia (por ejemplo, una de pruebas).</p>' + sueltas.map(suelta).join("") : "") +
