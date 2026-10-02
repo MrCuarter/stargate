@@ -125,7 +125,7 @@ c(api.diaRetosSemana({ lanza: [] }) === null, "   y si la semana no lanza retos,
 c(/var rs=diaRetosSemana\(s\); if\(rs\) ci\.push\(rs\);\s*\n\s*var tp=diaTripulante\(s\); if\(tp\) ci\.push\(tp\);[^\n]*\n\s*ci=ci\.concat\(diasMisiones\(s\)\)/.test(S), "   va antes de las misiones, con el tripulante de la semana detrás (24-sep)");
 const hp = api.diaHastaPronto();
 c(/cmd-saludo/.test(hp.html) && /c7_saludo\.webp/.test(hp.html) && hp.sec === "cierre", "🔴 y la despedida: el comandante saluda (sección de cierre)");
-c(/if\(tf\) ci\.push\(tf\);\s*\n[^\n]*\n\s*var dd=diaDirecto\(s, tf\?ticketDe\(s\):null\); if\(dd\) ci\.push\(dd\);\s*\n\s*if\(finViaje\) ci\.push\(diaHastaPronto\(true\)\); else if\(!tf\) ci\.push\(diaHastaPronto\(\)\);\s*\n\s*ci\.forEach\(function\(x\)\{ x\.t='ci'; \}\);/.test(S),
+c(/if\(tf\) ci\.push\(tf\);\s*\n[^\n]*\n\s*var dd=diaDirecto\(s, tf\?ticketDe\(s\):null\); if\(dd\) ci\.push\(dd\);\s*\n\s*if\(finViaje\) ci\.push\(diaHastaPronto\(true\)\); else if\(!tf\) ci\.push\(diaHastaPronto\(false, null, L\[iS\+1\]\)\);\s*\n\s*ci\.forEach\(function\(x\)\{ x\.t='ci'; \}\);/.test(S),
   "   es lo último de la clase (tras el juego en directo)… salvo si cierra el tema (ticket y juego); y la última del viaje acaba con «Vuelve después de la batalla»");
 c(/cmdCuerpo\('saludo', 'pt-cmd'\)/.test(S), "   y en la portada también saluda");
 c(![h, rs && rs.html, hp.html].some(x => /\p{Extended_Pictographic}/u.test(String(x))), "   sin un emoji en las diapositivas nuevas (iconos de la casa)");

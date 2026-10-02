@@ -38,7 +38,8 @@ c(/if\(primeraDelTema\(L, iS\)\) diasTicket\(L, iS\)/.test(SES), "   el resumen 
 // 27-sep · entre medias ya va la misión de la Ruta (antes del ticket): la ventana crece, lo vigilado es lo mismo
 // 27-sep · Norberto: el juego EN DIRECTO va DESPUÉS del ticket (y su sala de espera trae el ticket dentro, con el botón
 // «Ya he hecho mi ticket» para entrar): lo único que puede ir detrás del formulario es ese juego
-c(/var tf=ultimaDelTema\(L, iS\)\?diaTicketForm\(s\):null;[\s\S]{0,900}if\(tf\) ci\.push\(tf\);\s*\n[^\n]*\n\s*var dd=diaDirecto\(s, tf\?ticketDe\(s\):null\); if\(dd\) ci\.push\(dd\);\s*\n\s*if\(finViaje\) ci\.push\(diaHastaPronto\(true\)\); else if\(!tf\) ci\.push\(diaHastaPronto\(\)\);/.test(SES),
+// 2-oct · la despedida recibe la semana siguiente: la carta boca abajo «¿Qué pasará la semana que viene?»
+c(/var tf=ultimaDelTema\(L, iS\)\?diaTicketForm\(s\):null;[\s\S]{0,900}if\(tf\) ci\.push\(tf\);\s*\n[^\n]*\n\s*var dd=diaDirecto\(s, tf\?ticketDe\(s\):null\); if\(dd\) ci\.push\(dd\);\s*\n\s*if\(finViaje\) ci\.push\(diaHastaPronto\(true\)\); else if\(!tf\) ci\.push\(diaHastaPronto\(false, null, L\[iS\+1\]\)\);/.test(SES),
   "🔴 y el formulario, al final de la última sesión del tema: detrás, solo el juego en directo (con el ticket en su sala de espera)");
 c(SES.indexOf("if(tf) ci.push(tf);") > SES.indexOf("diasMisiones(s)"), "   detrás de las misiones y de los vídeos de cierre (en la última del viaje, solo la cita para después de la batalla va detrás)");
 c(!/diaTicket\(\)/.test(SES), "   y ya no hay un ticket semanal suelto");

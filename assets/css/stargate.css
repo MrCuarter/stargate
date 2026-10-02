@@ -7578,3 +7578,117 @@ body.embed .bz-nueva h2,body.embed .bz-lista h2{font-size:1.05rem}
 .acd-flota.con-buzon{padding:10px 10px 8px;width:min(560px,calc(100vw - 32px))}
 .acd-flota-if{display:block;width:100%;height:min(72vh,720px);height:min(72dvh,720px);border:0;border-radius:10px;background:#0b1220}
 @media (max-width:640px){.acd-flota.con-buzon{width:auto}.acd-flota-if{height:calc(100dvh - 150px)}}
+
+/* ════════ 🔴 2-oct · LO QUE SE DESCUBRE PULSANDO: la carta, el sello, el recuerdo empañado y la pista que late ════════
+   La receta de Mythos (mythosclaude/docs/RECETA_MOVIMIENTO_Y_SONIDO.md §3) sobre los fragmentos del mazo: frags() pone `.on`
+   en todo `[data-f]` descubierto. 🔴 Nada que cambie con el estado es hijo directo de `.dia`: la entrada (`ses-sube`, con
+   `both`) deja puestos su opacidad y su transform al acabar y ganaría a estas transiciones (un sello aparecería abierto).
+   Por eso cada pieza va envuelta, y el retrato del tripulante (que sí es hijo directo) se aclara con `filter`, que la
+   entrada no toca. No se cambia `both` por `backwards`: los fondos de todas las diapositivas se oscurecerían. */
+[data-revelable]{cursor:pointer;-webkit-tap-highlight-color:transparent}
+[data-revelable].on{cursor:auto}
+[data-revelable]:focus-visible{outline:2px solid var(--teal);outline-offset:4px;border-radius:16px}
+.rev-antes.on{opacity:0;visibility:hidden;pointer-events:none}
+.rev-despues:not(.on){opacity:0;visibility:hidden;pointer-events:none}
+/* la pista: en el lienzo de 1280 px, 20 px o más */
+.rev-pista{display:inline-flex;align-items:center;gap:9px;padding:7px 18px 7px 10px;border-radius:999px;border:1px solid rgba(245,176,67,.65);
+  background:rgba(8,12,22,.86);color:var(--amber);font-weight:700;font-size:clamp(1.05rem,1.6vw,1.3rem);line-height:1.2;letter-spacing:.01em}
+.rev-pista .ico{width:1.5em;height:1.5em;flex:none;border-radius:50%}
+.carta-dorso .rev-pista{max-width:100%;box-sizing:border-box;text-align:left}
+.rev-sola{margin:8px 0 0;text-align:center}
+.rev-zona .rev-sola{text-align:left}
+/* la carta de dos caras, en la misma celda: mide lo que la cara más alta */
+.carta{perspective:1800px;position:relative}
+.carta-giro{display:grid;height:100%;transform-style:preserve-3d}
+.carta-a,.carta-b{grid-area:1/1;min-width:0;min-height:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.carta-b{transform:rotateY(180deg);visibility:hidden}
+[data-f].on .carta-giro{transform:rotateY(180deg)}
+[data-f].on .carta-a{visibility:hidden}
+[data-f].on .carta-b{visibility:visible}
+.carta-dorso{height:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px 14px;
+  border-radius:16px;border:2px solid rgba(55,224,236,.6);text-align:center;
+  background:radial-gradient(circle at 50% 36%,rgba(55,224,236,.24),transparent 58%),
+    repeating-linear-gradient(45deg,rgba(55,224,236,.07) 0 2px,transparent 2px 15px),linear-gradient(160deg,#10203a,#060a12);
+  box-shadow:inset 0 0 0 6px rgba(6,10,18,.85),inset 0 0 0 7px rgba(245,176,67,.5),0 0 34px rgba(55,224,236,.2)}
+.cd-sello{width:clamp(64px,8vw,104px);aspect-ratio:1;display:grid;place-items:center;border-radius:50%;flex:none;
+  background:radial-gradient(circle,#0d1a2c 55%,#060a12);border:2px solid rgba(55,224,236,.7);box-shadow:0 0 22px rgba(55,224,236,.35)}
+.cd-sello img{width:72%;height:72%;object-fit:contain;border-radius:50%}
+.cd-txt{font-family:'Unbounded','DM Sans',sans-serif;font-size:clamp(1.15rem,2vw,1.7rem);line-height:1.15;color:var(--ink);text-wrap:balance}
+/* el sello: lo de dentro, en su sitio e invisible; el sello, encima (en la misma celda) */
+.rev-sellado,.rev-empanado{display:grid;position:relative}
+.rev-dentro,.rev-sello,.rev-texto,.rev-velo{grid-area:1/1;min-width:0}
+.rev-sellado:not(.on) .rev-dentro{opacity:0;transform:translateY(36px);visibility:hidden}
+.rev-sello{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;border-radius:18px;min-height:150px;box-sizing:border-box;
+  border:2px dashed rgba(245,176,67,.6);text-align:center;
+  background:repeating-linear-gradient(-45deg,rgba(245,176,67,.06) 0 10px,transparent 10px 20px),rgba(8,12,22,.86)}
+.rev-sello b{font-family:'Unbounded','DM Sans',sans-serif;font-size:clamp(1.15rem,2vw,1.6rem);color:var(--ink)}
+.rs-cera{width:clamp(64px,7vw,92px);aspect-ratio:1;display:grid;place-items:center;border-radius:50%;
+  background:radial-gradient(circle,#1a1408 55%,#0a0804);border:3px solid var(--amber);box-shadow:0 0 0 6px rgba(245,176,67,.18),0 0 26px rgba(245,176,67,.4)}
+.rs-cera img{width:70%;height:70%;object-fit:contain;border-radius:50%}
+.rev-sellado.on .rev-sello{opacity:0;transform:scale(1.4);visibility:hidden;pointer-events:none}
+/* el recuerdo empañado: el velo con la pregunta, encima */
+.rev-empanado:not(.on) .rev-texto{filter:blur(16px);opacity:.5;pointer-events:none;user-select:none}
+.rev-velo{position:relative;z-index:1;align-self:start;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:clamp(20px,7vh,72px) 20px 20px}
+.rev-velo b{font-family:'Unbounded','DM Sans',sans-serif;font-size:clamp(1.4rem,3vw,2.5rem);line-height:1.15;max-width:24ch;color:var(--ink);text-shadow:0 2px 20px rgba(6,10,18,.95);text-wrap:balance}
+.rev-empanado.on .rev-velo{opacity:0;visibility:hidden;pointer-events:none}
+/* en el podio, quien aún no ha subido no se pulsa (abría su ficha antes de tiempo) */
+.podio-p.fr:not(.on){pointer-events:none}
+/* el tripulante: la carta boca abajo («¿Quién es?») y su retrato, empañado hasta voltearla */
+.dia.tripulante .tp-carta.carta{width:27%;max-width:320px;flex:none;align-self:center;filter:none}
+.dia.tripulante .tp-carta .carta-b img{display:block;width:100%;height:auto;max-height:calc(100vh - 120px);object-fit:contain;filter:drop-shadow(0 0 30px rgba(55,224,236,.25))}
+.dia.tripulante .tp-capas{display:grid}
+.dia.tripulante .tp-capas > *{grid-area:1/1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.dia.tripulante .tp-antes{justify-content:flex-start}
+.dia.tripulante .tp-retrato.rev-despues:not(.on){visibility:visible;opacity:.62;filter:blur(26px) brightness(.25) saturate(.3)}
+/* la semana que viene, en una carta apaisada */
+.hp-carta{margin-top:18px;max-width:min(580px,100%)}
+.hp-carta .carta-dorso{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:18px;row-gap:10px;justify-items:start;align-content:center;text-align:left;padding:18px 22px}
+.hp-carta .cd-sello{grid-row:1/3;width:clamp(56px,6vw,84px)}
+.hp-sig{height:100%;box-sizing:border-box;display:flex;align-items:center;gap:18px;padding:16px 22px;border-radius:16px;
+  border:2px solid rgba(245,176,67,.65);background:linear-gradient(160deg,rgba(32,24,8,.94),rgba(6,10,18,.96));box-shadow:0 0 34px rgba(245,176,67,.22)}
+.hp-pl{width:clamp(84px,9vw,124px);aspect-ratio:1;object-fit:contain;flex:none;filter:drop-shadow(0 0 18px rgba(245,176,67,.35))}
+.hp-sig-t{display:flex;flex-direction:column;gap:4px;min-width:0}
+.hp-sem{font-size:.85rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+.hp-sig-t b{font-family:'Unbounded','DM Sans',sans-serif;font-size:clamp(1.2rem,2.2vw,1.8rem);line-height:1.1;color:var(--ink)}
+.hp-sub{color:var(--mut);font-size:clamp(.95rem,1.4vw,1.15rem)}
+.hp-cap{color:var(--teal2);font-size:clamp(.9rem,1.3vw,1.05rem)}
+/* las insignias, boca abajo: un disco con la interrogación del mismo tamaño que la insignia */
+.ins-carta{display:inline-block}
+.ins-carta .carta-dorso{border-radius:50%;padding:0;gap:0;box-shadow:inset 0 0 0 5px rgba(6,10,18,.85),inset 0 0 0 6px rgba(245,176,67,.5),0 0 26px rgba(55,224,236,.25)}
+.ins-carta .cd-sello{width:58%;border-width:1px}
+.ins-carta img{display:block}
+@media (max-width:720px){
+  .dia.tripulante .tp-carta.carta{width:min(56vw,190px);height:auto;max-width:none}
+  .dia.tripulante .tp-carta .carta-b img{max-height:none}
+  .hp-sig{flex-direction:column;text-align:center}
+}
+/* el movimiento, solo para quien no ha pedido reducirlo */
+@media (prefers-reduced-motion:no-preference){
+  .carta-giro{transition:transform .75s cubic-bezier(.45,.05,.2,1);transition-delay:calc(var(--i,0) * 140ms)}
+  /* la cara de abajo deja de leerse a mitad de giro (se solapan un instante: así nunca queda la carta vacía) */
+  .carta-a{transition:visibility 0s linear calc(.18s + var(--i,0) * 140ms)}
+  .carta-b{transition:visibility 0s linear calc(.42s + var(--i,0) * 140ms)}
+  [data-f].on .carta-a{transition-delay:calc(.42s + var(--i,0) * 140ms)}
+  [data-f].on .carta-b{transition-delay:calc(.18s + var(--i,0) * 140ms)}
+  .carta[data-revelable]:not(.on):hover .carta-giro,.rev-zona:not(.on) .carta:hover .carta-giro{transform:rotateY(10deg)}
+  .rev-antes{transition:opacity .45s ease .2s,visibility 0s}
+  .rev-antes.on{transition:opacity .35s ease,visibility 0s linear .35s}
+  .rev-despues{transition:opacity .3s ease,visibility 0s linear .3s}
+  .rev-despues.on{transition:opacity .6s ease .32s,visibility 0s}
+  .dia.tripulante .tp-retrato.rev-despues{transition:filter 1.3s ease .25s}
+  .rev-dentro{transition:opacity .25s ease,transform .25s ease,visibility 0s linear .25s}
+  .rev-sellado.on .rev-dentro{transition:opacity .6s ease .3s,transform .75s cubic-bezier(.2,.8,.2,1) .3s,visibility 0s}
+  .rev-sello{transition:opacity .3s ease,transform .3s ease,visibility 0s}
+  .rev-sellado.on .rev-sello{transition:opacity .45s ease,transform .55s cubic-bezier(.3,1.4,.5,1),visibility 0s linear .55s}
+  .rev-sellado:not(.on):hover .rs-cera{transform:rotate(-10deg) scale(1.06)}
+  .rs-cera{transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
+  .rev-texto{transition:filter .9s ease,opacity .9s ease}
+  .rev-velo{transition:opacity .3s ease,visibility 0s}
+  .rev-empanado.on .rev-velo{transition:opacity .5s ease,visibility 0s linear .5s}
+  [data-revelable]:not(.on) .rev-pista,.rev-sola:not(.on) .rev-pista{animation:rev-late 2.2s ease-in-out infinite}
+}
+@keyframes rev-late{50%{box-shadow:0 0 26px rgba(245,176,67,.5);transform:scale(1.04)}}
+@media (prefers-reduced-motion:reduce){
+  .carta-giro,.carta-a,.carta-b,.rev-antes,.rev-despues,.rev-dentro,.rev-sello,.rev-texto,.rev-velo,.rs-cera,.tp-retrato{transition:none !important}
+  .rev-pista{animation:none !important}
+}

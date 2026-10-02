@@ -73,11 +73,42 @@
       nota(1047, .3, .7, .1, "triangle"); nota(1319, .3, .7, .05, "sine"); nota(784, .3, .7, .04, "sine");
     },
     // el tictac de un contador que rueda: muy corto y muy bajo
-    tic: function () { nota(1500, 0, .03, .025, "square"); }
+    tic: function () { nota(1500, 0, .03, .025, "square"); },
+    /**
+     * 🔴 2-oct · LA SESIÓN QUE SE PROYECTA (receta de Mythos, §4): lo que se descubre suena. Todo sintetizado, sin ficheros.
+     *   volteo: un soplo que sube y un golpecito al caer la carta · sello: el golpe sordo de romperlo · chispa: el recuerdo
+     *   que se aclara · pagina: pasar de diapositiva, muy bajo · pop: algo que salta · reloj: el tictac del cronómetro
+     */
+    volteo: function () { soplo(.0, .17, 600, 3600, .32); golpe(.19, 240, 80, .09, .22); },
+    sello: function () { soplo(0, .12, 1800, 300, .5); golpe(0, 150, 45, .32, .5); nota(392, .04, .5, .05, "triangle"); },
+    chispa: function () { [1319, 1760, 2349, 2637].forEach(function (f, i) { nota(f, i * .06, .32, .045, "sine"); }); },
+    pagina: function () { soplo(0, .16, 900, 2600, .14); },
+    pop: function () { golpe(0, 320, 880, .11, .2); },
+    reloj: function () { nota(1250, 0, .05, .05, "triangle"); }
   };
+  /** Ruido filtrado que barre de una frecuencia a otra (el «fsss» de una carta o una página). */
+  var RUIDO = null;
+  function soplo(ini, dur, f0, f1, vol) {
+    var a = audio(); if (!a) return;
+    if (!RUIDO) { RUIDO = a.createBuffer(1, Math.floor(a.sampleRate * .5), a.sampleRate); var d = RUIDO.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    var t = a.currentTime + ini, src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+    src.buffer = RUIDO; f.type = "bandpass"; f.Q.value = 1.1;
+    f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .04); g.gain.exponentialRampToValueAtTime(0.0001, t + dur + .08);
+    src.connect(f); f.connect(g); g.connect(a.destination); src.start(t); src.stop(t + dur + .12);
+  }
+  /** Un tono que cae (o sube) muy deprisa: el golpe de la carta, el del sello, el «pop». */
+  function golpe(ini, f0, f1, dur, vol) {
+    var a = audio(); if (!a) return;
+    var t = a.currentTime + ini, o = a.createOscillator(), g = a.createGain();
+    o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur * .8);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .006); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + .02);
+  }
 
   function sonar(cual) {
     if (!suena() || !SONIDOS[cual]) return;
+    if (window.__sgSonidos) window.__sgSonidos.push(cual);   // (las pruebas lo crean antes de cargar; sin ellas no existe)
     try { var a = audio(); if (a && a.state === "suspended") a.resume(); SONIDOS[cual](); } catch (e) {}
   }
 
@@ -466,5 +497,5 @@
   window.SG = window.SG || {};
   window.SG.FIESTA = { reto: reto, canje: canje, nivelNuevo: nivelNuevo, insignias: insignias, mision: mision,
                        sonar: sonar, rodar: rodar, chispas: chispas, salta: salta,
-                       montarInterruptor: montarInterruptor, quieto: quieto };
+                       montarInterruptor: montarInterruptor, quieto: quieto, suena: suena };
 })();

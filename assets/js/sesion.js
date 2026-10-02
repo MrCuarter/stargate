@@ -294,6 +294,70 @@
   }
   function capaFondo(s, cls){ return '<div class="dia-fondo'+(cls?' '+cls:'')+'" style="background-image:url(\''+esc(fondoSemana(s).img)+'\')" aria-hidden="true"></div>'; }
   var SIN_MOVIMIENTO=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  /**
+   * ════════ 🔴 2-oct · LO QUE SE DESCUBRE PULSANDO ════════
+   *
+   * Norberto, desde las sesiones de Mythos: «las cartas que se voltean, lo que se descubre pulsando y las animaciones».
+   * La receta es la de Mythos (mythosclaude/docs/RECETA_MOVIMIENTO_Y_SONIDO.md); el motor, el de los fragmentos que ya
+   * tenía el podio: lo escondido lleva `data-f="1"` y la diapositiva `frag:1`. Como mucho UNA cosa por diapositiva (con
+   * más pasos, la clase se alarga), salvo el podio. Se descubre pulsándolo (`data-revelable`), con → / espacio / el mando
+   * (primero descubre y a la siguiente pasa) o con R (descubre o vuelve a esconder). Al volver atrás se ve entera.
+   * Lo que no tiene datos no sale escondido: sale como siempre.
+   *   · rev-antes: se ve hasta descubrir · rev-despues: se ve al descubrir (los dos, con `data-f`)
+   */
+  function pistaRev(txt, ico){ return '<span class="rev-pista"><img class=ico src=assets/img/iconos/p/'+(ico||'ojo')+'.png alt> '+txt+'</span>'; }
+  /** La carta de dos caras, en la misma celda de rejilla: mide lo que la cara más alta. `todo`=false si la pulsa otro. */
+  function cartaRev(dorso, cara, cls, todo){
+    return '<div class="carta'+(cls?' '+cls:'')+'"'+(todo===false?'':' data-revelable data-f="1" role="button" tabindex="0" aria-label="Voltear la carta"')+'>'
+      +'<div class="carta-giro"><div class="carta-a">'+dorso+'</div><div class="carta-b">'+cara+'</div></div></div>';
+  }
+  function dorsoRev(txt, pista){
+    return '<div class="carta-dorso"><span class="cd-sello"><img src="assets/img/iconos/p/pregunta.png" alt=""></span>'
+      +(txt?'<b class="cd-txt">'+txt+'</b>':'')+(pista===false?'':pistaRev(pista||'Pulsa para descubrirlo'))+'</div>';
+  }
+  /** El sello: lo de dentro está en su sitio, invisible; el sello encima. */
+  function selladoRev(dentro, txt){
+    return '<div class="rev-sellado" data-revelable data-f="1" role="button" tabindex="0" aria-label="Romper el sello">'
+      +'<div class="rev-dentro">'+dentro+'</div>'
+      +'<div class="rev-sello"><span class="rs-cera"><img src="assets/img/iconos/p/candado.png" alt=""></span>'
+      +'<b>'+(txt||'Sellado')+'</b>'+pistaRev('Pulsa para romper el sello', 'candado')+'</div></div>';
+  }
+  /**
+   * 2-oct · EL SONIDO DE LA SESIÓN (SG.FIESTA, la misma preferencia «sgSonido» de toda la web; M o el altavoz lo quitan).
+   * Suena solo en la pantalla que proyecta —nunca en la de quien sigue al docente— y solo con lo que alguien acaba de hacer
+   * (al abrir no suena nada). Si se pasa deprisa, lo que estaba por sonar de la diapositiva anterior se cancela.
+   */
+  var SON={t:[]};
+  function sonar(n, ms){
+    if(st.alumno) return; var F=window.SG&&window.SG.FIESTA; if(!F||!F.sonar) return;
+    if(ms) SON.t.push(setTimeout(function(){ F.sonar(n); }, ms)); else F.sonar(n);
+  }
+  function callarPendientes(){ SON.t.forEach(clearTimeout); SON.t=[]; }
+  function sonarRev(sl, antes, f){
+    if(f<=antes) return;   // volver a esconder, en silencio
+    if(sl.k==='semanal') return sonar(f>=sl.frag?'nivel':'pop');
+    if(sl.k==='anteriores') return sonar('chispa');
+    if(sl.k==='retos-semana'||sl.k==='reto') return sonar('sello');
+    sonar('volteo'); if(sl.k==='hasta') sonar('chispa', 380);
+  }
+  function suenaSesion(){ var F=window.SG&&window.SG.FIESTA; return !F||!F.suena||F.suena(); }
+  var IC_SON='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var IC_MUDO='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function pintarSon(){
+    var b=root.querySelector('#ses-son'); if(!b) return; var on=suenaSesion();
+    b.innerHTML=on?IC_SON:IC_MUDO; b.classList.toggle('mudo', !on);
+    b.title=on?'Quitar el sonido (M)':'Poner el sonido (M)'; b.setAttribute('aria-label', b.title);
+  }
+  function alternarSon(){
+    try{ localStorage.setItem('sgSonido', suenaSesion()?'no':'si'); }catch(e){}
+    pintarSon(); if(suenaSesion()) sonar('pop');
+  }
+  /** El recuerdo empañado: intentan recordarlo antes de verlo. */
+  function empanadoRev(dentro, pregunta){
+    return '<div class="rev-empanado" data-revelable data-f="1" role="button" tabindex="0" aria-label="Mostrar el recuerdo">'
+      +'<div class="rev-texto">'+dentro+'</div>'
+      +'<div class="rev-velo"><b>'+pregunta+'</b>'+pistaRev('Pulsa para recordarlo')+'</div></div>';
+  }
   /** El clip de la portada: se carga al llegar a ella, se reproduce una vez y se queda en su último fotograma. */
   function arrancaClip(el){
     var v=el.querySelector('video.pt-video'); if(!v||SIN_MOVIMIENTO) return null;
@@ -318,24 +382,37 @@
   function diaRetosSemana(s){
     var ls=(s.lanza||[]).map(function(txt){ return {txt:txt, id:idDeReto(txt)}; }).filter(function(r){ return r.id && !/^X/.test(r.id); });
     if(!ls.length) return null;
-    return {k:'retos-semana', sec:'misiones', rot:'Los retos', montar:conRetrato(null), html:
+    // 2-oct · sellados: se rompe el sello pulsándolo, con → o con R
+    return {k:'retos-semana', sec:'misiones', rot:'Los retos', frag:1, montar:conRetrato(null), html:
       '<div class="dia retos-semana con-fondo">'+capaFondo(s)+cmdCuerpo('reto')
-      +'<div class="rs-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Esta semana</div><h2>Vuestros retos</h2><ul class="rs-lista">'
+      +'<div class="rs-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Esta semana</div><h2>Vuestros retos</h2>'
+      +selladoRev('<ul class="rs-lista">'
       +ls.map(function(r, i){ var rel=/^L\d$/.test(r.id);
         return '<li style="--i:'+i+'"><span class="rs-donde'+(rel?' clase':'')+'">'+(rel?'En clase':'En casa')+'</span><b>«'+esc(tituloReto(r.txt))+'»</b></li>'; }).join('')
       // 26-sep · el relámpago, en clase… o después, cuando cada cual quiera (Norberto)
-      +'</ul>'+(ls.some(function(r){ return /^L\d$/.test(r.id); })?'<p class="rs-despues">El relámpago, en clase… <b>o después, cuando tú quieras</b>.</p>':'')+'</div></div>'};
+      +'</ul>'+(ls.some(function(r){ return /^L\d$/.test(r.id); })?'<p class="rs-despues">El relámpago, en clase… <b>o después, cuando tú quieras</b>.</p>':''),
+        ls.length===1?'Un reto sellado':ls.length+' retos sellados')+'</div></div>'};
   }
   /** La despedida: el comandante saluda. En la última clase del viaje, la cita para después de la batalla (el examen). */
-  function diaHastaPronto(fin, aDonde){
+  function diaHastaPronto(fin, aDonde, sig){
     if(aDonde==='forge') return {k:'hasta', sec:'cierre', rot:'Hasta Fôrge', montar:conRetrato(null), html:
       '<div class="dia hasta-pronto con-fondo"><div class="dia-fondo" style="background-image:url(\'assets/img/pres/perfil_en_vuelo.webp\')" aria-hidden="true"></div>'+cmdCuerpo('saludo')
       +'<div class="hp-txt"><h2>Nos vemos en Fôrge</h2><p class="sub">En la <b>sesión 2</b> empieza el Tema 1: vuestra hoja de ruta, con la IA como ayudante.</p></div></div>'};
-    return {k:'hasta', sec:'cierre', rot:fin?'Tras la batalla':'Hasta pronto', montar:conRetrato(null), html:
+    /**
+     * 2-oct · «¿QUÉ PASARÁ LA SEMANA QUE VIENE?», en una carta boca abajo: al voltearla, el tema de la semana siguiente y
+     * su planeta (del calendario, como la portada de esa semana). Cierre con intriga. Si no hay semana siguiente, sin carta.
+     */
+    var pl=!fin&&sig?(Number(sig.tema_n)?planeta(sig.tema_n):(sig.planeta&&sig.planeta.length?sig.planeta:null)):null;
+    var carta=!fin&&sig&&sig.tema?cartaRev(dorsoRev('¿Qué pasará la semana que viene?'),
+      '<div class="hp-sig">'+(pl?'<img class="hp-pl" src="assets/img/planetas/'+esc(pl[0])+'.png'+(window.SG_IMGV||'')+'" alt="">':'')
+      +'<div class="hp-sig-t"><span class="hp-sem">La semana '+esc(String(sig.sem))+'</span><b>'+esc(sig.tema)+'</b>'
+      +(sig.sub?'<span class="hp-sub">'+esc(sig.sub)+'</span>':'')
+      +(sig.capitulo?'<span class="hp-cap">Nuevo capítulo: «'+esc(sig.capitulo)+'»</span>':'')+'</div></div>', 'hp-carta'):'';
+    return {k:'hasta', sec:'cierre', rot:fin?'Tras la batalla':'Hasta pronto', frag:carta?1:0, montar:conRetrato(null), html:
       '<div class="dia hasta-pronto con-fondo'+(fin?' fin-viaje':'')+'"><div class="dia-fondo" style="background-image:url(\'assets/img/pres/'+(fin?'flotas':'perfil_en_vuelo')+'.webp\')" aria-hidden="true"></div>'+cmdCuerpo('saludo')+'<div class="hp-txt">'
       +(fin?'<h2>Vuelve después de la batalla para ver el desenlace</h2>'
            +'<p class="sub">Cuando acabe el viaje se abren en tu Nave, en El Archivo, <b>la batalla de la Ciudadela Gris</b> y, detrás, el último fragmento.</p>'
-           :'<h2>Hasta la próxima, recluta</h2>')+'</div></div>'};
+           :'<h2>Hasta la próxima, recluta</h2>'+carta)+'</div></div>'};
   }
   /**
    * 🔴 24-sep · EL TRIPULANTE DE LA SEMANA. Norberto: «haz hincapié en el fragmento. Dedica una página entera al personaje,
@@ -348,17 +425,25 @@
     if(!ls.length) return null;
     var r=ls[0], n=r.id.slice(1), T=window.SG_TRIPULANTES||{}, k=Object.keys(T).filter(function(x){ return x.indexOf('P'+n+'_')===0; })[0], t=k&&T[k];
     if(!t) return null;
-    return {k:'tripulante', sec:'tripulante', rot:String(t.nombre).split(' ')[0], html:
-      '<div class="dia tripulante con-fondo"><div class="dia-fondo tp-retrato" style="background-image:url(\'assets/img/tripulacion/'+esc(k)+'.webp\')" aria-hidden="true"></div>'
-      +'<img class="tp-carta" src="'+esc(t.carta)+'" alt="La carta de '+esc(t.nombre)+'">'
+    /**
+     * 2-oct · Y LLEGA BOCA ABAJO: «¿Quién es?». Sale una sola vez en todo el viaje (la semana de su relámpago), así que
+     * siempre es la primera. Antes de voltearla se ven su papel y su frase; su nombre, su cara y su retrato, al voltearla
+     * (pulsándola, con → o con R). Por eso la barra de abajo ya no dice su nombre: lo destripaba.
+     */
+    return {k:'tripulante', sec:'tripulante', rot:'¿Quién es?', frag:1, html:
+      '<div class="dia tripulante con-fondo"><div class="dia-fondo tp-retrato rev-despues" data-f="1" style="background-image:url(\'assets/img/tripulacion/'+esc(k)+'.webp\')" aria-hidden="true"></div>'
+      +cartaRev(dorsoRev('¿Quién es?'), '<img src="'+esc(t.carta)+'" alt="La carta de '+esc(t.nombre)+'">', 'tp-carta')
       +'<div class="tp-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/gente.png alt> La Tripulación Cero · Tema '+esc(n)+'</div>'
+      +'<div class="tp-capas"><div class="tp-antes rev-antes" data-f="1"><h2>¿Quién es?</h2><p class="tp-rol">'+esc(t.rol)+'</p>'
+      +(t.cita?'<blockquote class="tp-cita">«'+esc(t.cita)+'»</blockquote>':'<p class="tp-lec"><b>Su lección:</b> '+esc(t.leccion)+'</p>')+'</div>'
+      +'<div class="tp-despues rev-despues" data-f="1">'
       +'<h2>'+esc(t.nombre)+'</h2><p class="tp-rol">'+esc(t.rol)+'</p>'
       +'<p class="tp-hist">'+esc(t.historia)+'</p>'
       +'<p class="tp-lec"><b>Su lección:</b> '+esc(t.leccion)+'</p>'
       +(t.cita?'<blockquote class="tp-cita">«'+esc(t.cita)+'»</blockquote>':'')
       +'<div class="tp-frag"><img class=ico src=assets/img/iconos/p/candado.png alt><div><b>Su fragmento está prohibido</b> hasta que alguien lo recupere. '
       +'Haz el relámpago <b>«'+esc(tituloReto(r.txt))+'»</b> y su vídeo se abrirá en tu Nave, en El Archivo. Solo lo ve quien lo gana.</div></div>'
-      +'</div></div>'};
+      +'</div></div></div></div>'};
   }
   function diaPortada(s, n){
     // 24-sep · la semana sin tema (la 15) lleva el planeta de la Estática (ojo: planeta(0) daba Fôrge)
@@ -670,16 +755,21 @@
       var id=idDeReto(txt); return { txt:txt, id:id, ins:insigniaDe(id),
         hechos:gente.filter(function(p){ return (p.hechos||[]).indexOf(id)>=0; }) }; }).filter(function(f){ return f.id; });
     if(!filas.length || !filas.some(function(f){ return f.hechos.length; })) return null;
-    return {k:'anteriores', rot:'Misiones de la semana '+prev.sem, html:
+    /**
+     * 2-oct · «¿OS ACORDÁIS?» La apertura no tiene otra diapositiva de repaso, y esta ya trae lo de la semana anterior:
+     * las misiones llegan empañadas y la clase intenta recordarlas antes de verlas (práctica de recuperación). Se
+     * descubren pulsando, con → o con R; y entonces, quién las ha superado.
+     */
+    return {k:'anteriores', rot:'Misiones de la semana '+prev.sem, frag:1, html:
       '<div class="dia anteriores"><div class="kicker"><img class=ico src=assets/img/iconos/p/llave.png alt> Las misiones de la semana '+prev.sem+'</div><h2>¿Quién las ha superado?</h2>'
-      +'<div class="ant-lista">'+filas.map(function(f,i){
+      +empanadoRev('<div class="ant-lista">'+filas.map(function(f,i){
         return '<div class="ant-f" style="--i:'+i+'">'
           +(f.ins?'<img class="ant-ins" src="assets/img/insignias/'+esc(f.ins)+'.webp" alt="">':'<span class="ant-ins vacia"><img class=ico src=assets/img/iconos/p/llave.png alt></span>')
           +'<div class="ant-txt"><div class="ant-cab"><span class="ant-et">'+etiquetaReto(f.txt)+'</span><b>«'+esc(tituloReto(f.txt))+'»</b>'
           +'<span class="ant-n"><b>'+f.hechos.length+'</b> de '+gente.length+'</span></div>'
           +(f.hechos.length?caras(f.hechos, 12, null, function(p){ return ' data-ficha="'+esc(p.fid||p.ficha||'')+'" data-reto="'+esc(f.id)+'"'; })
                           :'<p class="sub">¿Quién será el primero?</p>')+'</div></div>';
-      }).join('')+'</div></div>', montar: montarEvidencias};
+      }).join('')+'</div>', '¿Os acordáis de '+(filas.length===1?'la misión':'las misiones')+' de la semana '+prev.sem+'?')+'</div>', montar: montarEvidencias};
   }
   /**
    * 15-sep · SUS ENTREGAS, A UN CLIC. Norberto: «en los estudiantes que han completado los retos
@@ -906,7 +996,9 @@
     var orden=n===3?[[r[1],2],[r[0],1],[r[2],3]]:[[r[1],2],[r[0],1]];
     return {k:'semanal', rot:'Ranking semanal', frag:n, html:
       '<div class="dia semanal"><div class="kicker"><img class=ico src=assets/img/iconos/p/medalla.png alt> El ranking de la semana</div><h2>Los que más han sumado</h2>'
-      +'<div class="podio">'+orden.map(function(x){ return sitio(x[0],x[1]); }).join('')+'</div></div>'};
+      // 2-oct · y se pulsa: cada toque sube a uno (como →); la pista late hasta que sale el 1.º
+      +'<div class="podio" data-revelable data-f="'+n+'" role="button" tabindex="0" aria-label="Descubrir el siguiente puesto">'+orden.map(function(x){ return sitio(x[0],x[1]); }).join('')+'</div>'
+      +'<p class="rev-sola rev-antes" data-revelable data-f="'+n+'">'+pistaRev('Pulsa para ver quién sube', 'medalla')+'</p></div>'};
   }
 
   // ── 7 · el ranking total: los cinco de arriba
@@ -1286,7 +1378,8 @@
       var b=e.target.closest&&e.target.closest('[data-rc]'); if(!b) return;
       e.stopPropagation();
       var a=b.getAttribute('data-rc');
-      if(a==='go'&&!tic&&queda>0){ c.classList.add('corre'); tic=setInterval(function(){ queda--; pinta(); if(queda<=0) para(); }, 1000); }
+      if(a==='go'&&!tic&&queda>0){ var slC=st.slides[st.i]; if(slC&&slC.frag&&st.f<slC.frag) fijarF(slC.frag);   // 2-oct · abre el sello
+        c.classList.add('corre'); sonar('reloj'); tic=setInterval(function(){ queda--; pinta(); if(queda>0&&queda<=5) sonar('reloj'); if(queda<=0){ para(); sonar('sello'); } }, 1000); }
       else if(a==='pausa') para();
       else if(a==='reset'){ para(); queda=total; pinta(); }
     });
@@ -1437,13 +1530,16 @@
     ls.forEach(function(txt,i){
       var id=idDeReto(txt), pide=id?AYU[id]:'', ins=insigniaDe(id), b=ins?badge(ins):null;
       var rel=/^L\d$/.test(id), mins=rel?Number((String(txt).match(/(\d+)\s*min/)||[])[1]||10):0;
-      out.push({k:'reto', rot:rel?'Relámpago':'Misión '+(i+1), montar:rel?montarCrono:null, html:
+      // 2-oct · en el relámpago, lo que hay que hacer llega SELLADO: no se cuenta el tiempo de algo que no se ve. Se abre
+      // pulsando el sello, con → o con R… o al darle a «Empezar» en el cronómetro
+      var sella=rel&&!!pide, pideH=pide?'<div class="pide"><div class="et">Qué hay que hacer</div><p>'+esc(pide)+'</p></div>':'';
+      out.push({k:'reto', rot:rel?'Relámpago':'Misión '+(i+1), frag:sella?1:0, montar:rel?montarCrono:null, html:
         // (clase «mision», no «reto»: `.reto` es el botón de reto de otra página y la dejaba apagada)
         '<div class="dia mision'+(ins?' con-ins':'')+'">'
         +(ins?'<figure class="reto-ins"><img src="assets/img/insignias/'+esc(ins)+'.webp" alt=""><figcaption>'+esc(b?b.nombre:'')+'</figcaption></figure>':'')
         +'<div class="reto-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/diana.png alt> Misión '+(i+1)+' de '+ls.length+' · '+etiquetaReto(txt)+'</div>'
         +'<h2>«'+esc(tituloReto(txt))+'»</h2>'
-        +(pide?'<div class="pide"><div class="et">Qué hay que hacer</div><p>'+esc(pide)+'</p></div>'
+        +(sella?selladoRev(pideH, 'El reto, sellado'):pide?pideH
               :'<p class="sub">El enunciado completo está en tu Nave, en «Retos».</p>')
         +(i===ls.length-1&&s.hito?'<p class="reto-hito"><img class=ico src=assets/img/iconos/p/diana.png alt> <b>Esta semana se entrega:</b> '+esc(s.hito)+'</p>':'')
         +(rel?cronoRelampago(mins):'')
@@ -1461,12 +1557,15 @@
     // las insignias de la semana que no van con ninguna misión (las de capítulo e historia), juntas
     var suyas=ls.map(function(t){ return insigniaDe(idDeReto(t)); });
     var otras=(s.insignias||[]).filter(function(k){ return suyas.indexOf(k)<0; });
-    if(otras.length) out.push({k:'insignias', rot:'Insignias', html:
+    // 2-oct · boca abajo: se voltean todas a la vez (una sola pulsación, una detrás de otra), y entonces su nombre y cómo se gana
+    if(otras.length) out.push({k:'insignias', rot:'Insignias', frag:1, html:
       '<div class="dia insignias'+(otras.length===1?' una':'')+'"><div class="kicker">También se entrega esta semana</div>'
       +'<h2>'+(otras.length===1?'La insignia en juego':'Las insignias en juego')+'</h2>'
-      +'<div class="ins-grid">'+otras.map(function(k,i){ var b=badge(k);
-        return '<figure style="--i:'+i+'"><img src="assets/img/insignias/'+esc(k)+'.webp" alt=""><figcaption><b>'+esc(b?b.nombre:k)+'</b>'
-          +(b&&b.como?'<em>'+esc(b.como)+'</em>':'')+(b&&b.cita?'<q>'+esc(b.cita)+'</q>':'')+'</figcaption></figure>'; }).join('')+'</div></div>'});
+      +'<div class="rev-zona" data-revelable data-f="1" role="button" tabindex="0" aria-label="Voltear las insignias"><div class="ins-grid">'+otras.map(function(k,i){ var b=badge(k);
+        return '<figure style="--i:'+i+'">'+cartaRev(dorsoRev('', false), '<img src="assets/img/insignias/'+esc(k)+'.webp" alt="">', 'ins-carta', false)
+          +'<figcaption class="rev-despues" data-f="1"><b>'+esc(b?b.nombre:k)+'</b>'
+          +(b&&b.como?'<em>'+esc(b.como)+'</em>':'')+(b&&b.cita?'<q>'+esc(b.cita)+'</q>':'')+'</figcaption></figure>'; }).join('')+'</div>'
+      +'<p class="rev-sola rev-antes" data-f="1">'+pistaRev(otras.length===1?'Pulsa para voltearla':'Pulsa para voltearlas', 'medalla')+'</p></div></div>'});
     return out;
   }
 
@@ -2182,7 +2281,7 @@
     if(tf) ci.push(tf);
     // 27-sep · y el juego del final, detrás del ticket (con el ticket dentro de su sala de espera, si la clase lo tiene)
     var dd=diaDirecto(s, tf?ticketDe(s):null); if(dd) ci.push(dd);
-    if(finViaje) ci.push(diaHastaPronto(true)); else if(!tf) ci.push(diaHastaPronto());
+    if(finViaje) ci.push(diaHastaPronto(true)); else if(!tf) ci.push(diaHastaPronto(false, null, L[iS+1]));
     ci.forEach(function(x){ x.t='ci'; });
 
     // El tramo del medio. Proyectando desde la web (sin Genially) va el panel del grupo EMBEBIDO, que
@@ -2281,7 +2380,8 @@
         +'<img src="assets/img/nave/iconos/clase.png" alt="" width="18" height="18"><span>Herramientas</span></button>':'')
       // 28-sep · NEBULA, otra vez: repite la guía de lo que hay en pantalla (la primera vez sale sola)
       +(!st.alumno&&st.per&&st.yo&&window.SG&&SG.GUIA?'<button type="button" class="ses-ic ses-guia" id="ses-guia" title="Guíame otra vez (NEBULA)" aria-label="Guíame otra vez"><img src="assets/img/personajes/nebula.png" alt="" width="20" height="20" style="object-fit:contain"></button>':'')
-      +'<button type="button" class="ses-ic" id="ses-pantalla" title="'+(fs?'Salir de pantalla completa (F)':'Pantalla completa (F)')+'" aria-label="'+(fs?'Salir de pantalla completa':'Pantalla completa')+'">'+(fs?IC_SALIR:IC_PANTALLA)+'</button>'
+      +(!st.alumno?'<button type="button" class="ses-ic ses-son'+(suenaSesion()?'':' mudo')+'" id="ses-son" title="'+(suenaSesion()?'Quitar el sonido (M)':'Poner el sonido (M)')+'" aria-label="'+(suenaSesion()?'Quitar el sonido':'Poner el sonido')+'">'+(suenaSesion()?IC_SON:IC_MUDO)+'</button>':'')
+      +'<button type="button" class="ses-ic" id="ses-pantalla" title=""'+(fs?'Salir de pantalla completa (F)':'Pantalla completa (F)')+'" aria-label="'+(fs?'Salir de pantalla completa':'Pantalla completa')+'">'+(fs?IC_SALIR:IC_PANTALLA)+'</button>'
       +'<div class="cuenta">'+(st.i+1)+' / '+st.slides.length+'</div></div>';
   }
   function marcarPantalla(){
@@ -2428,6 +2528,8 @@
         +[['apertura','1 · Apertura'],['cierre','3 · Cierre'],['','La sesión entera'],['pres','La presentación de la asignatura'],['act1','La Actividad 1'],['act2','La Actividad 2']].map(function(x){
           return '<button type="button" class="btn min" data-copiar-ses="'+x[0]+'">&lt;/&gt; '+x[1]+'</button>'; }).join(' ')+'</p>'
       +(s.consejo?'<div class="card consejo"><b>El consejo del Capitán.</b> '+esc(s.consejo)+'</div>':'')
+      // 2-oct · lo que se descubre: la pista proyectada le habla a la clase; cómo se maneja, solo aquí
+      +'<p class="small muted prep-rev"><b>Cartas y sellos:</b> lo que llega boca abajo o sellado se descubre pulsándolo, con <b>→</b> o con <b>R</b> (R lo vuelve a esconder). <b>M</b> quita o pone el sonido.</p>'
       +(s.clases?'<p class="small muted">'+esc(s.clases)+'</p>':'')
       +(s.foro?'<details class="foro-det"><summary>El mensaje de esta semana para el foro de la plataforma de UNIR (para copiar)</summary>'
         +'<pre class="foro-msg">'+esc(conComandante(s.foro).split('{id-del-PER}').join(st.per||'{id-del-PER}'))+'</pre>'
@@ -2600,17 +2702,44 @@
   function frags(){
     var lienzo=root.querySelector('.lienzo'); if(!lienzo) return;
     Array.prototype.forEach.call(lienzo.querySelectorAll('[data-f]'),function(x){ x.classList.toggle('on', Number(x.getAttribute('data-f'))<=st.f); });
+    // 2-oct · lo que está escondido no lo lee un lector de pantalla (la cara de abajo de la carta, lo sellado, lo empañado)
+    Array.prototype.forEach.call(lienzo.querySelectorAll('[data-revelable]'),function(r){
+      var on=r.classList.contains('on');
+      Array.prototype.forEach.call(r.querySelectorAll('.carta-b,.rev-dentro,.rev-texto'),function(x){ x.setAttribute('aria-hidden', on?'false':'true'); });
+      Array.prototype.forEach.call(r.querySelectorAll('.carta-a,.rev-sello,.rev-velo'),function(x){ x.setAttribute('aria-hidden', on?'true':'false'); });
+    });
+    var dia=lienzo.firstElementChild, sl=st.slides[st.i]; if(dia&&sl&&sl.frag) dia.classList.toggle('revelada', st.f>=sl.frag);
   }
+  /**
+   * 2-oct · DESCUBRIR. Todo pasa por aquí (pulsar, →, R, el cronómetro): pone el paso, lo pinta, lo emite a quien sigue al
+   * docente y suena en la pantalla que proyecta. Quien sigue al docente en directo no descubre por su cuenta: lo ve llegar.
+   */
+  function fijarF(f){
+    var sl=st.slides[st.i]; if(!sl||!sl.frag) return false;
+    f=Math.max(0, Math.min(sl.frag, f)); if(f===st.f) return false;
+    if(st.alumno&&enDirecto()){ avisoBloqueo(); return false; }
+    var antes=st.f; st.f=f; frags(); emitir();
+    sonarRev(sl, antes, f);
+    return true;
+  }
+  /** R: descubre todo lo que quede o, si ya está todo, lo vuelve a esconder. */
+  function alternarRev(){ var sl=st.slides[st.i]; if(sl&&sl.frag) fijarF(st.f<sl.frag?sl.frag:0); }
   function avanzar(){
     var sl=st.slides[st.i];
-    if(sl&&sl.frag&&st.f<sl.frag){ st.f++; frags(); return; }
+    if(sl&&sl.frag&&st.f<sl.frag){ fijarF(st.f+1); return; }
     ir(st.i+1);
   }
   function retroceder(){
     var sl=st.slides[st.i];
-    if(sl&&sl.frag&&st.f>0&&st.f<sl.frag){ st.f--; frags(); return; }
+    if(sl&&sl.frag&&st.f>0&&st.f<sl.frag){ fijarF(st.f-1); return; }
     ir(st.i-1, true);
   }
+  // pulsar lo escondido lo descubre (y no pasa de diapositiva); ya descubierto, el clic no hace nada especial
+  root.addEventListener('click', function(e){
+    var r=e.target.closest&&e.target.closest('.lienzo [data-revelable]'); if(!r||r.classList.contains('on')) return;
+    if(e.target.closest('.cara[data-quien],a,button')) return;   // (en el podio, la cara de quien ya ha subido abre su ficha)
+    e.preventDefault(); e.stopPropagation(); fijarF(st.f+1);
+  });
 
   /**
    * 🔴 29-sep · EL RASTRO PARA LA ACADEMIA DE LA CERO. La clase de ensayo (la del grupo DEMO, sin ser su docente) y la sesión
@@ -2643,6 +2772,7 @@
     st.f=hacia_atras&&st.slides[i].frag?st.slides[i].frag:0;
     if(st.fuera){ try{ st.fuera(); }catch(e){} st.fuera=null; }
     cerrarFicha();
+    callarPendientes(); if(!desdeDirecto) sonar('pagina');
     var lienzo=root.querySelector('.lienzo');
     if(lienzo){
       lienzo.innerHTML=st.slides[i].html;
@@ -2663,11 +2793,11 @@
   function emitir(){
     if(!DIRECTO.on||st.alumno||!st.per) return;
     var M=window.SG&&window.SG.MOTOR, o=ocurrencia(st.i); if(!M||!M.publicarEnVivo||!o) return;
-    var firma=st.sem+'|'+o.k+'|'+o.n; if(firma===DIRECTO.ultimo) return;
+    var firma=st.sem+'|'+o.k+'|'+o.n+'|'+st.f; if(firma===DIRECTO.ultimo) return;
     clearTimeout(DIRECTO.t);
     DIRECTO.t=setTimeout(function(){
       DIRECTO.ultimo=firma;
-      M.publicarEnVivo(st.per, {sesion:{activa:true, sem:st.sem, pres:!!st.pres, act:st.act||0, k:o.k, n:o.n, t:Date.now(), por:st.miNombre||''}}).catch(function(){});
+      M.publicarEnVivo(st.per, {sesion:{activa:true, sem:st.sem, pres:!!st.pres, act:st.act||0, k:o.k, n:o.n, f:st.f||0, t:Date.now(), por:st.miNombre||''}}).catch(function(){});
     }, 350);
   }
   function encenderDirecto(){
@@ -2700,6 +2830,8 @@
         if(!!s.pres!==!!st.pres || Number(s.act||0)!==Number(st.act||0) || (!s.pres&&!s.act&&Number(s.sem)&&Number(s.sem)!==Number(st.sem))){
           st.pres=!!s.pres; st.act=Number(s.act)||0; if(Number(s.sem)) st.sem=Number(s.sem); st.i=0; pintar(); }
         var i=indiceDe(s.k, s.n); if(i>=0&&i!==st.i) ir(i, false, true);
+        // 2-oct · y lo que el docente ha descubierto (la carta volteada, el sello roto, el podio); sin `f`, como antes
+        if(i>=0&&i===st.i&&s.f!=null){ var slS=st.slides[i], fS=Math.max(0, Math.min((slS&&slS.frag)||0, Number(s.f)||0)); if(fS!==st.f){ st.f=fS; frags(); } }
       }
       var p=SEG.d.pregunta;
       if(p&&p.abierta&&p.id&&SEG.miaDe!==p.id){ SEG.miaDe=p.id; SEG.mia=null;
@@ -2797,6 +2929,7 @@
     };
     var pr=root.querySelector('#proyectar');
     if(pr) pr.onclick=function(){ if(!enPantalla()) pantallaCompleta(); };
+    var sn=root.querySelector('#ses-son'); if(sn) sn.onclick=function(){ alternarSon(); };
     var pc=root.querySelector('#ses-pantalla');
     if(pc) pc.onclick=function(){ pantallaCompleta(); };
     Array.prototype.forEach.call(root.querySelectorAll('[data-ses-ventana]'),function(b){ b.onclick=function(){ abrirEnVentana(); }; });
@@ -2831,6 +2964,8 @@
     if(mazo) mazo.focus();
   }
 
+  // 2-oct · el sonido se quita en otra ventana (la del proyector, la de la sesión): esta se entera
+  window.addEventListener('storage', function(e){ if(e.key==='sgSonido') pintarSon(); });
   // teclado: ← → y espacio. Se escucha en el documento porque en pantalla completa el foco puede
   // estar en el iframe de YouTube y entonces el mazo ya no recibe las teclas.
   document.addEventListener('keydown',function(e){
@@ -2840,7 +2975,12 @@
     if(root.querySelector('.ses-ficha')){ if(/^(Escape|ArrowRight|ArrowLeft|PageDown|PageUp| )$/.test(e.key)){ e.preventDefault(); cerrarFicha(); } return; }
     if(/^(INPUT|SELECT|TEXTAREA)$/.test((e.target&&e.target.tagName)||'')) return;
     // la barra espaciadora sobre un botón lo pulsa (no pasa de diapositiva); las flechas y el mando, siempre
+    // 2-oct · Intro o espacio sobre lo escondido (llegando con el tabulador) lo descubre, como pulsarlo
+    var rv=e.target&&e.target.closest&&e.target.closest('.lienzo [data-revelable]');
+    if(rv&&(e.key==='Enter'||e.key===' ')&&!rv.classList.contains('on')){ e.preventDefault(); fijarF(st.f+1); return; }
     if(e.key===' ' && e.target && e.target.closest && e.target.closest('button,a,[role=button]')) return;
+    if((e.key==='r'||e.key==='R')&&!e.metaKey&&!e.ctrlKey&&!e.altKey){ e.preventDefault(); alternarRev(); return; }
+    if((e.key==='m'||e.key==='M')&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&!st.alumno){ e.preventDefault(); alternarSon(); return; }
     if((e.key==='f'||e.key==='F')&&!e.metaKey&&!e.ctrlKey&&!e.altKey){ e.preventDefault(); pantallaCompleta(); return; }
     if(e.key==='Escape'&&document.body.classList.contains('proyectando')){ e.preventDefault(); pantallaCompleta(); return; }
     if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){ e.preventDefault(); avanzar(); }

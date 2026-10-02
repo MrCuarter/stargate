@@ -2898,8 +2898,8 @@ const REG = {};   // cifras que se apuntan para el informe
         await rg.ir("entrar.html"); await rg.entrarComo("rita@lab.test", "Rita Referente");
         // 19-sep · la entrada, dentro de la sección «Premios» de tu Nave (si llevas más de un grupo)
         await rg.ir("consola.html?per=" + P + "&tab=huevos");
-        c("🌐 comunes · en «Premios», la entrada «Para todos tus grupos»", await rg.hasta("!!document.querySelector('.cn-sub a.cn-comun[href*=\"comun=premios\"]')", 60));
-        await rg.js("document.querySelector('.cn-sub a.cn-comun').click(); 1");
+        c("🌐 comunes · en «Premios», la entrada «Para todos tus grupos»", await rg.hasta("!!document.querySelector('.cn-comun-p a.cn-comun[href*=\"comun=premios\"]')", 60));
+        await rg.js("document.querySelector('.cn-comun-p a.cn-comun').click(); 1");
         await rg.hasta("!!document.getElementById('pe-nuevo') && !/Buscando tus premios/.test((document.getElementById('pe-lista')||{}).textContent||'')", 25);
         await rg.foto(FOTOS + "/26-comunes.png");
         const G = await crearPremioUI(rg, P2, { tipo: "huevo", premio: "bolsa", cantidad: 30 });
@@ -2923,7 +2923,7 @@ const REG = {};   // cifras que se apuntan para el informe
           const dentroP = await aPremiosDe(rg, P);
           c("🌐 comunes · y dentro del que sí, aparece (con su ámbito)", dentroP && await rg.hasta(tarjeta(G.id, "return /Solo/.test(f.querySelector('.pe-ambito').textContent);"), 15), rg.__pestanas || "");
           c("🌐 comunes · «Premios» junta los premios por enlace, los sorteos y las ofertas (y la entrada a «Para todos tus grupos»)",
-            await rg.js("['huevos','sorteos','ofertas'].every(function(k){ return !!document.querySelector('.cn-sub .pest[data-tab=\"'+k+'\"]'); }) && !!document.querySelector('.cn-sub a.cn-comun')"));
+            await rg.js("['huevos','sorteos','ofertas'].every(function(k){ return !!document.querySelector('.cn-sub .pest[data-tab=\"'+k+'\"]'); }) && !!document.querySelector('.cn-comun-p a.cn-comun')"));
         }
         await rg.cerrar();
       }
@@ -5468,6 +5468,159 @@ const REG = {};   // cifras que se apuntan para el informe
         ban.indexOf(fAntes.name) >= 0 && ban.indexOf("compartido con " + de) >= 0, ban.slice(0, 220).replace(/\n/g, " · "));
       await pa.foto(FOTOS + "/51-nave-paula.png");
       await pa.cerrar();
+    }
+    // ============================================================ 52 · LO QUE SE DESCUBRE PULSANDO (2-oct)
+    /**
+     * Norberto: «quiero en la sesión semanal de STARGATE las cartas que se voltean, lo que se descubre pulsando y las
+     * animaciones, como en las sesiones de Mythos». Lo de la receta de Mythos (§5), contra la sesión de verdad: la carta del
+     * tripulante, el sello del relámpago, el recuerdo empañado, R, M, «reducir movimiento», el móvil, la letra con lo
+     * escondido tapado y —con dos personas— que quien sigue al docente ve lo que se descubre (y en su pantalla no suena).
+     */
+    if (hacer(52)) {
+      const P = "lab-clase";
+      const aDia = async (p, t) => { const ok = await p.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return x.title===${JSON.stringify(t)}})[0]; if(b) b.click(); return !!b; })()`); await dormir(1100); return ok; };
+      const tecla = (p, k) => p.js(`document.dispatchEvent(new KeyboardEvent('keydown',{key:${JSON.stringify(k)},bubbles:true})); 1`);
+      const sonidos = p => p.js("(window.__sgSonidos||[]).slice()");
+      const limpiar = p => p.js("window.__sgSonidos=[]; 1");
+      const estado = p => p.js("({vis:(document.querySelector('.lienzo')||{}).innerText||'', cuenta:(document.querySelector('.cuenta')||{}).textContent||'', on:[].slice.call(document.querySelectorAll('.lienzo [data-revelable]')).map(function(x){return x.classList.contains('on')})})");
+      /** La letra más pequeña de lo que se ve en el lienzo y si algo se sale, DESPUÉS de que acaben las entradas. */
+      const medir = p => p.js(`(async function(){
+        await Promise.all(document.getAnimations().filter(function(a){ var t=a.effect&&a.effect.getTiming&&a.effect.getTiming(); return t&&t.iterations!==Infinity; }).map(function(a){ return a.finished.catch(function(){}); }));
+        var lz=document.querySelector('.lienzo'), min=99, quien='', w=document.createTreeWalker(lz, NodeFilter.SHOW_TEXT, null), nd;
+        while((nd=w.nextNode())){ if(!nd.nodeValue.trim()) continue; var el=nd.parentElement, cs=getComputedStyle(el), r=el.getBoundingClientRect();
+          if(cs.visibility!=='visible'||r.width<1||r.height<1) continue; var o=1, e=el; while(e&&e!==lz){ o*=+getComputedStyle(e).opacity; e=e.parentElement; } if(o<0.05) continue;
+          var f=parseFloat(cs.fontSize); if(f<min){ min=f; quien=el.className+' «'+nd.nodeValue.trim().slice(0,30)+'»'; } }
+        return {min:min, quien:quien, sale: lz.scrollWidth>lz.clientWidth+2};
+      })()`);
+      const rita = await nueva("Rita descubre en clase");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      await rita.ir("sesion.html?per=" + P + "&sem=2"); await rita.hasta("!!document.querySelector('.barra-pasos .p') && !!document.getElementById('ses-son')", 60);
+      await rita.js("localStorage.removeItem('sgSonido'); 1"); await limpiar(rita);
+      await rita.js("document.getElementById('sig').click(); 1"); await dormir(150);
+      const anim = await rita.js("document.getAnimations().length");
+      c("descubrir · al pasar hay animaciones en marcha y suena la página", anim > 0 && (await sonidos(rita)).indexOf("pagina") >= 0, anim + " · " + (await sonidos(rita)).join(","));
+
+      // 1 · el tripulante, boca abajo
+      c("descubrir · la semana 2 trae al tripulante («¿Quién es?» en la barra, sin su nombre)", await aDia(rita, "¿Quién es?"));
+      const t0 = await estado(rita);
+      const ariaT = await rita.js("(document.querySelector('.tp-carta .carta-b')||{getAttribute:function(){return ''}}).getAttribute('aria-hidden')");
+      c("🔴 descubrir · llega boca abajo y su nombre NO está en lo visible (ni para un lector de pantalla)", !/Bran/.test(t0.vis) && /¿Quién es\?/.test(t0.vis) && t0.on[0] === false && ariaT === "true", t0.vis.slice(0, 120).replace(/\n/g, " · "));
+      const mT = await medir(rita);
+      c("descubrir · boca abajo: ninguna letra por debajo de 12 px y nada se sale", mT.min >= 12 && !mT.sale, JSON.stringify(mT));
+      await rita.foto(FOTOS + "/52-tripulante-boca-abajo.png");
+      await limpiar(rita); await rita.js("document.querySelector('.tp-carta').click(); 1"); await dormir(1400);
+      const t1 = await estado(rita);
+      c("🔴 descubrir · pulsar la carta la voltea SIN pasar de diapositiva, dice su nombre y suena el volteo",
+        /Bran Okafor/.test(t1.vis) && t1.cuenta === t0.cuenta && t1.on[0] === true && (await sonidos(rita)).indexOf("volteo") >= 0, t1.cuenta + " · " + (await sonidos(rita)).join(","));
+      await rita.foto(FOTOS + "/52-tripulante-volteado.png");
+      await rita.js("document.querySelector('.tp-carta').click(); 1"); await dormir(600);
+      c("   ya volteada, pulsarla no hace nada especial (ni pasa ni la esconde)", (await estado(rita)).cuenta === t0.cuenta && (await estado(rita)).on[0] === true);
+      await tecla(rita, "r"); await dormir(900);
+      c("   R la vuelve a poner boca abajo (y R otra vez, boca arriba)", (await estado(rita)).on[0] === false && (await tecla(rita, "r"), await dormir(900), (await estado(rita)).on[0] === true));
+      await tecla(rita, "ArrowRight"); await dormir(900);
+      const tSig = await estado(rita);
+      await tecla(rita, "ArrowLeft"); await dormir(1100);
+      c("   ya volteada, → pasa; y al volver atrás la carta se ve entera (no hay que voltearla otra vez)",
+        tSig.cuenta !== t0.cuenta && (await estado(rita)).cuenta === t0.cuenta && (await estado(rita)).on[0] === true, tSig.cuenta);
+
+      // 2 · el relámpago, sellado hasta que arranca el cronómetro
+      c("descubrir · la semana 2 trae el relámpago", await aDia(rita, "Relámpago"));
+      const pide = await rita.js("((document.querySelector('.rev-dentro .pide p')||{}).textContent||'').slice(0,40)");
+      const r0 = await estado(rita);
+      c("🔴 descubrir · lo que hay que hacer llega SELLADO: no está en lo visible", !!pide && r0.vis.indexOf(pide) < 0 && /Pulsa para romper el sello/.test(r0.vis), pide);
+      const mR = await medir(rita);
+      c("descubrir · sellado: ninguna letra por debajo de 12 px y nada se sale", mR.min >= 12 && !mR.sale, JSON.stringify(mR));
+      await rita.foto(FOTOS + "/52-relampago-sellado.png");
+      await limpiar(rita); await rita.js("document.querySelector('[data-rc=\"go\"]').click(); 1"); await dormir(1500);
+      const r1 = await estado(rita);
+      c("🔴 descubrir · «Empezar» en el cronómetro rompe el sello (suena el sello) y lo pone a la vista",
+        r1.vis.indexOf(pide) >= 0 && r1.on[0] === true && (await sonidos(rita)).indexOf("sello") >= 0 && r1.cuenta === r0.cuenta, (await sonidos(rita)).join(","));
+      await rita.js("document.querySelector('[data-rc=\"reset\"]').click(); 1");
+
+      // 3 · el recuerdo empañado (si alguien hizo las misiones de la semana 1 en el laboratorio)
+      const tAnt = await rita.js("([].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return /^Misiones de la semana/.test(x.title)})[0]||{}).title||''");
+      if (tAnt) {
+        await aDia(rita, tAnt);
+        const e0 = await rita.js("({f:getComputedStyle(document.querySelector('.rev-texto')).filter, a:document.querySelector('.rev-texto').getAttribute('aria-hidden'), v:document.querySelector('.lienzo').innerText})");
+        c("🔴 descubrir · «¿Os acordáis?»: las misiones de la semana anterior llegan empañadas", /blur/.test(e0.f) && e0.a === "true" && /¿Os acordáis/.test(e0.v), e0.f);
+        const mE = await medir(rita);
+        c("descubrir · empañado: ninguna letra por debajo de 12 px y nada se sale", mE.min >= 12 && !mE.sale, JSON.stringify(mE));
+        await rita.foto(FOTOS + "/52-os-acordais.png");
+        const c0 = (await estado(rita)).cuenta;
+        await limpiar(rita); await rita.js("document.querySelector('.rev-velo').click(); 1"); await dormir(1400);
+        c("   pulsarlo lo descubre sin pasar y suena la chispa", (await estado(rita)).on[0] === true && (await estado(rita)).cuenta === c0 && (await sonidos(rita)).indexOf("chispa") >= 0, (await sonidos(rita)).join(","));
+      } else c("descubrir · (sin misiones de la semana 1 hechas en el laboratorio: «¿Os acordáis?» no sale, como debe)", true);
+
+      // 4 · las insignias, con R
+      if (await aDia(rita, "Insignias")) {
+        await limpiar(rita); await tecla(rita, "r"); await dormir(1500);
+        c("descubrir · R voltea las insignias de la semana (todas, con su nombre) y suena el volteo",
+          (await estado(rita)).on[0] === true && (await sonidos(rita)).indexOf("volteo") >= 0 && /La chispa/.test((await estado(rita)).vis), (await sonidos(rita)).join(","));
+      }
+
+      // 5 · la despedida de la semana 3: «¿Qué pasará la semana que viene?»
+      await rita.ir("sesion.html?per=" + P + "&sem=3"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 60);
+      if (await aDia(rita, "Hasta pronto")) {
+        const h0 = await estado(rita);
+        c("descubrir · la despedida trae la carta de la semana que viene, boca abajo (sin el tema a la vista)", /¿Qué pasará la semana que viene\?/.test(h0.vis) && !/la semana 4/i.test(h0.vis));
+        await rita.foto(FOTOS + "/52-semana-que-viene.png");
+        await limpiar(rita); await tecla(rita, "ArrowRight"); await dormir(1500);
+        const h1 = await estado(rita);   // (la etiqueta va en mayúsculas: innerText dice «LA SEMANA 4»)
+        c("🔴 descubrir · → la voltea (no pasa): la semana 4 y su tema; suena el volteo y, detrás, la chispa",
+          /la semana 4/i.test(h1.vis) && h1.cuenta === h0.cuenta && (await sonidos(rita)).join(",") === "volteo,chispa", (await sonidos(rita)).join(","));
+      }
+
+      // 6 · M quita el sonido, y sigue quitado al recargar
+      await tecla(rita, "m"); await dormir(300);
+      c("descubrir · M quita el sonido y el altavoz lo dice", await rita.js("/Poner el sonido/.test(document.getElementById('ses-son').title)"));
+      await limpiar(rita); await tecla(rita, "ArrowLeft"); await dormir(700);
+      c("   sin sonido no suena nada", !(await sonidos(rita)).length, (await sonidos(rita)).join(","));
+      await rita.ir("sesion.html?per=" + P + "&sem=3"); await rita.hasta("!!document.getElementById('ses-son')", 60);
+      c("   y al recargar sigue quitado", await rita.js("/Poner el sonido/.test(document.getElementById('ses-son').title)"));
+      await tecla(rita, "m");
+
+      // 7 · «reducir movimiento»: nada se mueve y todo se descubre igual
+      await rita.env("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
+      await rita.ir("sesion.html?per=" + P + "&sem=2"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 60);
+      await aDia(rita, "¿Quién es?"); await dormir(500);
+      const quietas = await rita.js("document.getAnimations().filter(function(a){ return a.playState==='running'; }).length");
+      await rita.js("document.querySelector('.tp-carta').click(); 1"); await dormir(100);
+      const tRed = await rita.js("({on:document.querySelector('.tp-carta').classList.contains('on'), t:getComputedStyle(document.querySelector('.tp-carta .carta-giro')).transitionDuration})");
+      c("🔴 descubrir · con «reducir movimiento»: cero animaciones y la carta se voltea igual (sin transición)", quietas === 0 && tRed.on && /^0s/.test(tRed.t), quietas + " · " + JSON.stringify(tRed));
+      await rita.env("Emulation.setEmulatedMedia", { features: [] });
+
+      // 8 · en el móvil, tocar lo escondido lo descubre
+      await rita.env("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+      await rita.ir("sesion.html?per=" + P + "&sem=2"); await rita.hasta("!!document.querySelector('.barra-pasos .p')", 60);
+      await aDia(rita, "Los retos");
+      const mM = await medir(rita);
+      await rita.js("document.querySelector('.rev-sello').click(); 1"); await dormir(1200);
+      c("descubrir · en el móvil: el sello, legible (12 px o más, sin salirse), y tocarlo lo rompe", mM.min >= 12 && !mM.sale && (await estado(rita)).on[0] === true, JSON.stringify(mM));
+      await rita.foto(FOTOS + "/52-movil-retos.png");
+      await rita.env("Emulation.setDeviceMetricsOverride", { width: 1280, height: 860, deviceScaleFactor: 1, mobile: false });
+      c("descubrir · sin errores en la sesión", !rita.errores.filter(e => !/Failed to load resource/.test(e)).length, rita.errores[0] || "");
+
+      // 9 · quien sigue al docente ve lo que se descubre, y en su pantalla no suena nada
+      await rita.ir("sesion.html?per=" + P + "&sem=2"); await rita.hasta("!!document.querySelector('.barra-pasos .p') && !!document.getElementById('ses-directo')", 60);
+      await rita.js("document.getElementById('ses-directo').classList.contains('on') || document.getElementById('ses-directo').click(); 1");
+      await aDia(rita, "Los retos"); await dormir(800);
+      const ana = await nueva("Ana sigue la clase");
+      await ana.ir("entrar.html"); await ana.entrarComo("ana@lab.test", "Ana Nueva");
+      await ana.ir("sesion.html?embed=1&seguir=1&per=" + P);
+      const llega = await ana.hasta("((document.querySelector('.barra-pasos .p.on')||{}).title==='Los retos') && !!document.querySelector('.lienzo .rev-sellado')", 60);
+      await limpiar(ana);
+      c("descubrir · Ana sigue a Rita hasta los retos, todavía sellados", llega && !(await ana.js("document.querySelector('.lienzo .rev-sellado').classList.contains('on')")));
+      await rita.js("document.querySelector('.rev-sello').click(); 1"); await dormir(1000);
+      const env = ((await leerDoc("stargate_envivo/" + P)) || {}).sesion || {};
+      const loVe = await ana.hasta("document.querySelector('.lienzo .rev-sellado').classList.contains('on')", 30);
+      c("🔴 descubrir · Rita rompe el sello y Ana lo ve romperse en su pantalla (se emite `f`)", env.k === "retos-semana" && env.f === 1 && loVe, JSON.stringify(env));
+      c("   y en la pantalla de Ana no suena nada", !(await sonidos(ana)).length, (await sonidos(ana)).join(","));
+      await ana.js("document.querySelector('.lienzo .rev-sellado') && 1"); await tecla(ana, "r"); await dormir(800);
+      c("   Ana no puede volver a sellarlo por su cuenta (R no hace nada mientras Rita emite)", await ana.js("document.querySelector('.lienzo .rev-sellado').classList.contains('on')"));
+      await ana.foto(FOTOS + "/52-alumna-ve-el-sello-roto.png");
+      await rita.js("document.getElementById('ses-directo').click(); 1"); await dormir(1000);
+      c("descubrir · sin errores con dos personas", !rita.errores.concat(ana.errores).filter(e => !/Failed to load resource/.test(e)).length, rita.errores.concat(ana.errores)[0] || "");
+      await rita.cerrar(); await ana.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
