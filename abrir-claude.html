@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Los botones del correo del buzón del Mando: abren Claude con la orden escrita. Solo para el coordinador.">
+<title>STARGATE · Abrir Claude</title>
+<!--
+  2-oct-2026 · LOS BOTONES DEL CORREO DE LAS 19 H. Norberto: «cuando yo tenga que decidir algo o arreglar algo, en el email
+  dime exactamente los pasos… o si puedes añadir un botón que directamente se abra Claude y lances la corrección, sería un
+  sueño». Gmail no deja enlaces que no sean https, así que el botón trae aquí, y esta página abre Claude Code en la carpeta de
+  STARGATE con la orden ya escrita (claude-cli://open: se queda escrita, no se envía hasta que él pulsa Intro). Si en ese
+  equipo no se abre (el móvil, o un Claude sin el enlace registrado), la orden queda a la vista con «Copiar» y los pasos.
+  🔴 Solo órdenes fijas (los arreglos pendientes, «hazlo» o «las opciones» de un mensaje, deshacer un arreglo del taller): nada
+  de texto libre por la URL, para que nadie pueda dejarle escrita otra cosa. No la enlaza ninguna página.
+-->
+<style>
+:root{--bg:#080c14;--panel:#101a28;--line:#1c2c40;--teal:#37e0ec;--amber:#f5b043;--ink:#e9f0f6;--mut:#9fb2c2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:16px}
+main{max-width:640px;margin:24px auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+.eyebrow{margin:0;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);font-weight:700}
+h1{margin:4px 0 12px;font-size:1.4rem;line-height:1.2}
+ol{margin:0 0 14px;padding-left:20px}li{margin:6px 0}
+pre{white-space:pre-wrap;word-break:break-word;background:#0d1420;border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 12px;font:15px/1.45 ui-monospace,Menlo,monospace}
+.botones{display:flex;flex-wrap:wrap;gap:8px}
+.btn{display:inline-block;font:700 .95rem system-ui,sans-serif;padding:11px 16px;border-radius:10px;border:1px solid #2a4656;background:#16233a;color:#eafcff;text-decoration:none;cursor:pointer}
+.btn.primary{background:linear-gradient(180deg,#37e0ec,#1fb3c4);color:#05222a;border-color:#37e0ec}
+.nota{margin:12px 0 0;color:var(--mut);font-size:.88rem}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">El buzón del Mando · para Norberto</p>
+<h1 id="titulo">Abrir Claude con la orden escrita</h1>
+<ol id="pasos">
+<li><b>En el Mac</b>, Claude se abre solo en la carpeta de STARGATE con la orden ya escrita: <b>pulsa Intro</b>.</li>
+<li><b>Si no se abre</b> (o estás en el móvil): pulsa <b>Copiar</b>, abre la app de Claude → <b>Code</b> → la carpeta <b>stargate</b>, pega y envía.</li>
+<li>Esa sesión lo hace, lo prueba y te lo cuenta. Tú no tienes que hacer nada más.</li>
+</ol>
+<pre id="orden"></pre>
+<div class="botones"><button type="button" class="btn primary" id="copiar">Copiar la orden</button><a class="btn" id="abrir" href="#">Abrir Claude</a></div>
+<p class="nota" id="nota">La orden se queda escrita en Claude: no se envía hasta que pulsas Intro.</p>
+</main>
+<script>
+(function () {
+  "use strict";
+  var q = new URLSearchParams(location.search), a = q.get("a") || "", id = q.get("id") || "", c = q.get("c") || "";
+  var CWD = "/Users/nor/Claude/vibewebs/stargate", okId = /^[A-Za-z0-9]{15,40}$/.test(id), titulo = "", orden = "";
+  if (a === "arreglos") {
+    titulo = "Hacer los arreglos pendientes";
+    orden = "Haz los arreglos pendientes del buzón de STARGATE";
+  } else if (a === "hazlo" && okId) {
+    titulo = "Hazlo (la opción recomendada)";
+    orden = "Buzón de STARGATE, mensaje " + id + ": hazlo, con la opción recomendada de su nota (node mando/buzon.cjs ver " + id +
+      " y su nota en mando/notas-norberto.json). Al acabar, contesta al docente y anota «ARREGLO HECHO: … — mensaje " + id + "».";
+  } else if (a === "opciones" && okId) {
+    titulo = "Antes de hacer nada, las opciones";
+    orden = "Buzón de STARGATE, mensaje " + id + ": antes de hacer nada, cuéntame qué pasa y las opciones, con la que recomiendas primero " +
+      "(node mando/buzon.cjs ver " + id + " y su nota en mando/notas-norberto.json).";
+  } else if (a === "deshacer" && /^[0-9a-f]{7,12}$/.test(c)) {
+    titulo = "Deshacer un arreglo del taller";
+    orden = "Deshaz en la web de STARGATE el arreglo del taller " + c + " (git revert en web-stargate, construir, todas las baterías y publicar) " +
+      "y dime cómo ha quedado. Contesta al docente si hace falta.";
+  }
+  var $ = function (s) { return document.getElementById(s); };
+  if (!orden) {
+    $("titulo").textContent = "Este enlace no es válido";
+    $("pasos").hidden = true; $("orden").hidden = true; $("copiar").hidden = true; $("abrir").hidden = true;
+    $("nota").textContent = "Solo vale para los botones del correo de las 19 h del buzón de STARGATE.";
+    return;
+  }
+  $("titulo").textContent = titulo;
+  $("orden").textContent = orden;
+  var url = "claude-cli://open?cwd=" + encodeURIComponent(CWD) + "&q=" + encodeURIComponent(orden);
+  $("abrir").href = url;
+  $("copiar").onclick = function () {
+    var b = this, hecho = function () { b.textContent = "Copiada ✓"; };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(orden).then(hecho, function () { seleccionar(); });
+    else seleccionar();
+    function seleccionar() { var r = document.createRange(); r.selectNodeContents($("orden")); var s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selecciónala y cópiala"; }
+  };
+  // en el ordenador, se intenta abrir Claude una vez (en el móvil no hay Claude Code: solo Copiar)
+  if (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) setTimeout(function () { location.href = url; }, 500);
+})();
+</script>
+</body>
+</html>
