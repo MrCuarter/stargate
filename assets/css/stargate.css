@@ -976,6 +976,8 @@ html.cerrado{background:#080c14}
 .puerta-caja input{flex:1;padding:11px;border-radius:10px;border:1px solid var(--line);
   background:var(--bg);color:#fff}
 .puerta-mal{color:#ff9d9d;font-size:.9rem;margin:.4em 0}
+/* 2-oct · «¿Ya te alistaste con otra cuenta, o eres docente?»: que no se haga una segunda ficha */
+.puerta-otra{font-size:.88rem;margin:.6em 0;padding:8px 10px;border:1px solid rgba(245,176,67,.45);border-radius:10px;background:rgba(245,176,67,.08)}
 /* las dos puertas de la portada (v3.45) */
 .puerta-tile{display:block;text-decoration:none;color:inherit;transition:border-color .18s,transform .18s}
 .puerta-tile:hover{border-color:#37e0ec;transform:translateY(-2px)}
@@ -2788,6 +2790,8 @@ body.alistado header.hero{display:none}
 .bv-txt .eyebrow{margin:0 0 6px}
 .bv-tit{font-family:'Unbounded',sans-serif;font-size:clamp(1.5rem,3.2vw,2.3rem);line-height:1.1;margin:0 0 12px;text-wrap:balance}
 .bv-lead{font-size:1.08rem;margin:0 0 12px;line-height:1.5}
+/* 2-oct · con qué cuenta se ha alistado */
+.bv-cuenta{margin:12px 0 0;padding:8px 12px;border:1px solid rgba(245,176,67,.45);border-radius:10px;background:rgba(245,176,67,.08);font-size:.92rem}
 .bv-lema{font-family:'Unbounded',sans-serif;font-size:1.05rem;color:var(--amber,#f5b043);margin:0 0 4px}
 .bv-origen{font-size:.88rem;color:var(--mut,#8aa5ab);margin:0}
 .bv-emblema{display:block;width:100%;height:auto;filter:drop-shadow(0 0 24px rgba(55,224,236,.45))}

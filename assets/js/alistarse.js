@@ -314,6 +314,9 @@
             esc(escuadron.name) + '">'
           : '') +
       '</div>' +
+      // 2-oct · Norberto, tras el lío de cuentas de Adriana: que sepa con qué cuenta se ha alistado, y que entre siempre con esa
+      '<p class="bv-cuenta"><img class=ico src=assets/img/iconos/p/aviso.png alt> Te has alistado con <b>' + esc(YO.correo || "") + '</b>. ' +
+        'Entra siempre con esta cuenta de Google: con otra, la web no te reconoce. Te llega también un correo para que lo guardes.</p>' +
       '<div class="bv-premios"><span><img class=ico src=assets/img/iconos/p/medalla.png alt> Insignia de <b>Reclutamiento</b></span>' +
         '<span>+100 xp</span><span>+20 ◈</span></div>' +
       '<p class="bv-ir"><a class="btn epico" href="' + naveUrl() + '">' +

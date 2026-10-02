@@ -224,6 +224,10 @@
       '<p><button class="btn primary grande" id="e-cod-ok">Continuar</button></p>' +
       '<p class="small muted">¿No tienes código? Tu docente lo reparte en clase — también sirve el ' +
       "enlace de alistamiento que os haya pasado.</p>" +
+      // 2-oct · el lío de Adriana: entró con otra cuenta y la web la tomó por recluta. Quien ya se alistó (o da clase) con otra
+      // cuenta no debe escribir el código aquí: se haría una ficha nueva y vacía
+      '<p class="puerta-otra"><b>¿Ya te alistaste con otra cuenta, o eres docente?</b> No escribas el código: pulsa ' +
+      "«Entrar con otra cuenta» y entra con la de siempre (la de tu correo de bienvenida, o la que tu referente puso en el equipo).</p>" +
       '<p class="small muted"><a href="#" id="e-otra">Entrar con otra cuenta</a></p>'
     );
     var i = document.getElementById("e-cod"), b = document.getElementById("e-cod-ok");

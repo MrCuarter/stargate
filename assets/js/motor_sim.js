@@ -636,7 +636,7 @@ async function anularRetoViejo(perId, fichaId, retoId, motivo) {
 async function pasarEscuadron(perId, deNombre, aNombre, aCorreo, soloId) {
   if (!deNombre || !aNombre || deNombre === aNombre) throw new Error("Elige a quién pasa.");
   const ref = doc(db, "projects", perId), P = (await getDoc(ref)).data() || {};
-  const correo = String(aCorreo || "").toLowerCase();
+  const correo = String(aCorreo || "").trim().toLowerCase();   // (2-oct · un espacio al final dejaba a María del Mar sin su escuadrón)
   let tocadas = [];
   const facc = (P.factions || []).map(function (f) {
     if (f.teacherName !== deNombre || (soloId && f.id !== soloId)) return f;
@@ -654,7 +654,7 @@ async function pasarEscuadron(perId, deNombre, aNombre, aCorreo, soloId) {
 }
 /** Codocencia: otra persona comparte el escuadrón de «deNombre» (entra en su lista de correos; el alumnado no cambia). */
 async function apoyarEscuadron(perId, deNombre, correo) {
-  correo = String(correo || "").toLowerCase(); if (!correo) throw new Error("Falta su correo.");
+  correo = String(correo || "").trim().toLowerCase(); if (!correo) throw new Error("Falta su correo.");
   const ref = doc(db, "projects", perId), P = (await getDoc(ref)).data() || {};
   const facc = (P.factions || []).map(function (f) { if (f.teacherName !== deNombre) return f;
     const L = (f.assignedTeacherEmails || []).filter(function (x) { return x !== correo; }).concat([correo]); return Object.assign({}, f, { assignedTeacherEmails: L }); });
@@ -666,7 +666,7 @@ async function escuadronNuevo(perId, aNombre, aCorreo) {
   const cat = ((window.SG_CATALOGO || {}).escuadrones) || [];
   const e = cat.filter(function (x) { return usadas.indexOf(x.clave) < 0; })[0];
   if (!e) throw new Error("No quedan escuadrones libres en el catálogo.");
-  const f = { id: e.clave, name: e.nombre, score: 0, assignedTeacherEmails: aCorreo ? [String(aCorreo).toLowerCase()] : [],
+  const f = { id: e.clave, name: e.nombre, score: 0, assignedTeacherEmails: aCorreo ? [String(aCorreo).trim().toLowerCase()] : [],
               teacherName: aNombre, lema: e.lema, origen: e.origen, imageUrl: e.emblema };
   await updateDoc(ref, { factions: (P.factions || []).concat([f]) });
   return f;
