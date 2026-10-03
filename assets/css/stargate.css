@@ -7473,6 +7473,28 @@ body.con-ens-franja{padding-bottom:84px}
 .acd-juego-pie span{flex:1;text-align:left;color:var(--mut)}
 .acd-juego .acd-dia-barra,.acd-juego .acd-flecha{z-index:4}
 .acd-dia.acd-juego:has(.jugando) .acd-dia-barra,.acd-dia.acd-juego:has(.jugando) .acd-flecha{display:none}
+/* 3-oct · pantalla completa (botón de las cuatro esquinas, arriba a la derecha, o la F): la página entera a pantalla completa y
+   la diapositiva ocupando todo, con la letra a escala; la píldora de NEBULA se queda, más corta, y la barra le deja sitio */
+.acd-completa-b{position:absolute;top:10px;right:10px;z-index:3;display:grid;place-items:center;width:40px;height:40px;padding:0;border-radius:10px;border:1px solid #3a5270;background:rgba(6,10,18,.7);color:var(--ink);cursor:pointer}
+.acd-completa-b:hover,.acd-completa-b:focus-visible{border-color:var(--teal);color:var(--teal)}
+.acd-juego .acd-completa-b{z-index:4}
+.acd-dia.acd-juego:has(.jugando) .acd-completa-b,body.acd-completa .acd-juego-pie [data-pantalla]{display:none}
+body.acd-completa:has(#acd-ses){overflow:hidden}
+body.acd-completa #acd-ses{position:fixed;inset:0;z-index:800;display:flex;flex-direction:column;background:#060a12}
+body.acd-completa .acd-falta-caja{flex:none;margin:0;border-radius:0}
+body.acd-completa .acd-dia{flex:1 1 auto;aspect-ratio:auto;min-height:0;border:0;border-radius:0}
+body.acd-completa .acd-flota-mas{display:none}
+@media (min-width:981px){
+  body.acd-completa .acd-dia{font-size:clamp(1rem,1.2vw,1.45rem)}
+  body.acd-completa .acd-dia-k{font-size:clamp(.78rem,.95vw,1.1rem)}
+  body.acd-completa .acd-dia-h1{font-size:clamp(2rem,4.6vw,5.6rem)}
+  body.acd-completa .acd-dia-h2{font-size:clamp(1.3rem,2.7vw,3.2rem)}
+  body.acd-completa .acd-dia-sub{font-size:clamp(.95rem,1.45vw,1.75rem)}
+  body.acd-completa .acd-cita{font-size:clamp(1rem,1.8vw,2.1rem)}
+  body.acd-completa .acd-cita.grande{font-size:clamp(1.2rem,2.4vw,2.8rem)}
+  body.acd-completa .acd-bocadillo h3{font-size:clamp(1rem,1.7vw,2rem)}
+  body.acd-completa .acd-dia-barra{right:190px}
+}
 @media (max-width:980px){
   .acd-dia{aspect-ratio:auto;min-height:0;padding:22px 16px 46px}
   .acd-dia-txt,.acd-dia-txt.ancho,.acd-dia-txt.centro{position:relative;left:auto;top:auto;right:auto;width:auto;max-height:none;overflow:visible}
@@ -7483,7 +7505,10 @@ body.con-ens-franja{padding-bottom:84px}
   .acd-flecha{top:auto;bottom:6px;width:36px;height:36px;font-size:1.2rem}
   .acd-flecha.ant{left:8px}
   .acd-flecha.sig{right:8px}
-  .acd-dia-barra{left:52px;right:52px;bottom:18px}
+  .acd-dia-barra{left:52px;right:96px;bottom:18px}
+  .acd-completa-b{top:auto;bottom:6px;right:50px;width:36px;height:36px}
+  body.acd-completa #acd-ses{display:block;overflow:auto;padding-bottom:70px}
+  body.acd-completa .acd-dia{min-height:100%}
   .acd-juego-caja{position:relative;left:auto;top:auto;transform:none;width:auto}
   .acd-juego-caja.jugando{position:relative;inset:auto;aspect-ratio:3/4;margin:-22px -16px 0}
   .acd-juego-pie{position:relative;bottom:auto;flex-wrap:wrap;height:auto;padding:8px 10px}

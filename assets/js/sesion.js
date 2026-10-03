@@ -2381,7 +2381,7 @@
       // 28-sep · NEBULA, otra vez: repite la guía de lo que hay en pantalla (la primera vez sale sola)
       +(!st.alumno&&st.per&&st.yo&&window.SG&&SG.GUIA?'<button type="button" class="ses-ic ses-guia" id="ses-guia" title="Guíame otra vez (NEBULA)" aria-label="Guíame otra vez"><img src="assets/img/personajes/nebula.png" alt="" width="20" height="20" style="object-fit:contain"></button>':'')
       +(!st.alumno?'<button type="button" class="ses-ic ses-son'+(suenaSesion()?'':' mudo')+'" id="ses-son" title="'+(suenaSesion()?'Quitar el sonido (M)':'Poner el sonido (M)')+'" aria-label="'+(suenaSesion()?'Quitar el sonido':'Poner el sonido')+'">'+(suenaSesion()?IC_SON:IC_MUDO)+'</button>':'')
-      +'<button type="button" class="ses-ic" id="ses-pantalla" title=""'+(fs?'Salir de pantalla completa (F)':'Pantalla completa (F)')+'" aria-label="'+(fs?'Salir de pantalla completa':'Pantalla completa')+'">'+(fs?IC_SALIR:IC_PANTALLA)+'</button>'
+      +'<button type="button" class="ses-ic" id="ses-pantalla" title="'+(fs?'Salir de pantalla completa (F)':'Pantalla completa (F)')+'" aria-label="'+(fs?'Salir de pantalla completa':'Pantalla completa')+'">'+(fs?IC_SALIR:IC_PANTALLA)+'</button>'
       +'<div class="cuenta">'+(st.i+1)+' / '+st.slides.length+'</div></div>';
   }
   function marcarPantalla(){

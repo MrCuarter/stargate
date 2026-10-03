@@ -269,7 +269,7 @@
     el.innerHTML = (falta ? faltaHtml(i, P) : "") + '<div class="acd-dia ' + cls + '">' + cuerpo +
       (PANT > 0 ? '<button type="button" class="acd-flecha ant" data-ant aria-label="Anterior">‹</button>' : "") +
       (x.t !== "fin" ? '<button type="button" class="acd-flecha sig" data-sig-p aria-label="Siguiente"' + (falta ? " disabled" : "") + ">›</button>" : "") +
-      barraPasos(P) + "</div>";
+      botonCompleta() + barraPasos(P) + "</div>";
     if (x.t === "hito" && x.h.tipo !== "juego") pintarHito(x.h);
     if (x.t === "hito" && x.h.tipo === "juego") engancharJuego(e, x.h);
     // 30-sep · «¿Cómo te ha resultado?» después de cada minijuego (en su diapositiva y, si aún no lo ha dicho, al final)
@@ -278,7 +278,37 @@
     var ant = el.querySelector("[data-ant]"); if (ant) ant.onclick = function () { PANT--; recordar(); pintarPantalla(); };
     var sp = el.querySelector("[data-sig-p]"); if (sp) sp.onclick = function () { if (sp.disabled) return; PANT++; recordar(); pintarPantalla(); };
     var sg = el.querySelector("[data-sig]"); if (sg) sg.onclick = function () { ACTUAL = i + 1; PANT = 0; recordar(); pintar(); irArriba(); };
+    var bc = el.querySelector("[data-completa]"); if (bc) bc.onclick = pantallaCompleta;
   }
+  /**
+   * 3-oct · PANTALLA COMPLETA (Norberto, haciendo la Academia: «¿podríamos permitir que el docente ponga la presentación en
+   * pantalla completa?»). Como en la sesión de clase: el botón de las cuatro esquinas o la F. Se pone en pantalla completa la
+   * página entera y la diapositiva ocupa todo (body.acd-completa): así no se sale al pasar de diapositiva, al cumplir una misión
+   * ni al llegar una respuesta, que repintan la Academia entera. Si el navegador no deja (el iPhone), la diapositiva ocupa la
+   * ventana, y se sale con el mismo botón o con Esc.
+   */
+  var IC_PANTALLA = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var IC_SALIR = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function completa() { return document.body.classList.contains("acd-completa"); }
+  function pantallaDelNavegador() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  function botonCompleta() {
+    var fs = completa(), t = fs ? "Salir de pantalla completa" : "Pantalla completa";
+    return '<button type="button" class="acd-completa-b" data-completa title="' + t + ' (F)" aria-label="' + t + '">' + (fs ? IC_SALIR : IC_PANTALLA) + "</button>";
+  }
+  function marcarCompleta() { var b = document.querySelector("[data-completa]"); if (b) { b.outerHTML = botonCompleta(); b = document.querySelector("[data-completa]"); b.onclick = pantallaCompleta; } }
+  function pantallaCompleta() {
+    if (completa()) {
+      document.body.classList.remove("acd-completa");
+      if (pantallaDelNavegador()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      marcarCompleta(); return;
+    }
+    document.body.classList.add("acd-completa"); marcarCompleta();
+    var h = document.documentElement, pide = h.requestFullscreen || h.webkitRequestFullscreen;
+    if (pide) { try { var r = pide.call(h); if (r && r.catch) r.catch(function () { /* la diapositiva ocupa la ventana */ }); } catch (x) { /* igual */ } }
+  }
+  ["fullscreenchange", "webkitfullscreenchange"].forEach(function (n) {
+    document.addEventListener(n, function () { if (!pantallaDelNavegador() && completa()) { document.body.classList.remove("acd-completa"); marcarCompleta(); } });
+  });
   /**
    * EL MINIJUEGO DE CADA PLANETA, dentro de la sesión (Norberto: «¡usa los minijuegos para preguntar!»). Una máquina de la sala
    * de Joran o la Ruta de la Estática, en modo Academia (?banco=academia): las preguntas se le pasan por window.SG_BANCO_JUEGO y
@@ -325,6 +355,11 @@
     if (t === "INPUT" || t === "TEXTAREA" || t === "SELECT" || t === "IFRAME") return;
     if (ev.key === "ArrowRight") { var s2 = app.querySelector("[data-sig-p]"); if (s2 && !s2.disabled) { ev.preventDefault(); s2.click(); } }
     else if (ev.key === "ArrowLeft") { var a2 = app.querySelector("[data-ant]"); if (a2) { ev.preventDefault(); a2.click(); } }
+    else if ((ev.key === "f" || ev.key === "F") && !ev.metaKey && !ev.ctrlKey && !ev.altKey) { ev.preventDefault(); pantallaCompleta(); }
+  });
+  document.addEventListener("keydown", function (ev) {
+    var fl = document.getElementById("acd-claude");
+    if (ev.key === "Escape" && completa() && !pantallaDelNavegador() && !(fl && !fl.hidden)) pantallaCompleta();
   });
   /** Tras cumplir un hito: se repinta todo (el mapa y los puntos cambian) sin mover la pantalla en curso. */
   function trasHito() { pintar(); }
