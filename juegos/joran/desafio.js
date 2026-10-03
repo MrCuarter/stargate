@@ -6,12 +6,12 @@
 // sí hay es un bonus al final (hasta +25 % de la marca, según la precisión), para que el desafío compense y adivinar no.
 //
 // Uso en una máquina (el patrón completo está en conquista.js):
-//   import { crearDesafio } from './desafio.js?v=4443d42b89';
+//   import { crearDesafio } from './desafio.js?v=462150c228';
 //   const DES = crearDesafio({ nombre: 'Combustible', alPausar: (si) => { if (!si) soltarTeclas(); } });
 //   al empezar: await DES.preparar(); DES.empezar();   ·   en el bucle: if (!DES.abierto) tick(dt) … y dentro, DES.tick(dt)
 //   al terminar: DES.parar(); puntos += DES.bonus(puntos); filas: [...filas, ...DES.filas(bonus)], extra: DES.extra()
 // En modo arcade (sin ?modo=desafio) crearDesafio devuelve un objeto inerte: las mismas llamadas no hacen nada.
-import { $, QS, WEB, motor, esc, SON, tono, audio, aviso } from './comun.js?v=4443d42b89';
+import { $, QS, WEB, motor, esc, SON, tono, audio, aviso } from './comun.js?v=462150c228';
 
 // 30-sep · EL MODO ACADEMIA (?banco=academia): las preguntas son las de un planeta de la Academia de la Cero, y las pasa la
 // página que abre el juego (academia.js → window.SG_BANCO_JUEGO). Norberto: «¡usa los minijuegos para preguntar! Las preguntas que
@@ -20,6 +20,13 @@ import { $, QS, WEB, motor, esc, SON, tono, audio, aviso } from './comun.js?v=44
 export const ACADEMIA = QS.get('banco') === 'academia';
 export const MODO = QS.get('modo') === 'desafio' || ACADEMIA ? 'desafio' : 'arcade';
 if (ACADEMIA) { const st = document.createElement('style'); st.textContent = 'a[href="#sin-modo"]{display:none!important}'; document.head.appendChild(st); }
+// 🔴 3-oct · EN LA ACADEMIA NO SE MUERE. Norberto, jugando a La Evacuación en la Academia: «estaría bien que los docentes de esta
+// academia tuvieran más vidas; el juego como tal ahora mismo nos da igual, solo queremos que lo vean, pero un docente "torpe" puede
+// quedarse atascado y tirar la toalla. Haz que no se pueda morir». Cada máquina lo mira en su golpe: el golpe se nota (sonido,
+// aviso, empujón), pero no quita vidas ni acaba la partida, y el reloj no la cierra. En la sala de Joran del alumnado, igual que siempre.
+export const SIN_MORIR = ACADEMIA;
+const AVISO_SIN_MORIR = '¡AUCH! EN LA ACADEMIA NO SE PIERDE';
+export function avisoSinMorir(color = '#ff4dd8') { aviso(AVISO_SIN_MORIR, color, 1.3); }
 const PER = QS.get('per') || '';
 const LETRAS = ['A', 'B', 'C', 'D'];
 // los temas del curso (el 0, el de la asignatura, se queda fuera: son normas, no contenidos)
@@ -57,7 +64,7 @@ async function fuenteServidor() {
 // En el borrador, el banco local de la Ruta (solo existe en local: está en .gitignore). Aquí sí se sabe la buena, así que se
 // barajan las opciones y se marca la correcta al fallar.
 async function fuenteLocal() {
-  const ruta = location.pathname.includes('/juegos/') ? '../ruta/preguntas.js?v=4443d42b89' : '../ruta-estatica/preguntas.js?v=4443d42b89';
+  const ruta = location.pathname.includes('/juegos/') ? '../ruta/preguntas.js?v=462150c228' : '../ruta-estatica/preguntas.js?v=462150c228';
   const { PREGUNTAS } = await import(ruta);
   const todas = TEMAS.flatMap((t) => PREGUNTAS[t] || [])
     .filter((q) => q.tipo === 'una' && !q.visual && Array.isArray(q.correctas) && q.correctas.length === 1 && q.opciones && q.opciones.length >= 2);
@@ -194,7 +201,7 @@ export function crearDesafio(op = {}) {
         <div class="botones"><button type="button" class="sec" id="des-seguir">Seguir jugando</button><button type="button" id="des-sig">Pasar al siguiente módulo</button></div>`;
       $('des-sig').focus({ preventScroll: true });
       $('des-seguir').onclick = () => { D.disponible = false; D.nivel = 100; hud.classList.add('oculto'); cerrar(); };
-      $('des-sig').onclick = () => { avisarAcademia({ siguiente: true }); if (window.parent === window) location.href = '../../academia.html?v=4443d42b89'; };
+      $('des-sig').onclick = () => { avisarAcademia({ siguiente: true }); if (window.parent === window) location.href = '../../academia.html?v=462150c228'; };
       return;
     }
     avisado = D.nivel >= 25 ? false : avisado; pintarBarra();
@@ -242,7 +249,7 @@ export function crearDesafio(op = {}) {
     extra() { return { modo: 'desafio', aciertos: D.aciertos, fallos: D.fallos }; },
     // el párrafo de la portada del juego
     texto() {
-      if (ACADEMIA) return `<p class="des-intro"><b>Las preguntas de este planeta van dentro del juego.</b> Tu ${esc(cfg.nombre.toLowerCase())} se gasta y se recarga acertando. La que falles <b>vuelve a salir</b> más tarde. Cuando las aciertes todas, sesión superada: puedes seguir jugando o pasar al siguiente módulo. Si no quieres esperar, pulsa <kbd>Q</kbd> y te pregunta ya.</p>`;
+      if (ACADEMIA) return `<p class="des-intro"><b>Las preguntas de este planeta van dentro del juego.</b> Tu ${esc(cfg.nombre.toLowerCase())} se gasta y se recarga acertando. La que falles <b>vuelve a salir</b> más tarde. Cuando las aciertes todas, sesión superada: puedes seguir jugando o pasar al siguiente módulo. Si no quieres esperar, pulsa <kbd>Q</kbd> y te pregunta ya.</p><p class="des-intro"><b>Aquí no puedes perder:</b> en la Academia tienes vidas ilimitadas, para que nadie se quede atascado. Tu alumnado, en la sala de Joran, sí las tendrá limitadas.</p>`;
       return `<p class="des-intro"><b>Modo desafío.</b> Tu ${esc(cfg.nombre.toLowerCase())} se gasta con el tiempo (dura unos ${cfg.segundos} s). Si llega a cero, el juego se para y solo sigues <b>acertando una pregunta del curso</b> (+${cfg.recarga} %; cada tres seguidas, +20 % más). Puedes recargar antes cuando quieras con <kbd>Q</kbd> o el botón. Mientras contestas, el reloj no corre. Al final, <b>hasta +25 %</b> de puntos según tu precisión.</p>`;
     },
   });

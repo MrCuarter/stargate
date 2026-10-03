@@ -7466,6 +7466,7 @@ body.con-ens-franja{padding-bottom:84px}
 /* el minijuego, dentro de la diapositiva */
 .acd-juego-caja{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:min(620px,86%);background:rgba(10,16,28,.95);border:1px solid var(--amber);border-radius:18px;padding:18px 22px;text-align:center}
 .acd-juego-caja h3{font-family:'Unbounded',sans-serif;color:var(--amber);margin:.2em 0 .4em}
+.acd-juego-caja .acd-sin-morir{margin:.4em 0;padding:8px 12px;border:1px dashed var(--teal);border-radius:12px;color:#d4dfe9;font-size:.95rem}
 .acd-juego-caja .acd-botones{justify-content:center}
 .acd-juego-caja.jugando{position:absolute;inset:0 0 44px 0;transform:none;left:0;top:0;width:auto;padding:0;border:0;border-radius:0;background:#000}
 .acd-juego-caja.jugando iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
@@ -7717,3 +7718,58 @@ body.embed .bz-nueva h2,body.embed .bz-lista h2{font-size:1.05rem}
   .carta-giro,.carta-a,.carta-b,.rev-antes,.rev-despues,.rev-dentro,.rev-sello,.rev-texto,.rev-velo,.rs-cera,.tp-retrato{transition:none !important}
   .rev-pista{animation:none !important}
 }
+
+/* ════════ 🔴 3-oct · LA ACADEMIA, CON MOVIMIENTO (como la sesión de clase) ════════
+   Norberto: «las sesiones de la Academia no tienen animaciones como el resto de sesiones; ¿les das un lavado de cara?». El kit
+   de las cartas de arriba (`.carta`, `.carta-dorso`, `.rev-pista`) y, en cada pantalla NUEVA (`.acd-entra`, la pone academia.js
+   solo al cambiar de pantalla), las entradas. Solo `from` y `backwards`: al acabar, cada pieza vuelve a su estilo de siempre.
+   Se mueve con las propiedades sueltas `translate` y `scale`, que se suman al `transform` que ya tenga cada pieza (la caja del
+   juego va centrada con translate(-50%,-50%)). */
+.acd-carta-trip.carta{position:absolute;right:5%;top:8%;aspect-ratio:720/1210;height:76%;box-shadow:none;border-radius:12px}
+.acd-carta-trip.carta .carta-giro{grid-template-rows:100%}
+.acd-carta-trip.carta .carta-b img{display:block;width:100%;height:100%;object-fit:contain;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.acd-carta-trip.carta .carta-dorso{gap:clamp(8px,2vh,16px);padding:12px}
+.acd-carta-trip.carta .cd-txt{font-size:clamp(1rem,1.9vw,1.6rem)}
+.acd-carta-trip.carta .rev-pista{font-size:clamp(.85rem,1.25vw,1.15rem);padding:6px 12px 6px 8px;text-align:left}
+.acd-son-b{position:absolute;top:10px;right:58px;z-index:3;display:grid;place-items:center;width:40px;height:40px;padding:0;border-radius:10px;
+  border:1px solid #3a5270;background:rgba(6,10,18,.7);color:var(--ink);cursor:pointer}
+.acd-son-b:hover,.acd-son-b:focus-visible{border-color:var(--teal);color:var(--teal)}
+.acd-son-b.mudo{opacity:.6}
+.acd-juego .acd-son-b{z-index:4}
+.acd-dia.acd-juego:has(.jugando) .acd-son-b{display:none}
+.acd-dia-barra i{transition:background-color .4s ease}
+@media (max-width:980px){
+  .acd-carta-trip.carta{position:relative;right:auto;top:auto;height:auto;width:min(200px,60%);margin:0 auto 14px}
+  /* abajo, junto a la pantalla completa (como ella); la barra de pasos les deja sitio */
+  .acd-son-b{top:auto;bottom:6px;right:92px;width:36px;height:36px}
+  .acd-dia-barra{right:138px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .acd-dia.acd-entra .acd-dia-fondo{animation:acd-asienta 1.4s cubic-bezier(.2,.7,.2,1) backwards}
+  .acd-dia.acd-entra .acd-velo{animation:acd-aparece .8s ease backwards}
+  .acd-dia.acd-entra .acd-dia-txt > *{animation:acd-sube .6s cubic-bezier(.2,.8,.2,1) backwards .15s}
+  .acd-dia.acd-entra .acd-dia-txt > :nth-child(2){animation-delay:.26s}
+  .acd-dia.acd-entra .acd-dia-txt > :nth-child(3){animation-delay:.37s}
+  .acd-dia.acd-entra .acd-dia-txt > :nth-child(4){animation-delay:.48s}
+  .acd-dia.acd-entra .acd-dia-txt > :nth-child(5){animation-delay:.59s}
+  .acd-dia.acd-entra .acd-dia-txt > :nth-child(n+6){animation-delay:.7s}
+  .acd-dia.acd-entra .acd-corte.izq{animation:acd-desde-izq .8s cubic-bezier(.2,.8,.2,1) backwards .05s}
+  .acd-dia.acd-entra .acd-corte.der{animation:acd-desde-der .8s cubic-bezier(.2,.8,.2,1) backwards .05s}
+  .acd-dia.acd-entra .acd-carta-trip{animation:acd-sube .8s cubic-bezier(.2,.8,.2,1) backwards .3s}
+  .acd-dia.acd-entra .acd-bocadillo{animation:acd-salta .6s cubic-bezier(.3,1.45,.5,1) backwards .45s;transform-origin:0 30%}
+  .acd-dia.acd-entra .acd-pasos li{animation:acd-sube .5s cubic-bezier(.2,.8,.2,1) backwards .8s}
+  .acd-dia.acd-entra .acd-pasos li:nth-child(2){animation-delay:.92s}
+  .acd-dia.acd-entra .acd-pasos li:nth-child(3){animation-delay:1.04s}
+  .acd-dia.acd-entra .acd-pasos li:nth-child(4){animation-delay:1.16s}
+  .acd-dia.acd-entra .acd-pasos li:nth-child(n+5){animation-delay:1.28s}
+  .acd-dia.acd-entra .acd-pantallazo{animation:acd-desde-der .8s cubic-bezier(.2,.8,.2,1) backwards .65s}
+  .acd-dia.acd-entra .acd-juego-caja{animation:acd-salta .6s cubic-bezier(.3,1.45,.5,1) backwards .25s}
+  .acd-dia.acd-entra.acd-fin .acd-dia-h2{animation:acd-salta .7s cubic-bezier(.3,1.45,.5,1) backwards .25s,acd-brilla 2.4s ease-in-out .9s 2}
+}
+@keyframes acd-asienta{from{opacity:0;scale:1.08}}
+@keyframes acd-aparece{from{opacity:0}}
+@keyframes acd-sube{from{opacity:0;translate:0 22px}}
+@keyframes acd-desde-izq{from{opacity:0;translate:-70px 0}}
+@keyframes acd-desde-der{from{opacity:0;translate:70px 0}}
+@keyframes acd-salta{from{opacity:0;scale:.82}}
+@keyframes acd-brilla{50%{text-shadow:0 0 28px rgba(245,176,67,.65)}}

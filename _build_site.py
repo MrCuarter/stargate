@@ -4630,7 +4630,7 @@ _html = head("STARGATE · La Academia de la Cero", "El curso del profesorado de 
              "acad").replace("</head>", _cabeza_motor() + '<meta name="robots" content="noindex,nofollow">\n'
                + '<script>window.SG_ACADEMIA=' + json.dumps(ACADEMIA, ensure_ascii=False).replace("</", "<\\/") + ';</script>\n</head>') + '''
 <section id="academia"><div class="wrap"><div id="acd-app"><p class="muted">Cargando la Academia…</p></div>
-''' + '<script src="' + _v("assets/js/academia.js") + '" defer></script>' + '''
+''' + '<script src="' + _v("assets/js/fiesta.js") + '" defer></script>' + '<script src="' + _v("assets/js/academia.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "academia.html"), "w", encoding="utf-8").write(_ver_assets(_html))

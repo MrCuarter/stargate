@@ -14,8 +14,8 @@
 // Gráficos: TODO dibujado por código en este fichero (rocas, lava, piloto, Estática, cristales, enfriadores), salvo el
 // cielo del fondo, que es el arte de Fôrge de la propia serie STARGATE (p1_forge_llegada) y el retrato del piloto que
 // elegiste en la sala. Sin recursos de terceros ni generadores de pago.
-import { $, estado, SON, tono, ruido, audio, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, AVATARES, EMBED } from './comun.js?v=4443d42b89';
-import { crearDesafio, MODO, urlModo } from './desafio.js?v=4443d42b89';
+import { $, estado, SON, tono, ruido, audio, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, AVATARES, EMBED } from './comun.js?v=462150c228';
+import { crearDesafio, MODO, urlModo, SIN_MORIR, avisoSinMorir } from './desafio.js?v=462150c228';
 
 const JUEGO = JUEGOS.find((j) => j.id === 'conquista') || { id: 'conquista', n: 'La conquista de Fôrge' };
 const EN_WEB = location.pathname.includes('/juegos/');
@@ -287,7 +287,12 @@ function paso(dt) {
   const piesAntes = J.y + PJ.h; J.y += J.vy * dt; J.suelo = null; chocarY(piesAntes);
   if (J.suelo && J.suelo.tipo === 'fragil' && J.suelo.t < 0) { J.suelo.t = 0; tono(180, 90, 0.2, 'sawtooth', 0.04); }
   if (J.suelo && !sobre && J.vy === 0) for (let i = 0; i < 4; i++) particulas.push({ x: J.x + PJ.w / 2, y: J.y + PJ.h, vx: (Math.random() - 0.5) * 120, vy: -Math.random() * 60, vida: 0.3, max: 0.3, color: '#8a6f68', g: 300 });
-  if (J.y + PJ.h > P.lava + 6) return morir('lava');
+  if (J.y + PJ.h > P.lava + 6) {
+    if (!SIN_MORIR) return morir('lava');
+    // en la Academia, la lava te escupe hacia arriba (y baja un poco): vuelves a las rocas de las que caíste
+    J.y = P.lava - PJ.h - 6; J.vy = -SALTO * 1.35; J.suelo = null; J.inv = 1.6; P.lava += 140;
+    SON.caida(); chispas(J.x + PJ.w / 2, P.lava - 140, 30, '#ffb347', 260); avisoSinMorir('#ff8a3d');
+  }
   const yo = { x: J.x, y: J.y, w: PJ.w, h: PJ.h };
   // la Estática: si caes encima, la deshaces (y rebotas: manteniendo el salto, más alto); si no, te quita un escudo
   for (const e of N.enemigos) {
@@ -325,11 +330,13 @@ function paso(dt) {
   if (kLava - 1 > (N.podado || 0)) { N.podado = kLava - 1; podar(N, N.podado); }
 }
 function golpe(motivo, desdeX) {
-  P.escudos--; SON.golpe();
+  if (!SIN_MORIR) P.escudos--;
+  SON.golpe();
   chispas(J.x + PJ.w / 2, J.y + PJ.h / 2, 22, motivo === 'geiser' ? '#ffb347' : '#ff4dd8', 220);
   if (P.escudos <= 0) return morir(motivo);
   J.inv = 1.6; J.vy = -420; J.vx = (J.x + PJ.w / 2 < desdeX ? -1 : 1) * 260; J.suelo = null; // el empujón te aparta
-  aviso(P.escudos === 1 ? 'ÚLTIMO ESCUDO' : `QUEDAN ${P.escudos} ESCUDOS`, motivo === 'geiser' ? '#ff8a3d' : '#ff4dd8', 1.1);
+  if (SIN_MORIR) avisoSinMorir(motivo === 'geiser' ? '#ff8a3d' : '#ff4dd8');
+  else aviso(P.escudos === 1 ? 'ÚLTIMO ESCUDO' : `QUEDAN ${P.escudos} ESCUDOS`, motivo === 'geiser' ? '#ff8a3d' : '#ff4dd8', 1.1);
 }
 function morir(motivo) {
   if (J.muerto > 0) return;
@@ -577,7 +584,7 @@ function pintarHUD() {
 function pausar() {
   if (!jugando || !P || P.fin || DES.abierto) return;
   pausa = !pausa; soltar();
-  if (pausa) { pantalla(`<h2>Pausa</h2><p>La lava también espera.</p><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=4443d42b89">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><p>La lava también espera.</p><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=462150c228">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && jugando && !pausa && !DES.abierto && !window.__sinPausa) pausar(); });
@@ -609,7 +616,7 @@ function portada() {
     <p>Cada pocos minutos <b>la lava acelera</b> y todo vale más: ${FASES.slice(1).map((F) => `${mmss(F.t)} ${fmtX(F.x)}`).join(' · ')}. A partir de los 10 minutos, la <b>zona roja</b>.</p>
     ${DES.texto()}
     <p class="pista">Tu récord: <b>${(e.marcas[JUEGO.id] || 0).toLocaleString('es-ES')}</b> · La chimenea es la misma para todos · Dibujado por código · el cielo, de la serie STARGATE</p>
-    <div class="botones"><button id="b-ya">¡A trepar!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=4443d42b89">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya">¡A trepar!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=462150c228">Volver a la sala</a>'}</div>`);
   $('b-ya').onclick = async () => {
     audio();
     if (desafio) { // las preguntas tienen que estar antes de salir: sin ellas, el depósito no se podría rellenar

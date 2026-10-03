@@ -5,11 +5,11 @@
 // Arcade o DESAFÍO (desafio.js, ?modo=desafio): en el desafío la energía del escudo se gasta y se recarga acertando.
 // Unos 3 minutos. La lógica vive en coordenadas 0..1 (x a lo ancho, y de arriba abajo) y la escena 3D la copia.
 // Recursos libres: naves y alienígenas de Quaternius (CC0), platillos de Poly by Google (CC-BY 3.0), asteroides de la NASA.
-import { THREE, $, azar, elegir, QS, estado, audio, holo, cargar, medir, objeto, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=4443d42b89';
+import { THREE, $, azar, elegir, QS, estado, audio, holo, cargar, medir, objeto, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=462150c228';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import { crearDesafio, MODO, urlModo } from './desafio.js?v=4443d42b89';
+import { crearDesafio, MODO, urlModo, SIN_MORIR, avisoSinMorir } from './desafio.js?v=462150c228';
 
 const V3 = THREE.Vector3;
 const JUEGO = JUEGOS[2];
@@ -245,16 +245,17 @@ function romperNodo(n) { n.vivo = false; estallar(S.jefe.x + Math.cos(n.a) * 0.2
 function perderVida() {
   if (S.inv > 0) return;
   if (S.escudo) { S.escudo = false; S.inv = 1; SR.escudo(); aviso('ESCUDO ROTO', '#5ff4ff', 0.8); return; }
-  S.vidas--; S.nivel = Math.max(1, S.nivel - 1); SR.derribado(); estallar(S.x, S.y, '#5ff4ff', 40, 0.8);
+  if (!SIN_MORIR) S.vidas--;
+  S.nivel = Math.max(1, S.nivel - 1); SR.derribado(); estallar(S.x, S.y, '#5ff4ff', 40, 0.8);
   if (S.vidas <= 0) { acabar(false, 'La Estática te ha derribado.'); return; }
-  S.inv = 2.5; S.enemigas = []; aviso(`QUEDAN ${S.vidas}`, '#ff4dd8', 1);
+  S.inv = 2.5; S.enemigas = []; if (SIN_MORIR) avisoSinMorir(); else aviso(`QUEDAN ${S.vidas}`, '#ff4dd8', 1);
 }
 
 function tick(dt) {
   if (!S) return;
   S.t += dt;
   if (S.fin) { for (const c of S.chispas) { c.x += (c.vx || 0) * dt; c.y += (c.vy || 0) * dt; c.vida -= dt; } S.chispas = S.chispas.filter((c) => c.vida > 0); return; }
-  if (S.t > 210) { acabar(false, 'RUTA AZUL se ha replegado: se acabó el tiempo.'); return; }
+  if (S.t > 210 && !SIN_MORIR) { acabar(false, 'RUTA AZUL se ha replegado: se acabó el tiempo.'); return; }
   let dx = 0, dy = 0;
   if (tecla.ArrowLeft || tecla.KeyA) dx -= 1; if (tecla.ArrowRight || tecla.KeyD) dx += 1; if (tecla.ArrowUp || tecla.KeyW) dy -= 1; if (tecla.ArrowDown || tecla.KeyS) dy += 1;
   const antesX = S.x;
@@ -427,7 +428,7 @@ function acabar(gana, motivo) {
 let pausa = false;
 function pausar() {
   if (!S || S.fin || DES.abierto) return; pausa = !pausa; // con la pregunta abierta el juego ya está parado
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=4443d42b89">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=462150c228">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && S && !S.fin && !pausa && !DES.abierto && !window.__sinPausa) pausar(); });
@@ -440,7 +441,7 @@ function portada() {
     <p>Premios: <b style="color:#ffe14a">rayo</b> más potencia · <b style="color:#5ff4ff">esfera</b> escudo · <b style="color:#ff4dd8">caja</b> bomba. Derribar seguidos multiplica; los que vienen en picado valen el doble.</p>
     ${DES.texto()}
     <p class="pista">Tu récord: <b>${(e.marcas['ruta-azul'] || 0).toLocaleString('es-ES')}</b> · Platillos: «Flying saucer» de Poly by Google (CC-BY 3.0)</p>
-    <div class="botones"><button id="b-ya">¡Insertar ficha!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=4443d42b89">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya">¡Insertar ficha!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=462150c228">Volver a la sala</a>'}</div>`);
   $('b-ya').onclick = async () => {
     audio();
     if (desafio) { // las preguntas tienen que estar antes de despegar: sin ellas, el escudo no se podría recargar

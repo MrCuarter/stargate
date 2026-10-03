@@ -134,6 +134,27 @@ c(/\(e\.key==='m'\|\|e\.key==='M'\)&&!e\.metaKey&&!e\.ctrlKey&&!e\.altKey&&!st\.
 c(/window\.addEventListener\('storage', function\(e\)\{ if\(e\.key==='sgSonido'\) pintarSon\(\); \}\);/.test(S), "   y si se quita en otra ventana, esta se entera");
 c(/sonar\('reloj'\); tic=setInterval/.test(S) && /if\(queda>0&&queda<=5\) sonar\('reloj'\);/.test(S), "   el cronómetro: tictac al empezar y en los cinco últimos segundos");
 
+// ── 6 · 3-oct · la Academia, con el mismo movimiento (Norberto: «no tienen animaciones como el resto de sesiones»)
+const A = L("assets/js/academia.js"), AH = L("academia.html");
+c(/fiesta\.js\?v=[0-9a-f]+" defer><\/script><script src="assets\/js\/academia\.js/.test(AH), "🔴 la Academia carga fiesta.js (el sonido) antes que academia.js");
+c(/var clave = i \+ ":" \+ PANT, nueva = clave !== VISTA; VISTA = clave;/.test(A) && /\(nueva \? " acd-entra" : ""\)/.test(A),
+  "🔴 cada pantalla NUEVA entra con movimiento; repintarla (responder, cumplir un hito) no lo repite");
+c(/\(e\.carta \? cartaTrip\(e, i\) :/.test(A) && /class="acd-carta-trip carta' \+ \(on \? " on" : ""\) \+ '" data-f="1" data-revelable/.test(A) && /¿Quién es\?/.test(A),
+  "🔴 la carta del tripulante llega boca abajo («¿Quién es?»), como la verá su alumnado");
+c(/if \(sp\.disabled \|\| voltear\(\)\) return; irPantalla\(PANT \+ 1\);/.test(A) && /else if \(voltear\(\)\) ev\.preventDefault\(\);/.test(A),
+  "   → primero la voltea y a la siguiente pasa (el botón y la tecla)");
+c(/if \(P\[PANT - 1\] && P\[PANT - 1\]\.t === "llegada"\) VOLT\[i\] = true;/.test(A), "   al volver atrás, ya volteada");
+c(/\(ev\.key === "r" \|\| ev\.key === "R"\)[^\n]*voltear\(true\)/.test(A) && /\(ev\.key === "m" \|\| ev\.key === "M"\)[^\n]*alternarSon\(\)/.test(A), "   R la voltea o la tapa; M quita el sonido (y el altavoz, junto a la pantalla completa)");
+c(/function irPantalla\(k\) \{ PANT = k; recordar\(\); sonar\("pagina"\); pintarPantalla\(\); \}/.test(A) && /if \(!on\) sonar\("volteo"\);/.test(A)
+  && /if \(x\.t === "fin" && hecha\(i\) && nueva && !FESTEJO\[i\]\)[\s\S]{0,200}sonar\("mision", 250\);[\s\S]{0,200}F\.chispas/.test(A),
+  "   suena la página, el volteo y, al cerrar un planeta, la fanfarria con chispas (una vez)");
+const acdMov = (CSS.match(/@media \(prefers-reduced-motion:no-preference\)\{\n  \.acd-dia\.acd-entra[\s\S]*?\n\}/) || [""])[0];
+c(/acd-asienta/.test(acdMov) && /\.acd-bocadillo\{animation:acd-salta/.test(acdMov) && /\.acd-corte\.izq\{animation:acd-desde-izq/.test(acdMov) && /\.acd-pasos li\{animation/.test(acdMov),
+  "🔴 las entradas (fondo, texto, personajes, bocadillo, pasos), solo con «sin reducir movimiento»");
+c(!/forwards|both/.test(acdMov) && /@keyframes acd-sube\{from\{opacity:0;translate:0 22px\}\}/.test(CSS),
+  "   solo `from` y `backwards`, con translate/scale sueltos (no pisan el transform de cada pieza)");
+c(/\.acd-carta-trip\.carta\{position:absolute;right:5%;top:8%;aspect-ratio:720\/1210/.test(CSS), "   la carta, en su sitio (la regla general de .carta no la mueve)");
+
 console.log("\n  Batería 123 · lo que se descubre pulsando, las cartas y el sonido");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exitCode = fallos.length ? 1 : 0;

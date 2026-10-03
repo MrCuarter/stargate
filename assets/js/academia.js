@@ -160,7 +160,7 @@
     pintarPantalla();
     pintarClaude(); apuntarAvance();
     Array.prototype.forEach.call(app.querySelectorAll("[data-ses]"), function (b) {
-      b.onclick = function () { ACTUAL = Number(b.getAttribute("data-ses")); PANT = 0; recordar(); pintar(); irArriba(); };
+      b.onclick = function () { ACTUAL = Number(b.getAttribute("data-ses")); PANT = 0; VOLT[ACTUAL] = false; recordar(); pintar(); irArriba(); };
     });
   }
   function irArriba() { var s = $("#acd-ses"); if (s) s.scrollIntoView({ behavior: "smooth", block: "start" }); }
@@ -212,6 +212,48 @@
   }
   function primeraQueFalta(i) { var P = pantallas(i); for (var k = 0; k < P.length; k++) if (P[k].t === "hito" && !estado(P[k].h).ok) return k; return P.length - 1; }
   var JUGANDO = false;
+  /**
+   * 3-oct · EL MOVIMIENTO, COMO EN LA SESIÓN DE CLASE (Norberto: «las sesiones de la Academia no tienen animaciones como el resto
+   * de sesiones; ¿les das un lavado de cara?»). El mismo kit (las cartas y la pista de stargate.css, los sonidos de fiesta.js):
+   *   · cada pantalla NUEVA entra: el fondo se asienta, el texto sube escalonado, NEBULA o el Capitán llegan por su lado y el
+   *     bocadillo salta (`acd-entra`). Solo al cambiar de pantalla: responder, cumplir un hito o abrir la ayuda la repintan y
+   *     no debe volver a moverse todo;
+   *   · la carta del tripulante llega BOCA ABAJO («¿Quién es?»), como la verá su alumnado en clase: se voltea pulsándola, con →
+   *     o con R. Al volver atrás, ya volteada;
+   *   · al cerrar un planeta, chispas y la fanfarria de misión (una vez);
+   *   · sonido: la página al pasar, el volteo y la misión. M o el altavoz lo quitan (la misma preferencia de toda la web).
+   * Con «reducir movimiento» no se mueve nada y la carta se voltea igual.
+   */
+  var VISTA = "", VOLT = {}, FESTEJO = {};
+  function sonar(n, ms) { var F = window.SG && window.SG.FIESTA; if (!F || !F.sonar) return; if (ms) setTimeout(function () { F.sonar(n); }, ms); else F.sonar(n); }
+  function suena() { var F = window.SG && window.SG.FIESTA; return !F || !F.suena || F.suena(); }
+  var IC_SON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var IC_MUDO = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function botonSon() { var t = suena() ? "Quitar el sonido" : "Poner el sonido"; return '<button type="button" class="acd-son-b' + (suena() ? "" : " mudo") + '" data-son title="' + t + ' (M)" aria-label="' + t + '">' + (suena() ? IC_SON : IC_MUDO) + "</button>"; }
+  function alternarSon() {
+    try { localStorage.setItem("sgSonido", suena() ? "no" : "si"); } catch (e) {}
+    var b = app.querySelector("[data-son]"); if (b) { b.outerHTML = botonSon(); b = app.querySelector("[data-son]"); if (b) b.onclick = alternarSon; }
+    if (suena()) sonar("pop");
+  }
+  /** La carta del tripulante: boca abajo hasta que se voltea (se queda volteada mientras no se salga del planeta). */
+  function cartaTrip(e, i) {
+    var on = !!VOLT[i];
+    return '<div class="acd-carta-trip carta' + (on ? " on" : "") + '" data-f="1" data-revelable role="button" tabindex="0" aria-label="Voltear la carta">' +
+      '<div class="carta-giro"><div class="carta-a" aria-hidden="' + on + '"><div class="carta-dorso"><span class="cd-sello"><img src="assets/img/iconos/p/pregunta.png" alt=""></span>' +
+      '<b class="cd-txt">¿Quién es?</b><span class="rev-pista"><img class="ico" src="assets/img/iconos/p/ojo.png" alt=""> Pulsa para descubrirlo</span></div></div>' +
+      '<div class="carta-b" aria-hidden="' + !on + '"><img src="' + esc(e.carta) + '" alt="' + esc(e.quien) + '"></div></div></div>';
+  }
+  /** Voltea la carta si está boca abajo (true si lo ha hecho: entonces → no pasa de pantalla). Con `esconder` (R), también la vuelve a tapar. */
+  function voltear(esconder) {
+    var c = app.querySelector(".acd-carta-trip.carta"); if (!c) return false;
+    var on = c.classList.contains("on"); if (on && !esconder) return false;
+    c.classList.toggle("on", !on); VOLT[ACTUAL] = !on;
+    c.querySelector(".carta-a").setAttribute("aria-hidden", String(!on)); c.querySelector(".carta-b").setAttribute("aria-hidden", String(on));
+    if (!on) sonar("volteo");
+    return true;
+  }
+  /** Pasar de pantalla (con el sonido de la página): las flechas y los botones de la sesión van por aquí. */
+  function irPantalla(k) { PANT = k; recordar(); sonar("pagina"); pintarPantalla(); }
   function pintarPantalla() {
     var i = ACTUAL, e = C.estaciones[i], P = pantallas(i), x = P[PANT], el = $("#acd-ses");
     var suelo = e.suelo || e.bg, cuerpo = "", cls = "";
@@ -219,7 +261,7 @@
     if (x.t === "llegada") {
       cls = "acd-llegada";
       cuerpo = fondo(e.bg) + '<div class="acd-velo izq"></div>' +
-        (e.carta ? '<img class="acd-carta-trip" src="' + esc(e.carta) + '" alt="' + esc(e.quien) + '">' : '<img class="acd-corte der" src="' + esc(e.pj || POSE.nebula) + '" alt="' + esc(e.quien) + '">') +
+        (e.carta ? cartaTrip(e, i) : '<img class="acd-corte der" src="' + esc(e.pj || POSE.nebula) + '" alt="' + esc(e.quien) + '">') +
         '<div class="acd-dia-txt"><div class="acd-dia-k">Academia de la Cero · sesión ' + (i + 1) + " de " + N + " · unos " + (e.min || 10) + " minutos</div>" +
         '<h2 class="acd-dia-h1">' + esc(e.planeta) + '</h2><p class="acd-dia-sub">' + esc(e.tema) + '</p><p class="acd-dia-sub acd-mut">Hoy: ' + esc(e.hoy.charAt(0).toLowerCase() + e.hoy.slice(1)) + "</p>" +
         (e.retrato ? "" : '<p class="acd-cita">«' + esc(e.cita) + "» <span>" + esc(e.quien) + "</span></p>") +
@@ -244,6 +286,9 @@
       cuerpo = fondo(img, "juego") + '<div class="acd-velo"></div>' +
         '<div class="acd-juego-caja" id="acd-juego-marco"><div class="acd-dia-k">Ahora tú · las preguntas de ' + esc(e.planeta) + ", jugando</div><h3>" + esc(hj.n) + "</h3>" +
         (okJ ? "" : "<p>Sus " + (e.preguntas || []).length + " preguntas salen <b>dentro del juego</b>. La que falles vuelve a salir más tarde; cuando las aciertes todas, sesión superada: podrás seguir jugando o pasar al siguiente módulo.</p>") +
+        // 3-oct · Norberto: «vidas ilimitadas (avisa de que en este modo no les dejamos perder, pero los estudiantes tendrán vidas
+        // limitadas). No quiero que un docente pase del curso por atascarse en un juego» (SIN_MORIR en juegos/joran/desafio.js)
+        (okJ ? "" : '<p class="acd-sin-morir"><b>Aquí no puedes perder:</b> en la Academia tienes vidas ilimitadas, para que nadie se quede atascado. Tu alumnado, en la sala de Joran, sí las tendrá limitadas.</p>') +
         '<p class="acd-juego-st" id="acd-juego-st">' + (okJ ? ico("hecho") + " <b>Todas acertadas.</b> Puedes volver a jugar cuando quieras." : "") + "</p>" +
         '<div class="acd-botones"><button type="button" class="btn primary grande" data-jugar>' + (okJ ? "Jugar otra vez" : "Jugar") + "</button>" +
         (DEMO && !okJ ? '<button class="btn min" type="button" data-demo-j>Marcar (demo)</button>' : "") + "</div>" +
@@ -266,18 +311,30 @@
              : '<p class="acd-dia-sub">Abajo tienes tu título.</p>') + opinaFin + "</div>";
     }
     var falta = PANT + 1 === P.length - 1 && !hecha(i);
-    el.innerHTML = (falta ? faltaHtml(i, P) : "") + '<div class="acd-dia ' + cls + '">' + cuerpo +
+    var clave = i + ":" + PANT, nueva = clave !== VISTA; VISTA = clave;
+    el.innerHTML = (falta ? faltaHtml(i, P) : "") + '<div class="acd-dia ' + cls + (nueva ? " acd-entra" : "") + '">' + cuerpo +
       (PANT > 0 ? '<button type="button" class="acd-flecha ant" data-ant aria-label="Anterior">‹</button>' : "") +
       (x.t !== "fin" ? '<button type="button" class="acd-flecha sig" data-sig-p aria-label="Siguiente"' + (falta ? " disabled" : "") + ">›</button>" : "") +
-      botonCompleta() + barraPasos(P) + "</div>";
+      botonSon() + botonCompleta() + barraPasos(P) + "</div>";
     if (x.t === "hito" && x.h.tipo !== "juego") pintarHito(x.h);
     if (x.t === "hito" && x.h.tipo === "juego") engancharJuego(e, x.h);
     // 30-sep · «¿Cómo te ha resultado?» después de cada minijuego (en su diapositiva y, si aún no lo ha dicho, al final)
     var op = el.querySelector("[data-op]"); if (op) enganchaOpinar(op.parentNode, { id: op.getAttribute("data-op") }, pintarPantalla);
-    [].forEach.call(el.querySelectorAll("[data-ir]"), function (b) { b.onclick = function () { PANT = Number(b.getAttribute("data-ir")); recordar(); pintarPantalla(); }; });
-    var ant = el.querySelector("[data-ant]"); if (ant) ant.onclick = function () { PANT--; recordar(); pintarPantalla(); };
-    var sp = el.querySelector("[data-sig-p]"); if (sp) sp.onclick = function () { if (sp.disabled) return; PANT++; recordar(); pintarPantalla(); };
-    var sg = el.querySelector("[data-sig]"); if (sg) sg.onclick = function () { ACTUAL = i + 1; PANT = 0; recordar(); pintar(); irArriba(); };
+    [].forEach.call(el.querySelectorAll("[data-ir]"), function (b) { b.onclick = function () { irPantalla(Number(b.getAttribute("data-ir"))); }; });
+    // (al volver atrás a la llegada, la carta ya está volteada: no hay que descubrirla otra vez)
+    var ant = el.querySelector("[data-ant]"); if (ant) ant.onclick = function () { if (P[PANT - 1] && P[PANT - 1].t === "llegada") VOLT[i] = true; irPantalla(PANT - 1); };
+    // → con la carta boca abajo: primero la voltea; a la siguiente, pasa
+    var sp = el.querySelector("[data-sig-p]"); if (sp) sp.onclick = function () { if (sp.disabled || voltear()) return; irPantalla(PANT + 1); };
+    var sg = el.querySelector("[data-sig]"); if (sg) sg.onclick = function () { ACTUAL = i + 1; PANT = 0; VOLT[ACTUAL] = false; recordar(); sonar("pagina"); pintar(); irArriba(); };
+    var ct = el.querySelector(".acd-carta-trip.carta"); if (ct) ct.onclick = function () { voltear(); };
+    var bs = el.querySelector("[data-son]"); if (bs) bs.onclick = alternarSon;
+    // al cerrar el planeta: chispas y la fanfarria (una vez por planeta y visita)
+    if (x.t === "fin" && hecha(i) && nueva && !FESTEJO[i]) {
+      FESTEJO[i] = true;
+      var F = window.SG && window.SG.FIESTA, h2 = el.querySelector(".acd-dia-h2");
+      sonar("mision", 250);
+      if (F && F.chispas && h2) setTimeout(function () { var r = h2.getBoundingClientRect(); F.chispas(r.left + r.width / 2, r.top + r.height / 2); }, 350);
+    }
     var bc = el.querySelector("[data-completa]"); if (bc) bc.onclick = pantallaCompleta;
   }
   /**
@@ -353,7 +410,10 @@
     if (JUGANDO || ACTUAL == null || !$("#acd-ses")) return;
     var t = document.activeElement && document.activeElement.tagName;
     if (t === "INPUT" || t === "TEXTAREA" || t === "SELECT" || t === "IFRAME") return;
-    if (ev.key === "ArrowRight") { var s2 = app.querySelector("[data-sig-p]"); if (s2 && !s2.disabled) { ev.preventDefault(); s2.click(); } }
+    if (ev.key === "ArrowRight") { var s2 = app.querySelector("[data-sig-p]"); if (s2 && !s2.disabled) { ev.preventDefault(); s2.click(); } else if (voltear()) ev.preventDefault(); }
+    else if ((ev.key === "Enter" || ev.key === " ") && document.activeElement && document.activeElement.classList && document.activeElement.classList.contains("acd-carta-trip")) { ev.preventDefault(); voltear(); }
+    else if ((ev.key === "r" || ev.key === "R") && !ev.metaKey && !ev.ctrlKey && !ev.altKey) { if (voltear(true)) ev.preventDefault(); }
+    else if ((ev.key === "m" || ev.key === "M") && !ev.metaKey && !ev.ctrlKey && !ev.altKey) { ev.preventDefault(); alternarSon(); }
     else if (ev.key === "ArrowLeft") { var a2 = app.querySelector("[data-ant]"); if (a2) { ev.preventDefault(); a2.click(); } }
     else if ((ev.key === "f" || ev.key === "F") && !ev.metaKey && !ev.ctrlKey && !ev.altKey) { ev.preventDefault(); pantallaCompleta(); }
   });

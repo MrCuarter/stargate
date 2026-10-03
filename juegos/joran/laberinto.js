@@ -8,9 +8,9 @@
 // cazar, cada uno a su manera, como los fantasmas. Y las CÉLULAS DE ENERGÍA dan unos segundos de sobrecarga: los
 // drones se vuelven azules, huyen, y si los tocas los desactivas (200, 400, 800, 1.600). El pulso sigue: aturde a los
 // cercanos, pero se recarga más despacio (es el salvavidas, no el arma).
-import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=4443d42b89';
+import { THREE, $, azar, elegir, QS, estado, SON, audio, holo, personaje, objeto, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=462150c228';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
-import { crearDesafio, MODO, urlModo } from './desafio.js?v=4443d42b89';
+import { crearDesafio, MODO, urlModo, SIN_MORIR, avisoSinMorir } from './desafio.js?v=462150c228';
 
 const V3 = THREE.Vector3;
 const JUEGO = JUEGOS[1];
@@ -236,7 +236,10 @@ function tick(dt) {
 
   if (jugando) {
     L.t -= dt; P.pulso = Math.max(0, P.pulso - dt); P.inv = Math.max(0, P.inv - dt);
-    if (L.t <= 0) { acabar(false, 'La Estática ha inundado el nivel: se acabó el tiempo.'); return; }
+    if (L.t <= 0) {
+      if (!SIN_MORIR) { acabar(false, 'La Estática ha inundado el nivel: se acabó el tiempo.'); return; }
+      L.t = L.cfg.tiempo; aviso('EN LA ACADEMIA, EL RELOJ VUELVE A EMPEZAR', '#5ff4ff', 1.6);
+    }
     if (L.t < 10 && Math.floor(L.t) !== Math.floor(L.t + dt)) SON.alarma();
   }
   // llaves
@@ -315,9 +318,11 @@ function tick(dt) {
         aro.rotation.x = -Math.PI / 2; aro.position.copy(o.position).setY(0.4); escena.add(aro); efectos.push({ o: aro, vida: 0.6, crece: 10 });
         aviso(`DRON DESACTIVADO +${pts}`, '#8fb0ff', 0.9);
       } else if (P.inv <= 0) {
-        P.vidas--; SON.golpe(); jugador.poner('HitReact', { una: true });
+        if (!SIN_MORIR) P.vidas--;
+        SON.golpe(); jugador.poner('HitReact', { una: true });
         if (P.vidas <= 0) { acabar(false, 'Los drones de la Estática te han atrapado.'); return; }
-        aviso(`¡TE HA ATRAPADO! QUEDAN ${P.vidas}`, '#ff4dd8', 1.4); P.pos.copy(centro(L.n, 0, 0)); P.inv = 2.5;
+        if (SIN_MORIR) avisoSinMorir(); else aviso(`¡TE HA ATRAPADO! QUEDAN ${P.vidas}`, '#ff4dd8', 1.4);
+        P.pos.copy(centro(L.n, 0, 0)); P.inv = 2.5;
         // como al perder una vida en el comecocos: un respiro, todos a su esquina unos segundos
         for (const x of L.drones) x.persigue = 0;
         L.tregua = 4;
@@ -375,7 +380,7 @@ function acabar(salvado, motivo) {
 let pausa = false;
 function pausar() {
   if (!P || P.fin || DES.abierto) return; pausa = !pausa; // con la pregunta abierta el juego ya está parado
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=4443d42b89">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=462150c228">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && P && !P.fin && !pausa && !DES.abierto && !window.__sinPausa) pausar(); });
@@ -393,7 +398,7 @@ function portada() {
     <div class="teclas"><kbd>Flechas / WASD</kbd><span>Moverte (en el móvil, arrastra el dedo: es un joystick)</span><kbd>Espacio</kbd><span>El pulso que aturde (en el móvil, el botón)</span><kbd>Célula verde</kbd><span>Sobrecarga: los drones huyen y se desactivan al tocarlos</span></div>
     ${DES.texto()}
     <p class="pista">Tu récord: <b>${(e.marcas.laberinto || 0).toLocaleString('es-ES')}</b></p>
-    <div class="botones"><button id="b-ya">¡Adentro!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=4443d42b89">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya">¡Adentro!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=462150c228">Volver a la sala</a>'}</div>`);
   $('b-ya').onclick = async () => {
     audio();
     if (desafio) { // las preguntas tienen que estar antes de entrar: sin ellas, la batería no se podría recargar
