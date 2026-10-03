@@ -14,13 +14,14 @@
 // Gráficos: TODO dibujado por código en este fichero (rocas, lava, piloto, Estática, cristales, enfriadores), salvo el
 // cielo del fondo, que es el arte de Fôrge de la propia serie STARGATE (p1_forge_llegada) y el retrato del piloto que
 // elegiste en la sala. Sin recursos de terceros ni generadores de pago.
-import { $, estado, SON, tono, ruido, audio, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, AVATARES, EMBED } from './comun.js?v=462150c228';
-import { crearDesafio, MODO, urlModo, SIN_MORIR, avisoSinMorir } from './desafio.js?v=462150c228';
+import { $, estado, SON, tono, ruido, audio, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, AVATARES, EMBED } from './comun.js?v=1d51f06d26';
+import { crearDesafio, MODO, urlModo, SIN_MORIR, avisoSinMorir } from './desafio.js?v=1d51f06d26';
 
 const JUEGO = JUEGOS.find((j) => j.id === 'conquista') || { id: 'conquista', n: 'La conquista de Fôrge' };
 const EN_WEB = location.pathname.includes('/juegos/');
 // en la web, el fondo que ya sirve la Nave (un solo fichero); en el borrador, la copia reducida de img/
-const FONDO = EN_WEB ? '../../assets/img/fondos/p1_forge_llegada.webp' : 'img/forge_fondo.webp';
+// 3-oct · el fondo, en pixel art como Bran y la roca (la chimenea de Fôrge: tormenta arriba, lava y yunques abajo)
+const FONDO = 'img/forge_fondo_pixel.webp';
 
 // ───────────────────────────────── la física (unidades: píxeles del mundo y segundos; y crece hacia ABAJO)
 const ANCHO = 640;                 // el ancho de la chimenea, de pared a pared
@@ -268,6 +269,8 @@ function paso(dt) {
   }
   while (P.t >= P.seg + 1) { P.seg++; gana(PT.segundo); } // cada segundo vivo suma (y más en las fases altas)
   if (J.inv > 0) J.inv -= dt;
+  if (J.aterriza > 0) J.aterriza -= dt;
+  if (J.dolor > 0) J.dolor -= dt;
   const izq = !!(tecla.ArrowLeft || tecla.KeyA || toque.izq), der = !!(tecla.ArrowRight || tecla.KeyD || toque.der);
   const quiere = !!(tecla.Space || tecla.ArrowUp || tecla.KeyW || toque.salto);
   if (quiere && !J.saltoAntes) J.buffer = BUFFER;
@@ -286,11 +289,12 @@ function paso(dt) {
   if (J.x < 0) { J.x = 0; J.vx = 0; } else if (J.x + PJ.w > ANCHO) { J.x = ANCHO - PJ.w; J.vx = 0; } // las paredes del pozo
   const piesAntes = J.y + PJ.h; J.y += J.vy * dt; J.suelo = null; chocarY(piesAntes);
   if (J.suelo && J.suelo.tipo === 'fragil' && J.suelo.t < 0) { J.suelo.t = 0; tono(180, 90, 0.2, 'sawtooth', 0.04); }
+  if (J.suelo && !sobre && J.vy === 0) J.aterriza = 0.12;
   if (J.suelo && !sobre && J.vy === 0) for (let i = 0; i < 4; i++) particulas.push({ x: J.x + PJ.w / 2, y: J.y + PJ.h, vx: (Math.random() - 0.5) * 120, vy: -Math.random() * 60, vida: 0.3, max: 0.3, color: '#8a6f68', g: 300 });
   if (J.y + PJ.h > P.lava + 6) {
     if (!SIN_MORIR) return morir('lava');
     // en la Academia, la lava te escupe hacia arriba (y baja un poco): vuelves a las rocas de las que caíste
-    J.y = P.lava - PJ.h - 6; J.vy = -SALTO * 1.35; J.suelo = null; J.inv = 1.6; P.lava += 140;
+    J.y = P.lava - PJ.h - 6; J.vy = -SALTO * 1.35; J.suelo = null; J.inv = 1.6; J.dolor = 0.5; P.lava += 140;
     SON.caida(); chispas(J.x + PJ.w / 2, P.lava - 140, 30, '#ffb347', 260); avisoSinMorir('#ff8a3d');
   }
   const yo = { x: J.x, y: J.y, w: PJ.w, h: PJ.h };
@@ -334,7 +338,7 @@ function golpe(motivo, desdeX) {
   SON.golpe();
   chispas(J.x + PJ.w / 2, J.y + PJ.h / 2, 22, motivo === 'geiser' ? '#ffb347' : '#ff4dd8', 220);
   if (P.escudos <= 0) return morir(motivo);
-  J.inv = 1.6; J.vy = -420; J.vx = (J.x + PJ.w / 2 < desdeX ? -1 : 1) * 260; J.suelo = null; // el empujón te aparta
+  J.inv = 1.6; J.dolor = 0.5; J.vy = -420; J.vx = (J.x + PJ.w / 2 < desdeX ? -1 : 1) * 260; J.suelo = null; // el empujón te aparta
   if (SIN_MORIR) avisoSinMorir(motivo === 'geiser' ? '#ff8a3d' : '#ff4dd8');
   else aviso(P.escudos === 1 ? 'ÚLTIMO ESCUDO' : `QUEDAN ${P.escudos} ESCUDOS`, motivo === 'geiser' ? '#ff8a3d' : '#ff4dd8', 1.1);
 }
@@ -373,7 +377,7 @@ function ajustar() {
 }
 addEventListener('resize', ajustar); ajustar();
 const carga = (src) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; });
-let imgFondo = null, imgPiloto = null;
+let imgFondo = null, imgPiloto = null, imgBran = null, imgObj = null, imgRoca = null, patRoca = null;
 // las sierras del fondo: se hunden a medida que trepas (quedas por encima de las montañas de Fôrge)
 const sierra = (sem, n, alto) => { const r = azarFijo(sem); const v = []; let h = alto * 0.5; for (let i = 0; i < n; i++) { h = Math.max(alto * 0.15, Math.min(alto, h + (r() - 0.5) * alto * 0.45)); v.push(h); } return v; };
 const SIERRAS = [{ p: 0.18, paso: 70, v: sierra(7, 64, 190), base: 0.74, color: '#1a0c1c', borde: 'rgba(95,244,255,.16)' }, { p: 0.36, paso: 54, v: sierra(11, 80, 150), base: 0.88, color: '#0f070f', borde: 'rgba(255,122,48,.32)' }];
@@ -381,8 +385,13 @@ const brasas = [];
 const PARED_BLOQUE = 420;
 function pared(lado, y0, y1, xa, xb) { // la roca de los lados del pozo, con grietas incandescentes (siempre las mismas: semilla por bloque)
   const gr = c.createLinearGradient(lado < 0 ? 0 : ANCHO, 0, lado < 0 ? xa : xb, 0); gr.addColorStop(0, '#2c1d22'); gr.addColorStop(0.25, '#170d11'); gr.addColorStop(1, '#0b0508');
-  c.fillStyle = gr; c.fillRect(xa, y0, xb - xa, y1 - y0);
+  if (roca()) {   // 3-oct · la roca en pixel art (img/forge_roca.png), oscurecida hacia fuera
+    c.imageSmoothingEnabled = false; c.fillStyle = patRoca; c.fillRect(xa, y0, xb - xa, y1 - y0);
+    const os = c.createLinearGradient(lado < 0 ? 0 : ANCHO, 0, lado < 0 ? xa : xb, 0); os.addColorStop(0, 'rgba(11,5,8,.25)'); os.addColorStop(1, 'rgba(11,5,8,.85)');
+    c.fillStyle = os; c.fillRect(xa, y0, xb - xa, y1 - y0);
+  } else { c.fillStyle = gr; c.fillRect(xa, y0, xb - xa, y1 - y0); }
   c.lineCap = 'round'; c.lineJoin = 'round';
+  if (roca()) { c.strokeStyle = 'rgba(95,244,255,.55)'; c.lineWidth = 2; c.beginPath(); c.moveTo(lado < 0 ? 0 : ANCHO, y0); c.lineTo(lado < 0 ? 0 : ANCHO, y1); c.stroke(); return; }
   for (let b = Math.floor(y0 / PARED_BLOQUE); b * PARED_BLOQUE < y1; b++) {
     const r = azarFijo(9000 + b * 31 + (lado < 0 ? 0 : 7));
     for (let i = 0; i < 3; i++) {
@@ -393,6 +402,7 @@ function pared(lado, y0, y1, xa, xb) { // la roca de los lados del pozo, con gri
   }
   c.strokeStyle = 'rgba(95,244,255,.55)'; c.lineWidth = 2; c.beginPath(); c.moveTo(lado < 0 ? 0 : ANCHO, y0); c.lineTo(lado < 0 ? 0 : ANCHO, y1); c.stroke();
 }
+function roca() { if (!patRoca && imgRoca) patRoca = c.createPattern(imgRoca, 'repeat'); return patRoca; }
 function pintarRoca(s) {
   const tiembla = s.tipo === 'fragil' && s.t > 0 && !s.cae ? (Math.random() - 0.5) * 4 * (s.t / s.crujido) : 0;
   c.save(); c.translate(s.x + tiembla, s.y);
@@ -405,10 +415,15 @@ function pintarRoca(s) {
     c.restore(); return;
   }
   const gr = c.createLinearGradient(0, 0, 0, s.h + 16); gr.addColorStop(0, s.tipo === 'fragil' ? '#3d2a2e' : '#3a2a30'); gr.addColorStop(1, '#140b0e');
-  c.fillStyle = gr; c.beginPath(); c.moveTo(0, 0);
+  c.beginPath(); c.moveTo(0, 0);
   for (const [dx, dy] of s.borde) c.lineTo(dx, dy);
   for (const [dx, dy] of s.panza) c.lineTo(dx, dy);
-  c.closePath(); c.fill();
+  c.closePath();
+  if (roca()) {   // la roca en pixel art, más oscura hacia la panza (las frágiles, algo más rojizas)
+    c.imageSmoothingEnabled = false; c.fillStyle = patRoca; c.fill();
+    const os = c.createLinearGradient(0, 0, 0, s.h + 16); os.addColorStop(0, s.tipo === 'fragil' ? 'rgba(120,40,20,.25)' : 'rgba(0,0,0,0)'); os.addColorStop(1, 'rgba(10,4,8,.75)');
+    c.fillStyle = os; c.fill();
+  } else { c.fillStyle = gr; c.fill(); }
   c.lineCap = 'round';
   if (s.tipo === 'fragil') { c.strokeStyle = s.t >= 0 ? '#ff8a3d' : 'rgba(255,194,74,.8)'; c.lineWidth = 2; c.beginPath(); c.moveTo(s.w * 0.3, 2); c.lineTo(s.w * 0.45, 10); c.lineTo(s.w * 0.4, s.h); c.stroke(); }
   else if (s.grieta) for (const [ancho, color] of [[4, 'rgba(255,110,30,.25)'], [1.4, '#ffb347']]) { c.strokeStyle = color; c.lineWidth = ancho; c.beginPath(); s.grieta.forEach(([gx, gy], i) => (i ? c.lineTo(gx, gy) : c.moveTo(gx, gy))); c.stroke(); }
@@ -432,7 +447,7 @@ function pintar(dtReal, tt) {
   if (imgFondo) { // el arte de Fôrge: se ve su parte de abajo al empezar y se va subiendo por él hasta los ~900 m
     const s = Math.max(vw / imgFondo.width, (vh * 1.5) / imgFondo.height), iw = imgFondo.width * s, ih = imgFondo.height * s;
     const prog = Math.min(1, alturaCam / (900 * M)), fy = (vh - ih) * (1 - prog);
-    c.globalAlpha = 0.6; c.drawImage(imgFondo, ((vw - iw) / 2) * E, fy * E, iw * E, ih * E); c.globalAlpha = 1;
+    c.imageSmoothingEnabled = false; c.globalAlpha = 0.6; c.drawImage(imgFondo, ((vw - iw) / 2) * E, fy * E, iw * E, ih * E); c.globalAlpha = 1;
     c.fillStyle = 'rgba(12,4,20,.42)'; c.fillRect(0, 0, W, H);
   }
   if (fase) { c.fillStyle = `rgba(255,50,15,${0.035 * fase})`; c.fillRect(0, 0, W, H); } // el calor de la fase
@@ -461,7 +476,8 @@ function pintar(dtReal, tt) {
   for (const g of N.geiseres) {
     if (!vis(g)) continue;
     const s = geiserChorro(g, t), bx = g.lado < 0 ? 0 : ANCHO, cy = g.y + g.h / 2;
-    c.fillStyle = s.aviso ? '#ffb347' : '#6a2a12'; c.beginPath(); c.ellipse(bx, cy, 7, 15, 0, 0, 7); c.fill();
+    if (imgObj) { if (s.aviso) { c.fillStyle = 'rgba(255,179,71,.35)'; c.beginPath(); c.arc(bx, cy, 20, 0, 7); c.fill(); } obj(OBJ.boca, bx, cy); }
+    else { c.fillStyle = s.aviso ? '#ffb347' : '#6a2a12'; c.beginPath(); c.ellipse(bx, cy, 7, 15, 0, 0, 7); c.fill(); }
     if (s.aviso) for (let i = 0; i < 3; i++) { c.fillStyle = 'rgba(255,190,90,.85)'; c.beginPath(); c.arc(bx - g.lado * (6 + ((tt * 70 + i * 17) % 30)), cy + Math.sin(tt * 20 + i) * 6, 2.5 + i, 0, 7); c.fill(); }
     if (s.h > 0) {
       const largo = g.largo * s.h, xa = g.lado < 0 ? 0 : ANCHO - largo;
@@ -483,6 +499,7 @@ function pintar(dtReal, tt) {
   for (const k of N.cristales) {
     if (k.ok || !vis(k)) continue;
     const sx = Math.cos(tt * 3 + k.x * 0.01);
+    if (imgObj) { obj(OBJ.cristal, k.x, k.y + Math.sin(tt * 2 + k.x) * 2, { sx: Math.max(0.15, Math.abs(sx)) }); continue; }
     c.save(); c.translate(k.x, k.y + Math.sin(tt * 2 + k.x) * 2); c.scale(Math.max(0.15, Math.abs(sx)), 1);
     c.fillStyle = sx > 0 ? '#9ffaff' : '#35c9dc'; c.beginPath(); c.moveTo(0, -11); c.lineTo(7, 0); c.lineTo(0, 11); c.lineTo(-7, 0); c.closePath(); c.fill();
     c.strokeStyle = '#e8ffff'; c.lineWidth = 1.2; c.stroke(); c.restore();
@@ -491,6 +508,7 @@ function pintar(dtReal, tt) {
     if (k.ok || !vis(k)) continue;
     const pul = 1 + Math.sin(tt * 4) * 0.12;
     c.fillStyle = 'rgba(255,194,74,.22)'; c.beginPath(); c.arc(k.x, k.y, 22 * pul, 0, 7); c.fill();
+    if (imgObj) { obj(OBJ.nucleo, k.x, k.y); continue; }
     c.fillStyle = '#ffc24a'; c.beginPath(); for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3 + tt; c[i ? 'lineTo' : 'moveTo'](k.x + Math.cos(a) * 12, k.y + Math.sin(a) * 12); } c.closePath(); c.fill();
     c.fillStyle = '#fff6d8'; c.beginPath(); c.arc(k.x, k.y, 4.5, 0, 7); c.fill();
   }
@@ -498,6 +516,7 @@ function pintar(dtReal, tt) {
     if (k.ok || !vis(k)) continue;
     const y = k.y + Math.sin(tt * 2.4 + k.x) * 3;
     c.fillStyle = 'rgba(160,240,255,.2)'; c.beginPath(); c.arc(k.x, y, 24 + Math.sin(tt * 5) * 2, 0, 7); c.fill();
+    if (imgObj) { obj(OBJ.enfriador, k.x, y); continue; }
     c.strokeStyle = '#bff8ff'; c.lineWidth = 2;
     for (let i = 0; i < 3; i++) { c.beginPath(); c.ellipse(k.x, y, 16, 6, tt * 1.5 + i * Math.PI / 3, 0, 7); c.stroke(); }
     c.fillStyle = '#e8ffff'; c.beginPath(); c.roundRect(k.x - 6, y - 10, 12, 20, 5); c.fill();
@@ -507,6 +526,12 @@ function pintar(dtReal, tt) {
   for (const e of N.enemigos) {
     if (e.muerto || !vis(e) || e.x + e.w < x0 || e.x > x1) continue;
     const j = () => (Math.random() - 0.5) * 3;
+    if (imgObj) {   // la interferencia: tiembla un píxel y, de vez en cuando, se desplaza en horizontal
+      const g = Math.random() < 0.08 ? (Math.random() - 0.5) * 8 : Math.round(j() / 2);
+      if (e.tipo === 'andante') obj(OBJ.andante[Math.floor(tt * 6 + e.x) % 2], e.x + e.w / 2 + g, e.y + e.h, { pies: true, voltea: e.v < 0 ? -1 : 1 });
+      else obj(OBJ.orbe[Math.floor(tt * 3) % 2], e.x + 15 + g, e.y + 15 + Math.sin(tt * 3 + e.x) * 2);
+      continue;
+    }
     if (e.tipo === 'andante') {
       c.fillStyle = '#2a0020'; c.beginPath(); c.moveTo(e.x + j(), e.y + e.h); c.lineTo(e.x + 2 + j(), e.y + 6 + j()); c.lineTo(e.x + 10, e.y + j()); c.lineTo(e.x + 20, e.y + 3 + j()); c.lineTo(e.x + e.w + j(), e.y + 8); c.lineTo(e.x + e.w, e.y + e.h); c.closePath(); c.fill();
       c.strokeStyle = '#ff4dd8'; c.lineWidth = 2; c.stroke();
@@ -548,7 +573,36 @@ function pintar(dtReal, tt) {
     c.font = '700 14px Orbitron, sans-serif'; c.fillText(`LAVA A ${m} m`, sx, sy - 4);
   }
 }
+/**
+ * 3-oct · BRAN, EN PIXEL ART (Norberto: «¿no podemos usar sprites mejores? Podríamos usar el personaje de este tema como muñeco
+ * que salta»). Fôrge es el planeta de Bran Okafor, el Forjador: él trepa la chimenea. Tira de 10 fotogramas de 40×48
+ * (img/bran_sprites.png, hecha en Magnific y pasada a su rejilla con arte_juegos/sprites.py): quieto ×2, carrera ×4, salto,
+ * caída, golpe y aterrizaje. Se pinta sin suavizar, píxel a píxel; si la imagen no carga, el muñeco de siempre.
+ */
+// 3-oct · lo demás de Fôrge, en el mismo pixel art (img/forge_objetos.png, celdas de 40×32): la Estática andante (2 pasos) y
+// el orbe (2), el cristal, el núcleo de forja, el enfriador y la boca de los géiseres. obj(k, x, y) pinta la celda k centrada en
+// (x, y); con pies = true, apoyada en y. Si la imagen no carga, cada cosa se dibuja como antes.
+const OBJ = { w: 40, h: 32, andante: [0, 1], orbe: [2, 3], cristal: 4, nucleo: 5, enfriador: 6, boca: 7 };
+function obj(k, x, y, { pies = false, voltea = 1, sx = 1 } = {}) {
+  c.save(); c.translate(Math.round(x), Math.round(y)); c.scale(voltea * sx, 1); c.imageSmoothingEnabled = false;
+  c.drawImage(imgObj, k * OBJ.w, 0, OBJ.w, OBJ.h, -OBJ.w / 2, pies ? -OBJ.h : -OBJ.h / 2, OBJ.w, OBJ.h);
+  c.restore();
+}
+const BRAN = { w: 40, h: 48, quieto: [0, 1], corre: [2, 3, 4, 5], salta: 6, cae: 7, golpe: 8, aterriza: 9 };
+function fotogramaBran(tt) {
+  if (J.dolor > 0) return BRAN.golpe;
+  if (!J.suelo) return J.vy < 0 ? BRAN.salta : BRAN.cae;
+  if (J.aterriza > 0) return BRAN.aterriza;
+  if (Math.abs(J.vx) > 20) return BRAN.corre[Math.floor(tt * 11) % 4];
+  return BRAN.quieto[Math.floor(tt * 1.6) % 2];
+}
 function pintarPiloto(tt) {
+  if (imgBran) {
+    const k = fotogramaBran(tt), cx = J.x + PJ.w / 2, pies = J.y + PJ.h;
+    c.save(); c.translate(Math.round(cx), Math.round(pies)); c.scale(J.mira, 1); c.imageSmoothingEnabled = false;
+    c.drawImage(imgBran, k * BRAN.w, 0, BRAN.w, BRAN.h, -BRAN.w / 2, -BRAN.h + 2, BRAN.w, BRAN.h);
+    c.restore(); return;
+  }
   const cx = J.x + PJ.w / 2, pies = J.y + PJ.h, corre = J.suelo && Math.abs(J.vx) > 20;
   const f = corre ? Math.sin(tt * 18) : J.suelo ? 0 : 0.7;
   c.save(); c.translate(cx, pies); c.scale(J.mira, 1);
@@ -584,7 +638,7 @@ function pintarHUD() {
 function pausar() {
   if (!jugando || !P || P.fin || DES.abierto) return;
   pausa = !pausa; soltar();
-  if (pausa) { pantalla(`<h2>Pausa</h2><p>La lava también espera.</p><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=462150c228">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><p>La lava también espera.</p><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1d51f06d26">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && jugando && !pausa && !DES.abierto && !window.__sinPausa) pausar(); });
@@ -616,7 +670,7 @@ function portada() {
     <p>Cada pocos minutos <b>la lava acelera</b> y todo vale más: ${FASES.slice(1).map((F) => `${mmss(F.t)} ${fmtX(F.x)}`).join(' · ')}. A partir de los 10 minutos, la <b>zona roja</b>.</p>
     ${DES.texto()}
     <p class="pista">Tu récord: <b>${(e.marcas[JUEGO.id] || 0).toLocaleString('es-ES')}</b> · La chimenea es la misma para todos · Dibujado por código · el cielo, de la serie STARGATE</p>
-    <div class="botones"><button id="b-ya">¡A trepar!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=462150c228">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya">¡A trepar!</button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1d51f06d26">Volver a la sala</a>'}</div>`);
   $('b-ya').onclick = async () => {
     audio();
     if (desafio) { // las preguntas tienen que estar antes de salir: sin ellas, el depósito no se podría rellenar
@@ -628,7 +682,7 @@ function portada() {
 }
 (async () => {
   const av = AVATARES.find((a) => a.id === estado().avatar) || AVATARES[0];
-  [imgFondo, imgPiloto] = await Promise.all([carga(FONDO), carga(av.img)]);
+  [imgFondo, imgPiloto, imgBran, imgObj, imgRoca] = await Promise.all([carga(FONDO), carga(av.img), carga('img/bran_sprites.png'), carga('img/forge_objetos.png'), carga('img/forge_roca.png')]);
   N = nuevoMundo(); J = nuevoPiloto(); P = null; cam.y = J.y + PJ.h - vh * 0.6;
   $('carga').remove(); requestAnimationFrame(bucle); portada();
 })().catch((err) => { console.error(err); $('carga').textContent = 'No se pudo cargar: ' + err.message; });

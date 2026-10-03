@@ -39,5 +39,5 @@ export const DIRECTO = {
   "podio": 10,
   "equipo": 10
  },
- "v": "462150c228"
+ "v": "1d51f06d26"
 };
