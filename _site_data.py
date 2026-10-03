@@ -412,7 +412,7 @@ ACADEMIA = {
      "piezas": [
        {"h": "La clase, en su móvil", "pj": "nebula", "img": "assets/img/sesion/llamada.jpg",
         "p": "Tu alumnado te sigue desde el móvil: ve la diapositiva en la que estás y participa.",
-        "pasos": ["La <b>llamada a filas</b>: fichan con un enlace y sabes quién está.", "<b>Votar</b> y la <b>pregunta en vivo</b>: responden desde el móvil.", "<b>Premiar</b>, <b>alguien al azar</b> y <b>el tiempo</b>: las herramientas de clase."]},
+        "pasos": ["La <b>llamada a filas</b>: fichan con «Presente» en su Nave (o con el enlace de la clase), desde el móvil o el ordenador, y sabes quién está.", "<b>Votar</b> y la <b>pregunta en vivo</b>: responden desde el móvil.", "<b>Premiar</b>, <b>alguien al azar</b> y <b>el tiempo</b>: las herramientas de clase."]},
        {"h": "Un mensaje a tiempo", "pj": "capitan:tablet", "img": "assets/img/sesion/novedades.jpg",
         "p": "Desde la ficha de un recluta le mandas un <b>mensaje que le llega a su Nave</b>: «tu enlace no abre», «¡enhorabuena por tu Bitácora!». Y si algo falla o tienes una duda, <b>Contacto</b>, en tu Nave, escribe al Mando. Cada grupo tiene un <b>referente</b> (el calendario, el equipo, los escuadrones) y uno o varios <b>Comandantes</b>."},
      ],
@@ -421,7 +421,7 @@ ACADEMIA = {
      ],
      "juego": {"maquina": "ruta-azul", "n": "Ruta azul"},
      "preguntas": [
-       {"p": "¿Cómo ficha tu alumnado en la llamada a filas?", "o": ["Con un enlace, desde el móvil", "Levantando la mano", "Tú lo apuntas a mano"], "ok": 0, "porque": "Fichan desde el móvil y ves al momento quién está en clase."},
+       {"p": "¿Cómo ficha tu alumnado en la llamada a filas?", "o": ["Con «Presente» en su Nave o con el enlace de la clase", "Levantando la mano", "Tú lo apuntas a mano"], "ok": 0, "porque": "Cuando tocas llamada, el botón «Presente» aparece solo en su Nave; y quien entra por el enlace de la clase ficha sin pulsar nada. Desde el móvil o el ordenador, y tú ves al momento quién está."},
        {"p": "¿Qué ve quien te sigue desde el móvil durante la clase?", "o": ["La diapositiva en la que estás, y puede votar y responder", "Lo que quiera, a su ritmo", "Nada: solo proyectas tú"], "ok": 0, "porque": "Mientras emites, su pantalla va con la tuya; fichar, votar y responder siguen funcionando."},
        {"p": "Quieres avisar a un recluta de que su enlace no abre. ¿Cómo?", "o": ["Con un mensaje desde su ficha, que le llega a su Nave", "Por el foro, delante de todos", "No se puede"], "ok": 0, "porque": "El mensaje llega a su Nave, en privado."},
        {"p": "«Compartir a tiempo salva más que compartir perfecto». ¿Qué tema es?", "o": ["T4 · M-learning", "T2 · El vídeo", "T8 · RA y RV"], "ok": 0, "porque": "El aprendizaje móvil: lo justo, en el momento justo."},
