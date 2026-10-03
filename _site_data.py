@@ -367,7 +367,7 @@ ACADEMIA = {
         "p": "«Empezar la clase» abre la sesión de la semana, lista para proyectar.",
         "pasos": ["La <b>apertura</b>: la pregunta del día, el ticket anterior, el mensaje y el vídeo.", "El <b>despegue</b>: tu Genially, con la teoría.", "El <b>cierre</b>: los retos, el tripulante, la Ruta si se cierra tema, el ticket de salida y el juego En directo."]},
        {"h": "Tu semana de Comandante", "pj": "capitan:tablet", "img": "assets/img/sesion/mensaje.jpg",
-        "p": "<b>Antes</b>: el mensaje del foro ya está escrito; lo copias a la plataforma de la UNIR (o guardas tu versión). <b>En clase</b>: «Empezar la clase» y avanzar. <b>Después</b>: un vistazo a los retos registrados, a la Cola de nota y a los consejos de NEBULA. Quien no pudo venir, ve la clase en <b>diferido</b>, en su Nave. Y la historia <b>nunca explica el temario</b>: pone la pregunta; la respuesta es vuestra."},
+        "p": "<b>Antes</b>: en principio, nada; está todo montado. Viene genial, eso sí, echar un vistazo a la sesión de la semana, enlazar tu Genially si quieres y escoger qué diapositivas mostrar. <b>En clase</b>: «Empezar la clase» y avanzar. <b>Después</b>: un vistazo a los retos registrados, a la Cola de nota y a los consejos de NEBULA. Quien no pudo venir, ve la clase en <b>diferido</b>, en su Nave. Y la historia <b>nunca explica el temario</b>: pone la pregunta; la respuesta es vuestra."},
      ],
      "hitos": [
        {"id": "sim-clase", "tipo": "auto", "comprobar": "sim:clase", "titulo": "Da una clase entera", "como": "Abre la <b>clase de ensayo</b> y pásala con la flecha →, hasta la última diapositiva. <b>Ábrela en este mismo navegador.</b>", "boton": "sim:clase"},
@@ -377,7 +377,7 @@ ACADEMIA = {
        {"p": "¿Qué hace el vídeo en tu clase?", "o": ["Pone la pregunta dentro de la historia; la clase la resuelve con el temario", "Explica el temario en voz alta", "Sustituye a la teoría"], "ok": 0, "porque": "La historia pone el problema; la teoría y la discusión son tuyas y de tu grupo."},
        {"p": "En Ecos, Tomás graba mensajes para quien no está. ¿Qué tema es?", "o": ["T2 · El vídeo", "T4 · M-learning", "T6 · El juego"], "ok": 0, "porque": "El vídeo como tu voz cuando no estás: el aula invertida."},
        {"p": "¿Qué hay en el cierre de cada clase?", "o": ["Los retos de la semana, el ticket de salida y el juego En directo", "La teoría del tema", "Nada: se acaba sin más"], "ok": 0, "porque": "El cierre lanza lo de la semana, recoge lo aprendido (el ticket) y acaba jugando."},
-       {"p": "¿Qué te toca antes de clase?", "o": ["Copiar al foro el mensaje de la semana, que ya está escrito", "Escribir el guion de la clase", "Montar las diapositivas"], "ok": 0, "porque": "La clase ya está montada y el mensaje, escrito: solo lo copias (o guardas tu versión)."},
+       {"p": "¿Qué te toca antes de clase?", "o": ["En principio, nada: está todo montado", "Escribir el guion de la clase", "Montar las diapositivas de la semana"], "ok": 0, "porque": "La clase, su vídeo y el mensaje del foro (que a tu alumnado le sale solo en su Nave) ya están. Lo que viene genial: echar un vistazo a la sesión de la semana, enlazar tu Genially si quieres y escoger qué diapositivas mostrar."},
        {"p": "Alguien no pudo venir a clase. ¿Cómo la ve?", "o": ["En su Nave, en diferido, a su ritmo", "No puede verla", "Se la mandas por correo"], "ok": 0, "porque": "Archivo → Sesiones: la misma clase, sin lo que solo tiene sentido en directo."},
      ]},
     {"id": "sendara", "planeta": "Sendara", "titulo": "Sendara · los retos", "tema": "Tema 3 · Contenidos interactivos", "min": 25,
@@ -2380,11 +2380,16 @@ PASOS = [
         "clase, lo que toca esta semana y las secciones de tu grupo, y después el método. Si eres referente, te "
         "enseño también lo tuyo. Aquí voy a enseñarte solo las cuatro cosas que harás cada semana."),
 
-   dict(cod="D2", t="Uno: la orden de la semana", pose="senala", img="d2_cronologia.png",
-    hacer="<b>Cronología</b> → despliega la semana que toque → abajo, botón <b>Copiar</b> del foro.",
-    voz="La cronología es tu carta de navegación: quince semanas, y cada una te dice qué vídeo "
-        "proyectar, qué reto lanzar y qué insignia entregar. Abajo del todo está el mensaje del "
-        "foro, ya escrito. Lo copias, lo pegas en el foro de la plataforma de UNIR y sigues con tu vida."),
+   # 🔴 3-oct · Norberto: «antes de clase los docentes no tienen que hacer NADA, está todo montado. Aunque estaría genial
+   # que echasen un vistazo a la sesión de la semana, enlazasen su Genially si quieren y escojan las diapositivas». Este paso
+   # decía «copias el mensaje del foro y lo pegas en la UNIR»: no hace falta, a su alumnado le sale solo en su Nave.
+   dict(cod="D2", t="Uno: un vistazo a la sesión de la semana", pose="senala", img="r7_consola.png",
+    hacer="Tu Nave → <b>Puente</b> → <b>Empezar la clase</b>; la <b>rueda</b> de al lado escoge qué diapositivas proyectas.",
+    voz="En principio, antes de clase no tienes que hacer nada: la sesión de cada semana ya está montada, "
+        "con su vídeo, sus retos y su cierre, y el mensaje del foro le sale solo a tu alumnado en su Nave. "
+        "Pero viene genial echarle un vistazo: con la rueda, junto a «Empezar la clase», escoges qué "
+        "diapositivas vas a mostrar; y si quieres que tu alumnado abra tu propio Genially, lo enlazas en "
+        "Tu panel de control → Cambiar el enlace."),
 
    dict(cod="D3", t="Dos: tu gente", pose="tablet", img="d3_sala.png",
     hacer="Tu Nave → <b>Reclutas</b> → pulsa cualquier fila.",

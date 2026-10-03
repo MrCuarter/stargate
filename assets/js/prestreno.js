@@ -534,7 +534,7 @@
         '<div class="kicker">Lo que de verdad os toca</div>' +
         '<h2>Tres momentos, y dos de ellos son «nada»</h2>' +
         '<div class="pr-tres pr-tres-g">' +
-          '<div class="pr-t"><b>Antes de clase</b><span>Nada. Como mucho, mirar el Puente treinta segundos: NEBULA dice a quién hay que dar un empujón.</span></div>' +
+          '<div class="pr-t"><b>Antes de clase</b><span>En principio, nada: está todo montado. Viene genial echar un vistazo a la sesión de la semana, enlazar vuestro Genially si queréis y escoger las diapositivas que vais a mostrar.</span></div>' +
           '<div class="pr-t on"><b>En clase</b><span><b>Empezar la clase</b> y pasar diapositivas. Dentro está todo lo de directo: premiar, una pregunta, una votación, el tiempo.</span></div>' +
           '<div class="pr-t"><b>Después</b><span>Nada. Salvo que alguien pida subir nota: se aprueba en dos clics.</span></div>' +
         '</div>' +
@@ -727,7 +727,7 @@
   }
   function doForo() {
     return comoSeHace({ rot: "El mensaje del foro", kicker: "Manos a la obra · 4", titulo: "El mensaje del foro: ya escrito, y vuestro si queréis", img: "foro",
-      pasos: ['En <b>Hoy toca</b>, el mensaje de la semana ya escrito y firmado con vuestro comandante: <b>Copiar</b> y al foro de la plataforma de UNIR.',
+      pasos: ['En <b>Hoy toca</b>, el mensaje de la semana ya escrito y firmado con vuestro comandante. A vuestro alumnado le sale solo en su Nave; si queréis dejarlo también en el foro de la plataforma de UNIR, <b>Copiar</b>.',
               '<b>Editar</b> para escribir vuestra versión: se guarda en <b>vuestra ficha</b> y vale para todos vuestros grupos. Si la borráis, vuelve la oficial.',
               '<b>Ver todos</b>: los ' + (SEMS.length || 15) + ' mensajes del curso, de un vistazo.'] });
   }
