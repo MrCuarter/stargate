@@ -152,5 +152,5 @@ export const SALA_JORAN = {
  "premio_cuaderno": "el título «As de Joran» y el marco holográfico para tu avatar",
  "galeria_reto": "B6",
  "fama": 10,
- "v": "462150c228"
+ "v": "1d51f06d26"
 };
