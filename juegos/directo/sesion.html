@@ -6,7 +6,7 @@
 <title>Sesión · en directo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="directo.css?v=1d51f06d26">
+<link rel="stylesheet" href="directo.css?v=924230522c">
 <style>
 html,body{height:100%;overflow:hidden}
 body{display:flex;flex-direction:column}
@@ -28,7 +28,7 @@ iframe{flex:1;border:0;width:100%;background:#01040c}
 <div class="barra-s">
   <span class="t">Sesión · semana de Ludo (tema 6)</span>
   <div class="dias"><button data-d="ticket">18 · Ticket de salida</button><button data-d="directo" class="si">19 · En directo</button></div>
-  <div class="rol"><span>Estás viendo la sesión como</span><b id="rol-t"></b><a class="boton sec" id="rol-otro"></a><a class="boton sec" href="sesion.html?rol=recluta&v=1d51f06d26" target="_blank">+ otro recluta (pestaña nueva)</a></div>
+  <div class="rol"><span>Estás viendo la sesión como</span><b id="rol-t"></b><a class="boton sec" id="rol-otro"></a><a class="boton sec" href="sesion.html?rol=recluta&v=924230522c" target="_blank">+ otro recluta (pestaña nueva)</a></div>
 </div>
 <div id="ticket" class="oculto"><div class="caja"><div class="kicker">Ticket de salida</div><h1>¿Cómo ha ido la clase?</h1><p style="font-size:17px;line-height:1.5">Aquí va la diapositiva del ticket de siempre (el formulario anónimo). En la propuesta, el directo va <b>después</b>: y mientras el comandante prepara la partida, la sala de espera de cada recluta le enseña el botón del ticket. Ese minuto de espera es el minuto del ticket.</p></div></div>
 <iframe id="marco" title="La diapositiva del directo" allow="vibrate"></iframe>
@@ -41,10 +41,10 @@ var otro = document.getElementById('rol-otro'); otro.textContent = 'Ver como ' +
 var marco = document.getElementById('marco');
 // 🔴 27-sep · el ticket, con la MISMA forma que en la web (sesion.js → urlTicket): la plantilla de SG_TICKET_URL con el grupo,
 // el comandante y el TEXTO EXACTO de la opción del tema (SG_TICKET_TEMAS), pero apuntando a la copia de ensayo
-var TICKET_URL = 'ticket.html?usp=pp_url&entry.489397158={GRUPO}&entry.856117988={COMANDANTE}&entry.240809630={TEMA}&v=1d51f06d26';
+var TICKET_URL = 'ticket.html?usp=pp_url&entry.489397158={GRUPO}&entry.856117988={COMANDANTE}&entry.240809630={TEMA}&v=924230522c';
 var OPCION = 'Tema 6: Aprendizaje Basado en el Juego (Ludo)';
 var tk = TICKET_URL.split('{GRUPO}').join('ensayo').split('{COMANDANTE}').join(encodeURIComponent('Comandante de ensayo')).split('{TEMA}').join(encodeURIComponent(OPCION));
-marco.src = (rol === 'docente' ? 'proyector.html?sesion=1&v=1d51f06d26' : 'alumno.html?sesion=1&v=1d51f06d26') + '&c=' + SALA + '&tema=' + TEMA + '&ticket=' + encodeURIComponent(tk) + '&tk=' + encodeURIComponent('sgTicket:ensayo:' + OPCION);
+marco.src = (rol === 'docente' ? 'proyector.html?sesion=1&v=924230522c' : 'alumno.html?sesion=1&v=924230522c') + '&c=' + SALA + '&tema=' + TEMA + '&ticket=' + encodeURIComponent(tk) + '&tk=' + encodeURIComponent('sgTicket:ensayo:' + OPCION);
 document.querySelectorAll('[data-d]').forEach(function (b) { b.onclick = function () {
   document.querySelectorAll('[data-d]').forEach(function (x) { x.classList.toggle('si', x === b); });
   var directo = b.dataset.d === 'directo';

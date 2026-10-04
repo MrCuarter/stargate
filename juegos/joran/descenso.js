@@ -15,12 +15,12 @@
 // Fôrge. La curva de los ocho, otra vez con el piloto automático simulado (300 terrenos por planeta, con 0,3 s de
 // reacción): la ancha, siempre posable y con combustible de sobra (vuelos de 40-55 s); la estrecha de Liminar, un 65 %
 // al piloto automático: exigente, pero posible.
-import { THREE, $, azar, elegir, estado, SON, audio, holo, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=1d51f06d26';
+import { THREE, $, azar, elegir, estado, SON, audio, holo, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=924230522c';
 // 🔴 nivelDe (el nº del último planeta superado: 0-8; en el borrador, del navegador; en la web, del servidor) lo escribe
 // comun.js. Se lee por el espacio de nombres y no con `import { nivelDe }` para que, mientras comun.js no lo tenga, la
 // máquina no se quede en blanco (un import con nombre que no existe tumba el módulo entero): sin él, solo Fôrge.
-import * as COMUN from './comun.js?v=1d51f06d26';
-import { crearDesafio, MODO, urlModo, SIN_MORIR } from './desafio.js?v=1d51f06d26';
+import * as COMUN from './comun.js?v=924230522c';
+import { crearDesafio, MODO, urlModo, SIN_MORIR } from './desafio.js?v=924230522c';
 const nivelDe = (id) => (typeof COMUN.nivelDe === 'function' ? COMUN.nivelDe(id) : 0);
 
 const V3 = THREE.Vector3;
@@ -42,7 +42,20 @@ const PLANETAS = [
   { k: 'p8_liminar', n: 'Liminar', g: 2.4, viento: 0.6, rafaga: 0.45, periodo: 4, cambia: 6, rugoso: 1.3, muros: 4, pistas: [10, 7, 4.5], dif: 5.3, nota: 'El viento cambia de sentido cada pocos segundos. Y hay paredes.' },
 ];
 const MULT = [1, 2, 4];                       // la ancha, la media, la estrecha
-const SEGURO = { vy: 2.4, vx: 1.6, ang: 0.2 };  // lo que aguantan las patas
+const SEGURO = { vy: 2.4, vx: 1.6, ang: 0.2 };  // lo que aguantan las patas (sin ayuda: ver AYUDA)
+/**
+ * 🔴 4-oct · LA AYUDA DE VUELO (Norberto: «el juego de Umbral es literalmente imposible, no he conseguido aterrizar ni una sola
+ * vez en 100 partidas… intenta bajar el nivel, sobre todo al principio»). Se empezaba lejos, ya derivando de lado, el módulo no
+ * se enderezaba solo y las patas no aguantaban ni 11° de inclinación. Ahora, una ayuda de 0 a 1 que se va retirando planeta a
+ * planeta (Fôrge y Ecos 1 · Sendara 0,8 · Reliae 0,6 · Umbral 0,45 · Ludo 0,3 · Vínculo 0,15 · Liminar, nada): empiezas encima de la plataforma
+ * ancha y sin deriva, el módulo se endereza solo cuando sueltas el giro, las patas aguantan más (hasta 4,4 m/s, 3,2 m/s de
+ * lado y 29°), el viento sopla menos (en proporción) y las plataformas perdonan un par de metros por lado. En la Academia (SIN_MORIR), la ayuda entera en todos: con la
+ * misma física simulada, un piloto torpe (solo propulsor, sin girar, 0,3 s de retraso) se posa el 100 % de las veces en los
+ * ocho planetas; antes, ninguna. Con la ayuda entera tampoco hay viento: sales encima de la plataforma ancha y solo hay que frenar.
+ */
+const AYUDA_NIVEL = [1, 1, 0.8, 0.6, 0.45, 0.3, 0.15, 0];
+const ayudaDe = (nivel) => (SIN_MORIR ? 1 : AYUDA_NIVEL[nivel] || 0);
+const seguro = (a) => ({ vy: SEGURO.vy + 2 * a, vx: SEGURO.vx + 1.6 * a, ang: SEGURO.ang + 0.3 * a });
 const COMB_S = 2.4;                            // combustible por segundo de propulsor (el depósito es de 100: ~42 s)
 const VIDAS = 3;                               // módulos por partida (por planeta)
 const INTACTO = 250;                           // puntos por cada módulo que te sobra al posarte (antes de la dificultad)
@@ -185,6 +198,9 @@ function nueva(nivel = 0) { return { nivel, vidas: VIDAS, puntos: 0, t0: perform
 function nuevoVuelo() {
   const P = PLANETAS[S.nivel];
   S.P = P; S.x = azar(-150, -110) * elegir([1, -1]); S.y = Math.max(...T.perfil) + 55; S.vx = -Math.sign(S.x) * azar(2, 3.5); S.vy = 0;
+  // con ayuda, se sale más cerca de la plataforma ancha (con la ayuda entera, justo encima) y con menos deriva
+  const a = S.ayuda = ayudaDe(S.nivel), ancha = T.pistas[0];
+  S.x += (ancha.cx - S.x) * a; S.vx *= 1 - a; S.y = Math.max(ancha.y + 45, S.y - 20 * a);
   S.ang = 0; S.comb = 100; S.prop = false; S.t = 0; S.estado = 'vuela'; S.cuenta = 1.2;
   lem.visible = true;
 }
@@ -243,9 +259,11 @@ function tick(dt) {
   if (S.estado === 'vuela') {
     const giro = (tecla.ArrowLeft || tecla.KeyA || toque.izq ? 1 : 0) - (tecla.ArrowRight || tecla.KeyD || toque.der ? 1 : 0);
     S.ang = THREE.MathUtils.clamp(S.ang + giro * 1.7 * dt, -1.3, 1.3);
+    if (!giro && S.ayuda) S.ang -= S.ang * Math.min(1, 3 * S.ayuda * dt);   // con ayuda, al soltar el giro se endereza solo
     S.prop = (tecla.ArrowUp || tecla.KeyW || tecla.Space || toque.prop) && S.comb > 0;
     const empuje = Math.max(3.6, P.g * 2.3);
-    let ax = vientoAhora(P, S.t) * (S.y - altura(S.x) > 3 ? 1 : 0.3), ay = -P.g;
+    // (con ayuda, el viento sopla menos: con la entera, nada; si no, en Umbral te sacaba de la plataforma en la bajada)
+    let ax = vientoAhora(P, S.t) * (S.y - altura(S.x) > 3 ? 1 : 0.3) * (1 - (S.ayuda || 0)), ay = -P.g;
     if (S.prop) { ax += -Math.sin(S.ang) * empuje; ay += Math.cos(S.ang) * empuje; S.comb = Math.max(0, S.comb - COMB_S * dt); }
     if (P.arrastre) { ax -= S.vx * P.arrastre; ay -= S.vy * P.arrastre * 0.6; }
     S.vx += ax * dt; S.vy += ay * dt; S.x += S.vx * dt; S.y += S.vy * dt;
@@ -267,16 +285,17 @@ function tick(dt) {
 }
 function tocarSuelo(patas) {
   S._vyAntes = S.vy;   // (la velocidad con la que toca: la suavidad puntúa)
-  const p = T.pistas.find((x) => patas.every((px) => px >= x.x0 && px <= x.x1));
-  const suave = Math.abs(S.vy) <= SEGURO.vy && Math.abs(S.vx) <= SEGURO.vx && Math.abs(S.ang) <= SEGURO.ang;
+  const a = S.ayuda || 0, SG = seguro(a), m = 2 * a;   // (con ayuda, las plataformas perdonan hasta 2 m por lado)
+  const p = T.pistas.find((x) => patas.every((px) => px >= x.x0 - m && px <= x.x1 + m));
+  const suave = Math.abs(S.vy) <= SG.vy && Math.abs(S.vx) <= SG.vx && Math.abs(S.ang) <= SG.ang;
   if (p && suave) posado(p);
-  else estrellado(!p ? 'Fuera de las plataformas.' : Math.abs(S.ang) > SEGURO.ang ? 'Demasiado inclinado.' : Math.abs(S.vy) > SEGURO.vy ? 'Demasiado rápido: las patas no aguantan.' : 'Demasiada deriva lateral.');
+  else estrellado(!p ? 'Fuera de las plataformas.' : Math.abs(S.ang) > SG.ang ? 'Demasiado inclinado.' : Math.abs(S.vy) > SG.vy ? 'Demasiado rápido: las patas no aguantan.' : 'Demasiada deriva lateral.');
 }
 function posado(p) {
   S.estado = 'posado'; S.prop = false; if (soplido) soplido.gain.value = 0;
   S.y = p.y + 0.02; S.vx = S.vy = 0; S.ang = 0;
   const vyToque = Math.abs(S._vyAntes || 0);
-  const suavidad = (SEGURO.vy - Math.min(SEGURO.vy, vyToque)) / SEGURO.vy;
+  const SG = seguro(S.ayuda || 0), suavidad = (SG.vy - Math.min(SG.vy, vyToque)) / SG.vy;
   const centrado = Math.max(0, 1 - Math.abs(S.x - p.cx) / (p.w / 2));
   // el aterrizaje, como siempre (plataforma × suavidad y centrado, + combustible) y + los módulos que te sobran; todo eso,
   // por la dificultad del planeta
@@ -286,7 +305,7 @@ function posado(p) {
   S.puntos = Math.round((aterrizaje + intactos) * S.P.dif);
   SON.bien(); aviso(`¡POSADO EN ${S.P.n.toUpperCase()}! ×${p.mult} · +${S.puntos.toLocaleString('es-ES')}`, '#5dffa0', 2);
   for (let i = 0; i < 40; i++) chispa(S.x + azar(-4, 4), p.y + 0.4, azar(-3, 3), azar(-6, 6), azar(1, 5), azar(0.6, 1.2), 0x5dffa0);
-  setTimeout(() => terminar(null, true), 2200);
+  const yo = S; setTimeout(() => { if (S === yo) terminar(null, true); }, 2200);   // (si entretanto empezó otra partida, nada)
 }
 function estrellado(motivo) {
   S.estado = 'roto'; S.prop = false; if (soplido) soplido.gain.value = 0; if (!SIN_MORIR) S.vidas--;
@@ -340,9 +359,10 @@ function pintarHUD(vv) {
   $('h-pl').textContent = `${S.nivel + 1}/8`;
   $('h-vid').textContent = Math.max(0, S.vidas);
   $('h-alt').textContent = Math.round(h) + ' m';
-  const vy = $('h-vy'); vy.textContent = fmt(-S.vy) + ' m/s'; vy.className = Math.abs(S.vy) <= SEGURO.vy ? 'ok' : 'mal';
-  const vx = $('h-vx'); vx.textContent = fmt(S.vx) + ' m/s'; vx.className = Math.abs(S.vx) <= SEGURO.vx ? 'ok' : 'mal';
-  const an = $('h-ang'); an.textContent = Math.round(-S.ang * 57.3) + '°'; an.className = Math.abs(S.ang) <= SEGURO.ang ? 'ok' : 'mal';
+  const SG = seguro(S.ayuda || 0);   // (lo verde, con la ayuda del planeta)
+  const vy = $('h-vy'); vy.textContent = fmt(-S.vy) + ' m/s'; vy.className = Math.abs(S.vy) <= SG.vy ? 'ok' : 'mal';
+  const vx = $('h-vx'); vx.textContent = fmt(S.vx) + ' m/s'; vx.className = Math.abs(S.vx) <= SG.vx ? 'ok' : 'mal';
+  const an = $('h-ang'); an.textContent = Math.round(-S.ang * 57.3) + '°'; an.className = Math.abs(S.ang) <= SG.ang ? 'ok' : 'mal';
   $('h-g').textContent = fmt(S.P.g) + ' m/s²';
   const fl = $('h-vi'); fl.style.width = Math.round(12 + Math.min(1.5, Math.abs(vv)) * 30) + 'px'; fl.classList.toggle('izq', vv < 0); fl.style.opacity = Math.abs(vv) < 0.05 ? 0.3 : 1;
   $('h-vf').textContent = Math.abs(vv) < 0.05 ? 'calma' : fmt(Math.abs(vv));
@@ -353,7 +373,7 @@ function pintarHUD(vv) {
 let pausa = false;
 function pausar() {
   if (!S || S.fin || S.estado === 'portada' || DESAFIO.abierto) return; pausa = !pausa; if (soplido) soplido.gain.value = 0; // con la pregunta abierta el juego ya está parado
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1d51f06d26">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=924230522c">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && S && !S.fin && !pausa && !DESAFIO.abierto && !window.__sinPausa) pausar(); });
@@ -421,9 +441,10 @@ async function portada() {
     <p class="pl-nota" id="pl-nota"></p>
     <div class="teclas"><kbd>← →  /  A D</kbd><span>Girar el módulo</span><kbd>↑  /  W  /  Espacio</kbd><span>Propulsor (gasta combustible)</span></div>
     <p>Para posarte: caída de menos de <b>${SEGURO.vy.toLocaleString('es-ES')} m/s</b>, deriva de menos de <b>${SEGURO.vx.toLocaleString('es-ES')} m/s</b> y el módulo casi recto (lo verde del panel). Plataformas: <b style="color:#5dffa0">×1</b> la ancha, <b style="color:#ffc24a">×2</b> la media y <b style="color:#ff4dd8">×4</b> la estrecha. Suman la suavidad, el centrado, el combustible y los módulos que te sobren (tienes ${VIDAS}); y todo se multiplica por la <b>dificultad del planeta</b>.</p>
+    <p><b>${SIN_MORIR ? 'En la Academia vuelas con ayuda' : 'En los primeros planetas vuelas con ayuda'}:</b> sales encima de la plataforma ancha, el módulo se endereza solo al soltar el giro, el viento sopla menos y las patas aguantan más${SIN_MORIR ? '' : '. La ayuda se va retirando planeta a planeta'}.</p>
     ${DESAFIO.texto()}
     <p class="pista">Tu marca (tu mejor partida): <b>${(e.marcas.descenso || 0).toLocaleString('es-ES')}</b> · Módulo Lunar del Apolo: NASA (dominio público)</p>
-    <div class="botones"><button id="b-ya"></button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=1d51f06d26">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya"></button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=924230522c">Volver a la sala</a>'}</div>`);
   const marcar = (i) => {
     elegido = i; const P = PLANETAS[i];
     document.querySelectorAll('#planetas .pl').forEach((b) => b.classList.toggle('sel', +b.dataset.i === i));
