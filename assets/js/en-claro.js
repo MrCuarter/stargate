@@ -1,37 +1,47 @@
 /**
- * STARGATE · EN CLARO (4-oct). La página la escribe _build_site.py con las preguntas y las cifras del motor; esto solo:
- *   · las DOS versiones (Norberto: «dos versiones»): «Para docentes» y «Para referentes». Arranca en la tuya (si eres referente
- *     de algún grupo, la de referentes), se recuerda en este navegador y se puede forzar con ?vista=doc|ref. Un #ancla de una
- *     pregunta de referentes abre su versión: el Mando puede enlazar cualquier respuesta sin pensar en quién la lee.
- *   · la barra «Tu grupo»: tu grupo, tu papel en él, desde cuándo cuentan los retos y «Copiar la invitación» (el mismo enlace
- *     que la consola: MOTOR.invitacion). Sin cuenta o sin grupos, no sale: la página se lee igual.
- *   · los botones a la consola y a la sesión llevan tu grupo (?per=) para abrir la pantalla exacta.
+ * STARGATE · EN CLARO (4-oct). La página la escribe _build_site.py con los textos y las cifras del motor; esto solo:
+ *   · 🔴 lo de REFERENTES, solo para referentes. Norberto: «si un docente inicia sesión y NO está marcado como referente, no quiero
+ *     ni que vea la opción». El interruptor «Docentes / Referentes» nace oculto y solo se enciende si esta cuenta es referente
+ *     (`sgEsReferente`, que pone el motor, o `soyReferente` de alguno de sus grupos). Para un docente, ?vista=ref o un enlace
+ *     a una duda de referentes no hacen nada. Al referente se le abre su vista (la de docentes + lo suyo) y se recuerda.
+ *   · las dudas están plegadas: un enlace #ancla (los del buzón y la biblia) la abre y la marca.
+ *   · la barra «Tu grupo»: su grupo, desde cuándo cuentan los retos y «Copiar la invitación» (el mismo enlace que la consola:
+ *     MOTOR.invitacion). Sin cuenta o sin grupos, no sale. Los botones a la consola y a la sesión llevan su grupo (?per=).
  */
 (function () {
   "use strict";
   var raiz = document.getElementById("ec"); if (!raiz) return;
-  var q = new URLSearchParams(location.search), GRUPOS = [], G = null, MOTOR = null;
+  var q = new URLSearchParams(location.search), GRUPOS = [], G = null, MOTOR = null, REF = false;
   function esc(t) { return String(t == null ? "" : t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function leer(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function guardar(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-  var forzada = q.get("vista") === "ref" || q.get("vista") === "doc" ? q.get("vista") : null;
+  var botones = raiz.querySelector(".ec-vista");
 
-  // ── las dos versiones
+  // ── docentes / referentes
   function vista(v, recordar) {
+    if (!REF) v = "doc";
     raiz.setAttribute("data-vista", v);
     Array.prototype.forEach.call(raiz.querySelectorAll(".ec-vista button"), function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-vista") === v)); });
     if (recordar) guardar("sgClaroVista", v);
   }
-  vista(forzada || leer("sgClaroVista") || (leer("sgEsReferente") === "1" ? "ref" : "doc"));
+  function soyReferente() {
+    REF = true; if (botones) botones.hidden = false;
+    var f = q.get("vista");
+    vista(f === "ref" || f === "doc" ? f : (leer("sgClaroVista") || "ref"));
+  }
   Array.prototype.forEach.call(raiz.querySelectorAll(".ec-vista button"), function (b) {
     b.onclick = function () { vista(b.getAttribute("data-vista"), true); };
   });
+  if (leer("sgEsReferente") === "1") soyReferente(); else vista("doc");
+
+  // ── un enlace a una duda la abre
   function alAncla() {
     var id = (location.hash || "").slice(1), el = id && document.getElementById(id);
-    if (!el || !el.classList.contains("ec-qa")) return;
-    if (el.getAttribute("data-solo") === "ref" && raiz.getAttribute("data-vista") !== "ref") { vista("ref"); el.scrollIntoView(); }
-    Array.prototype.forEach.call(raiz.querySelectorAll(".ec-qa.foco"), function (x) { x.classList.remove("foco"); });
-    el.classList.add("foco");
+    if (!el || !el.classList.contains("ec-duda")) return;
+    if (el.getAttribute("data-solo") === "ref") { if (!REF) return; if (raiz.getAttribute("data-vista") !== "ref") vista("ref"); }
+    Array.prototype.forEach.call(raiz.querySelectorAll(".ec-duda.foco"), function (x) { x.classList.remove("foco"); });
+    el.open = true; el.classList.add("foco");
+    setTimeout(function () { el.scrollIntoView({ block: "start" }); }, 0);
   }
   window.addEventListener("hashchange", alAncla); alAncla();
 
@@ -47,11 +57,11 @@
   }
   function cuando(g) {
     var S = g.stargate || {};
-    if (!S.inicio) return "Tu grupo aún no tiene fecha de inicio: la pone el referente en su calendario.";
+    if (!S.inicio) return "Tu grupo aún no tiene fecha de inicio.";
     var f = fin(S, g.total);
-    if (g.semana == null || g.semana < 1) return "Los retos cuentan desde el <b>" + esc(dia(S.inicio)) + "</b> (semana 1)" + (f ? "; el último día para registrarlos, el " + esc(dia(f)) : "") + ".";
-    if (g.semana <= g.total) return "Semana <b>" + g.semana + " de " + g.total + "</b>: los retos cuentan" + (f ? " hasta el <b>" + esc(dia(f)) + "</b>" : "") + ".";
-    return "El curso de tu grupo ha terminado: el registro de retos está cerrado.";
+    if (g.semana == null || g.semana < 1) return "Empieza el <b>" + esc(dia(S.inicio)) + "</b>: desde ese día cuentan los retos" + (f ? ", hasta el " + esc(dia(f)) : "") + ".";
+    if (g.semana <= g.total) return "Semana <b>" + g.semana + " de " + g.total + "</b>" + (f ? " · los retos cuentan hasta el <b>" + esc(dia(f)) + "</b>" : "") + ".";
+    return "El curso de tu grupo ha terminado.";
   }
 
   // ── la barra «Tu grupo»
@@ -61,20 +71,17 @@
       return '<option value="' + esc(g.id) + '"' + (g.id === G.id ? " selected" : "") + ">" + esc(g.nombre || g.id) + "</option>"; }).join("") + "</select></label>" : "";
     caja.innerHTML = '<img class="ec-grupo-i" src="assets/img/iconos/calendario.png" alt="">'
       + '<span>Tu grupo: <b>' + esc(G.nombre || G.id) + '</b></span>'
-      + '<span class="ec-rol">' + (G.soyReferente ? "Eres referente" : "Eres docente") + '</span>'
       + '<span class="ec-cuando">' + cuando(G) + '</span>'
       + '<span class="ec-grupo-der">' + (G.codigo ? '<button type="button" class="btn primary ec-btn" data-ec-inv><img class=ico src=assets/img/iconos/p/enlace.png alt> Copiar la invitación</button>' : "") + otros + "</span>";
     caja.hidden = false;
     var sel = document.getElementById("ec-sel");
     if (sel) sel.onchange = function () { G = GRUPOS.filter(function (g) { return g.id === sel.value; })[0] || G; guardar("sgClaroGrupo", G.id); pintar(); };
-    // lo de cada respuesta que depende de tu grupo
     Array.prototype.forEach.call(raiz.querySelectorAll('[data-ec-tuyo="cuando"]'), function (p) { p.innerHTML = "En <b>" + esc(G.nombre || G.id) + "</b>: " + cuando(G); p.hidden = false; });
-    // los botones a la consola y a la sesión, con tu grupo
     Array.prototype.forEach.call(raiz.querySelectorAll("a[data-ec-per]"), function (a) {
       var u = new URL(a.getAttribute("href"), location.href); u.searchParams.set("per", G.id); a.href = u.pathname.replace(/^\//, "") + u.search + u.hash;
     });
   }
-  // «Copiar la invitación»: el mismo enlace que la consola. Sin grupo, lleva a tu Nave, donde está.
+  // «Copiar la invitación»: el mismo enlace que la consola. Sin grupo, lleva a tu panel, donde está.
   raiz.addEventListener("click", function (ev) {
     var b = ev.target.closest && ev.target.closest("[data-ec-inv]"); if (!b) return;
     if (!G || !G.codigo || !MOTOR) { location.href = "consola.html"; return; }
@@ -89,12 +96,15 @@
     MOTOR.sesion().then(function (yo) {
       if (!yo) return null;
       return MOTOR.misPERs(yo.correo).then(function (ps) {
+        // el motor ya ha escrito sgEsReferente (también el referente sin grupos todavía)
+        var ref = leer("sgEsReferente") === "1" || (ps || []).some(function (g) { return g.soyReferente; });
+        if (ref && !REF) { soyReferente(); alAncla(); }
+        else if (!ref && REF) { REF = false; if (botones) botones.hidden = true; vista("doc"); }   // la marca era de otra cuenta
         GRUPOS = (ps || []).filter(function (g) { return g.estado !== "pasado" && g.id !== window.SG_PER_ACADEMIA; });
         if (!GRUPOS.length) return;
         var g0 = leer("sgClaroGrupo");
         G = GRUPOS.filter(function (g) { return g.id === g0; })[0] || GRUPOS[0];
-        if (!forzada && !leer("sgClaroVista")) vista(GRUPOS.some(function (g) { return g.soyReferente; }) ? "ref" : "doc");
-        pintar(); alAncla();
+        pintar();
       });
     }).catch(function () {});
   }

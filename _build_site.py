@@ -4581,22 +4581,34 @@ print("escrito: fragmento.html  (la puerta al Escape UNI, el reto secreto S7)")
 # ---------------------------------------------------------------- 4-oct · STARGATE EN CLARO (en-claro.html)
 # Del resumen del buzón del 4-oct: en una semana, 6 de los 10 mensajes eran de la misma referente, y todas sus dudas tenían
 # respuesta en la web, pero repartida en varias pantallas y con el vocabulario de la ficción («no hables en chino
-# mandaloriano… dímelo de forma ordenada»). Esto es la capa en llano: las preguntas de verdad, en el orden en que llegan a lo
-# largo del curso, 1-3 líneas de respuesta y el botón que abre la pantalla. Borrador en el lienzo «Nave del Comandante ·
-# borrador» (página 4-oct); Norberto eligió: página propia + el buzón la enseña, DOS versiones (docentes y referentes), la
-# barra «Tu grupo» con sus datos y «En claro» en el menú.
-# 🔴 UN DATO, UN SITIO: ninguna cifra a mano. XP de los retos (Datos.gs), créditos, el Arsenal y el Mercado (RECOMPENSAS),
-# las insignias (las mismas cuentas de la guía), la nota y las capturas del buzón (MAX_ADJ de buzon.js). El «29 insignias»
-# que se le dijo a la referente vino justo de una cifra copiada.
-# 🔴 No sustituye a la guía (la radiografía) ni a sus preguntas frecuentes: las enlaza. Cada respuesta tiene su #ancla para
-# que el buzón conteste con un enlace en vez de redactarla otra vez.
+# mandaloriano… dímelo de forma ordenada»). Borrador en el lienzo «Nave del Comandante · borrador» (página 4-oct); Norberto
+# eligió página propia + el buzón la enseña, dos versiones, la barra «Tu grupo» y «En claro» en el menú.
+# 🔴 4-oct (2.ª vuelta), Norberto: «Simplifica mucho más la parte de docentes. No hagas referencia a referentes… si un docente
+# NO está marcado como referente, no quiero ni que vea la opción. Cuantas menos opciones y posibilidades de liarse, mejor. Hay
+# profesores que empiezan mañana y ni siquiera han hecho la Academia: que sea un punto de partida… compara el temario con la
+# gamificación… más visual, que respire, alguna imagen, tarjetas de igual tamaño; si quieren más info, que se pueda ampliar».
+# Y: «usa las palabras oficiales del máster (temas, sesiones, retos, portfolio…); si quieres, entre paréntesis el idioma
+# STARGATE». Así que: tres pasos con capturas reales, el temario tema a tema con su planeta, cuatro fichas de lo que se gana y
+# las dudas plegadas (cada una con su #ancla, que el buzón y la biblia citan). Lo de referentes, solo si lo eres.
+# 🔴 UN DATO, UN SITIO: ninguna cifra a mano. XP de los retos y sus nombres (Datos.gs), créditos, las subidas de nota y la
+# tienda (RECOMPENSAS), las insignias (las cuentas de la guía), la semana de cada tema (CRONO), la nota (NOTA_FINAL), las
+# actividades (ACTIVIDADES) y las capturas del buzón (MAX_ADJ de buzon.js).
 _EC_BZ = open(os.path.join(HERE, "assets/js/buzon.js"), encoding="utf-8").read()
 _EC_CAPTURAS = int(_re.search(r"MAX_ADJ = (\d+)", _EC_BZ).group(1))
-_EC_XP = {f[0]: f[3] for f in _RETOS_NAVE["REGULAR"]}
+_EC_RETOS = {f[0]: f for f in _RETOS_NAVE["REGULAR"]}
+_EC_XP = {k: f[3] for k, f in _EC_RETOS.items()}
 _EC_ARSENAL = [(n, c, mx) for n, c, mx, d, desde, t in RECOMPENSAS if t == "nota"]
-_EC_MERCADO = [r for r in RECOMPENSAS if r[5] != "nota"]
+_EC_TIENDA = [r for r in RECOMPENSAS if r[5] != "nota"]
 _EC_INSIGNIAS = N_INSIGNIAS_MISION + len(SERIES_ALBUM)
-assert len(_EC_ARSENAL) == 4 and all(_EC_XP.get(k) for k in ("L1", "B1", "X1")), "en claro: el Arsenal o los XP no tienen la forma esperada"
+_EC_SEM_TEMA = {}
+for _s in CRONO:
+    _m = _re.match(r"Tema (\d)", str(_s.get("tema") or ""))
+    if _m and int(_m.group(1)) not in _EC_SEM_TEMA: _EC_SEM_TEMA[int(_m.group(1))] = _s["sem"]
+def _ec_nombre_reto(rid):
+    t = _EC_RETOS[rid][1]; m = _re.search(r"«([^»]+)»", t)
+    return m.group(1) if m else t
+assert len(_EC_ARSENAL) == 4 and all(_EC_XP.get(k) for k in ("L1", "B1", "X1")), "en claro: las subidas de nota o los XP no tienen la forma esperada"
+assert all(("L%d" % n) in _EC_RETOS and ("B%d" % n) in _EC_RETOS and n in _EC_SEM_TEMA for n in range(1, 9)), "en claro: falta un reto o la semana de un tema"
 
 def _ec_ico(n): return '<img class=ico src=assets/img/iconos/p/%s.png alt>' % n
 def _ec_tabla(cab, filas):
@@ -4604,157 +4616,200 @@ def _ec_tabla(cab, filas):
             + "".join('<tr>' + "".join('<td%s>%s</td>' % (' class="n"' if i else "", c) for i, c in enumerate(f)) + '</tr>' for f in filas) + '</tbody></table>')
 _EC_COPIAR = ("Copiar la invitación", "copiar", "enlace")   # el botón que el JS rellena con el enlace del grupo
 
-# Las secciones: (clave, título, icono con aro, solo para referentes)
-EC_SECCIONES = [("antes", "Antes de empezar", "calendario", False), ("semana", "Cada semana", "brujula", False),
-                ("gana", "Lo que gana tu alumnado", "monedas", False), ("falla", "Si algo falla", "aviso", False),
-                ("grupo", "Tu grupo y tu equipo", "llave", True)]
-# Las preguntas: id (el #ancla, no se cambia: la citan el buzón y la biblia), sección, la corta del índice, la pregunta con
-# palabras de docente, la respuesta, el botón (texto, enlace, icono), dónde está con los nombres de la pantalla, solo para
-# referentes, y si el buzón la enseña antes de escribir.
+# Las dudas, plegadas: (clave, título). «grupo» es solo para referentes.
+EC_SECCIONES = [("antes", "Antes de empezar"), ("semana", "Cada semana"), ("gana", "Lo que ganan tus estudiantes"),
+                ("falla", "Si algo falla"), ("grupo", "Solo para referentes")]
+# id (el #ancla: no se cambia, la citan el buzón y la biblia), sección, la corta (para el buzón), la pregunta, la respuesta,
+# el botón (texto, enlace, icono), dónde está (con el nombre de la pantalla entre paréntesis), solo para referentes, y si el
+# buzón la enseña antes de escribir.
 EC_PREGUNTAS = [
- dict(id="mi-papel", sec="antes", corta="¿Referente o docente?", q="¿Soy referente o docente? ¿Qué cambia?",
-      r="Depende del grupo: puedes ser referente en uno y docente en otro (la barra de arriba te dice qué eres en el tuyo). "
-        "<b>Referente</b>: abre el grupo y lleva su equipo, su calendario y sus ajustes. <b>Docente</b>: da la clase. Entráis por la misma puerta.",
-      btn=None, donde="Gestionar grupos → el grupo → Equipo docente (lo ve el referente)", buzon=True),
- dict(id="enlace-foro", sec="antes", corta="El enlace para el foro", q="¿Qué enlace pongo en el foro de la plataforma de UNIR? ¿Y para quien sigue la clase desde casa?",
-      r="Uno solo, el mismo para todo el alumnado, en clase o en casa: <b>la invitación de tu grupo</b>. Lleva dentro el código de clase; "
-        "cada estudiante entra con su cuenta de Google y se alista.",
-      btn=_EC_COPIAR, donde="Mi nave → Puente (semanas 1-3); después, Reclutas → ¿Falta alguien?", buzon=True),
+ dict(id="enlace-foro", sec="antes", corta="El enlace para el foro", q="¿Qué enlace pongo en el foro de la plataforma de UNIR?",
+      r="Uno solo, el mismo para todos tus estudiantes, en clase o en casa: <b>la invitación de tu grupo</b>. Cada estudiante entra con su "
+        "cuenta de Google y se apunta solo.",
+      btn=_EC_COPIAR, donde="Tu panel (Mi nave) → portada (Puente), las tres primeras semanas; después, Estudiantes (Reclutas)", buzon=True),
  dict(id="cuando-cuenta", sec="antes", corta="Desde cuándo cuentan los retos", q="¿Desde cuándo cuentan los retos?",
-      r="Desde el lunes de la <b>semana 1 de tu grupo</b>. Antes están cerrados y lo que se registre no suma. Las fechas de tu grupo, aquí debajo "
-        "y en su calendario.",
-      btn=("Ver el calendario de mi grupo", "consola.html?tab=calendario", "calendario"), donde="Mi nave → Calendario", buzon=True, tuyo="cuando"),
- dict(id="antes-de-clase", sec="antes", corta="¿Preparo algo antes de clase?", q="¿Tengo que preparar algo antes de cada clase?",
-      r="En principio, <b>nada</b>: la sesión de cada semana ya está montada, con su vídeo, sus retos y su cierre, y el mensaje del foro le sale solo "
-        "a tu alumnado en su Nave. Viene bien echarle un vistazo y elegir qué diapositivas enseñas.",
-      btn=("Ver la sesión de esta semana", "sesion.html", "envivo"), donde="Mi nave → Puente → la rueda junto a «Empezar la clase»"),
- dict(id="en-clase", sec="semana", corta="Qué uso en la clase en directo", q="¿Qué uso en la clase en directo?",
-      r="«Empezar la clase» proyecta la sesión de la semana. Desde ahí pasas lista y ves quién ha hecho qué.",
-      btn=("Empezar la clase", "sesion.html", "envivo"), donde="Mi nave → Puente → Empezar la clase"),
+      r="Desde el lunes de la <b>semana 1 de tu grupo</b>. Antes están cerrados: lo que se registre no suma.",
+      btn=("Ver el calendario de mi grupo", "consola.html?tab=calendario", "calendario"), donde="Tu panel (Mi nave) → Calendario", buzon=True, tuyo="cuando"),
+ dict(id="antes-de-clase", sec="antes", corta="¿Preparo algo antes de clase?", q="¿Tengo que preparar algo antes de cada sesión?",
+      r="<b>No.</b> La sesión de cada semana ya está montada, con su vídeo, sus retos y su cierre. Si quieres, échale un vistazo y elige qué "
+        "diapositivas enseñas.",
+      btn=("Ver la sesión de esta semana", "sesion.html", "envivo"), donde="Tu panel (Mi nave) → la rueda junto a «Empezar la clase»"),
+ dict(id="en-clase", sec="semana", corta="Qué uso en la sesión en directo", q="¿Qué uso en la sesión en directo?",
+      r="«Empezar la clase» proyecta la sesión de la semana. Desde ahí pasas lista y ves quién ha hecho cada reto.",
+      btn=("Empezar la clase", "sesion.html", "envivo"), donde="Tu panel (Mi nave) → Empezar la clase"),
  dict(id="no-suma", sec="semana", corta="No le suma un reto", q="A un estudiante no le suma un reto",
-      r="Casi siempre es una de tres: <b>el grupo aún no ha empezado</b> (los retos cuentan desde la semana 1); <b>falta el enlace</b> de lo que hizo "
-        "(casi todos lo piden); o es algo de nota y <b>espera tu visto bueno</b>. Si lo viste hacer, dáselo a mano.",
-      btn=("Ver mi alumnado", "consola.html?tab=alumnado", "gente"), donde="Mi nave → Reclutas", buzon=True),
+      r="Casi siempre es una de tres: <b>el grupo aún no ha empezado</b>; <b>falta el enlace</b> a lo que hizo (casi todos los retos lo piden); "
+        "o es algo de nota y <b>espera tu visto bueno</b>. Si lo viste hacer, dáselo a mano.",
+      btn=("Ver mis estudiantes", "consola.html?tab=alumnado", "gente"), donde="Tu panel (Mi nave) → Estudiantes (Reclutas)", buzon=True),
  dict(id="a-mano", sec="semana", corta="Dar o quitar un reto a mano", q="¿Cómo doy (o quito) un reto a mano?",
-      r="En tu alumnado, pulsa su fila y, en su ficha, el reto. Hace falta tener puesto «Mando manual» (arriba, en tu Nave). Si lo quitas, se le "
-        "descuenta lo que le dio.",
-      btn=("Abrir mi alumnado", "consola.html?tab=alumnado", "retos"), donde="Mi nave → Reclutas → su fila → el reto"),
+      r="En tus estudiantes, pulsa su fila y, en su ficha, el reto. Arriba en tu panel tiene que estar puesto «Mando manual». Si lo quitas, "
+        "se le descuenta lo que le dio.",
+      btn=("Ver mis estudiantes", "consola.html?tab=alumnado", "retos"), donde="Tu panel (Mi nave) → Estudiantes (Reclutas) → su fila → el reto"),
  dict(id="cola-nota", sec="semana", corta="Aprobar lo que cuenta para nota", q="¿Cómo apruebo lo que cuenta para nota?",
-      r="Ninguna nota cambia sola. Lo que pide tu alumnado espera en la <b>Cola de nota</b> (sale en Reclutas solo cuando hay algo, y el Puente "
-        "avisa de cuántas hay). «Conceder» o «Denegar y devolver»: si deniegas, recupera sus créditos.",
-      btn=("Abrir mi alumnado", "consola.html?tab=alumnado", "hecho"), donde="Mi nave → Reclutas → Cola de nota", buzon=True),
- dict(id="puntos", sec="gana", corta="Qué gana con cada reto", q="¿Qué gana con cada reto?",
-      r="Dos cosas: <b>XP</b>, que sube su nivel y nunca baja, y <b>créditos " + MONEDA + "</b>, la moneda que gasta.",
+      r="Ninguna nota cambia sola. Lo que pidan tus estudiantes te espera en <b>Cola de nota</b> (solo aparece cuando hay algo). "
+        "«Conceder» o «Denegar y devolver»: si deniegas, recupera sus créditos.",
+      btn=("Ver mis estudiantes", "consola.html?tab=alumnado", "hecho"), donde="Tu panel (Mi nave) → Estudiantes (Reclutas) → Cola de nota", buzon=True),
+ dict(id="puntos", sec="gana", corta="Qué gana con cada reto", q="¿Qué gana un estudiante con cada reto?",
+      r="Dos cosas: <b>XP</b>, que suben su nivel y nunca bajan, y <b>créditos (" + MONEDA + ")</b>, que gasta en la tienda.",
       tabla=_ec_tabla(["Reto", "XP", MONEDA], [("En clase (relámpago)", _EC_XP["L1"], CREDITOS["relampago"]),
                                                 ("En casa (reto principal)", _EC_XP["B1"], CREDITOS["retoB"]),
-                                                ("Actividad de la UNIR", _EC_XP["X1"], CREDITOS["actividad"])]),
-      btn=("Ver los retos", "consola.html?tab=retos", "retos"), donde="Mi nave → Retos"),
+                                                ("Actividad de la UNIR entregada", _EC_XP["X1"], CREDITOS["actividad"])]),
+      btn=("Ver los retos", "consola.html?tab=retos", "retos"), donde="Tu panel (Mi nave) → Retos"),
  dict(id="subir-nota", sec="gana", corta="Subir nota o recalificar", q="¿Puede subir nota o recalificar algo entregado fuera de plazo?",
-      r=f"Sí, con el <b>Arsenal de batalla</b>: abre en la <b>semana {SEMANA_ARSENAL}</b> (PUA: la {SEMANAS_PER['PUA']}), pide "
-        f"<b>{NOTA_MIN_PLANETAS} temas completos</b> y cada opción se compra una vez. Ninguna se aplica sin tu visto bueno.",
+      r=f"Sí, con sus créditos (en STARGATE, el «Arsenal de batalla»): desde la <b>semana {SEMANA_ARSENAL}</b> (PUA: la {SEMANAS_PER['PUA']}), "
+        f"con <b>{NOTA_MIN_PLANETAS} temas completos</b> y una vez cada opción. Ninguna se aplica sin tu visto bueno.",
       tabla=_ec_tabla(["Opción", MONEDA, "Máx."], [(n, c, mx) for n, c, mx in _EC_ARSENAL]),
       nota="Si ya tiene la nota máxima de la evaluación continua, subir no le da nada.",
-      btn=("Abrir mi alumnado", "consola.html?tab=alumnado", "hecho"), donde="Lo compra en su Nave → Mercado; tú decides en la Cola de nota", buzon=True),
+      btn=("Ver mis estudiantes", "consola.html?tab=alumnado", "hecho"), donde="Lo pide en su web (Nave del recluta → Mercado); tú decides en Cola de nota", buzon=True),
  dict(id="mercado", sec="gana", corta="En qué gasta los créditos", q="¿En qué gasta los créditos?",
-      r=f"En el <b>Mercado</b> de su Nave: {len(_EC_MERCADO)} cosas para el juego (sobres de cartas, cápsulas de héroes, adornos de su ficha) "
-        f"desde la semana {min(r[4] for r in _EC_MERCADO)}, y desde la {SEMANA_ARSENAL}, las {len(_EC_ARSENAL)} del Arsenal, las únicas que tocan la nota.",
-      btn=None, donde="Su Nave → Mercado"),
+      r=f"En la tienda de su web (Mercado): {len(_EC_TIENDA)} cosas del juego (sobres de cartas, héroes, adornos) desde la semana "
+        f"{min(r[4] for r in _EC_TIENDA)}, y desde la {SEMANA_ARSENAL}, las {len(_EC_ARSENAL)} subidas de nota, lo único que toca la nota.",
+      btn=None, donde="Su web (Nave del recluta) → Mercado"),
  dict(id="insignias", sec="gana", corta="Cuántas insignias hay", q="¿Cuántas insignias puede ganar?",
-      r=f"<b>{_EC_INSIGNIAS}</b>: {N_INSIGNIAS_MISION} de la misión ({len(PERS)} de personaje, {len(ESP)} especiales, {len(RETO)} de reto y "
-        f"{len(HITO)} de hito) y {len(SERIES_ALBUM)} del álbum de cartas, una por serie completa.",
+      r=f"<b>{_EC_INSIGNIAS}</b>: {N_INSIGNIAS_MISION} del curso (por los retos, los temas y los hitos) y {len(SERIES_ALBUM)} por completar las colecciones de cartas.",
       btn=("Ver las insignias", "guia.html#retos", "medalla"), donde="Guía → Dos retos por tema", buzon=True),
  dict(id="nota", sec="gana", corta="¿Los retos puntúan?", q="¿Los retos puntúan?",
       r=f"No. La nota es la de siempre: <b>{NOTA_FINAL['continua']} % evaluación continua y {NOTA_FINAL['examen']} % examen</b> "
-        f"(PUA: {NOTA_FINAL_PUA['continua']} % continua). Lo único del juego que toca la nota es el Arsenal, y con tu visto bueno.",
+        f"(PUA: {NOTA_FINAL_PUA['continua']} % continua). Lo único del juego que toca la nota son las subidas de nota, con tu visto bueno.",
       btn=("Ver la evaluación", "actividades.html", "notas"), donde="Guía → Actividades y evaluación"),
  dict(id="escribir", sec="falla", corta="Cómo os escribo", q="¿Cómo os escribo?",
-      r="Con «¿Dudas? ¿Algo falla?», en cualquier pantalla. Contestamos en menos de una hora, de 8 a 22 h, todos los días; lo urgente, lo primero.",
+      r="Con «¿Dudas? ¿Algo falla?», en cualquier pantalla. Contestamos en menos de una hora, de 8 a 22 h, todos los días.",
       btn=("Escribir al buzón", "buzon.html", "mensaje"), donde="El botón de ayuda de cualquier pantalla"),
  dict(id="bloquea", sec="falla", corta="«Me está bloqueando la clase»", q="¿Cuándo marco «Me está bloqueando la clase ahora mismo»?",
-      r="Solo si algo te impide dar la clase en ese momento (no entran, no se abre la Nave…). Pasa delante de todo y llega como urgencia. "
-        "Para una duda, sin marcar.",
+      r="Solo si algo te impide dar la sesión en ese momento (no entran, no se abre…). Pasa delante de todo. Para una duda, sin marcar.",
       btn=("Escribir al buzón", "buzon.html", "aviso"), donde="Buzón → Algo no funciona → la casilla de abajo", buzon=True),
- dict(id="captura", sec="falla", corta="Mandar una captura", q="¿Puedo mandar una captura?",
+ dict(id="captura", sec="falla", corta="Mandar una captura", q="¿Puedo mandar una captura de pantalla?",
       r=f"Sí, hasta {_EC_CAPTURAS}: «Añadir una captura», arrastrándola o pegándola con Ctrl+V. Hace falta haber entrado una vez en la Academia; "
         "si no, cuéntalo con palabras: en qué pantalla, qué pulsaste y qué pasó.",
       btn=("Escribir con una captura", "buzon.html", "anadir"), donde="Buzón → Añadir una captura"),
- # ── solo en la versión de referentes
+ # ── solo para referentes (la parte de docentes no los nombra)
+ dict(id="mi-papel", sec="grupo", corta="¿Referente o docente?", q="¿Soy referente o docente? ¿Qué cambia?",
+      r="Depende del grupo. <b>Referente</b>: abre el grupo y lleva su equipo, su calendario y sus ajustes. <b>Docente</b>: da las sesiones. "
+        "A los docentes esta página no les habla de esto.",
+      btn=("Ver el equipo del grupo", "gestion.html?tab=equipo", "gente"), donde="Gestionar grupos → el grupo → Equipo docente", ref=True, buzon=True),
  dict(id="crear-grupo", sec="grupo", corta="Abrir un grupo nuevo", q="¿Cómo abro un grupo nuevo?",
-      r="En Gestionar grupos, «+ Crear un grupo»: nombre, tipo (regular o PUA), el primer día de la semana 1, el equipo por su correo y los enlaces "
-        "de la clase. En un minuto queda montado entero y sale el código de clase.",
+      r="«+ Crear un grupo»: nombre, tipo (regular o PUA), el primer día de la semana 1, el equipo por su correo y los enlaces de la clase. "
+        "En un minuto queda montado y sale el código de clase.",
       btn=("Crear un grupo", "crear.html", "anadir"), donde="Gestionar grupos → + Crear un grupo", ref=True),
  dict(id="equipo", sec="grupo", corta="Añadir a alguien al equipo", q="¿Cómo añado a alguien al equipo de mi grupo?",
-      r="Con su correo, en el equipo docente del grupo. Entrará con esa misma cuenta de Google: si entra con otra, la web no le reconoce.",
+      r="Con su correo, en el equipo docente del grupo. Tiene que entrar con esa misma cuenta de Google: con otra, la web no le reconoce.",
       btn=("Ver el equipo del grupo", "gestion.html?tab=equipo", "gente"), donde="Gestionar grupos → el grupo → Equipo docente", ref=True, buzon=True),
  dict(id="calendario", sec="grupo", corta="El calendario del grupo", q="¿Dónde cambio el calendario del grupo?",
       r="En el calendario del grupo: la semana 1 y las semanas sin clase (las fiestas de la UNIR ya vienen puestas). Al guardar, todo se recoloca solo.",
       btn=("Abrir el calendario", "gestion.html?tab=calendario", "calendario"), donde="Gestionar grupos → el grupo → Calendario", ref=True),
  dict(id="academia-equipo", sec="grupo", corta="Quién ha hecho la Academia", q="¿Quién de mi equipo ha hecho la Academia?",
-      r="En la Academia, la pestaña «Tu profesorado»: cada docente con su porcentaje, sus sesiones y su última actividad. Cuenta por el correo "
-        "del equipo: quien la hace con otra cuenta sale como «Aún sin subir a bordo».",
+      r="En la Academia, la pestaña «Tu profesorado»: cada docente con su porcentaje y su última actividad. Cuenta por el correo del equipo.",
       btn=("Abrir la Academia", "academia.html", "libro"), donde="Academia → Tu profesorado", ref=True),
  dict(id="baja", sec="grupo", corta="Congelar o dar de baja", q="¿Cómo congelo o doy de baja a un estudiante?",
-      r="En su ficha, dentro de Gestionar grupos → Alumnado, en «Solo el referente»: <b>Congelar</b> (mira, pero no hace nada) o <b>Dar de baja</b>. "
-        "Si solo ha marcado retos que no hizo, basta con quitárselos.",
-      btn=("Abrir el alumnado", "gestion.html?tab=alumnado", "gente"), donde="Gestionar grupos → Alumnado → su ficha", ref=True),
+      r="En su ficha, en «Solo el referente»: <b>Congelar</b> (mira, pero no hace nada) o <b>Dar de baja</b>.",
+      btn=("Abrir los estudiantes", "gestion.html?tab=alumnado", "gente"), donde="Gestionar grupos → Alumnado → su ficha", ref=True),
  dict(id="cerrar-curso", sec="grupo", corta="Al acabar el curso", q="¿Qué hago al acabar el curso?",
-      r="«Graduar y archivar», en Cerrar el curso: el grupo sale de las Naves del equipo y el alumnado conserva todo lo que ganó. No se borra nada "
-        "y se puede reabrir para la recuperación.",
+      r="«Graduar y archivar», en Cerrar el curso: los estudiantes conservan lo que ganaron, no se borra nada y se puede reabrir para la recuperación.",
       btn=("Cerrar el curso", "gestion.html?tab=cerrar", "medalla"), donde="Gestionar grupos → el grupo → Cerrar el curso", ref=True),
 ]
 assert len({p["id"] for p in EC_PREGUNTAS}) == len(EC_PREGUNTAS), "en claro: dos preguntas con la misma ancla"
-assert all(any(p["sec"] == s[0] for p in EC_PREGUNTAS) for s in EC_SECCIONES), "en claro: una sección sin preguntas"
-# Lo que suena raro, en llano (la Nave del docente es «Mi nave» en el menú; la del alumnado, la Nave del recluta)
-EC_TRADUCTOR = [("Mi nave", "tu panel"), ("Puente", "la portada de tu panel"), ("Reclutas", "tu alumnado"),
-                ("Nave del recluta", "lo que ve tu alumnado"), ("planeta", "tema"), ("relámpago", "reto en clase"),
-                ("reto principal", "reto en casa"), (MONEDA + " créditos", "la moneda"), ("XP", "el nivel"),
-                ("Cola de nota", "lo que espera tu visto bueno"), ("el Mando", "quien contesta el buzón")]
+assert all(not p.get("ref") or p["sec"] == "grupo" for p in EC_PREGUNTAS), "en claro: lo de referentes, solo en su sección"
+assert not any(_re.search(r"referente", p["q"] + p["r"] + p["donde"], _re.I) for p in EC_PREGUNTAS if not p.get("ref")), \
+    "en claro: la parte de docentes no nombra a los referentes (Norberto, 4-oct)"
 
-def _ec_boton(b):
+# Tu semana, en tres pasos (capturas reales de la sesión, 16:9): número, título, texto (corto y de largo parecido: las tres
+# tarjetas miden lo mismo), imagen, botón y la duda que lo amplía.
+EC_PASOS = [
+ ("Invita a tu clase", "Un solo enlace para todos tus estudiantes. Se pega en el foro de la plataforma de UNIR.", "assets/img/sesion/unete.jpg",
+  _EC_COPIAR, "enlace-foro"),
+ ("Proyecta la sesión", "Cada semana ya está montada: vídeo, retos y cierre. No tienes que preparar nada.", "assets/img/sesion/portada.jpg",
+  ("Empezar la clase", "sesion.html", "envivo"), "en-clase"),
+ ("Ellos hacen sus retos", "Dos por tema, uno en clase y otro en casa. Lo que cuenta para nota espera tu «sí».", "assets/img/sesion/misiones.jpg",
+  ("Ver mis estudiantes", "consola.html?tab=alumnado", "gente"), "cola-nota"),
+]
+# Lo que ganan: cuatro fichas iguales (lo grande, el nombre, una línea y la duda que lo amplía)
+EC_GANA = [("XP", "Su nivel", "Suben con cada reto y nunca bajan.", "puntos"),
+           (MONEDA, "Créditos", "Su moneda: la gastan en la tienda.", "mercado"),
+           (str(_EC_INSIGNIAS), "Insignias", "Una por cada logro del curso.", "insignias"),
+           ("%d %%" % NOTA_FINAL["continua"], "Evaluación continua", "La nota, como siempre: los retos no puntúan.", "nota")]
+# Palabras de STARGATE que verán en pantalla, en llano
+EC_TRADUCTOR = [("Mi nave", "tu panel"), ("Puente", "la portada de tu panel"), ("Reclutas", "tus estudiantes"),
+                ("Nave del recluta", "la web de tus estudiantes"), ("Planeta", "tema"), ("Relámpago", "reto en clase"),
+                ("Reto principal", "reto en casa"), ("Bitácora", "el portfolio"), (MONEDA + " créditos", "la moneda"),
+                ("Mercado", "la tienda"), ("Arsenal", "las subidas de nota"), ("El Mando", "quien contesta el buzón")]
+
+def _ec_boton(b, clase="btn"):
     if not b: return ""
     t, h, i = b
     if h == "copiar":
         return '<button type="button" class="btn primary ec-btn" data-ec-inv>' + _ec_ico(i) + " " + t + "</button>"
-    return '<a class="btn ec-btn" href="' + h + '"' + (' data-ec-per' if h.startswith(("consola.html", "sesion.html")) else "") + '>' + _ec_ico(i) + " " + t + "</a>"
-def _ec_qa(p):
-    return ('<article class="ec-qa card" id="' + p["id"] + '"' + (' data-solo="ref"' if p.get("ref") else "") + '>'
-            '<div class="ec-qa-t"><h3>' + p["q"] + (' <span class="ec-chip">Referente</span>' if p.get("ref") else "") + '</h3>'
-            '<a class="ec-ancla" href="#' + p["id"] + '" title="Enlace a esta respuesta" aria-label="Enlace a esta respuesta">#</a></div>'
-            '<p>' + p["r"] + '</p>' + p.get("tabla", "") + ('<p class="ec-nota">' + p["nota"] + '</p>' if p.get("nota") else "")
+    return '<a class="' + clase + ' ec-btn" href="' + h + '"' + (' data-ec-per' if h.startswith(("consola.html", "sesion.html")) else "") + '>' + _ec_ico(i) + " " + t + "</a>"
+def _ec_duda(p):
+    return ('<details class="ec-duda" id="' + p["id"] + '"' + (' data-solo="ref"' if p.get("ref") else "") + '><summary>' + p["q"] + '</summary>'
+            '<div class="ec-duda-c"><p>' + p["r"] + '</p>' + p.get("tabla", "") + ('<p class="ec-nota">' + p["nota"] + '</p>' if p.get("nota") else "")
             + ('<p class="ec-tuyo" data-ec-tuyo="' + p["tuyo"] + '" hidden></p>' if p.get("tuyo") else "")
-            + '<div class="ec-qa-b">' + _ec_boton(p["btn"]) + '<span class="ec-donde">' + p["donde"] + '</span></div></article>')
-def _ec_col(s):
-    ps = [p for p in EC_PREGUNTAS if p["sec"] == s[0]]
-    return ('<div class="ec-col card"' + (' data-solo="ref"' if s[3] else "") + '><div class="ec-col-t"><img src="assets/img/iconos/' + s[2] + '.png" alt="">'
-            '<b><span>' + str(EC_SECCIONES.index(s) + 1) + '</span>' + s[1] + '</b></div><ul>'
-            + "".join('<li' + (' data-solo="ref"' if p.get("ref") and not s[3] else "") + '><a href="#' + p["id"] + '">' + p["corta"] + '</a></li>' for p in ps) + '</ul></div>')
-def _ec_sec(s):
-    ps = [p for p in EC_PREGUNTAS if p["sec"] == s[0]]
-    return ('<section class="ec-sec" id="s-' + s[0] + '"' + (' data-solo="ref"' if s[3] else "") + '><div class="ec-sec-t"><img src="assets/img/iconos/' + s[2] + '.png" alt="">'
-            '<h2><span>' + str(EC_SECCIONES.index(s) + 1) + '</span>' + s[1] + '</h2></div><div class="ec-qas">' + "".join(_ec_qa(p) for p in ps) + '</div></section>')
+            + '<div class="ec-duda-b">' + _ec_boton(p["btn"]) + '<span class="ec-donde">' + p["donde"] + '</span>'
+            '<a class="ec-ancla" href="#' + p["id"] + '" title="Enlace a esta respuesta" aria-label="Enlace a esta respuesta">#</a></div></div></details>')
+def _ec_grupo_dudas(claves):
+    return "".join('<h3 class="ec-dudas-t">' + t + '</h3>' + "".join(_ec_duda(p) for p in EC_PREGUNTAS if p["sec"] == k) for k, t in EC_SECCIONES if k in claves)
+def _ec_paso(i, x):
+    t, txt, img, btn, ancla = x
+    return ('<article class="ec-paso card"><img class="ec-paso-img" src="' + img + '" alt="" loading="lazy" width="480" height="270">'
+            '<div class="ec-paso-c"><h3><span class="ec-num">' + str(i + 1) + '</span>' + t + '</h3><p>' + txt + '</p>'
+            '<div class="ec-paso-b">' + _ec_boton(btn) + '<a class="ec-mas" href="#' + ancla + '">Más</a></div></div></article>')
+def _ec_tema(n):
+    k, nombre, _ = PLANETAS[n - 1]
+    return ('<article class="ec-tema"><img src="assets/img/fondos/' + k + '.webp" alt="" loading="lazy">'
+            '<div class="ec-tema-c"><span class="ec-tema-n">Tema ' + str(n) + ' · semana ' + str(_EC_SEM_TEMA[n]) + '</span>'
+            '<h3>' + TEMARIO[n][0] + '</h3><span class="ec-tema-p">(planeta ' + nombre + ')</span>'
+            '<ul><li><b>En clase</b> ' + _ec_nombre_reto("L%d" % n) + '</li><li><b>En casa</b> ' + _ec_nombre_reto("B%d" % n) + '</li></ul></div></article>')
+def _ec_gana(x):
+    g, t, txt, ancla = x
+    return '<a class="ec-gana card" href="#' + ancla + '"><b class="ec-gana-g">' + g + '</b><span class="ec-gana-t">' + t + '</span><span>' + txt + '</span></a>'
+def _ec_cab(icono, titulo, sub=""):
+    return ('<div class="ec-sec-t"><img src="assets/img/iconos/' + icono + '.png" alt=""><div><h2>' + titulo + '</h2>'
+            + ('<p>' + sub + '</p>' if sub else "") + '</div></div>')
 
 _html = head("STARGATE en claro",
-             "STARGATE sin la historia: las preguntas del profesorado en el orden en que llegan, cada respuesta con el botón que abre la pantalla.",
+             "Tu punto de partida en STARGATE: lo que haces tú, lo que hacen tus estudiantes y el temario tema a tema, sin la historia.",
              "claro", puerta=True).replace("</head>", '<script>window.SG_FIREBASE=' + _json.dumps(FIREBASE) + ';window.SG_CATALOGO_URL="' + _v("motor/catalogo.json") + '";'
              'window.SG_PER_ACADEMIA=' + _json.dumps(PER_ACADEMIA) + ';</script><script type="module" src="' + _v("assets/js/motor.js") + '"></script>\n</head>') + '''
 <main id="ec" class="ec" data-vista="doc"><div class="wrap">
 <header class="ec-cab"><div><h1>STARGATE en claro</h1>
-<p>Sin la historia: las preguntas de verdad, en orden, y cada respuesta con el botón que abre la pantalla.</p></div>
-<div class="ec-vista" role="group" aria-label="¿Para quién?"><button type="button" data-vista="doc" aria-pressed="true">Para docentes</button><button type="button" data-vista="ref" aria-pressed="false">Para referentes</button></div>
+<p>Tu punto de partida: lo que haces tú, lo que hacen tus estudiantes y el temario, sin la historia.</p></div>
+<div class="ec-vista" role="group" aria-label="Qué parte ver" hidden><button type="button" data-vista="doc" aria-pressed="true">Docentes</button><button type="button" data-vista="ref" aria-pressed="false">Referentes</button></div>
 </header>
 <div class="ec-grupo" id="ec-grupo" hidden></div>
-<nav class="ec-indice" aria-label="Las preguntas">''' + "".join(_ec_col(s) for s in EC_SECCIONES) + '''</nav>
-<p class="ec-trad"><b>Si lees algo raro</b> ''' + " · ".join('<span><i>' + a + '</i> = ' + b + '</span>' for a, b in EC_TRADUCTOR) + '''</p>
-''' + "".join(_ec_sec(s) for s in EC_SECCIONES) + '''
-<p class="ec-pie card">¿No está tu pregunta? <a class="btn" href="buzon.html">''' + _ec_ico("mensaje") + ''' Escríbenos</a>
-<span>Con la historia y entera, en la <a href="guia.html">guía</a> y sus <a href="guia.html#faq">preguntas frecuentes</a>.</span></p>
+
+<section class="ec-sec" id="s-pasos">''' + _ec_cab("brujula", "Tu semana, en tres pasos") + '''
+<div class="ec-pasos">''' + "".join(_ec_paso(i, x) for i, x in enumerate(EC_PASOS)) + '''</div></section>
+
+<section class="ec-sec" id="s-temario">''' + _ec_cab("libro", "El temario, tal cual",
+  "Cada tema de la asignatura es un planeta de la historia, con dos retos prácticos. Las " + str(len(ACTIVIDADES))
+  + " actividades y el examen, como siempre.") + '''
+<div class="ec-flujo" aria-hidden="true"><span>Tema</span><i>→</i><span>2 retos: en clase y en casa</span><i>→</i><span>XP, créditos e insignias</span><i>→</i><span>su portfolio crece</span></div>
+<div class="ec-temas">''' + "".join(_ec_tema(n) for n in range(1, 9)) + '''</div></section>
+
+<section class="ec-sec" id="s-gana">''' + _ec_cab("monedas", "Lo que ganan tus estudiantes") + '''
+<div class="ec-ganas">''' + "".join(_ec_gana(x) for x in EC_GANA) + '''</div></section>
+
+<section class="ec-sec" id="s-dudas">''' + _ec_cab("calendario", "Dudas rápidas", "Pulsa una pregunta para ver la respuesta y el botón que te lleva.") + '''
+<div class="ec-dudas"><div>''' + _ec_grupo_dudas(("antes", "semana")) + '''</div><div>''' + _ec_grupo_dudas(("gana", "falla")) + '''</div></div></section>
+
+<section class="ec-sec" id="s-grupo" data-solo="ref">''' + _ec_cab("llave", "Solo para referentes", "Esto no lo ve un docente.") + '''
+<div class="ec-dudas"><div>''' + "".join(_ec_duda(p) for i, p in enumerate([q for q in EC_PREGUNTAS if q.get("ref")]) if i % 2 == 0) + '''</div><div>''' + "".join(_ec_duda(p) for i, p in enumerate([q for q in EC_PREGUNTAS if q.get("ref")]) if i % 2 == 1) + '''</div></div></section>
+
+<section class="ec-sec" id="s-palabras">''' + _ec_cab("mensaje", "Lo que verás en pantalla", "Las palabras de la historia, en llano.") + '''
+<div class="ec-palabras">''' + "".join('<div class="ec-pal"><b>' + a + '</b><span>' + b + '</span></div>' for a, b in EC_TRADUCTOR) + '''</div></section>
+
+<div class="ec-fin">
+<div class="ec-fin-c card"><img src="assets/img/iconos/aviso.png" alt=""><div><h3>¿Algo falla?</h3><p>Escríbenos: contestamos en menos de una hora, de 8 a 22 h.</p>
+<a class="btn ec-btn" href="buzon.html">''' + _ec_ico("mensaje") + ''' Escribir al buzón</a></div></div>
+<div class="ec-fin-c card"><img src="assets/img/iconos/libro.png" alt=""><div><h3>¿Quieres más?</h3><p>La guía lo cuenta todo, con la historia y paso a paso.</p>
+<a class="btn ec-btn" href="guia.html">''' + _ec_ico("libro") + ''' Abrir la guía</a></div></div>
+</div>
 </div></main>
 <script src="''' + _v("assets/js/en-claro.js") + '''" defer></script>
 ''' + FOOT
 open(os.path.join(HERE, "en-claro.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 # lo que el buzón enseña antes de escribir (y sus enlaces): las marcadas `buzon`, con su sección
 SG_CLARO = [[p["id"], p["corta"], next(s[1] for s in EC_SECCIONES if s[0] == p["sec"]), 1 if p.get("ref") else 0] for p in EC_PREGUNTAS if p.get("buzon")]
-print("escrito: en-claro.html  (STARGATE en claro: %d preguntas, %d solo para referentes)" % (len(EC_PREGUNTAS), sum(1 for p in EC_PREGUNTAS if p.get("ref"))))
+print("escrito: en-claro.html  (STARGATE en claro: %d dudas, %d solo para referentes)" % (len(EC_PREGUNTAS), sum(1 for p in EC_PREGUNTAS if p.get("ref"))))
 
 # ---------------------------------------------------------------- 15-sep · EL BUZÓN DEL MANDO
 # «📡 Frecuencia de mando»: el profesorado escribe problemas, dudas e ideas; mientras escribe, el
