@@ -11,7 +11,8 @@ let ok = 0; const fallos = [];
 const c = (cond, txt) => { if (cond) ok++; else fallos.push(txt); console.log("   " + (cond ? "✓" : "✗") + " " + txt); };
 
 c(/const AYUDA_NIVEL = \[1, 1, 0\.8, 0\.6, 0\.45, 0\.3, 0\.15, 0\];/.test(D), "🔴 la ayuda, entera al principio y retirándose planeta a planeta");
-c(/const ayudaDe = \(nivel\) => \(SIN_MORIR \? 1 : AYUDA_NIVEL\[nivel\] \|\| 0\);/.test(D), "🔴 en la Academia, la ayuda entera en los ocho planetas");
+c(/const AYUDA_ACADEMIA = \[1, 1, 0\.95, 0\.9, 0\.85, 0\.8, 0\.75, 0\.7\];/.test(D) && /const ayudaDe = \(nivel\) => \(SIN_MORIR \? AYUDA_ACADEMIA : AYUDA_NIVEL\)\[nivel\] \?\? 0;/.test(D),
+  "🔴 en la Academia también sube, pero Fôrge y Ecos con la ayuda entera y nunca sin ella (4-oct: «el primero debe ser sencillo… y el segundo»)");
 c(/S\.x \+= \(ancha\.cx - S\.x\) \* a; S\.vx \*= 1 - a;/.test(D), "   se sale encima de la plataforma ancha y sin deriva (con la ayuda entera)");
 c(/if \(!giro && S\.ayuda\) S\.ang -= S\.ang \* Math\.min\(1, 3 \* S\.ayuda \* dt\);/.test(D), "   el módulo se endereza solo al soltar el giro");
 c(/\* \(1 - \(S\.ayuda \|\| 0\)\), ay = -P\.g;/.test(D), "   el viento sopla menos");
@@ -35,7 +36,7 @@ function vuelo(a) {
   return false;
 }
 let bien = 0, antes = 0; for (let i = 0; i < 300; i++) { if (vuelo(1)) bien++; if (vuelo(0)) antes++; }
-c(bien === 300 && antes === 0, "🔴 Umbral, en la Academia: un piloto torpe se posa " + bien + " de 300 veces (sin ayuda, " + antes + ")");
+c(bien === 300 && antes === 0, "🔴 con la ayuda entera (Fôrge y Ecos en la Academia), un piloto torpe se posa, aun con la gravedad y el viento de Umbral, " + bien + " de 300 veces (sin ayuda, " + antes + ")");
 
 console.log("\n  Batería 127 · el Descenso, con ayuda");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
