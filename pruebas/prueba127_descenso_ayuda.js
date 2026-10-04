@@ -10,9 +10,9 @@ const D = fs.readFileSync(path.join(__dirname, "..", "juegos/joran/descenso.js")
 let ok = 0; const fallos = [];
 const c = (cond, txt) => { if (cond) ok++; else fallos.push(txt); console.log("   " + (cond ? "✓" : "✗") + " " + txt); };
 
-c(/const AYUDA_NIVEL = \[1, 1, 0\.8, 0\.6, 0\.45, 0\.3, 0\.15, 0\];/.test(D), "🔴 la ayuda, entera al principio y retirándose planeta a planeta");
-c(/const AYUDA_ACADEMIA = \[1, 1, 0\.95, 0\.9, 0\.85, 0\.8, 0\.75, 0\.7\];/.test(D) && /const ayudaDe = \(nivel\) => \(SIN_MORIR \? AYUDA_ACADEMIA : AYUDA_NIVEL\)\[nivel\] \?\? 0;/.test(D),
-  "🔴 en la Academia también sube, pero Fôrge y Ecos con la ayuda entera y nunca sin ella (4-oct: «el primero debe ser sencillo… y el segundo»)");
+c(/const AYUDA_NIVEL = \[1, 1, 0\.95, 0\.9, 0\.85, 0\.8, 0\.75, 0\.7\];/.test(D), "🔴 la ayuda: entera en Fôrge y Ecos y retirándose poco a poco, sin desaparecer");
+c(/const ayudaDe = \(nivel\) => AYUDA_NIVEL\[nivel\] \?\? 0;/.test(D) && !/AYUDA_ACADEMIA/.test(D),
+  "🔴 la misma curva en todas partes, Academia y sala de Joran (4-oct: «recuerda el onboarding: si el primer nivel es muy difícil, frustración y abandono»)");
 c(/S\.x \+= \(ancha\.cx - S\.x\) \* a; S\.vx \*= 1 - a;/.test(D), "   se sale encima de la plataforma ancha y sin deriva (con la ayuda entera)");
 c(/if \(!giro && S\.ayuda\) S\.ang -= S\.ang \* Math\.min\(1, 3 \* S\.ayuda \* dt\);/.test(D), "   el módulo se endereza solo al soltar el giro");
 c(/\* \(1 - \(S\.ayuda \|\| 0\)\), ay = -P\.g;/.test(D), "   el viento sopla menos");

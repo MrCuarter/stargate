@@ -7,8 +7,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-import { PREMIOS, CRITERIOS, ORDEN, NIVELES } from './servidor-local.js?v=3c17edc530';
-import { SERVIDOR, enEnsayo } from './servidor.js?v=3c17edc530';
+import { PREMIOS, CRITERIOS, ORDEN, NIVELES } from './servidor-local.js?v=79ed3709f1';
+import { SERVIDOR, enEnsayo } from './servidor.js?v=79ed3709f1';
 
 const V3 = THREE.Vector3;
 const $ = (id) => document.getElementById(id);
@@ -95,7 +95,7 @@ const MISIONES = [
 
 // 🔴 En la web, lo que se CUENTA de cada misión (título, lema, cuándo) llega de _site_data.py → datos.js (lo escribe el
 // build); aquí manda solo la jugabilidad. En el borrador no hay datos.js y se queda lo de arriba.
-try { const D = await import('./datos.js?v=3c17edc530'); for (const d of D.RUTA.misiones) { const m = MISIONES.find((x) => x.id === d.id); if (m) Object.assign(m, { titulo: d.titulo, lema: d.lema, cuando: d.cuando, tema: d.final ? 'final' : d.tema }); } } catch (e) { /* borrador: sin datos.js */ }
+try { const D = await import('./datos.js?v=79ed3709f1'); for (const d of D.RUTA.misiones) { const m = MISIONES.find((x) => x.id === d.id); if (m) Object.assign(m, { titulo: d.titulo, lema: d.lema, cuando: d.cuando, tema: d.final ? 'final' : d.tema }); } } catch (e) { /* borrador: sin datos.js */ }
 
 // el tramo que solo existe en el repaso: preguntas de los ocho temas, rumbo a la Estática
 const VIAJE = { id: 'viaje', n: '∞', de: 0, a: 9, tema: 'todo', cuando: 'Simulador de vuelo', titulo: 'Todo el viaje',
@@ -866,7 +866,7 @@ function enhorabuena() {
     <p>Puedes seguir jugando o pasar al siguiente módulo.</p>
     <div class="botones"><button class="sec" id="b-seguir">Seguir jugando</button><button id="b-sig">Pasar al siguiente módulo</button></div>`);
   $('b-seguir').onclick = () => { pausa = false; try { if (actx) actx.resume(); } catch (e) { /* sin audio */ } $('pantalla').classList.add('oculto'); };
-  $('b-sig').onclick = () => { avisarAcademia({ siguiente: true }); if (window.parent === window) location.href = '../../academia.html?v=3c17edc530'; };
+  $('b-sig').onclick = () => { avisarAcademia({ siguiente: true }); if (window.parent === window) location.href = '../../academia.html?v=79ed3709f1'; };
 }
 
 // ───────────────────────────────────────── VAEON
@@ -1271,7 +1271,7 @@ async function fin(llego, motivo = '') {
       <p>Aciertos en este vuelo: <b>${X.aciertos} de ${X.preguntas}</b>. ${quedan ? `Te ${quedan === 1 ? 'queda una pregunta' : 'quedan ' + quedan + ' preguntas'} por acertar: vuelve a volar y te esperarán en las puertas.` : 'Has acertado todas las preguntas de este planeta.'}</p>
       <div class="botones"><button id="b-otra">${quedan ? 'Volver a volar' : 'Volar otra vez'}</button>${quedan ? '' : '<button class="sec" id="b-sig">Pasar al siguiente módulo</button>'}</div>`);
       $('b-otra').onclick = () => { $('pantalla').classList.add('oculto'); briefing(m); };
-      if ($('b-sig')) $('b-sig').onclick = () => { avisarAcademia({ siguiente: true }); if (window.parent === window) location.href = '../../academia.html?v=3c17edc530'; };
+      if ($('b-sig')) $('b-sig').onclick = () => { avisarAcademia({ siguiente: true }); if (window.parent === window) location.href = '../../academia.html?v=79ed3709f1'; };
     }, llego ? 1200 : 1500);
     return;
   }
@@ -1279,7 +1279,7 @@ async function fin(llego, motivo = '') {
   try { window.parent !== window && window.parent.postMessage({ sgRuta: { mision: m.id, medalla: r.medalla, puntos: Math.round(datos.puntos) } }, '*'); } catch (e) { /* sin padre */ }
   const X = M;
   if (r.repaso) { // el Simulador de vuelo: la marca va a la sala de Joran (su ranking y sus hitos)
-    try { const S = await import(SALA + 'comun.js?v=3c17edc530'); S.registrarPartida('vuelo', r.total, { nivel: r.nivel, mision: m.id }); } catch (e) { console.warn('sin sala', e); }
+    try { const S = await import(SALA + 'comun.js?v=79ed3709f1'); S.registrarPartida('vuelo', r.total, { nivel: r.nivel, mision: m.id }); } catch (e) { console.warn('sin sala', e); }
     setTimeout(() => {
       $('hud').classList.add('oculto');
       pantalla(`<div class="kicker">Simulador de vuelo · nivel ${esc(NIVELES[r.nivel].n)} (×${String(NIVELES[r.nivel].mult).replace('.', ',')})</div>

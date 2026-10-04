@@ -15,12 +15,12 @@
 // Fôrge. La curva de los ocho, otra vez con el piloto automático simulado (300 terrenos por planeta, con 0,3 s de
 // reacción): la ancha, siempre posable y con combustible de sobra (vuelos de 40-55 s); la estrecha de Liminar, un 65 %
 // al piloto automático: exigente, pero posible.
-import { THREE, $, azar, elegir, estado, SON, audio, holo, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=3c17edc530';
+import { THREE, $, azar, elegir, estado, SON, audio, holo, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=79ed3709f1';
 // 🔴 nivelDe (el nº del último planeta superado: 0-8; en el borrador, del navegador; en la web, del servidor) lo escribe
 // comun.js. Se lee por el espacio de nombres y no con `import { nivelDe }` para que, mientras comun.js no lo tenga, la
 // máquina no se quede en blanco (un import con nombre que no existe tumba el módulo entero): sin él, solo Fôrge.
-import * as COMUN from './comun.js?v=3c17edc530';
-import { crearDesafio, MODO, urlModo, SIN_MORIR } from './desafio.js?v=3c17edc530';
+import * as COMUN from './comun.js?v=79ed3709f1';
+import { crearDesafio, MODO, urlModo, SIN_MORIR } from './desafio.js?v=79ed3709f1';
 const nivelDe = (id) => (typeof COMUN.nivelDe === 'function' ? COMUN.nivelDe(id) : 0);
 
 const V3 = THREE.Vector3;
@@ -47,19 +47,19 @@ const SEGURO = { vy: 2.4, vx: 1.6, ang: 0.2 };  // lo que aguantan las patas (si
  * 🔴 4-oct · LA AYUDA DE VUELO (Norberto: «el juego de Umbral es literalmente imposible, no he conseguido aterrizar ni una sola
  * vez en 100 partidas… intenta bajar el nivel, sobre todo al principio»). Se empezaba lejos, ya derivando de lado, el módulo no
  * se enderezaba solo y las patas no aguantaban ni 11° de inclinación. Ahora, una ayuda de 0 a 1 que se va retirando planeta a
- * planeta (Fôrge y Ecos 1 · Sendara 0,8 · Reliae 0,6 · Umbral 0,45 · Ludo 0,3 · Vínculo 0,15 · Liminar, nada): empiezas encima de la plataforma
+ * planeta (hoy: ver AYUDA_NIVEL): empiezas encima de la plataforma
  * ancha y sin deriva, el módulo se endereza solo cuando sueltas el giro, las patas aguantan más (hasta 4,4 m/s, 3,2 m/s de
  * lado y 29°), el viento sopla menos (en proporción) y las plataformas perdonan un par de metros por lado. En la Academia (SIN_MORIR), la ayuda entera en todos: con la
  * misma física simulada, un piloto torpe (solo propulsor, sin girar, 0,3 s de retraso) se posa el 100 % de las veces en los
  * ocho planetas; antes, ninguna. Con la ayuda entera tampoco hay viento: sales encima de la plataforma ancha y solo hay que frenar.
  */
-const AYUDA_NIVEL = [1, 1, 0.8, 0.6, 0.45, 0.3, 0.15, 0];
 // 4-oct, más tarde (Norberto: «haz que vaya subiendo el nivel a medida que avanzas, pero el primero debe ser sencillo… y el
-// segundo»): en la Academia también sube, pero sin retirarla nunca del todo. Fôrge y Ecos, con la ayuda entera (con la física
-// simulada, el piloto torpe se posa siempre); desde Sendara vuelve un poco de viento y deriva cada planeta. Allí estrellarse
-// no gasta módulos (SIN_MORIR): siempre se puede volver a intentar.
-const AYUDA_ACADEMIA = [1, 1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7];
-const ayudaDe = (nivel) => (SIN_MORIR ? AYUDA_ACADEMIA : AYUDA_NIVEL)[nivel] ?? 0;
+// segundo». Y luego: «no solo en la Academia, en todos los lugares donde esté el juego. Recuerda el onboarding: si el primer
+// nivel es imposible o muy difícil aparece frustración y abandono»). UNA curva para todos (sala de Joran, Academia, borrador):
+// Fôrge y Ecos con la ayuda entera (con la física simulada, el piloto torpe se posa siempre); desde Sendara se retira un poco
+// en cada planeta, sin quitarla nunca del todo. Lo único distinto en la Academia: estrellarse no gasta módulos (SIN_MORIR).
+const AYUDA_NIVEL = [1, 1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7];
+const ayudaDe = (nivel) => AYUDA_NIVEL[nivel] ?? 0;
 const seguro = (a) => ({ vy: SEGURO.vy + 2 * a, vx: SEGURO.vx + 1.6 * a, ang: SEGURO.ang + 0.3 * a });
 const COMB_S = 2.4;                            // combustible por segundo de propulsor (el depósito es de 100: ~42 s)
 const VIDAS = 3;                               // módulos por partida (por planeta)
@@ -378,7 +378,7 @@ function pintarHUD(vv) {
 let pausa = false;
 function pausar() {
   if (!S || S.fin || S.estado === 'portada' || DESAFIO.abierto) return; pausa = !pausa; if (soplido) soplido.gain.value = 0; // con la pregunta abierta el juego ya está parado
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=3c17edc530">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=79ed3709f1">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && S && !S.fin && !pausa && !DESAFIO.abierto && !window.__sinPausa) pausar(); });
@@ -446,10 +446,10 @@ async function portada() {
     <p class="pl-nota" id="pl-nota"></p>
     <div class="teclas"><kbd>← →  /  A D</kbd><span>Girar el módulo</span><kbd>↑  /  W  /  Espacio</kbd><span>Propulsor (gasta combustible)</span></div>
     <p>Para posarte: caída de menos de <b>${SEGURO.vy.toLocaleString('es-ES')} m/s</b>, deriva de menos de <b>${SEGURO.vx.toLocaleString('es-ES')} m/s</b> y el módulo casi recto (lo verde del panel). Plataformas: <b style="color:#5dffa0">×1</b> la ancha, <b style="color:#ffc24a">×2</b> la media y <b style="color:#ff4dd8">×4</b> la estrecha. Suman la suavidad, el centrado, el combustible y los módulos que te sobren (tienes ${VIDAS}); y todo se multiplica por la <b>dificultad del planeta</b>.</p>
-    <p><b>${SIN_MORIR ? 'En la Academia vuelas con ayuda' : 'En los primeros planetas vuelas con ayuda'}:</b> sales encima de la plataforma ancha, el módulo se endereza solo al soltar el giro, el viento sopla menos y las patas aguantan más${SIN_MORIR ? '. En Fôrge y Ecos, la ayuda entera; después se retira un poco en cada planeta, y aquí estrellarte no gasta módulos' : '. La ayuda se va retirando planeta a planeta'}.</p>
+    <p><b>Vuelas con ayuda:</b> sales encima de la plataforma ancha, el módulo se endereza solo al soltar el giro, el viento sopla menos y las patas aguantan más. En Fôrge y Ecos, la ayuda entera; después se retira un poco en cada planeta${SIN_MORIR ? ', y aquí estrellarte no gasta módulos' : ''}.</p>
     ${DESAFIO.texto()}
     <p class="pista">Tu marca (tu mejor partida): <b>${(e.marcas.descenso || 0).toLocaleString('es-ES')}</b> · Módulo Lunar del Apolo: NASA (dominio público)</p>
-    <div class="botones"><button id="b-ya"></button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=3c17edc530">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya"></button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=79ed3709f1">Volver a la sala</a>'}</div>`);
   const marcar = (i) => {
     elegido = i; const P = PLANETAS[i];
     document.querySelectorAll('#planetas .pl').forEach((b) => b.classList.toggle('sel', +b.dataset.i === i));

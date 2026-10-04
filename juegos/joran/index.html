@@ -6,7 +6,7 @@
 <title>El Simulador de Joran</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="comun.css?v=3c17edc530">
+<link rel="stylesheet" href="comun.css?v=79ed3709f1">
 <style>
 html,body{overflow:auto}
 body{background:#01040c url(img/sala.jpg) center/cover fixed}
@@ -189,8 +189,8 @@ p.intro{margin:0 0 10px;font-size:15px;opacity:.88;line-height:1.45}
 <div id="aviso"></div>
 <div id="pantalla" class="pantalla oculto"><div class="caja" id="pantalla-caja"></div></div>
 <script type="module">
-import { $, esc, JUEGOS, ARCADE, AVATARES, ESCALONES, HITO_CR, estado, guardar, abierto, comprar, pantalla, cerrarPantalla, SON, audio, aviso, cuaderno, galeria, PREMIO_CUADERNO, WEB, alServidor, sincronizar, CLASE_SRV } from './comun.js?v=3c17edc530';
-import * as EJ from './ejemplo.js?v=3c17edc530';
+import { $, esc, JUEGOS, ARCADE, AVATARES, ESCALONES, HITO_CR, estado, guardar, abierto, comprar, pantalla, cerrarPantalla, SON, audio, aviso, cuaderno, galeria, PREMIO_CUADERNO, WEB, alServidor, sincronizar, CLASE_SRV } from './comun.js?v=79ed3709f1';
+import * as EJ from './ejemplo.js?v=79ed3709f1';
 // 🔴 EN LA WEB (la sala dentro de la Nave, con ?per=): tu clase, el Salón de la fama y la Galería, del servidor. Fuera, de ejemplo.
 const EN_WEB = location.pathname.includes('/juegos/');
 const AV = (k) => { k = String(k || ''); if (/^https?:\/\//.test(k)) return k; if (k.includes('/')) return (EN_WEB ? '../../' : '') + k; return EJ.AV(k || 'p3f_r2'); };
