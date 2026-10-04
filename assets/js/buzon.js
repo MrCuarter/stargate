@@ -209,13 +209,30 @@
         + L.map(function (e) { return '<article class="bz-sol"><h3>' + esc(e.t) + '</h3><div>' + (typeof e.x === "function" ? e.x() : e.x) + '</div></article>'; }).join("")
         + '<p class="bz-sol-botones"><button class="btn" id="bz-resuelto" type="button"><img class=ico src=assets/img/iconos/p/hecho.png alt> Esto lo resuelve</button></p>'
       : '<div class="bz-cap"><img src="assets/img/capitan/pensativo.png" alt=""><p><b>El Capitán</b>Mientras escribes, busco si esto ya tiene solución. '
-        + 'Si no la tiene, transmítelo: el Mando lo revisa cada día y te responde aquí mismo.</p></div>';
+        + 'Si no la tiene, transmítelo: el Mando lo revisa cada día y te responde aquí mismo.</p></div>' + enClaro();
     cablearCopiar(caja);
     var r = document.getElementById("bz-resuelto");
     if (r) r.onclick = function () {
       ST.texto = ""; ST.sugeridas = []; pintar();
       aviso("<img class=ico src=assets/img/iconos/p/hecho.png alt> ¡Perfecto, Comandante! Si vuelve a pasar, aquí estamos.", true);
     };
+  }
+  /**
+   * 4-oct · STARGATE EN CLARO, antes de escribir. Las preguntas que más llegan, sin la historia, cada una con su respuesta y su
+   * botón en en-claro.html (se abre aparte: lo escrito aquí no se pierde). La lista la escribe _build_site.py (SG_CLARO: las
+   * marcadas para el buzón), así que es la misma que la página. Las de referentes, solo a quien lo es.
+   */
+  function enClaro() {
+    var ref = false; try { ref = localStorage.getItem("sgEsReferente") === "1"; } catch (e) {}
+    var L = (window.SG_CLARO || []).filter(function (x) { return !x[3] || ref; }); if (!L.length) return "";
+    var secs = [];
+    L.forEach(function (x) { if (secs.indexOf(x[2]) < 0) secs.push(x[2]); });
+    return '<div class="bz-claro"><p class="bz-claro-t"><img class=ico src=assets/img/iconos/p/libro.png alt> <b>Antes de escribir, en claro</b> lo que más se pregunta, sin la historia</p>'
+      + secs.map(function (s) {
+          return '<p class="bz-claro-s">' + esc(s) + '</p><ul>' + L.filter(function (x) { return x[2] === s; }).map(function (x) {
+            return '<li><a href="en-claro.html#' + esc(x[0]) + '" target="_blank" rel="noopener">' + esc(x[1]) + '</a></li>'; }).join("") + '</ul>';
+        }).join("")
+      + '<p><a href="en-claro.html" target="_blank" rel="noopener">Todas las respuestas, en STARGATE en claro →</a></p></div>';
   }
   /** Copiar al portapapeles (con plan B para navegadores que no dejan: un textarea y copiar). */
   function cablearCopiar(raiz) {

@@ -19,8 +19,8 @@ const B = L("_build_site.py"), MOT = L("assets/js/motor.js"), CJS = L("assets/js
 const CON = L("consola.html"), ACA = L("academia.html"), GUIA = L("guia.html"), GRUPO = fs.readFileSync(path.join(R, "..", "academia", "academia_grupo.cjs"), "utf8");
 
 // ── 1 · En el menú de arriba, para todo el profesorado
-c(/NAV = \[\("consola\.html","Mi nave","cons"\),\("gestion\.html","Gestionar grupos","gest","referente"\),\("academia\.html","Academia","acad"\),\("guia\.html","Guía","guia"\)\]/.test(B),
-  "🔴 «Academia» en el menú del profesorado, entre «Gestionar grupos» y «Guía»");
+c(/NAV = \[\("consola\.html","Mi nave","cons"\),\("gestion\.html","Gestionar grupos","gest","referente"\),\("academia\.html","Academia","acad"\),\("guia\.html","Guía","guia"\),\s*(#[^\n]*\n\s*)?\("en-claro\.html","En claro","claro"\)\]/.test(B),
+  "🔴 «Academia» en el menú del profesorado, entre «Gestionar grupos» y «Guía» (y, desde el 4-oct, «En claro» al final)");
 c(/<a class="lnk" href="academia\.html">Academia<\/a>/.test(CON) && /<a class="lnk" href="academia\.html">Academia<\/a>/.test(GUIA), "   visible en las páginas del profesorado (sin «solo»: para todos)");
 c(/<a class="lnk active" href="academia\.html">Academia<\/a>/.test(ACA), "   y encendida en la propia Academia");
 
