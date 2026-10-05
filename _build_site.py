@@ -2435,7 +2435,7 @@ window.SG.CFGSESION = (function () {
   }
   function bloque(off) {
     return '<div class="card m-sesion"><h3>Tu sesión en directo</h3>' +
-      '<p class="small muted">Marca lo que quieres en tu presentación. De serie sale casi todo: la Nave de ejemplo va apagada, y el ranking y quién hizo los retos salen en la primera clase de cada tema. Lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
+      '<p class="small muted">Marca lo que quieres en tu presentación. De serie sale lo esencial: la Nave de ejemplo y el mensaje de la semana van apagados, y el ranking, quién hizo los retos y la oferta salen en la primera clase de cada tema. Lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
       'Cada semana solo aparece lo que ese día tiene algo que enseñar.</p>' + casillas(off) +
       '<p class="small m-sec-msg" id="m-sec-msg" aria-live="polite"></p></div>';
   }

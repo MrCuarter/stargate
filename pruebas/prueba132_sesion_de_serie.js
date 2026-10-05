@@ -20,7 +20,8 @@ const modo = (k) => (SECC.find((x) => x[0] === k) || [])[3];
 
 c(modo("naveejemplo") === "off" && /simulacro:'naveejemplo'/.test(SES), "🔴 la Nave de ejemplo (el recluta de mentira) es su propia sección y va apagada de serie");
 c(["repaso", "clasificacion", "coleccion", "simulador"].every((k) => modo(k) === "tema"), "🔴 el ranking, quién hizo los retos, coleccionistas y la sala de Joran: solo en la primera clase de cada tema");
-c(SECC.filter((x) => x[3]).length === 5, "   y nada más va de serie (lo demás sale como siempre)", SECC.filter((x) => x[3]).map((x) => x[0]));
+c(modo("mensaje") === "off" && modo("oferta") === "tema", "🔴 y, con su sí: el mensaje de la semana apagado y la oferta solo al empezar tema");
+c(SECC.filter((x) => x[3]).length === 7, "   y nada más va de serie (lo demás sale como siempre)", SECC.filter((x) => x[3]).map((x) => x[0]));
 
 const sin = apag([], false), sinTema = apag([], true);
 c(sin.includes("naveejemplo") && sin.includes("clasificacion") && sin.includes("repaso") && !sin.includes("portada"), "   sin tocar nada, en una clase a mitad de tema: fuera la Nave de ejemplo, el ranking y el repaso", sin);

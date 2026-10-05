@@ -1326,6 +1326,7 @@ TRIPULANTES = {
 # defecto esa información cuando empecemos un tema nuevo. No quiero borrarlas, solo desactivar algunas por defecto para no
 # agobiar de primeras a los docentes»). Un 4.º campo opcional: "off" = apagada de serie (el docente la enciende en la rueda);
 # "tema" = solo en la primera clase de cada tema (o en todas, si la marca así). Lo que el docente quite, no sale nunca.
+# Y después, con su sí: el mensaje de la semana, apagado (ya le sale a cada recluta en su Nave); la oferta, al empezar tema.
 SESION_SECCIONES = [
     ("portada", "Portada", "El planeta de la semana y el capítulo de la historia."),
     ("unete", "Únete a la clase", "Semanas 1 y 2: el código y el enlace para alistarse, y «Copiar invitación» para el chat."),
@@ -1334,7 +1335,7 @@ SESION_SECCIONES = [
     ("llamada", "Llamada a filas", "Fichar la asistencia al empezar."),
     # 23-sep · la pregunta de la clase (calendario oficial): el comandante del docente y la pregunta en grande (24-sep: tras la llamada)
     ("pregunta", "La pregunta de la clase", "La pregunta del calendario oficial, con tu comandante. La resuelves tú en clase."),
-    ("mensaje", "Mensaje de la semana", "La transmisión con el logo de STARGATE."),
+    ("mensaje", "Mensaje de la semana", "La transmisión con el logo de STARGATE (a cada recluta ya le sale en su Nave).", "off"),
     ("videos", "Vídeos de apertura", "La sinopsis, la Bitácora o la entrada al planeta."),
     ("repaso", "Repaso de la semana anterior", "Quién hizo cada misión la semana pasada.", "tema"),
     ("clasificacion", "Clasificación", "Han movido ficha, la semana, el top 5 y los escuadrones.", "tema"),
@@ -1348,7 +1349,7 @@ SESION_SECCIONES = [
     ("directo", "En directo", "El juego del final: cada recluta desde su móvil, con su personaje. Tras el ticket."),
     # 27-sep · el reto entre escuadrones: semana 11, el lanzamiento; semana 12, el resultado (borrador)
     ("asedio", "El Asedio", "Semana 11: el reto entre escuadrones. Semana 12: el podio y el salón de héroes y heroínas."),
-    ("oferta", "Oferta de la semana", "La rebaja de esta semana en el Mercado."),
+    ("oferta", "Oferta de la semana", "La rebaja de esta semana en el Mercado (si la hay).", "tema"),
     ("novedades", "Novedades de la semana", "Lo que se abre en la Nave esta semana."),
     # 5-oct · la Nave de un recluta de mentira, en simulacro, dentro de la clase: aparte de las novedades y apagada de serie
     ("naveejemplo", "La Nave de ejemplo", "La Nave de un recluta de mentira, para enseñarla en clase (lo que compras o registras ahí no cuenta).", "off"),
