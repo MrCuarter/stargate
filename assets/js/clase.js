@@ -562,6 +562,7 @@
     if(!ps.length) return '';
     var filas=ps.map(function(x,i){
       var quien=st.verPrivado?(esc(x.nombre||x.alias)):esc(x.alias||'—');
+      if(x.fantasma) quien+=' <span class="chip fantasma">fantasma</span>';   // (5-oct · el equipo docente probando: no es alumnado)
       return '<tr><td><b>'+quien+'</b><br><span class="small muted">'+priv(x.email)+'</span></td>'
         +'<td>'+esc(x.recompensa)+'</td>'
         +'<td class="small">'+esc(x.actividad||'—')+'</td>'

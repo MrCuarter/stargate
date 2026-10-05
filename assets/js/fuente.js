@@ -181,7 +181,7 @@
     var fichaPorCorreo = function (M, per, correo) {
       return tableroPrivado(M, per).then(function (t) {
         var c = String(correo || "").toLowerCase().trim();
-        var r = (t.reclutas || []).filter(function (x) { return String(x.email || "").toLowerCase() === c; })[0];
+        var r = (t.reclutas || []).concat(t.fantasmas || []).filter(function (x) { return String(x.email || "").toLowerCase() === c; })[0];
         if (!r) throw new Error("No encuentro a nadie con ese correo en el grupo");
         if (!r.ficha) throw new Error("Esa ficha no trae identificador: recarga la sala");
         return r;
@@ -396,8 +396,10 @@
                 if (!f) return { error: "Todavía no te has alistado en este grupo.", sinFicha: true };
                 // 🔴 13-sep · por la FICHA, no por el alias: con dos «Halo» en el grupo, uno veía la
                 // Nave del otro. El alias solo sirve si el tablero es de antes de traer `fid`.
-                var yo_ = t.reclutas.filter(function (x) { return x.fid && x.fid === f.id; })[0]
-                       || t.reclutas.filter(function (x) { return !x.fid && x.alias === f.displayName; })[0];
+                // (5-oct · un fantasma no está en `reclutas`: su Nave se busca también en `fantasmas`)
+                var todos = t.reclutas.concat(t.fantasmas || []);
+                var yo_ = todos.filter(function (x) { return x.fid && x.fid === f.id; })[0]
+                       || todos.filter(function (x) { return !x.fid && x.alias === f.displayName; })[0];
                 // 🔴 A CADA CUAL, LO SUYO. El tablero público no dice qué retos concretos ha hecho
                 // nadie —y así se queda—, pero uno tiene derecho a ver los suyos: es lo que la Nave
                 // necesita para saber qué casillas pintar hechas y cuáles ofrecer para marcar.
@@ -418,6 +420,8 @@
                 if (yo_) yo_.participaciones = f.lotteryEntries || {};
                 // 14-sep · y si su referente le ha congelado la cuenta (mira, pero no toca)
                 if (yo_) yo_.congelado = !!f.stargateCongelado;
+                // 5-oct · y si es un fantasma (de su propia ficha: vale aunque el tablero sea de antes de traer la marca)
+                if (yo_) yo_.fantasma = f.fantasma === true;
                 // 14-sep · las ofertas que ya ha comprado (una por persona)
                 if (yo_) yo_.ofertas = f.stargateOfertas || {};
                 // 15-sep (noche) · sus logros de a bordo, las cubiertas cobradas y los días a bordo (los apunta el servidor)

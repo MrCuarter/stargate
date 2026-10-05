@@ -1378,14 +1378,18 @@
       +(vestuarioAbierto()
         ?'<button type="button" class="av-lupa vest-abre" id="btn-av" title="Pulsa para cambiar tu personaje" aria-label="Cambiar tu personaje">'+av+'<span class="av-cambia"><img class=ico src=assets/img/iconos/p/editar.png alt></span></button>'
         :'<button type="button" class="av-lupa" id="btn-av" title="Pulsa para verte en grande" aria-label="Ampliar tu personaje">'+av+'</button>')
-      +'<div class="nf-quien"><h3>'+(r.corona?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(r.alias)+(r.racha>=3?' <span class="chip-racha" title="Semanas seguidas registrando algo"><img class=ico src=assets/img/iconos/p/fuego.png alt> '+r.racha+'</span>':'')+'</h3>'
+      +'<div class="nf-quien"><h3>'+(r.corona?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(r.alias)+(r.racha>=3?' <span class="chip-racha" title="Semanas seguidas registrando algo"><img class=ico src=assets/img/iconos/p/fuego.png alt> '+r.racha+'</span>':'')
+      // 5-oct · EL MODO FANTASMA: su distintivo, a la vista (ver avisoFantasma)
+      +(r.fantasma?' <span class="chip fantasma" tabindex="0" data-tip="Eres del equipo docente: lo ves todo como un recluta y tu progreso cuenta solo para ti. Tu clase no te ve: no sales en rankings, sesión ni sorteos, y tus compras no gastan existencias."><img class=ico src=assets/img/iconos/p/ojo.png alt> Modo fantasma</span>':'')
+      +'</h3>'
       +(r.titulo?'<div class="titulo-recluta">«'+esc(r.titulo)+'»</div>':'')
-      +'<p class="small"><b>Nivel '+ni.nivel+' · '+esc(ni.rangoNombre)+'</b>'+(ni.titulo&&ni.titulo!==ni.rangoNombre?' <span class="muted">('+esc(ni.titulo)+')</span>':'')+' · puesto '+r.pos+(r.planeta&&r.planeta!=='—'?' · planeta '+esc(r.planeta):'')+(r.corona?' · <b>corona semanal</b>':'')+'</p>'
+      +'<p class="small"><b>Nivel '+ni.nivel+' · '+esc(ni.rangoNombre)+'</b>'+(ni.titulo&&ni.titulo!==ni.rangoNombre?' <span class="muted">('+esc(ni.titulo)+')</span>':'')+(r.fantasma?' · irías el '+r.pos+'.º (no sales en el ranking)':' · puesto '+r.pos)+(r.planeta&&r.planeta!=='—'?' · planeta '+esc(r.planeta):'')+(r.corona?' · <b>corona semanal</b>':'')+'</p>'
       +'<p class="monedas"><span class="m xp" tabindex="0" data-tip="Los xp no se gastan nunca: marcan tu nivel y hacen evolucionar a tu personaje."><b>'+r.xp+'</b> xp</span>'
       +'<span class="m cred" tabindex="0" data-tip="Los créditos son la moneda de misión: es lo único que se descuenta al canjear recompensas."><b>'+cred+'</b> ◈ créditos</span>'
       // 25-sep · su Bitácora, a un clic y al lado de lo que tiene (Norberto: «al lado de los créditos, enlace a la Bitácora; si
       // no tiene, un botón para añadirla: debemos insistir en su importancia»)
       +'<span class="nb-bit" id="nb-bit">'+botonBitacora()+'</span></p>'
+      +botonDocente()
       +barra+'</div>'
       +cifrasDeBitacora(r)
       +'</div>'
@@ -1586,8 +1590,14 @@
   function carrera(){
     if(!st.yo||!abierto('rankings')) return '';
     var R=((st.d&&st.d.reclutas)||(window.SG_TABLERO_DATA||{}).reclutas||[]).slice().sort(function(a,b){ return (a.pos||99)-(b.pos||99); });
-    var i=R.findIndex(function(x){ return x.pos===st.yo.pos; }); if(i<0) return '';
-    var yo=R[i], ar=i>0?R[i-1]:null, ab=i<R.length-1?R[i+1]:null;
+    var yo, ar, ab;
+    if(st.yo.fantasma){
+      // 5-oct · el fantasma no ocupa puesto: se ve entre quien iría delante y quien iría detrás, sin quitarle el sitio a nadie
+      var k=Math.max(1,st.yo.pos||1)-1; yo=st.yo; ar=k>0?R[k-1]||null:null; ab=R[k]||null;
+    } else {
+      var i=R.findIndex(function(x){ return x.pos===st.yo.pos; }); if(i<0) return '';
+      yo=R[i]; ar=i>0?R[i-1]:null; ab=i<R.length-1?R[i+1]:null;
+    }
     if(!ar&&!ab) return '';
     var SG=window.SG||{}, tipo=(st.d&&st.d.tipo)||'REGULAR';
     var cara=function(p){ return SG.avatarImg?SG.avatarImg(p.avatar,p.alias,'mini',p.xp,tipo):''; };
@@ -1928,6 +1938,52 @@
    * en el servidor; aquí solo se dice, arriba y sin que se pueda cerrar, para que nadie pulse cosas
    * pensando que la web está rota.
    */
+  /**
+   * 5-oct-2026 · EL MODO FANTASMA Y EL CAMBIO DE PAPEL. Norberto: «muchos docentes quieren una cuenta de alumno para
+   * ponerse en la piel de sus estudiantes y hacer los retos antes que ellos». Quien es del equipo docente de este grupo
+   * (lo dice el propio grupo: motor.js → esDelEquipoDe) tiene «Verme como docente» al lado de su nombre; quien da clase
+   * en otro grupo (la puerta lo apuntó: `sgEsDocente`), también, hacia su consola. Si es del equipo de ESTE grupo y su
+   * ficha aún cuenta como un recluta más (se alistó antes de que hubiera modo fantasma), se le ofrece pasarla a fantasma.
+   */
+  var docenteMirado=false;
+  function mirarSiDocente(){
+    if(docenteMirado||SIMULACRO||!st.yo||!motorNuevo()) return;
+    var M=window.SG&&window.SG.MOTOR; if(!M||!M.getDoc||!M.esDelEquipoDe||!M.sesion) return;
+    docenteMirado=true;
+    Promise.all([M.sesion(), M.getDoc(M.doc(M.db,'projects',per))]).then(function(x){
+      var aqui=!!(x[1].exists()&&M.esDelEquipoDe(x[1].data(),x[0])), otro=false;
+      try{ otro=localStorage.getItem('sgEsDocente')==='1'; }catch(e){}
+      var antes=st.docente; st.docente=aqui?'aqui':(otro?'otro':'');
+      if(st.docente!==antes) render();
+    }).catch(function(){});
+  }
+  function botonDocente(){
+    if(!st.docente||SIMULACRO) return '';
+    return '<p class="nf-rol"><a class="btn min" href="consola.html'+(st.docente==='aqui'?'?per='+encodeURIComponent(per):'')+'">'
+      +'<img class=ico src=assets/img/iconos/p/nave.png alt> Verme como docente</a></p>';
+  }
+  function avisoFantasma(){
+    if(!st.yo||SIMULACRO||st.yo.fantasma||st.docente!=='aqui') return '';
+    return '<div class="card fantasma-aviso" role="status"><p><img class=ico src=assets/img/iconos/p/ojo.png alt> <b>Eres del equipo docente de este grupo</b> '
+      +'y esta ficha cuenta como un recluta más: sales en los rankings, en la sesión y en los sorteos. En modo fantasma lo sigues viendo todo, '
+      +'pero tu clase no te ve.</p><button type="button" class="btn min" id="pasar-fantasma">Pasar a modo fantasma</button></div>';
+  }
+  document.addEventListener('click',function(ev){
+    var b=ev.target&&ev.target.closest&&ev.target.closest('#pasar-fantasma'); if(!b||!window.SG||!window.SG.preguntar) return;
+    var M=window.SG.MOTOR; if(!M||!M.pasarAFantasma) return;
+    window.SG.preguntar({ quien:'Modo fantasma', titulo:'¿Pasar tu ficha a modo fantasma?',
+      texto:'Conservas tu xp, tus créditos, tus insignias y lo que tienes, y lo sigues viendo todo como un recluta. Pero tu clase deja de verte: '
+        +'sales de los rankings, de la sesión y de los sorteos, lo que tengas en el Zoco se retira y tus compras dejan de gastar existencias. '
+        +'No se puede deshacer.',
+      si:'Pasar a modo fantasma', no:'Ahora no' }).then(function(res){
+        if(!res) return;
+        b.disabled=true;
+        M.pasarAFantasma(per).then(function(){ refrescarYo(); }, function(e){
+          b.disabled=false;
+          window.SG.preguntar({ titulo:'No se ha podido', texto:'No he podido pasar tu ficha a modo fantasma. ('+((e&&e.message)||e)+')', si:'Entendido', no:'' });
+        });
+      });
+  });
   function avisoCongelado(){
     if(!st.yo||!st.yo.congelado||SIMULACRO) return '';
     return '<div class="card congelado-aviso" role="status"><p><img class=ico src=assets/img/iconos/p/hielo.png alt> <b>Tu referente ha congelado tu cuenta.</b> '
@@ -3103,6 +3159,7 @@
         +(mio ? (ofertasA[a.id]?'<span class="chip ok">'+ofertasA[a.id]+' oferta'+(ofertasA[a.id]>1?'s':'')+'</span>':'<span class="chip">sin ofertas aún</span>')
                +'<button class="btn small" data-zretirar="'+a.id+'">Retirar</button>'
               : mo ? '<span class="chip"><img class=ico src=assets/img/iconos/p/tiempo.png alt> Ya has ofertado</span>'
+                   : r.fantasma ? ''   // (5-oct · el fantasma mira, pero no comercia)
                    : '<button class="btn primary" data-zofertar="'+a.id+'">Hacer una oferta</button>')
         +'</div></div>';
     };
@@ -3112,7 +3169,10 @@
     var abiertos=z.tratos.filter(function(t){ return t.estado==='abierto' && pend.indexOf(t)<0; });
     return '<section class="zoco"><div class="eyebrow violet">Trueque entre reclutas</div><h2>El Zoco Estelar</h2>'
       +'<p class="lead">Pon tus héroes, cromos o participaciones del sorteo y los demás te ofrecen lo suyo: créditos, cartas o héroes. Lo que ofreces queda <b>apartado</b> hasta que te respondan, y cada trato se cierra en <b>3 pasos</b> como mucho.</p>'
-      +'<div class="zoco-barra"><button class="btn primary grande" id="z-poner" type="button">+ Poner algo mío</button>'
+      // 5-oct · EL MODO FANTASMA: el trueque mueve la economía de verdad entre reclutas, así que el fantasma mira y no toca
+      +(r.fantasma?'<p class="aviso"><img class=ico src=assets/img/iconos/p/ojo.png alt> En modo fantasma ves el Zoco como tu clase, pero no pones ni ofertas: '
+        +'el trueque mueve créditos y piezas entre reclutas de verdad.</p>':'')
+      +'<div class="zoco-barra">'+(r.fantasma?'':'<button class="btn primary grande" id="z-poner" type="button">+ Poner algo mío</button>')
       +'<span class="small">Tienes <b>'+(r.creditos!=null?r.creditos:0)+' ◈</b>'+(apartado?' · <b>'+apartado+' ◈</b> apartados en tus ofertas':'')+'</span></div>'
       +(nov.length?'<h3 class="z-h"><img class=ico src=assets/img/iconos/p/estrella.png alt> Novedades</h3><div class="zt-lista">'+nov.map(function(t){ return '<p class="zt-nov">'+fraseNovedad(t)+'</p>'+tarjetaTrato(t,z); }).join('')+'</div>':'')
       +(pend.length?'<h3 class="z-h">Te toca responder</h3><div class="zt-lista">'+pend.map(function(t){ return tarjetaTrato(t,z); }).join('')+'</div>':'')
@@ -4199,7 +4259,14 @@
   }
   function recluDeFicha(fid){
     var l=(st.d&&st.d.reclutas)||((window.SG_TABLERO_DATA||{}).reclutas)||[];
+    // (5-oct · el propio fantasma se encuentra a sí mismo)
+    if(st.yo&&st.yo.fantasma&&st.yo.fid===fid) return st.yo;
     return l.filter(function(r){ return r.fid===fid; })[0]||null;
+  }
+  /** 5-oct · las fichas en modo fantasma del grupo: lo que escriben no lo ve la clase (sí ellas mismas). */
+  function fichasFantasma(){
+    var f={}; (((st.d&&st.d.fantasmas)||((window.SG_TABLERO_DATA||{}).fantasmas))||[]).forEach(function(r){ if(r.fid) f[r.fid]=1; });
+    return f;
   }
   function caraRF(r){
     var src=''; try{ src=(r&&SG.avatarSrc)?SG.avatarSrc(r.avatar,r.alias,r.xp||0,(st.d&&st.d.tipo)||'REGULAR').src:''; }catch(e){}
@@ -4218,7 +4285,8 @@
   function pintarTripulacion(id, caja){
     var c=(st.rf||{})[id]; if(!c||!caja) return;
     var mioF=(st.yo&&(st.yo.ficha||st.yo.fid))||'';
-    var items=c.items.slice().sort(function(a,b){ return (a.fichaId===mioF?-1:0)-(b.fichaId===mioF?-1:0); });
+    var fant=fichasFantasma(), deLaClase=function(x){ return !fant[x.fichaId]||x.fichaId===mioF; };
+    var items=c.items.filter(deLaClase).sort(function(a,b){ return (a.fichaId===mioF?-1:0)-(b.fichaId===mioF?-1:0); });
     // lo que alguien estaba escribiendo en un comentario no se borra al repintar la lista
     var escritos={}; [].slice.call(caja.querySelectorAll('[data-rfform] input')).forEach(function(i){ if(i.value) escritos[i.parentNode.getAttribute('data-rfform')]=i.value; });
     if(!items.length){ caja.innerHTML='<p class="rf-vacio">Todavía no ha escrito nadie. ¡Sé la primera persona de tu tripulación!</p>'; return; }
@@ -4227,7 +4295,7 @@
         var r=recluDeFicha(x.fichaId), alias=(r&&r.alias)||'Un recluta', mia=x.fichaId===mioF;
         var us=enlacesDe(x.enlace||'').map(function(u,k){ var h=/^https?:\/\//i.test(u)?u:'https://'+u;
           return '<a class="rf-enlace" href="'+esc(h)+'" target="_blank" rel="noopener noreferrer">'+(k?'Otro enlace':'Ver lo que hizo')+'</a>'; }).join(' ');
-        var coms=c.coms.filter(function(m){ return m.reflexion===x.id; });
+        var coms=c.coms.filter(function(m){ return m.reflexion===x.id && deLaClase(m); });
         return '<article class="rf-item'+(mia?' mia':'')+'">'
           +'<div class="rf-quien">'+caraRF(r)+'<b>'+esc(alias)+'</b>'+(mia?'<span class="chip ok">la tuya</span>':'')+'</div>'
           +'<p class="rf-texto">'+esc(x.texto||'').replace(/\n+/g,'<br>')+'</p>'
@@ -4895,7 +4963,7 @@
       if(x){ try{ x.focus({preventScroll:true}); if(e.ini!=null) x.setSelectionRange(e.ini,e.fin); }catch(_){} } }
     if(Math.abs((window.pageYOffset||0)-e.y)>2){ try{ window.scrollTo(0,e.y); }catch(_){} }
   }
-  function render(){ var e=recordarEstado(); pintarNave(); restaurarEstado(e); reencenderFoco(); }
+  function render(){ var e=recordarEstado(); mirarSiDocente(); pintarNave(); restaurarEstado(e); reencenderFoco(); }
   // 14-sep · si la Nave se repinta con NEBULA a medio contar (llegan datos frescos), lo que estaba
   // iluminado se sustituye y se apaga: el paso decía «esto de aquí» sin «aquí». Se vuelve a encender.
   function reencenderFoco(){
@@ -5000,7 +5068,7 @@
         + '<a class="btn ghost" href="index.html">Volver a la presentación</a></p></div>'
       : '';
     root.innerHTML = avisoDemo + (dentro
-      ? barraSimulacro()+login()+pestanas()+avisoAcademia()+avisoCongelado()+avisoMensajes()+avisoEnVivo()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
+      ? barraSimulacro()+login()+pestanas()+avisoAcademia()+avisoFantasma()+avisoCongelado()+avisoMensajes()+avisoEnVivo()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
         +'<div id="nave-panel" role="tabpanel" aria-labelledby="nb-t-'+st.tab+'">'+contenido()+'</div>'
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
     verTablero(dentro && st.tab==='rankings' && tabVisible('rankings'));

@@ -190,7 +190,7 @@
       }).filter(function (g) { return !archivadoPorMi(yo, g.per); }).map(function (g) {
         var fin = g.estado === "pasado";
         return '<div class="camino-fila"><a class="camino recluta' + (fin ? ' terminado' : '') + '" href="recluta.html?per=' + encodeURIComponent(g.per) + '"><span><img src="assets/img/nave/iconos/nave.png" alt=""></span>' +
-               "<b>" + esc(g.nombreGrupo || nombreDe(g.per)) + "</b><em>Recluta" + inicioDe(g.inicio) + (fin ? " · curso terminado" : "") + "</em></a>" +
+               "<b>" + esc(g.nombreGrupo || nombreDe(g.per)) + "</b><em>Recluta" + inicioDe(g.inicio) + (g.fantasma ? " · en modo fantasma" : "") + (fin ? " · curso terminado" : "") + "</em></a>" +
                (fin ? '<button type="button" class="btn min camino-arch" data-archivar="' + esc(g.per) + '">Archivar</button>' : '') + '</div>';
       }).join("") +
       "</div>" +
