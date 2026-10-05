@@ -199,6 +199,9 @@
       name: per.nombre,
       description: per.descripcion || "Proyecto Gamificado del Máster en Tecnología Educativa de la UNIR.",
       active: true,
+      // 5-oct · de qué mod es, como en DPG (`mod: "ceniza"`). Hoy no lo lee nadie (el motor mira `stargate.version`):
+      // es la marca común que usarán el motor y la app (GamificaPro, docs/PLAN_CENTRALIZAR.md, fase 1).
+      mod: "stargate",
       editorMode: "simple",
       coTeacherEmails: conVitalicio(docentes).map(function (d) { return d.correo; }).filter(Boolean),
       avatarProgressionEnabled: true,
