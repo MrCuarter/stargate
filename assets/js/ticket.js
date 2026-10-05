@@ -81,7 +81,7 @@
       if (falta) { err.hidden = false; err.textContent = "Te falta valorar: «" + falta.texto + "»."; return; }
       var envio = {}; P.forEach(function (q) { var v = R[q.id]; if (v != null && v !== "") envio[q.id] = v; });
       boton.disabled = true; boton.textContent = "Enviando…"; err.hidden = true;
-      window.SG.MOTOR.llamar("modTicket", { accion: "enviar", projectId: PER, tema: TEMA, respuestas: envio }).then(function (r) {
+      MOTOR().llamar("modTicket", { accion: "enviar", projectId: PER, tema: TEMA, respuestas: envio }).then(function (r) {
         marcarHecho();
         capsula(r || {});
       }, function (e) {
@@ -132,7 +132,7 @@
   function arrancarTema() {
     if (!TEMA) return elegirTema();
     aviso("Un momento…");
-    window.SG.MOTOR.llamar("modTicket", { accion: "estado", projectId: PER, tema: TEMA }).then(function (r) {
+    MOTOR().llamar("modTicket", { accion: "estado", projectId: PER, tema: TEMA }).then(function (r) {
       if (r && r.hecho) { marcarHecho(); return aviso("<b>Ya enviaste el ticket de este tema.</b> ¡Gracias!"); }
       formulario();
     }, function (e) {
@@ -147,18 +147,36 @@
     pinta('<div class="card"><h2>El ticket de salida</h2><p>Entra con la cuenta de Google con la que te alistaste. Es anónimo: tu nombre no se guarda con lo que contestes.</p>'
       + '<button type="button" class="btn primary" id="tk-entrar">Entrar con Google</button></div>');
     document.getElementById("tk-entrar").onclick = function () {
-      window.SG.MOTOR.entrar().catch(function (e) { aviso("No se ha podido entrar: " + esc((e && e.message) || e), true); });
+      MOTOR().entrar().catch(function (e) { aviso("No se ha podido entrar: " + esc((e && e.message) || e), true); });
     };
   }
+
+  /**
+   * 5-oct · DEMOSTRACIÓN: ticket.html?demo=epico (o c10, c20, c30, c50, c100, sobre, grande, raro; «tripulacion» añade el
+   * aviso del premio de grupo). Para enseñar la cápsula sin cuenta: el formulario de verdad, pero NO se envía nada ni se
+   * cobra nada (no llama al servidor).
+   */
+  var DEMO = Q.get("demo"), M_DEMO = null;
+  if (DEMO !== null) {
+    var casilla = DEMO.split(",")[0] || "epico", TIPO = { sobre: "cromo", grande: "sobre_grande", raro: "sobre_raro", epico: "sobre_epico" }[casilla];
+    var premio = TIPO ? { casilla: casilla, sobre: "demo", tipo: TIPO } : { casilla: casilla, creditos: Number(casilla.slice(1)) || 50 };
+    M_DEMO = { sesion: function () { return Promise.resolve({ uid: "demo" }); }, entrar: function () { return Promise.resolve(); },
+      llamar: function (n, d) { return Promise.resolve(d.accion === "estado" ? { hecho: false } : { ok: true, n: 1, premio: premio, tripulacion: /tripulacion/.test(DEMO) ? 30 : 0 }); } };
+    PER = PER || "demo"; TEMA = TEMA || "3";
+    marcarHecho = function () {};
+  }
+
+  /** El motor: el de verdad o, en la demostración, el de mentira (aunque el de verdad cargue después). */
+  function MOTOR() { return M_DEMO || window.SG.MOTOR; }
 
   var lanzado = false;
   function arrancar() {
     if (!PER) return aviso("Falta el grupo en la dirección del ticket.", true);
-    var M = window.SG.MOTOR;
+    var M = MOTOR();
     var una = function (yo) { if (!yo) return puerta(); if (lanzado) return; lanzado = true; arrancarTema(); };
     M.sesion().then(una);
-    document.addEventListener("sg:sesion", function (e) { una(e.detail); });
+    if (DEMO === null) document.addEventListener("sg:sesion", function (e) { una(e.detail); });
   }
-  if (window.SG && window.SG.MOTOR) arrancar();
+  if (DEMO !== null || (window.SG && window.SG.MOTOR)) arrancar();
   else document.addEventListener("sg:motor", arrancar);
 })();
