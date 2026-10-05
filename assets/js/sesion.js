@@ -457,6 +457,7 @@
       +'<div class="txt"><div class="kicker">Semana '+s.sem+' de '+n+(st.nombre?' · '+esc(st.nombre):'')+'</div>'
       +'<h1>'+esc(s.tema)+'</h1><p class="sub">'+esc(s.sub||'')+'</p>'
       +(pl?'<p class="planeta-nom">Planeta <b>'+esc(pl[1])+'</b> · '+esc(pl[2])+'</p>':'')
+      +rutaCurso(Number(s.sem)||0, n)
       +(s.capitulo?'<p class="pill amber">Nuevo capítulo de la historia: «'+esc(s.capitulo)+'»</p>':'')
       /**
        * 🔴 20-sep · EL ENLACE PARA EL CHAT. Norberto: «añade un enlace rápido para compartir por el chat de Teams
@@ -465,6 +466,20 @@
        */
       +(!st.alumno&&st.per&&st.yo?'<p class="pt-chat"><button type="button" class="btn min" id="ses-chat">Copiar el enlace para el chat</button> <span class="small" id="ses-chat-m">Entran con su cuenta, fichan solos y ven esta presentación.</span></p>':'')
       +'</div></div>', montar: conRetrato(function(el){ var a=montarPortada(el), b=arrancaClip(el); return function(){ if(a) a(); if(b) b(); }; })};
+  }
+  /**
+   * 5-oct · EL CURSO ENTERO EN UNA LÍNEA (Norberto: gráficas en lo que se proyecta). Las semanas como marcas, cada planeta
+   * en la semana en que empieza su tema, lo recorrido en color y la nave en esta semana: «semana 3 de 16», a la vista.
+   */
+  function rutaCurso(sem, n){
+    var L=semanas(); n=Number(n)||L.length; if(!sem||!n) return '';
+    var x=function(k){ return ((k-.5)/n*100).toFixed(2)+'%'; }, vistos={}, pls='';
+    L.forEach(function(w){ var t=Number(w.tema_n), k=Number(w.sem); if(!t||vistos[t]) return; vistos[t]=1; var p=planeta(t); if(!p) return;
+      pls+='<img class="rc-pl'+(k<=sem?' hecho':'')+(Number(w.tema_n)===Number((L.filter(function(z){ return Number(z.sem)===sem; })[0]||{}).tema_n)?' aqui':'')
+        +'" style="left:'+x(k)+'" src="assets/img/planetas/'+esc(p[0])+'.png'+(window.SG_IMGV||'')+'" alt="'+esc(p[1])+'" title="Tema '+t+' · '+esc(p[1])+'">'; });
+    var marcas=''; for(var k=1;k<=n;k++) marcas+='<i class="rc-m'+(k<=sem?' hecho':'')+'" style="left:'+x(k)+'"></i>';
+    return '<div class="ruta-curso" style="--hasta:'+x(sem)+'" aria-label="Semana '+sem+' de '+n+'"><div class="rc-linea"><span class="rc-hecho"></span>'+marcas+pls
+      +'<img class="rc-nave" src="assets/img/iconos/p/cohete.png" alt=""></div><p class="rc-txt">Semana <b>'+sem+'</b> de '+n+(n>sem?' · quedan '+(n-sem):'')+'</p></div>';
   }
   /** El enlace que se pega en el chat: sigue la clase y ficha solo en cuanto la llamada está abierta. */
   function enlaceClase(){
@@ -558,6 +573,11 @@
       +'<div class="ll-mando" id="ses-ll"><p class="sub">Un momento…</p></div>'
       +'<div id="ses-ll-gente"></div></div></div>', montar: conRetrato(montarLlamada)};
   }
+  /** Los de tu escuadrón (o, si no hay escuadrones, todo el grupo); nunca menos de los que ya han fichado. */
+  function totalLlamada(fichados){
+    var V=vivos(), mios=V.filter(function(p){ return st.miNombre && p.profe===st.miNombre; }).length;
+    return Math.max(mios||V.length, fichados||0);
+  }
   function montarLlamada(el){
     var M=window.SG&&window.SG.MOTOR, mando=el.querySelector('#ses-ll'), caja=el.querySelector('#ses-ll-gente');
     if(st.alumno) return llamadaAlumno(M, mando);
@@ -585,8 +605,12 @@
         if(f.some(function(x){ return !porFicha[x.studentProfileId]; }))
           refrescarTablero().then(function(ok){ if(ok&&vivo) pintaGente(id); });
         var gente=f.map(function(x){ return porFicha[x.studentProfileId] || { fid:x.studentProfileId, alias:'Recluta', avatar:null, xp:0 }; });
-        var cuantos=el.querySelector('#ses-ll-n'); if(cuantos) cuantos.textContent=f.length;
-        var pal=el.querySelector('#ses-ll-pal'); if(pal) pal.textContent=f.length===1?'presente':'presentes';
+        var cuantos=el.querySelector('#ses-ll-n'), tot=totalLlamada(f.length);
+        if(cuantos && Number(cuantos.getAttribute('data-ahora')||0)!==f.length) contar(cuantos, f.length);
+        var de=el.querySelector('#ses-ll-de'); if(de) de.textContent=tot;
+        var aro=el.querySelector('.ll-aro-f'); if(aro) aro.style.strokeDasharray=(2*Math.PI*50*Math.min(1,f.length/(tot||1))).toFixed(1)+' 400';
+        var ll=el.querySelector('.ll-aro'); if(ll) ll.classList.toggle('llena', !!tot && f.length>=tot);
+        var pal=el.querySelector('#ses-ll-pal'); if(pal) pal.textContent=tot&&f.length>=tot?'¡todos a bordo!':'a bordo';
         caja.innerHTML=gente.length ? '<div class="ses-caras ll">'+gente.map(function(p,i){
             var nuevo=!vistos[p.fid]; vistos[p.fid]=true;
             return '<figure class="'+(nuevo?'nuevo':'')+'" style="--i:0">'+cara(p)+'<figcaption>'+esc(p.alias)+'</figcaption></figure>'; }).join('')+'</div>'
@@ -595,7 +619,10 @@
     };
     var abierta=function(s){
       var hasta=s.hasta || (s.endTime && (s.endTime.toDate ? s.endTime.toDate().getTime() : new Date(s.endTime).getTime())) || Date.now();
-      mando.innerHTML='<div class="ll-viva"><span class="ll-punto"></span><b id="ses-ll-n">0</b> <span id="ses-ll-pal">presentes</span>'
+      // 5-oct · el anillo: cuántos han fichado de los de tu escuadrón (se llena en directo)
+      mando.innerHTML='<div class="ll-viva"><div class="ll-aro"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ll-aro-p" cx="60" cy="60" r="50"/><circle class="ll-aro-f" cx="60" cy="60" r="50"/></svg>'
+        +'<div class="ll-aro-c"><b id="ses-ll-n">0</b><span>de <i id="ses-ll-de">'+totalLlamada(0)+'</i></span></div></div>'
+        +'<span class="ll-punto"></span> <span id="ses-ll-pal">a bordo</span>'
         +'<span class="ll-cuenta" id="ses-ll-cuenta"></span><button type="button" class="btn small" id="ses-ll-cerrar">Cerrar la llamada</button></div>';
       mando.querySelector('#ses-ll-cerrar').onclick=function(){ M.cerrarLlamada(s.id).then(function(){ if(reloj){ clearInterval(reloj); reloj=null; } caja.innerHTML=''; cerrada(); }); };
       pintaGente(s.id);
@@ -1126,15 +1153,33 @@
     var filas=ks.map(function(k){ var v=por[k], e=E.filter(function(x){ return x.comandante===k; })[0]||{};
       return { cmd:k, nombre:e.nombre||k, emblema:e.emblema||'', media:Math.round(v.reduce(function(a,b){return a+b;},0)/v.length), n:v.length }; })
       .sort(function(a,b){ return b.media-a.media; });
-    var max=filas[0].media||1;
-    return {k:'escuadrones', rot:'Escuadrones', html:
+    var max=filas[0].media||1, lider=filas[0].cmd;
+    // 5-oct · la carrera: salen en orden alfabético y con la barra a cero; al acabar se reordenan (montarCarrera)
+    filas=filas.slice().sort(function(a,b){ return String(a.nombre).localeCompare(String(b.nombre),'es'); });
+    return {k:'escuadrones', rot:'Escuadrones', montar:montarCarrera, html:
       '<div class="dia escuadrones"><div class="kicker"><img class=ico src=assets/img/iconos/p/escudo.png alt> Entre escuadrones · xp de media</div><h2>¿Qué escuadrón va delante?</h2>'
-      +'<div class="esc-lista">'+filas.map(function(f,i){
-        return '<div class="esc-f'+(f.cmd===st.miNombre?' mio':'')+'" style="--i:'+i+'">'
+      +'<div class="esc-lista carrera">'+filas.map(function(f,i){
+        return '<div class="esc-f'+(f.cmd===st.miNombre?' mio':'')+'" style="--i:'+i+'" data-media="'+f.media+'"'+(f.cmd===lider?' data-lider':'')+'>'
           +(f.emblema?'<img class="esc-emb" src="'+esc(f.emblema)+'" alt="">':'<span class="esc-emb vacia"><img class=ico src=assets/img/iconos/p/escudo.png alt></span>')
-          +'<span class="esc-nom"><b>'+(i===0?'<img class=ico src=assets/img/iconos/p/rankings.png alt> ':'')+esc(f.nombre)+'</b><em>Comandante '+esc(f.cmd)+' · '+f.n+' reclutas</em></span>'
-          +'<span class="esc-bar"><i style="width:'+Math.round(f.media*100/max)+'%"></i></span><span class="esc-xp">'+f.media+' xp</span></div>';
+          +'<span class="esc-nom"><b><img class="ico esc-corona" src=assets/img/iconos/p/corona.png alt> '+esc(f.nombre)+'</b><em>Comandante '+esc(String(f.cmd).replace(/^comandante\s+/i,''))+' · '+f.n+' reclutas</em></span>'
+          +'<span class="esc-bar"><i style="--w:'+Math.round(f.media*100/max)+'%"></i></span><span class="esc-xp"><b data-cuenta="'+f.media+'">0</b> xp</span></div>';
       }).join('')+'</div></div>'};
+  }
+
+  function montarCarrera(el){
+    var L=el.querySelector('.esc-lista.carrera'); if(!L) return null;
+    var fs=Array.prototype.slice.call(L.children), t1=0, t2=0;
+    var ordena=function(){
+      var antes=fs.map(function(x){ return x.getBoundingClientRect().top; });
+      fs.slice().sort(function(a,b){ return Number(b.getAttribute('data-media'))-Number(a.getAttribute('data-media')); }).forEach(function(x){ L.appendChild(x); });
+      if(!reduceMov()) fs.forEach(function(x,i){ var d=antes[i]-x.getBoundingClientRect().top; if(!d) return;
+        x.style.transition='none'; x.style.transform='translateY('+d+'px)'; x.getBoundingClientRect(); x.style.transition='transform .8s cubic-bezier(.2,.8,.2,1)'; x.style.transform=''; });
+      L.classList.add('acabada');
+    };
+    if(reduceMov()){ L.classList.add('corre'); contarTodo(L); ordena(); return null; }
+    t1=setTimeout(function(){ L.classList.add('corre'); contarTodo(L); }, 350);
+    t2=setTimeout(ordena, 2400);
+    return function(){ clearTimeout(t1); clearTimeout(t2); };
   }
 
   /* ── 9 · EL TICKET DE SALIDA · se rellena AL ACABAR CADA TEMA, no cada semana ──────────────────
@@ -1260,7 +1305,7 @@
     return '<div class="tk-nota"><span class="tk-n-t">'+esc(x.corto)+'</span>'
       +'<span class="tk-n-b">'+x.pct.map(function(p,i){
           return p?'<i class="v'+(i+1)+'" style="width:'+p+'%" title="'+(i+1)+' de 5 · '+p+'%">'+(p>=12?'<em>'+p+'%</em>':'')+'</i>':''; }).join('')+'</span>'
-      +'<b class="tk-n-m">'+x.media.toFixed(1)+'</b></div>';
+      +'<b class="tk-n-m" data-cuenta="'+x.media.toFixed(1)+'" data-dec="1">'+x.media.toFixed(1).replace('.',',')+'</b></div>';
   }
   /**
    * 🔴 23-sep · LA SEMANA 2 ABRE CON LO QUE DIJERON DEL EMBARQUE. El ticket de la presentación se rellena en la semana 1
@@ -1275,6 +1320,14 @@
       x.montar=function(el){ return montarTicket(el, [], 0, q, op); };
       return x;
     });
+  }
+  /** 5-oct · el medidor del 1 al 5: la media de todas las preguntas, en un arco que se llena. */
+  function medidorTicket(N){
+    var m=N.reduce(function(a,x){ return a+x.media; },0)/N.length, L=Math.PI*50, l=Math.max(0,Math.min(1,(m-1)/4))*L;
+    var col=m>=4?'#3ed6c8':m>=3?'#8fe0a8':m>=2.5?'#ffd76b':'#ff7d7d';
+    return '<div class="tk-c tk-med"><svg viewBox="0 0 120 68" aria-hidden="true"><path class="tk-med-p" d="M10 60 A50 50 0 0 1 110 60"/>'
+      +'<path class="tk-med-f" d="M10 60 A50 50 0 0 1 110 60" style="--l:'+l.toFixed(1)+';stroke:'+col+'"/></svg>'
+      +'<b data-cuenta="'+m.toFixed(1)+'" data-dec="1">'+m.toFixed(1).replace('.',',')+'</b><span>de media, del 1 al 5</span></div>';
   }
   function montarTicket(el, semLista, iTema, que, op){
     op=op||{};
@@ -1324,10 +1377,14 @@
       var seg=A.seguido, sig=seg.directo+seg.diferido;
       caja.innerHTML='<div class="tk-cifras"><div class="tk-c"><b>'+lista.length+'</b><span>'+(lista.length===1?'respuesta':'respuestas')+'</span></div>'
         +'<div class="tk-c ancha"><b>'+esc(tema)+'</b><span>el tema que cerrasteis</span></div>'
-        +(sig?'<div class="tk-c"><b>'+Math.round(seg.directo*100/sig)+'%</b><span>en directo · el '+Math.round(seg.diferido*100/sig)+'%, en diferido</span></div>':'')+'</div>'
+        +(sig?'<div class="tk-c"><b>'+Math.round(seg.directo*100/sig)+'%</b><span>en directo · el '+Math.round(seg.diferido*100/sig)+'%, en diferido</span></div>':'')
+        +(A.notas.length?medidorTicket(A.notas.slice(0,6)):'')+'</div>'
         +(A.notas.length?'<div class="tk-notas">'+A.notas.slice(0,6).map(filaNota).join('')
             +'<p class="tk-leyenda"><i class="v1"></i>1 <i class="v2"></i>2 <i class="v3"></i>3 <i class="v4"></i>4 <i class="v5"></i>5 · el número de la derecha es la media</p></div>'
           :'<p class="sub">Contestaron, pero sin puntuar nada.</p>');
+      Array.prototype.forEach.call(caja.querySelectorAll('.tk-nota'),function(x,i){ x.style.setProperty('--i', i); });
+      contarTodo(caja);
+      var ag=caja.querySelector('.tk-med-f'); if(ag) requestAnimationFrame(function(){ requestAnimationFrame(function(){ ag.classList.add('on'); }); });
     };
     var fallo=function(){ if(vivo) caja.innerHTML='<p class="sub">No he podido leer las respuestas del ticket ahora mismo. Pasa a la siguiente: no hace falta esperar.</p>'; };
     var pr=precargarTickets(); if(!pr) return fallo();
@@ -1726,6 +1783,15 @@
    */
   var NX_COL={act:'#f5b043', act2:'#ffd98a', test:'#37e0ec', asis:'#b49bff', exa:'#6ee7a0'};
   function nxN(x){ return String(Math.round(x*100)/100).replace('.',','); }
+  /** 5-oct · los números que se proyectan suben solos hasta su valor (dec: decimales; sin «menos movimiento»). */
+  function reduceMov(){ return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  function contar(el, meta, dec){
+    if(!el) return; dec=dec||0; var f=function(v){ return (dec?v.toFixed(dec):String(Math.round(v))).replace('.',','); };
+    var de=Number(el.getAttribute('data-ahora'))||0, t0=performance.now(); el.setAttribute('data-ahora', meta); cancelAnimationFrame(el._raf||0);
+    if(reduceMov()){ el.textContent=f(meta); return; }
+    (function paso(t){ var k=Math.min(1,(t-t0)/900); el.textContent=f(de+(meta-de)*(1-Math.pow(1-k,3))); if(k<1) el._raf=requestAnimationFrame(paso); })(t0);
+  }
+  function contarTodo(root){ Array.prototype.forEach.call(root.querySelectorAll('[data-cuenta]'),function(x){ contar(x, Number(x.getAttribute('data-cuenta'))||0, Number(x.getAttribute('data-dec'))||0); }); }
   function diaNotaEjemplo(){
     var D=(window.SG_NOTA_EJEMPLO||{})[st.tipo==='PUA'?'PUA':'REGULAR']; if(!D||!D.filas||!D.filas.length) return null;
     var R=80, C=2*Math.PI*R, G=1.6, cum=0, arcos='', filas='', nA=0, N=D.filas.length;
@@ -2154,10 +2220,19 @@
     return {k:'act_rubrica', rot:'Para el 10', montar:montarRubrica, html:
       '<div class="dia emb ac-rub">'+cmdCuerpo('reto','ac-cmd')
       +'<div class="ac-rub-t">'+actKicker(X, 'Tu Comandante')+'<h2>Lo que hace falta para el 10</h2>'
-      +'<p class="sub">La rúbrica, en corto: cuánto vale cada cosa y lo que pide el <b>sobresaliente</b>. Márcalo cuando lo tengas.</p>'
+      +'<p class="sub">La rúbrica, en corto: cuánto vale cada cosa y lo que pide el <b>sobresaliente</b>. Márcalo cuando lo tengas. <b class="ac-rub-m"></b></p>'
       +'<div class="ac-rub-l" data-rub="'+esc(clave)+'">'+R.map(function(r,i){ return '<label class="ac-rub-f'+(hechos[i]?' on':'')+'"><input type="checkbox" data-rub-i="'+i+'" data-peso="'+r[1]+'"'+(hechos[i]?' checked':'')+'>'
-          +'<span class="ac-rub-p">'+num(r[1])+'</span><span class="ac-rub-x"><b>'+esc(r[0])+' <em>'+esc(r[2])+'</em></b><small>'+esc(r[3])+'</small></span></label>'; }).join('')+'</div>'
-      +'<div class="ac-rub-tot"><div class="ac-rub-bar"><i></i></div><p><b class="ac-rub-n">0</b> de 10 · <span class="ac-rub-m"></span></p></div></div></div>'};
+          +'<span class="ac-rub-p">'+num(r[1])+'</span><span class="ac-rub-x"><b>'+esc(r[0])+' <em'+(/portfolio/i.test(r[2])?' class="ep"':'')+'>'+esc(r[2])+'</em></b><small>'+esc(r[3])+'</small></span></label>'; }).join('')+'</div>'
+      // 5-oct · la barra pasa a ser una rueda de 10 puntos: cada criterio, del tamaño de lo que vale; lo del portfolio, en turquesa
+      +'<div class="ac-rub-aro"><div class="nx-rueda">'+aroRubrica(R)+'<div class="nx-centro"><b class="nx-tot ac-rub-n">0</b><span>de 10</span></div></div>'
+      +'</div></div></div>'};
+  }
+  function aroRubrica(R){
+    var Rr=80, C=2*Math.PI*Rr, G=1.6, cum=0, tot=R.reduce(function(a,r){ return a+(Number(r[1])||0); },0)||10;
+    return '<svg viewBox="0 0 200 200" role="img" aria-label="La rúbrica sobre 10: cada criterio con lo que vale">'+R.map(function(r,i){
+      var ini=cum/tot*C, len=Math.max(0,(Number(r[1])||0)/tot*C-G), col=/portfolio/i.test(r[2])?'#37e0ec':'#f5b043'; cum+=Number(r[1])||0;
+      var at=' cx="100" cy="100" r="'+Rr+'" stroke="'+col+'" stroke-dashoffset="'+(-ini).toFixed(2)+'"';
+      return '<circle class="nx-pista"'+at+' stroke-dasharray="'+len.toFixed(2)+' 600"/><circle class="nx-f ac-rub-arc" data-rub-arc="'+i+'"'+at+' style="--l:'+len.toFixed(2)+'"/>'; }).join('')+'</svg>';
   }
   function montarRubrica(el){
     var L=el.querySelector('[data-rub]'); if(!L) return null;
@@ -2165,8 +2240,8 @@
     var pinta=function(){ var tot=0, h={};
       Array.prototype.forEach.call(L.querySelectorAll('[data-rub-i]'), function(c){ if(c.checked){ tot+=Number(c.getAttribute('data-peso'))||0; h[c.getAttribute('data-rub-i')]=1; } c.closest('label').classList.toggle('on', c.checked); });
       tot=Math.round(tot*10)/10;
-      el.querySelector('.ac-rub-bar i').style.width=(tot*10)+'%';
-      el.querySelector('.ac-rub-n').textContent=String(tot).replace('.',',');
+      Array.prototype.forEach.call(el.querySelectorAll('[data-rub-arc]'),function(a){ a.classList.toggle('on', !!h[a.getAttribute('data-rub-arc')]); });
+      contar(el.querySelector('.ac-rub-n'), tot, tot%1?1:0);
       el.querySelector('.ac-rub-m').textContent=tot>=10?'¡todo listo para el 10!':tot>=9?'sobresaliente a la vista':tot>=5?'vas por buen camino':'marca lo que ya tienes';
       try{ localStorage.setItem(clave, JSON.stringify(h)); }catch(e){} };
     L.addEventListener('change', pinta); pinta();

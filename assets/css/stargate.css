@@ -7922,3 +7922,64 @@ body.embed .bz-nueva h2,body.embed .bz-lista h2{font-size:1.05rem}
 .mazo:fullscreen .nx-fila span,body.embed .mazo .nx-fila span{font-size:clamp(.9rem,1.3vw,1.2rem)}
 @media (max-width:760px){.nx{grid-template-columns:minmax(0,1fr)}.nx-rueda{width:min(100%,300px)}}
 @media (prefers-reduced-motion:reduce){.nx-f,.nx-ep,.nx-fila,.nx-fila>*,.nx-cuenta{transition:none}}
+/* 5-oct · LAS CIFRAS DE LA SESIÓN, EN GRÁFICAS QUE SE CONSTRUYEN (Norberto: «gráficas animadas» en lo que se proyecta) */
+/* 1 · «Para el 10»: la rúbrica en una rueda de 10 puntos, arriba a la derecha (la lista conserva todo el ancho) */
+.ac-rub-t{position:relative}
+.ac-rub-t>.sub{padding-right:clamp(110px,12vw,155px)}
+.ac-rub-l>.ac-rub-f:first-child{margin-right:clamp(108px,11.8vw,150px)}
+.ac-rub-aro{position:absolute;top:clamp(10px,2vh,18px);right:0;width:clamp(100px,11vw,140px);display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.ac-rub-aro .nx-rueda{width:100%}
+.ac-rub-aro .nx-rueda::before{inset:6%}
+.ac-rub-aro .nx-tot{font-size:clamp(1.5rem,4.4vh,2.6rem)}
+.ac-rub-aro .nx-centro span{font-size:.8rem}
+.ac-rub-m{color:var(--teal2)}
+.ac-rub-x em{color:#f5b043}.ac-rub-x em.ep{color:#37e0ec}
+.dia.ac-rub .ac-rub-t>h2{font-size:clamp(1.2rem,2.3vw,2rem);padding-right:clamp(110px,12vw,155px)}
+@media (max-width:760px){.ac-rub-t>.sub{padding-right:0}.ac-rub-l>.ac-rub-f:first-child{margin-right:0}.dia.ac-rub .ac-rub-t>h2{padding-right:0}.ac-rub-aro{position:static;width:min(200px,60%);margin:6px auto}}
+/* 2 · la llamada a filas: un anillo que se llena con cada fichaje */
+.dia.llamada .ll-aro{position:relative;width:clamp(110px,16vh,170px);aspect-ratio:1;flex:none}
+.ll-aro svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ll-aro-p,.ll-aro-f{fill:none;stroke-width:12}
+.ll-aro-p{stroke:rgba(255,255,255,.1)}
+.ll-aro-f{stroke:var(--amber);stroke-linecap:round;stroke-dasharray:0 400;transition:stroke-dasharray .9s cubic-bezier(.2,.8,.2,1),stroke .4s}
+.ll-aro.llena .ll-aro-f{stroke:#6ee7a0}
+.ll-aro-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.ll-aro-c b{font-family:Orbitron,sans-serif;font-size:clamp(2rem,5vh,3rem);color:var(--amber);font-variant-numeric:tabular-nums}
+.ll-aro.llena .ll-aro-c b{color:#6ee7a0}
+.ll-aro-c span{font-size:.9rem;color:var(--mut);margin-top:4px}
+.ll-aro-c i{font-style:normal}
+/* 3 · el ticket: las barras se dibujan de izquierda a derecha, una detrás de otra, y el medidor de la media */
+.tk-nota .tk-n-b{clip-path:inset(0 100% 0 0);animation:tk-dibuja .9s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--i,0)*140ms + .25s)}
+@keyframes tk-dibuja{to{clip-path:inset(0 0 0 0)}}
+.tk-med{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.tk-med svg{width:min(150px,100%);height:auto;overflow:visible}
+.tk-med-p,.tk-med-f{fill:none;stroke-width:11;stroke-linecap:round}
+.tk-med-p{stroke:rgba(255,255,255,.1)}
+.tk-med-f{stroke-dasharray:0 400;transition:stroke-dasharray 1.2s cubic-bezier(.2,.8,.2,1) .2s}
+.tk-med-f.on{stroke-dasharray:var(--l) 400}
+.tk-med b{margin-top:-1.4em}
+/* 4 · escuadrones: la carrera (salen a cero, corren y se reordenan; el primero, coronado) */
+.esc-lista.carrera .esc-bar i{width:0;animation:none;transform:none;transition:width 1.9s cubic-bezier(.35,.7,.3,1)}
+.esc-lista.carrera.corre .esc-bar i{width:var(--w)}
+.esc-lista.carrera .esc-xp b{font-weight:800}
+.esc-corona{display:none}
+.esc-lista.acabada [data-lider] .esc-corona{display:inline-block;animation:ses-pop .5s ease-out both}
+.esc-lista.acabada [data-lider]{border-color:var(--amber);box-shadow:0 0 26px rgba(245,176,67,.22)}
+/* 5 · la portada: el curso en una línea, con los planetas en su semana y la nave en esta */
+.ruta-curso{margin-top:clamp(14px,3vh,28px);max-width:min(100%,640px)}
+.rc-linea{position:relative;height:clamp(44px,7vh,64px)}
+.rc-linea::before,.rc-hecho{content:"";position:absolute;left:0;top:50%;height:4px;margin-top:-2px;border-radius:4px}
+.rc-linea::before{right:0;background:rgba(255,255,255,.14)}
+.rc-hecho{width:0;background:linear-gradient(90deg,var(--teal),var(--amber));animation:rc-avanza 1.6s cubic-bezier(.3,.7,.3,1) .3s forwards}
+@keyframes rc-avanza{to{width:var(--hasta)}}
+.rc-m{position:absolute;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:rgba(255,255,255,.3)}
+.rc-m.hecho{background:#fff}
+.rc-pl{position:absolute;top:50%;z-index:1;width:clamp(26px,4.4vh,42px);height:auto;aspect-ratio:1;transform:translate(-50%,-50%);object-fit:contain;filter:grayscale(1) brightness(.55);transition:filter .4s}
+.rc-pl.hecho{filter:none}
+.rc-pl.aqui{width:clamp(38px,6.6vh,60px);filter:drop-shadow(0 0 10px rgba(55,224,236,.7))}
+.rc-nave{position:absolute;top:-4px;left:0;width:clamp(22px,3.4vh,32px);transform:translate(-50%,-100%) rotate(45deg);animation:rc-nave 1.6s cubic-bezier(.3,.7,.3,1) .3s forwards}
+@keyframes rc-nave{to{left:var(--hasta)}}
+.rc-txt{margin:4px 0 0;font-size:clamp(.85rem,1.2vw,1rem);color:var(--mut)}
+.rc-txt b{color:#fff}
+@media (prefers-reduced-motion:reduce){.tk-nota .tk-n-b{animation:none;clip-path:none}.tk-med-f,.ll-aro-f,.esc-lista.carrera .esc-bar i{transition:none}
+  .rc-hecho{animation:none;width:var(--hasta)}.rc-nave{animation:none;left:var(--hasta)}}
