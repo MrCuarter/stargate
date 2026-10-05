@@ -431,7 +431,10 @@ async function alistar(perId, datos, alAvanzar) {
   avisa("Guardando tus datos…");
   await setDoc(doc(db, "student_profiles", ficha.id, "privado", "datos"), {
     firstName: datos.nombre || "", lastName: datos.apellidos || "",
-    email: datos.correo || yo.correo, bitacora: datos.bitacora || "", bio: datos.bio || ""
+    email: datos.correo || yo.correo, bitacora: datos.bitacora || "", bio: datos.bio || "",
+    // 5-oct-2026 · lo que firmó al alistarse (la casilla de la política de privacidad): versión y momento. Va aquí, en lo
+    // privado, que el alumno ya puede escribir: sin reglas nuevas que desplegar
+    ...(datos.consentimiento && datos.consentimiento.v ? { consentimiento: { v: String(datos.consentimiento.v), t: Number(datos.consentimiento.t) || Date.now() } } : {})
   });
 
   avisa("Entregando tu insignia…");

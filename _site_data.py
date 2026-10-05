@@ -209,6 +209,17 @@ CRONO = [
 # Enlace público de la plantilla de Genially que el alumnado puede reutilizar.
 PLANTILLA_EPORTFOLIO = "https://view.genially.com/695f825d05cc22f3f7fac45b"
 
+# ---------- 5-oct-2026 · EL CONSENTIMIENTO (con el sí de Norberto) ----------
+# 🔴 Un dato, un sitio: la versión de la política de privacidad es LA de lo que se acepta. La página la enseña arriba
+# («Versión 2026-10-05»), el alistamiento la guarda con lo que se firma (privado/datos.consentimiento = {v, t}) y la Nave
+# vuelve a preguntar una vez a quien tenga otra versión o ninguna. Si la política cambia en algo que haya que volver a
+# aceptar, se cambia aquí (y la fecha de la página va con ella).
+PRIVACIDAD_V = "2026-10-05"
+PRIVACIDAD_FECHA = "5 de octubre de 2026"
+PRIVACIDAD_CONTACTO = "n.cuartero.10@gmail.com"
+CONSENTIMIENTO_TEXTO = ("He leído la política de privacidad y acepto participar en STARGATE. Es voluntario: "
+                        "puedo dejarlo y pedir que se borren mis datos cuando quiera.")
+
 # ---------- Geniallys (rellenar cuando haya enlaces) ----------
 # 15-sep · el paquete del equipo en Drive (mutecdgami): se comparte SOLO LECTURA con cada docente que se añade a un
 # grupo (lo hace el Mando cada día: mando/buzon.cjs compartir-drive). Hasta entonces, «pídesela a tu referente».

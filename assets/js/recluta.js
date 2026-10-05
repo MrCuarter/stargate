@@ -3997,6 +3997,86 @@
        .catch(function(e){ st.msgYo='No he podido entrar: '+esc(e.message); render(); });
     };
   }
+  /**
+   * 🔴 5-oct-2026 · EL CONSENTIMIENTO, A QUIEN YA ESTABA DENTRO. Desde el 5-oct, alistarse pide marcar una casilla («He leído la
+   * política de privacidad y acepto participar…»); quien se alistó antes no la marcó nunca. Se le pregunta UNA vez, al entrar
+   * en su Nave, con el mismo texto (window.SG_CONSENTIMIENTO, del build: la versión es la de la política publicada).
+   *   · «Acepto» → privado/datos.consentimiento = { v, t } (su ficha privada, que ya puede escribir: sin reglas nuevas).
+   *   · «No quiero participar» → se le explica cómo dejarlo (su Comandante o el contacto). NO se borra nada solo; en esta
+   *     visita no se le insiste, y se le vuelve a preguntar la próxima vez que entre.
+   * Nunca en la Nave proyectada o incrustada, el simulacro, la demo ni a quien es del equipo docente (ni a un fantasma, ni a
+   * una cuenta congelada, que no puede escribir en su ficha): a esos, lo de siempre sin pregunta.
+   */
+  var consPreguntando=false;
+  function pedirConsentimiento(seguir){
+    var C=window.SG_CONSENTIMIENTO||{}, M=window.SG&&window.SG.MOTOR, docente=false, dicho=false;
+    try{ docente=localStorage.getItem('sgEsDocente')==='1'; dicho=sessionStorage.getItem('sgConsNo_'+per)===C.v; }catch(e){}
+    if(!C.v||!motorNuevo()||DEMO||SIMULACRO||q.get('embed')==='1'||window.top!==window.self||docente
+       ||!st.yo||!st.yo.ficha||st.yo.congelado||st.yo.fantasma||!M||!M.getDoc||!M.setDoc) return seguir();
+    if(dicho) return;              // ya dijo que no en esta visita: ni pregunta ni bienvenidas encima
+    if(consPreguntando) return;    // (la sesión avisa dos veces al cargar: una sola ventana)
+    consPreguntando=true;
+    var ref=M.doc(M.db,'student_profiles',st.yo.ficha,'privado','datos');
+    M.getDoc(ref).then(function(d){
+      var dat=(d&&d.exists()&&d.data())||{};
+      // (y de paso, su Bitácora: es el mismo documento)
+      if(st.bit===undefined){ st.bit=String(dat.bitacora||'').trim(); pintarBitacora(); }
+      if(dat.consentimiento&&dat.consentimiento.v===C.v){ consPreguntando=false; return seguir(); }
+      ventanaConsentimiento(ref, C, seguir);
+    },function(){ consPreguntando=false; seguir(); });
+  }
+  function ventanaConsentimiento(ref, C, seguir){
+    var M=window.SG.MOTOR;
+    var texto=esc(C.texto||'').replace('política de privacidad','<a href="privacidad.html" target="_blank" rel="noopener">política de privacidad</a>');
+    var contacto=esc(C.contacto||'');
+    var capa=document.createElement('div'); capa.className='sgp-capa cons-capa';
+    capa.innerHTML='<div class="sgp-caja cons-caja" role="dialog" aria-modal="true" aria-labelledby="cons-t"></div>';
+    var caja=capa.firstChild;
+    function pregunta(){
+      caja.innerHTML='<p class="sgp-quien"><img class=ico src=assets/img/iconos/p/envivo.png alt> NEBULA</p>'
+        +'<h3 id="cons-t">Antes de seguir, una cosa importante</h3>'
+        +'<div class="sgp-txt"><p>Hemos puesto al día la política de privacidad de STARGATE. Para seguir a bordo necesito que me confirmes esto:</p></div>'
+        +'<p class="cons-texto">'+texto+'</p>'
+        +'<div class="sgp-bot"><button type="button" class="btn min" data-cons-no>No quiero participar</button>'
+        +'<button type="button" class="btn min primary" data-cons-si>Acepto</button></div>';
+      caja.querySelector('[data-cons-si]').onclick=function(){
+        var b=this; b.disabled=true; b.textContent='Guardando…';
+        M.setDoc(ref,{consentimiento:{v:C.v, t:Date.now()}},{merge:true}).then(function(){
+          cerrar(); aviso('<b>Gracias, recluta.</b> Seguimos a bordo.'); seguir();
+        },function(){
+          // si no se ha podido guardar (sin red), se cierra igual y se le vuelve a preguntar la próxima vez
+          cerrar(); aviso('No he podido guardar tu respuesta. Te lo volveré a preguntar la próxima vez que entres.', true); seguir();
+        });
+      };
+      caja.querySelector('[data-cons-no]').onclick=salida;
+      setTimeout(function(){ var f=caja.querySelector('[data-cons-si]'); try{ f.focus({preventScroll:true}); }catch(e){} }, 30);
+    }
+    function salida(){
+      caja.innerHTML='<p class="sgp-quien"><img class=ico src=assets/img/iconos/p/envivo.png alt> NEBULA</p>'
+        +'<h3 id="cons-t">Sin problema: participar es voluntario</h3>'
+        +'<div class="sgp-txt"><p>Puedes dejar STARGATE y seguir la asignatura de otra forma. Para darte de baja y que se borren tus datos, '
+        +'<b>díselo a tu Comandante</b> (tu docente) o escribe a <a href="mailto:'+contacto+'">'+contacto+'</a>.</p>'
+        +'<p>Mientras no lo pidas, tu ficha se queda como está: <b>no se borra nada por sí solo</b>. Si cambias de idea, te lo volveré a preguntar la próxima vez que entres.</p></div>'
+        +'<div class="sgp-bot"><button type="button" class="btn min" data-cons-volver>Volver</button>'
+        +'<button type="button" class="btn min primary" data-cons-ok>Entendido</button></div>';
+      caja.querySelector('[data-cons-volver]').onclick=pregunta;
+      caja.querySelector('[data-cons-ok]').onclick=function(){
+        try{ sessionStorage.setItem('sgConsNo_'+per, C.v); }catch(e){}
+        cerrar();
+      };
+      setTimeout(function(){ var f=caja.querySelector('[data-cons-ok]'); try{ f.focus({preventScroll:true}); }catch(e){} }, 30);
+    }
+    function cerrar(){ consPreguntando=false; capa.classList.add('cerrando'); setTimeout(function(){ if(capa.parentNode) capa.parentNode.removeChild(capa); }, 130); }
+    // 🔴 no se cierra pulsando fuera ni con Escape: es una respuesta, no un aviso (cerrarla sin querer sería un «no» que no ha dicho)
+    capa.addEventListener('keydown',function(ev){
+      if(ev.key==='Escape'){ ev.preventDefault(); ev.stopPropagation(); return; }
+      if(ev.key!=='Tab') return;
+      var fs=[].slice.call(caja.querySelectorAll('button:not([disabled]), a[href]')), i=fs.indexOf(document.activeElement);
+      ev.preventDefault(); fs[(i+(ev.shiftKey?-1:1)+fs.length)%fs.length].focus();
+    });
+    pregunta();
+    document.body.appendChild(capa);
+  }
   // Con sesión iniciada no hace falta preguntar nada: quien pide la ficha ES quien ha entrado.
   function identificarPorSesion(){
     // 🔴 Sin los datos del grupo no hay Nave que pintar. Si el enlace trae un grupo que no existe,
@@ -4012,9 +4092,12 @@
         if(st.email) localStorage.setItem(KEY_MAIL,st.email);
         // 23-sep · la marca del recluta: enciende «Guía del recluta» (pie y menú «···») y abre su puerta
         try{ if(!DEMO&&!SIMULACRO){ localStorage.setItem('sgEsRecluta','1'); document.dispatchEvent(new CustomEvent('sg:rol')); } }catch(e){}
+        // 5-oct · antes que nada, el consentimiento (una vez): lo de siempre al entrar va detrás, y solo si acepta
+        pedirConsentimiento(function(){
         setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200); setTimeout(sorteosAlEntrar, 900); setTimeout(ofertaAlEntrar, 1100);
         setTimeout(comprobarHitos, 1800);   // 15-sep · el día a bordo y los logros que ya se vean en los datos
         setTimeout(comprobarBatalla, 2400);  // 16-sep · el reto de la batalla, si ganó y no llegó a registrarse (desde el 23-sep, ninguno: BT.reto = null)
+        });
       } else if(d&&d.sinSesion&&!DEMO&&window.top===window.self&&q.get('embed')!=='1'){
         /**
          * 🔴 13-sep · SIN SESIÓN, A LA PUERTA ÚNICA. La Nave tenía su propia caja «Identifícate,

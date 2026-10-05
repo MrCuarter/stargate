@@ -15,7 +15,8 @@ from _site_data import (GOOGLE_CLIENT_ID, RUTA, SALA_JORAN, DIRECTO, ASEDIO, JUE
                         PASOS, ESCUADRONES, PER_DEMO, PER_ESCUELA, PER_ACADEMIA, ACADEMIA, ENLACES_EQUIPO, TICKET_URL, TICKET_TEMAS, TICKETS_API, TICKETS_HOJA, PANEL_MAESTRO, PANEL_MAESTRO_EDICION, DRIVE_EQUIPO,
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES,
                         HITOS_A_BORDO, CUBIERTAS_A_BORDO, HEROES_A_BORDO, CARTA_A_BORDO, BATALLA, SIN_PUA, VOTACION,
-                        PLANETA_FIN, TRIPULANTES)
+                        PLANETA_FIN, TRIPULANTES,
+                        PRIVACIDAD_V, PRIVACIDAD_FECHA, PRIVACIDAD_CONTACTO, CONSENTIMIENTO_TEXTO)
 # Los logros de a bordo, tal y como los lee el navegador (un dato, un sitio: _site_data.py)
 _A_BORDO = {
     "cubiertas": [{"clave": c[0], "nombre": c[1], "sub": c[2], "premio": c[3]} for c in CUBIERTAS_A_BORDO],
@@ -3252,33 +3253,48 @@ borradores.</p>
 # de pulsar el botón. Una política detrás de un PIN no es una política.
 # Se describe lo que el sistema hace DE VERDAD, no lo que quedaría bonito: si mañana cambia lo que
 # se recoge, esto se cambia el mismo día.
+# 5-oct-2026 · con el CONSENTIMIENTO (Norberto, de baja: aprobado el 5-oct). La versión y la fecha salen de _site_data.py
+# (PRIVACIDAD_V): son las mismas que guarda el alistamiento con lo que se firma y las que mira la Nave para preguntar una vez.
+# 🔴 Aquí no se nombra ninguna herramienta concreta de inteligencia artificial: «herramientas de inteligencia artificial».
+_CONTACTO_A = '<a href="mailto:' + PRIVACIDAD_CONTACTO + '">' + PRIVACIDAD_CONTACTO + '</a>'
+_CONSENT_JSON = json.dumps({"v": PRIVACIDAD_V, "texto": CONSENTIMIENTO_TEXTO, "contacto": PRIVACIDAD_CONTACTO}, ensure_ascii=False)
 PRIVACIDAD = head("STARGATE · Política de privacidad",
   "Qué datos recoge STARGATE, para qué, quién los ve y cómo pedir que se borren.",
   "", publica=True) + '''
-<header class="hero"><div class="kicker">Última actualización: 13 de septiembre de 2026</div>
+<header class="hero"><div class="kicker">Última actualización: ''' + PRIVACIDAD_FECHA + ''' · Versión ''' + PRIVACIDAD_V + '''</div>
 <h1>Política de privacidad</h1>
 <p>STARGATE · La Bitácora Estelar es el <b>proyecto gamificado del Máster en Tecnología Educativa de
 la UNIR</b>. Esta página cuenta, sin rodeos, qué datos se recogen, para qué sirven, quién puede
-verlos y cómo pedir que se borren.</p></header>
+verlos y cómo pedir que se borren. <b>Participar es voluntario</b> y se hace con tu consentimiento.</p></header>
 
 <section><div class="wrap">
 
 <h2>1 · Quién trata los datos</h2>
-<p>El profesorado del máster, encabezado por <b>Norberto Cuartero</b>, con fines exclusivamente
-docentes dentro de la asignatura. Para cualquier cosa relacionada con tus datos:
-<a href="mailto:n.cuartero.10@gmail.com">n.cuartero.10@gmail.com</a>.</p>
+<p>El equipo docente del máster, encabezado por <b>Norberto Cuartero</b>, con fines exclusivamente
+docentes dentro de la asignatura. Para cualquier cosa relacionada con tus datos: ''' + _CONTACTO_A + '''.</p>
+<p>También puedes dirigirte a la <b>Delegación de Protección de Datos de la UNIR</b> por los cauces que la
+universidad ofrece a su alumnado.</p>
 
-<h2>2 · Qué datos se recogen</h2>
-<p>Solo lo necesario para que el juego funcione. Nada más.</p>
+<h2>2 · Por qué se pueden tratar: tu consentimiento</h2>
+<p>Los datos se tratan porque <b>tú das tu consentimiento</b> (artículo 6.1.a del Reglamento General de
+Protección de Datos). Al alistarte marcas una casilla que dice:</p>
+<p class="small"><i>«''' + CONSENTIMIENTO_TEXTO + '''»</i></p>
+<p>Se guarda que lo aceptaste, cuándo y la versión de esta página que aceptaste. Quien ya estaba
+alistado antes de esta versión lo confirma una vez, la próxima vez que entra en su Nave.</p>
+<p><b>Es voluntario:</b> si prefieres no usar STARGATE, díselo a tu docente y se acuerda otra forma de
+seguir la asignatura. Y puedes retirar el consentimiento cuando quieras (punto 9); retirarlo no
+afecta a lo que se hizo antes.</p>
+
+<h2>3 · Qué datos se recogen</h2>
+<p>Solo lo necesario para que el juego funcione.</p>
 
 <h3>Al iniciar sesión con Google (es la única forma de entrar)</h3>
-<p>Se recibe <b>tu dirección de correo y tu nombre público</b>. Nada más. En concreto:</p>
+<p>Se recibe <b>tu dirección de correo y tu nombre público</b>. En concreto:</p>
 <ul>
 <li><img class=ico src=assets/img/iconos/p/candado.png alt> <b>No</b> se recibe ni se pide tu contraseña.</li>
-<li><img class=ico src=assets/img/iconos/p/candado.png alt> <b>No</b> hay acceso a tu Drive, tu Gmail, tus contactos ni tus documentos. La pantalla de
-  permisos de Google lo dice: solo «ver tu dirección de correo electrónico».</li>
-<li>El correo sirve para <b>encontrar tu ficha</b> y para que nadie pueda registrar misiones ni
-  canjear recompensas haciéndose pasar por ti.</li>
+<li><img class=ico src=assets/img/iconos/p/candado.png alt> <b>No</b> hay acceso a tu Drive, tu Gmail, tus contactos ni tus documentos.</li>
+<li>El correo sirve para <b>encontrar tu ficha</b>, para que nadie pueda registrar misiones ni
+  canjear recompensas haciéndose pasar por ti y para el correo de bienvenida (punto 4).</li>
 </ul>
 
 <h3>Lo que escribes tú</h3>
@@ -3288,47 +3304,90 @@ docentes dentro de la asignatura. Para cualquier cosa relacionada con tus datos:
 <li><b>Quién imparte tu clase</b>, para que tu docente vea tu progreso.</li>
 <li><b>El enlace a tu Bitácora</b> (tu ePortfolio) y las evidencias de cada misión.</li>
 <li>Una <b>biografía breve</b> de tu personaje, si quieres escribirla.</li>
+<li>Las <b>dudas que envías</b> al equipo docente desde «Pregunta a NEBULA» (punto 5).</li>
 </ul>
 
 <h3>Lo que genera el juego</h3>
-<p>Misiones completadas, experiencia, nivel, créditos, insignias, cartas y recompensas canjeadas.</p>
+<p>Misiones completadas, experiencia, nivel, créditos, insignias, cartas, héroes y recompensas
+canjeadas; cuándo fichas en la llamada a filas de cada clase; tus respuestas y votos en las
+actividades en directo; tus compras en el Bazar, lo que intercambias en el Zoco y tus
+participaciones en los sorteos. Y la constancia de tu consentimiento (punto 2).</p>
 
 <h3>Los tickets de salida</h3>
 <p><b>Son anónimos.</b> No se guarda quién los escribe. Sirven para que el docente sepa qué ha
 quedado flojo en clase, no para saber quién lo dijo.</p>
 
-<h2>3 · Dónde se guardan</h2>
-<p>En <b>Google Firebase</b> (la base de datos de Google Cloud), dentro de un proyecto gestionado por el
-equipo docente del máster. Los <b>tickets de salida</b>, que son anónimos, van a un formulario y una hoja de
-cálculo de Google. No hay servidores propios para los datos: la infraestructura es de Google, con conexión
-cifrada, y las reglas de la base de datos impiden que nadie lea la ficha de otra persona.</p>
+<h3>En tu navegador</h3>
+<p>La web guarda en tu propio navegador tu sesión y algunas preferencias (por ejemplo, qué
+bienvenidas de NEBULA has visto). <b>No hay cookies de publicidad ni de analítica.</b></p>
 
-<h2>4 · Quién puede verlos</h2>
+<h2>4 · El correo de bienvenida</h2>
+<p>Al alistarte recibes <b>un único correo</b> que te recuerda con qué cuenta te has inscrito, para que
+entres siempre con la misma. Lleva tu nombre, tu alias, tu grupo y tu Comandante. Sale de <b>una cuenta
+de Google del equipo docente</b>, mediante Google Apps Script. No es publicidad y no hay más envíos
+automáticos al alumnado.</p>
+
+<h2>5 · El canal de ayuda («Pregunta a NEBULA»)</h2>
+<ul>
+<li><b>NEBULA contesta sola</b> con respuestas fijas que vienen ya escritas en la web. La búsqueda se hace
+  en tu navegador: lo que le preguntas a NEBULA <b>no se envía a ningún sitio</b>.</li>
+<li>Si NEBULA no sabe la respuesta y pulsas <b>«Enviar mi duda»</b>, tu mensaje llega al buzón del equipo
+  docente con tu alias, tu grupo y el correo de tu cuenta (para saber que es tuyo). La respuesta te
+  aparece en tu chat.</li>
+<li>El equipo docente prepara las respuestas <b>con ayuda de herramientas de inteligencia artificial,
+  siempre bajo supervisión humana</b>. Por eso tu mensaje y los datos que lo acompañan pueden ser tratados
+  por el proveedor de esa herramienta. <b>No escribas en tus dudas datos personales que no hagan falta.</b></li>
+</ul>
+
+<h2>6 · Dónde se guardan y quién presta el servicio</h2>
+<ul>
+<li><b>Google</b> (Firebase y Google Cloud) es el proveedor de la infraestructura: la base de datos, el
+  inicio de sesión y el almacenamiento de archivos, dentro de un proyecto gestionado por el equipo
+  docente del máster. La conexión va cifrada y las reglas de la base de datos impiden que nadie lea
+  la ficha de otra persona.</li>
+<li>Los <b>tickets de salida</b>, que son anónimos, van a un formulario y una hoja de cálculo de Google.
+  El correo de bienvenida sale por Google Apps Script (punto 4).</li>
+<li>Las páginas de la web (que no guardan tus datos) se sirven desde un <b>alojamiento web</b> que, como
+  cualquier servidor, registra técnicamente las visitas.</li>
+<li>Los vídeos de YouTube se insertan en su <b>modo de privacidad mejorada</b>.</li>
+<li><b>Transferencias internacionales.</b> Google puede tratar datos fuera del Espacio Económico Europeo;
+  cuando lo hace, se ampara en las <b>cláusulas contractuales tipo</b> aprobadas por la Comisión Europea,
+  que forman parte de sus condiciones de tratamiento de datos. Lo mismo puede ocurrir con el proveedor de
+  las herramientas de inteligencia artificial del punto 5, con las garantías que ofrezca ese proveedor.</li>
+</ul>
+
+<h2>7 · Quién puede verlos</h2>
 <ul>
 <li><b>El profesorado de tu asignatura.</b> Cada docente ve a su grupo.</li>
+<li><b>El equipo docente que atiende el buzón</b> ve las dudas que le envías.</li>
 <li><img class=ico src=assets/img/iconos/p/candado.png alt> <b>El tablero público de clase enseña SOLO tu alias</b>, tu avatar y tus puntos. Nunca tu
   correo ni tu nombre real, ni siquiera si el docente comparte pantalla. Está construido así a
   propósito: esos datos no salen del servidor.</li>
-<li><b>Nadie más.</b> No se venden, no se ceden, no se usan para publicidad y no se comparten con
-  ninguna empresa. Tampoco hay analítica ni rastreo de terceros en esta web.</li>
+<li><b>Nadie más</b>, fuera de los proveedores de servicio de los puntos 5 y 6. No se venden, no se ceden,
+  no se usan para publicidad y no hay analítica ni rastreo de terceros en esta web.</li>
 </ul>
 
-<h2>5 · Cuánto tiempo</h2>
+<h2>8 · Cuánto tiempo</h2>
 <p>Durante el curso y el periodo de evaluación. Después el grupo se archiva, y se borra cuando ya no
 hace falta para justificar las calificaciones. Puedes pedir que se borre lo tuyo antes.</p>
 
-<h2>6 · Tus derechos</h2>
-<p>Puedes pedir <b>ver, corregir o borrar</b> tus datos cuando quieras, y <b>retirar el permiso</b>
-que le diste a la aplicación desde
-<a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">tu cuenta de
-Google</a>. Escribe a <a href="mailto:n.cuartero.10@gmail.com">n.cuartero.10@gmail.com</a> y se
-atiende.</p>
-<p class="small muted">Participar en la gamificación es <b>voluntario</b>: si prefieres no usarla,
-díselo a tu docente y se acuerda otra forma de seguir la asignatura.</p>
+<h2>9 · Tus derechos y cómo dejarlo</h2>
+<p>Puedes pedir <b>ver, corregir o borrar</b> tus datos, <b>oponerte</b> a su uso, <b>limitarlo</b> o
+<b>llevártelos</b>, cuando quieras.</p>
+<ul>
+<li><b>Para dejar STARGATE y retirar tu consentimiento:</b> díselo a tu Comandante (tu docente) o escribe a
+  ''' + _CONTACTO_A + '''. Se da de baja tu ficha y se borran tus datos personales, y se acuerda contigo
+  otra forma de seguir la asignatura. Mientras no lo pidas, no se borra nada por sí solo.</li>
+<li>Puedes <b>retirar el permiso</b> que le diste a la aplicación desde
+  <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">tu cuenta de Google</a>.</li>
+<li>Si crees que tus datos no se han tratado bien, puedes reclamar ante la
+  <a href="https://www.aepd.es" target="_blank" rel="noopener">Agencia Española de Protección de Datos</a>.</li>
+</ul>
 
-<h2>7 · Si esto cambia</h2>
+<h2>10 · Si esto cambia</h2>
 <p>Si algún día se recoge algo distinto, se cambia esta página <b>el mismo día</b> y se avisa en
-clase. La fecha de arriba dice cuándo se tocó por última vez.</p>
+clase. La fecha y la versión de arriba dicen cuándo se tocó por última vez; si el cambio es de los que
+hay que volver a aceptar, tu Nave te lo preguntará la próxima vez que entres.</p>
 
 </div></section>
 ''' + FOOT
@@ -3971,7 +4030,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_RETOS_TIPO={json.dumps(RETOS_TIPO, ensure_ascii=False)};window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(_ACT_NAVE, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_RUTA={json.dumps(RUTA, ensure_ascii=False)};window.SG_SALA_JORAN={json.dumps(SALA_JORAN, ensure_ascii=False)};window.SG_DIRECTO={json.dumps(DIRECTO, ensure_ascii=False)};window.SG_ASEDIO={json.dumps(ASEDIO, ensure_ascii=False)};window.SG_JUEGOS={json.dumps(JUEGOS)};</script>
+<script>window.SG_RETOS_TIPO={json.dumps(RETOS_TIPO, ensure_ascii=False)};window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(_ACT_NAVE, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_RUTA={json.dumps(RUTA, ensure_ascii=False)};window.SG_SALA_JORAN={json.dumps(SALA_JORAN, ensure_ascii=False)};window.SG_DIRECTO={json.dumps(DIRECTO, ensure_ascii=False)};window.SG_ASEDIO={json.dumps(ASEDIO, ensure_ascii=False)};window.SG_JUEGOS={json.dumps(JUEGOS)};window.SG_CONSENTIMIENTO={_CONSENT_JSON};</script>
 <script src="assets/js/secreto.js" defer></script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sobre.js" defer></script>
@@ -5250,7 +5309,7 @@ _html = head("STARGATE · Alistarse",
 <p>Se hace una vez. Entra con tu cuenta, di quién eres y elige a tu Comandante: él te llevará a tu escuadrón.</p></header>
 <section id="alistarse"><div class="wrap">
 <div id="alistarse-app"><p class="muted">Cargando…</p></div>
-''' + '<script>window.SG_PLANTILLA_EP=' + json.dumps(PLANTILLA_EPORTFOLIO) + ';</script><script src="' + _v("assets/js/alistarse.js") + '" defer></script>' + '''
+''' + '<script>window.SG_PLANTILLA_EP=' + json.dumps(PLANTILLA_EPORTFOLIO) + ';window.SG_CONSENTIMIENTO=' + _CONSENT_JSON + ';</script><script src="' + _v("assets/js/alistarse.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "alistarse.html"), "w", encoding="utf-8").write(_ver_assets(_html))

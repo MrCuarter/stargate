@@ -19,7 +19,17 @@
   var app = document.querySelector("#alistarse-app");
   if (!app) return;
   var PER = new URLSearchParams(location.search).get("per") || "";
-  var MOTOR = null, YO = null, PROY = null, sel = { n: 1, v: "f" };
+  var MOTOR = null, YO = null, PROY = null, sel = { n: 1, v: "f" }, DEMO = false;
+  /**
+   * 5-oct-2026 · EL CONSENTIMIENTO (con el sí de Norberto). El texto y la versión vienen del build (_site_data.py →
+   * PRIVACIDAD_V y CONSENTIMIENTO_TEXTO): son los de la política publicada. Sin marcar la casilla, «Embarcar» no se
+   * enciende; y lo firmado se guarda con la ficha, en privado/datos.consentimiento = { v, t }.
+   */
+  var CONS = window.SG_CONSENTIMIENTO || { v: "", texto: "" };
+  function textoConsentimiento() {
+    return esc(CONS.texto).replace("política de privacidad",
+      '<a href="privacidad.html" target="_blank" rel="noopener">política de privacidad</a>');
+  }
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
@@ -36,8 +46,8 @@
       '<p><button class="btn primary grande btn-google" id="a-entrar">' +
       ((window.SG && window.SG.LOGO_G) || "") +
       '<span>Iniciar sesión con Google</span></button></p>' +
-      '<p class="small muted">Solo pedimos tu nombre y tu correo. Puedes leer la ' +
-      '<a href="privacidad.html">política de privacidad</a>.</p>');
+      '<p class="small muted">Participar es voluntario. Antes de alistarte, puedes leer qué datos se guardan en la ' +
+      '<a href="privacidad.html" target="_blank" rel="noopener">política de privacidad</a>.</p>');
     document.querySelector("#a-entrar").onclick = function () {
       MOTOR.entrar().catch(function (e) { fallo(e.message); });
     };
@@ -171,6 +181,10 @@
         '<textarea id="a-bio" maxlength="280" rows="3" ' +
         'placeholder="Antes de embarcar, yo…"></textarea></label></div>' +
 
+      // 5-oct · la casilla del consentimiento: obligatoria y SIN marcar de serie (lo que se marca solo no es consentir)
+      '<div class="card a-consiento"><label class="a-acepto"><input type="checkbox" id="a-acepto">' +
+      '<span>' + textoConsentimiento() + '</span></label></div>' +
+
       /**
        * 🔴 EL ÚLTIMO BOTÓN DEL ALISTAMIENTO. Era un botón gris pequeño perdido en una caja medio
        * vacía, y es el momento en que alguien entra en el juego para todo el curso. Si el sistema
@@ -211,6 +225,9 @@
     };
     pintarAvatares();
     document.querySelector("#a-enviar").onclick = alistar;
+    var acepto = document.querySelector("#a-acepto"), enviar = document.querySelector("#a-enviar");
+    var repasa = function () { enviar.disabled = DEMO || !acepto.checked; };
+    acepto.onchange = repasa; repasa();
     // 🔴 13-sep · Marcado de antemano SOLO si hay un Comandante. Con varios, marcar el primero hacía
     // que quien no mirara acabara en el escuadrón de otro docente sin enterarse: se elige a mano.
     var rs = app.querySelectorAll('input[name="cmd"]'); if (rs.length === 1) rs[0].checked = true;
@@ -263,6 +280,9 @@
     var comandante = elegido ? docentes()[Number(elegido.value)] : null;
     if (!elegido && docentes().length > 1)
       return aviso("Elige a tu Comandante: es quien te da clase, y con él te toca su escuadrón.");
+    var acepto = document.querySelector("#a-acepto");
+    if (!acepto || !acepto.checked)
+      return aviso("Para embarcar, marca la casilla de la política de privacidad: participar es voluntario y se hace con tu permiso.");
     aviso("");
     var boton = document.querySelector("#a-enviar"); boton.disabled = true;
     var paso = document.querySelector("#a-paso");
@@ -273,11 +293,12 @@
         comandante: comandante ? comandante.nombre : "",
         avatar: { tipo: "evo", n: sel.n, v: sel.v, url: "" },
         bitacora: document.querySelector("#a-bitacora").value.trim(),
-        bio: document.querySelector("#a-bio").value.trim()
+        bio: document.querySelector("#a-bio").value.trim(),
+        consentimiento: { v: CONS.v || "", t: Date.now() }
       }, function (t) { paso.textContent = t; });
       bienvenida(alias, comandante, escuadron);
     } catch (e) {
-      boton.disabled = false; paso.textContent = "";
+      boton.disabled = !(acepto && acepto.checked); paso.textContent = "";
       aviso(e.message || "El servidor no ha aceptado el alta.");
     }
   }
@@ -406,6 +427,7 @@
      * Y de paso sirve para enseñarle el alistamiento a una clase sin que nadie se aliste de verdad.
      */
     if (new URLSearchParams(location.search).get("demo") === "1") {
+      DEMO = true;
       YO = { correo: "recluta@ejemplo.es", nombre: "Recluta" };
       PROY = { id: PER, name: "CLASE DEMO", stargate: { docentes: [
         { nombre: "Mr Cuarter", rol: "referente" },
