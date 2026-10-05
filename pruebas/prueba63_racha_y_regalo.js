@@ -30,7 +30,8 @@ igual(bonus(40), 25, "🔴 y de ahí no pasa: sin tope, quien no falta nunca aca
 // laboratorio. Estas comprobaciones miran ahora donde vive la cuenta de verdad.
 const SERVIDOR = require("fs").readFileSync("/Users/nor/Claude/vibewebs/gamificapro/functions/stargate.js", "utf8");
 c(/Math\.min\(25, Math\.max\(0, \(racha - 1\) \* 5\)\)/.test(SERVIDOR), "y es la cuenta que hay en el servidor");
-c(/llamar\("stargateAsistencia"/.test(motor), "🔴 y el navegador la PIDE al servidor: ya no se la paga a sí mismo");
+// 5-oct · se la pide al fichar (`modFichar`), que llama a la misma cuenta (`extrasDeLaLlamada`, en stargate.js)
+c(/llamar\("modFichar"/.test(motor) && /export async function extrasDeLaLlamada/.test(SERVIDOR), "🔴 y el navegador la PIDE al servidor: ya no se la paga a sí mismo");
 c(!/deltaCoins: extra,\s*source: "teacher_resource_adjustment"/.test(motor),
   "   y no queda ni rastro del pago desde el navegador, que el servidor rechazaba en silencio");
 

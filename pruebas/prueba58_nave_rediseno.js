@@ -111,9 +111,11 @@ c(/escuadrones: \(\(P\.factions \|\| \[\]\)\)/.test(
 // ---------------------------------------------------------------- f) la llamada a filas
 c(/attendance_sessions/.test(MOTOR) && /attendance_records/.test(MOTOR),
   "🔴 la llamada usa la asistencia que GamificaPro YA tenía: no se ha inventado un sistema paralelo");
-c(/source: "attendance_session_auto_reward"/.test(MOTOR),
-  "   y paga por la fuente que el servidor verifica");
-c(/idempotencyKey: "xp_attendance_"/.test(MOTOR), "   con clave de idempotencia: fichar dos veces no cobra dos veces");
+// 5-oct · desde la fase 4 de GamificaPro, el registro y el cobro los hace el servidor (`modFichar`, functions/modAsistencia.js)
+const ASIS = require("fs").existsSync("/Users/nor/Claude/vibewebs/gamificapro/functions/modAsistencia.js") ? require("fs").readFileSync("/Users/nor/Claude/vibewebs/gamificapro/functions/modAsistencia.js", "utf8") : "";
+c(/llamar\("modFichar"/.test(MOTOR) && /source: 'attendance_session_auto_reward'/.test(ASIS),
+  "   y paga por la fuente que el servidor verifica (lo hace el servidor: modFichar)");
+c(/xp_attendance_\$\{projectId\}_\$\{s\.id\}_\$\{uid\}/.test(ASIS), "   con clave de idempotencia: fichar dos veces no cobra dos veces");
 c(/restrictedFactionId/.test(MOTOR), "🔴 y se restringe al escuadrón de quien la toca, no a todo el grupo");
 // La palabra solo aparece en el comentario que explica POR QUÉ no la hay. En el código, ni rastro.
 const codigoMotor = MOTOR.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");

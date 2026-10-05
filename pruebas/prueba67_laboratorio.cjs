@@ -104,6 +104,7 @@ const REG = {};   // cifras que se apuntan para el informe
   // de una prueba sale NEBULA contando el Mercado)
   const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10','c11'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
   // alistarse de verdad, por la pantalla (lo usan la clase entera y el héroe por enlace)
+  // 5-oct · cada «Embarcar» marca antes la casilla del consentimiento (obligatoria desde el 5-oct; sin ella el botón está apagado)
   const alistar = async (p, correo, nombre, alias, cmd) => {
     await p.ir("alistarse.html?per=lab-clase&codigo=" + CODIGO);
     await p.entrarComo(correo, nombre);
@@ -111,7 +112,7 @@ const REG = {};   // cifras que se apuntan para el informe
     await p.js(`(function(){ document.querySelector('#a-nombre').value=${JSON.stringify(nombre.split(" ")[0])};
       document.querySelector('#a-apellidos').value='Prueba'; document.querySelector('#a-alias').value=${JSON.stringify(alias)};
       var r=document.querySelectorAll('input[name=cmd]')[${cmd || 0}]; if(r) r.checked=true; return 1; })()`);
-    await p.js("document.querySelector('#a-enviar').click(); 1");
+    await p.js("(function(){var a=document.querySelector('#a-acepto');if(a&&!a.checked){a.checked=true;if(a.onchange)a.onchange();}})(); document.querySelector('#a-enviar').click(); 1");
     return p.hasta("!document.querySelector('#a-enviar')", 25);
   };
   try {
@@ -189,7 +190,7 @@ const REG = {};   // cifras que se apuntan para el informe
         var r=document.querySelector('input[name=cmd]'); if(r) r.checked=true;
         var av=document.querySelector('#a-avatares button, #a-avatares .av'); if(av) av.click();
         return 1; })()`);
-      await ana.js("document.querySelector('#a-enviar').click(); 1");
+      await ana.js("(function(){var a=document.querySelector('#a-acepto');if(a&&!a.checked){a.checked=true;if(a.onchange)a.onchange();}})(); document.querySelector('#a-enviar').click(); 1");
       const bienvenida = await ana.hasta("/Bienvenid|Embarc|tu Nave/i.test(document.body.innerText) && !document.querySelector('#a-enviar')", 25);
       c("alumna · se alista de verdad (el motor crea su ficha)", bienvenida, (await ana.texto()).slice(0, 200));
       // 🔴 13-sep · la bienvenida tenía HTML y NINGÚN estilo: una columna de imágenes a tamaño natural.
@@ -263,7 +264,7 @@ const REG = {};   // cifras que se apuntan para el informe
       if (form) {
         await p.js(`(function(){ document.querySelector('#a-nombre').value='Dani'; document.querySelector('#a-apellidos').value='Docente';
           document.querySelector('#a-alias').value='Doble'; var r=document.querySelector('input[name=cmd]'); if(r) r.checked=true; return 1; })()`);
-        await p.js("document.querySelector('#a-enviar').click(); 1");
+        await p.js("(function(){var a=document.querySelector('#a-acepto');if(a&&!a.checked){a.checked=true;if(a.onchange)a.onchange();}})(); document.querySelector('#a-enviar').click(); 1");
         await p.hasta("!document.querySelector('#a-enviar')", 25);
       }
       await p.ir("entrar.html");
@@ -945,7 +946,7 @@ const REG = {};   // cifras que se apuntan para el informe
         document.querySelector('#a-alias').value='Lyra Nueva';
         var r=document.querySelector('input[name=cmd]'); if(r) r.checked=true;
         var av=document.querySelector('#a-avatares button, #a-avatares .av'); if(av) av.click(); return 1; })()`);
-      await leo.js("document.querySelector('#a-enviar').click(); 1");
+      await leo.js("(function(){var a=document.querySelector('#a-acepto');if(a&&!a.checked){a.checked=true;if(a.onchange)a.onchange();}})(); document.querySelector('#a-enviar').click(); 1");
       await leo.hasta("!document.querySelector('#a-enviar')", 25);
       await leo.ir("recluta.html?per=lab-clase");
       const sale = await leo.hasta("!!document.querySelector('#nave-onboard.open')", 25);
@@ -1289,7 +1290,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await dup.hasta("!!document.querySelector('#a-enviar')", 25);
       await dup.js(`(function(){ document.querySelector('#a-nombre').value='Dup'; document.querySelector('#a-apellidos').value='Prueba';
         document.querySelector('#a-alias').value='halo'; var r=document.querySelectorAll('input[name=cmd]')[0]; if(r) r.checked=true;
-        document.querySelector('#a-enviar').click(); return 1; })()`);
+        (function(){var a=document.querySelector('#a-acepto');if(a&&!a.checked){a.checked=true;if(a.onchange)a.onchange();}})(); document.querySelector('#a-enviar').click(); return 1; })()`);
       const rechazo = await dup.hasta("/ya lo lleva alguien/i.test(document.body.innerText)", 20);
       c("🔴 alias · «halo» no se acepta si ya hay un «Halo» en el grupo", rechazo && !(await fichaDe("dup@lab.test", "lab-clase")), (await dup.texto()).slice(0, 200));
 
@@ -2498,7 +2499,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await al.hasta("!!document.querySelector('#a-enviar')", 25);
       await al.js(`(function(){ document.querySelector('#a-nombre').value='Borja'; document.querySelector('#a-apellidos').value='Prueba';
         document.querySelector('#a-alias').value='Borja Bólido'; var r=document.querySelector('input[name=cmd]'); if(r) r.checked=true; return 1; })()`);
-      await al.js("document.querySelector('#a-enviar').click(); 1"); await al.hasta("!document.querySelector('#a-enviar')", 25); await al.cerrar();
+      await al.js("(function(){var a=document.querySelector('#a-acepto');if(a&&!a.checked){a.checked=true;if(a.onchange)a.onchange();}})(); document.querySelector('#a-enviar').click(); 1"); await al.hasta("!document.querySelector('#a-enviar')", 25); await al.cerrar();
       const fB = await fichaDe("borrable@lab.test", id);
       await fs.collection("stargate_zoco").add({ projectId: id, estado: "abierto", vende: { ficha: fB ? fB._id : "", uid: fB ? fB._uid : "", alias: "Borja Bólido" },
         pieza: { id: id + "__cromo_P1_bran", tipo: "cromo", clave: "P1_bran" }, creado: Date.now(), ofertas: 0 });

@@ -515,30 +515,10 @@ const AJUSTE_DOCENTE = "teacher_resource_adjustment";
  * esperando a que alguien pregunte.
  */
 async function otorgarReto(perId, fichaId, retoId) {
-  const [mi, ficha] = await Promise.all([
-    getDocs(query(collection(db, "missions"), where("projectId", "==", perId), where("stargateId", "==", retoId))),
-    getDoc(doc(db, "student_profiles", fichaId))
-  ]);
-  if (mi.empty) throw new Error("Ese reto no existe en este grupo: " + retoId);
-  if (!ficha.exists()) throw new Error("No encuentro la ficha");
-  const m = mi.docs[0], d = ficha.data();
-  if ((d.completedMissionIds || []).indexOf(m.id) >= 0) throw new Error("Ya lo tenía registrado");
-  await llamar("applyXpDelta", {
-    projectId: perId, studentProfileId: fichaId, userId: d.userId,
-    deltaXp: Number(m.data().points || 0), deltaCoins: Number(m.data().coinsReward || 0),
-    source: AJUSTE_DOCENTE, details: "Otorgado a mano: " + retoId
-  });
-  const sellos = Object.assign({}, d.missionTimestamps || {});
-  sellos[m.id] = (sellos[m.id] || []).concat([new Date().toISOString()]);
-  const insignias = (d.earnedBadges || []).slice();
-  const badge = m.data().badge;
-  if (badge && insignias.indexOf(badge) < 0) insignias.push(badge);
-  // 17-sep · validado a mano por su docente: queda apuntado para que NO le quite hueco del tope de la semana
-  const otorgados = (d.stargateOtorgados || []).filter(x => x !== m.id).concat([m.id]);
-  await updateDoc(doc(db, "student_profiles", fichaId), {
-    completedMissionIds: (d.completedMissionIds || []).concat([m.id]),
-    missionTimestamps: sellos, earnedBadges: insignias, stargateOtorgados: otorgados
-  });
+  // 5-oct · lo hace el servidor de GamificaPro (`modOtorgarReto`): paga, marca, sella, pone la insignia y lo apunta como
+  // validado a mano (no gasta hueco del tope) en UNA transacción. Antes eran dos pasos: si fallaba el segundo, el reto
+  // quedaba pagado y sin marcar, y se podía volver a pagar.
+  return llamar("modOtorgarReto", { projectId: perId, studentProfileId: fichaId, retoId: retoId });
 }
 
 /**
@@ -742,20 +722,9 @@ async function cambiarComandante(perId, fichaId, aNombre) {
  * disponible — se podía pedir dos subidas de nota con dinero para una sola.
  */
 async function resolverVale(valeId, aprobar, mensaje) {
-  const v = await getDoc(doc(db, "purchased_vouchers", valeId));
-  if (!v.exists()) throw new Error("Ese vale ya no está");
-  const d = v.data();
-  if ((d.status || "pending") !== "pending") throw new Error("Ese vale ya estaba resuelto");
-  if (!aprobar) {
-    const ficha = d.studentProfileId ? await getDoc(doc(db, "student_profiles", d.studentProfileId)) : null;
-    if (ficha && ficha.exists() && Number(d.cost || 0) > 0) {
-      const f = ficha.data(), inv = (f.inventory || []).slice(), k = inv.indexOf(d.rewardId);
-      if (k >= 0) inv.splice(k, 1);
-      await updateDoc(ficha.ref, { coins: Number(f.coins || 0) + Number(d.cost || 0), inventory: inv });
-    }
-  }
-  await updateDoc(v.ref, { status: aprobar ? "approved" : "rejected",
-                           resolvedAt: Date.now(), councilMessage: mensaje || "" });
+  // 5-oct · lo decide el servidor de GamificaPro (`modVale`): una sola vez, devolviendo lo pagado al denegar y con el
+  // suceso en el libro. Antes, tres escrituras desde este navegador y sin rastro.
+  return llamar("modVale", { voucherId: String(valeId), decision: aprobar ? "aprobar" : "rechazar", mensaje: mensaje || "" });
 }
 
 /**
@@ -904,76 +873,21 @@ async function traerPalabra(perId, reto, texto) {
 async function ficharLlamada(perId, fichaId) {
   const yo = await sesion();
   if (!yo) throw new Error("Entra con tu cuenta");
-  const f = await getDoc(doc(db, "student_profiles", fichaId));
-  if (!f.exists()) throw new Error("No encuentro tu ficha");
-  const perfil = f.data();
-  // la de SU escuadrón (o una para todo el grupo), aunque otra más reciente esté abierta
-  const s = await llamadaAbierta(perId, x => !x.restrictedFactionId || x.restrictedFactionId === (perfil.factionId ?? null));
-  if (!s) throw new Error("La llamada a filas ya no está abierta.");
-  const restringe = typeof s.restrictedFactionId === "string" && s.restrictedFactionId.trim() !== "";
-  if (restringe && (perfil.factionId ?? null) !== s.restrictedFactionId)
-    throw new Error("Esta llamada es de otro escuadrón.");
-
-  // Una vez al día: si ya fichaste hoy, no se cobra dos veces por estar en la misma clase.
-  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-  const previos = await getDocs(query(collection(db, FICHAJES),
-    where("projectId", "==", perId), where("userId", "==", yo.uid)));
-  const yaHoy = previos.docs.some(d => {
-    const t = d.data().registeredAt;
-    const f2 = t && t.toDate ? t.toDate() : new Date(t);
-    return f2 >= hoy;
-  });
-  if (yaHoy) return { ok: true, repetido: true };
-
-  await addDoc(collection(db, FICHAJES), {
-    sessionId: s.id, projectId: perId, userId: yo.uid,
-    studentProfileId: fichaId, registeredAt: new Date()
-  });
-  // 🔴 El servidor lee de la sesión lo que paga e ignora lo que le mandemos. Las cifras van aquí
-  // solo porque la función las pide; quien manda es la sesión.
-  await llamar("applyXpDelta", {
-    projectId: perId, studentProfileId: fichaId, userId: yo.uid,
-    deltaXp: Number(s.pointsReward || 15), deltaCoins: Number(s.coinsReward || 30),
-    source: "attendance_session_auto_reward", sourceRefId: s.id,
-    idempotencyKey: "xp_attendance_" + perId + "_" + s.id + "_" + yo.uid
-  });
   /**
-   * ════════ LA RACHA ════════
-   *
-   * Norberto: «quiero premiar la asistencia y la constancia. Cada vez que sea una racha seguida se
-   * suman 5 créditos con límite de 25 extra».
-   *
-   * 🔴 Y sale casi gratis: `previos` ya está leído arriba para no cobrar dos veces el mismo día.
-   * Solo falta saber QUÉ sesiones ha habido, que son una por clase (~20 en todo el curso), para
-   * poder contar hacia atrás. Una consulta más, y solo cuando alguien ficha.
-   *
-   * 🔴 Créditos, NUNCA xp. También lo dijo él y tiene razón: los xp marcan el nivel y el puesto en
-   * el ranking, así que premiar la asistencia con xp enturbiaría la puntuación de lo aprendido con
-   * lo de haber venido. Los créditos son dinero: se gastan y no ordenan a nadie.
-   *
-   * La cuenta: 1ª seguida +0, 2ª +5, 3ª +10… hasta +25 y ahí se queda. Perder una clase devuelve
-   * a cero, que es justo lo que hace que una racha signifique algo.
-   */
-  /**
-   * ════════ LA RACHA Y EL REGALO, EN EL SERVIDOR ════════
-   *
-   * Norberto: «quiero premiar la asistencia y la constancia. Cada vez que sea una racha seguida se
-   * suman 5 créditos con límite de 25 extra». Y el sobre de cromos, si el docente lo marcó.
-   *
-   * 🔴 12-sep · ANTES LOS PAGABA ESTE NAVEGADOR, Y NO PODÍA. La racha iba por `applyXpDelta` con el
-   * origen del docente —el servidor se lo niega a un alumno— y el sobre escribía `inventory` —las
-   * reglas se lo niegan—. Las dos cosas estaban dentro de un `try` que convertía el rechazo en «+0»
-   * y «sin regalo»: el alumno veía su fichaje correcto y los extras no llegaban NUNCA, sin un solo
-   * aviso. Lo destapó el laboratorio. Ahora lo decide `stargateAsistencia`, que lee del servidor
-   * cuántas llamadas seguidas llevas y paga una sola vez por sesión, pulses lo que pulses.
+   * 🔴 5-oct · EL FICHAJE LO HACE EL SERVIDOR DE GAMIFICAPRO (`modFichar`): busca la llamada de SU escuadrón (o una para todo
+   * el grupo), mira que no haya fichado ya HOY (en su zona horaria, la de este navegador, como antes), escribe el registro y
+   * cobra lo que dice la sesión en UNA transacción, y luego la racha y el regalo (lo que antes era `stargateAsistencia`).
+   * Antes eran tres pasos desde aquí: si se cortaba entre medias, quedaba fichado sin cobrar.
    *
    * El regalo llega como un sobre en el inventario; se abre aquí mismo, carta a carta y EN SERIE,
    * igual que uno comprado (tres `consumeItem` a la vez se pisarían la última escritura).
    */
-  let racha = 1, extra = 0, regalo = null;
+  let tz = "Europe/Madrid";
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || tz; } catch (e) { /* la de Madrid */ }
+  const r = await llamar("modFichar", { projectId: perId, studentProfileId: fichaId, tz: tz });
+  if (r.repetido) return { ok: true, repetido: true };
+  let regalo = null;
   try {
-    const r = await llamar("stargateAsistencia", { projectId: perId, sessionId: s.id });
-    racha = Number(r.racha || 1); extra = Number(r.extra || 0);
     if (r.regalo && r.regalo.rewardId) {
       regalo = [];
       for (let i = 0; i < Number(r.regalo.usos || 1); i++) {
@@ -986,10 +900,10 @@ async function ficharLlamada(perId, fichaId) {
         } catch (e) { break; }   // lo que no se abra se queda en el inventario, para abrirlo en el álbum
       }
     }
-  } catch (e) { /* el fichaje ya está hecho y pagado: los extras nunca pueden tumbarlo */ }
+  } catch (e) { /* el fichaje ya está hecho y pagado: abrir el regalo nunca puede tumbarlo */ }
 
-  return { ok: true, xp: Number(s.pointsReward || 15), creditos: Number(s.coinsReward || 30),
-           racha: racha, extra: extra, regalo: regalo };
+  return { ok: true, xp: Number(r.xp || 0), creditos: Number(r.creditos || 0),
+           racha: Number(r.racha || 1), extra: Number(r.extra || 0), regalo: regalo };
 }
 
 /** Firestore devuelve Timestamp; de una exportación puede llegar cadena o número. */

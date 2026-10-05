@@ -22,7 +22,9 @@ c(/window\.SG_TOPE_SEMANA=/.test(leer("recluta.html")) && !/SG_TOPE_DIA/.test(NA
 c(/function lunes\(\)/.test(NAVE) && /function registrosDeLaSemana\(\)/.test(NAVE) && /otorgados\.indexOf\(k\)<0/.test(NAVE), "🔴 Nave · cuenta desde el lunes y sin los validados por su docente");
 c(/hoy0\.setDate\(hoy0\.getDate\(\) - \(\(hoy0\.getDay\(\) \+ 6\) % 7\)\)/.test(FUENTE) && /if \(otorg\.indexOf\(k\) >= 0\) return;/.test(FUENTE), "   el cerrojo de fuente.js, igual");
 c(/function deLaSemana\(ficha\)/.test(VALIDAR) && /Esta semana ya has registrado/.test(VALIDAR), "   y el «Validar» de los Geniallys");
-c(/stargateOtorgados: otorgados/.test(MOTOR), "🔴 lo que valida el docente a mano queda apuntado (no le quita hueco al recluta)");
+// 5-oct · lo apunta el servidor al otorgar (`modOtorgarReto`, functions/modRetos.js de GamificaPro)
+const RETOS_GP = require("fs").existsSync("/Users/nor/Claude/vibewebs/gamificapro/functions/modRetos.js") ? require("fs").readFileSync("/Users/nor/Claude/vibewebs/gamificapro/functions/modRetos.js", "utf8") : "";
+c(/llamar\("modOtorgarReto"/.test(MOTOR) && /stargate: \{ apuntaOtorgado: 'stargateOtorgados' \}/.test(RETOS_GP), "🔴 lo que valida el docente a mano queda apuntado (no le quita hueco al recluta)");
 c(/Number\(window\.SG_TOPE_SEMANA\)\?'Como mucho, <b>'/.test(NAVE) && /Sin tope: a tu ritmo\./.test(NAVE), "   la bienvenida lo dice: sin tope, a su ritmo (y si vuelve un tope, lo dice)");
 
 // ── 2 · la votación, en directo en la Nave
