@@ -105,16 +105,19 @@
    * aquí, cómo se ven. Arte: Magnific, cuenta CCD, 5-oct (assets/img/ticket/; los sobres, recortados de assets/img/canje/_raw).
    */
   var IMG = "assets/img/ticket/";
+  // 🔴 la huella: el CDN de Hostinger guarda 7 días lo que se le pide (también un 404 si se pide antes de publicar).
+  // Si se cambia una imagen de esta carpeta, se cambia la huella.
+  var HUELLA = "?v=20261005b";
   var CASILLAS = [
-    { id: "c10", img: IMG + "creditos_pocos.webp", cifra: "+10 ◈", titulo: "10 créditos", nivel: 1 },
-    { id: "c20", img: IMG + "creditos_pocos.webp", cifra: "+20 ◈", titulo: "20 créditos", nivel: 1 },
-    { id: "c30", img: IMG + "creditos_caja.webp", cifra: "+30 ◈", titulo: "30 créditos", nivel: 1 },
-    { id: "sobre", img: IMG + "sobre.webp", titulo: "Sobre de cromos", nivel: 1, sobre: "cromo" },
-    { id: "c50", img: IMG + "creditos_caja.webp", cifra: "+50 ◈", titulo: "50 créditos", nivel: 2 },
-    { id: "grande", img: IMG + "sobre_grande.webp", titulo: "Sobre grande", nivel: 2, sobre: "sobre_grande" },
-    { id: "c100", img: IMG + "creditos_botin.webp", cifra: "+100 ◈", titulo: "100 créditos", nivel: 3 },
-    { id: "raro", img: IMG + "sobre_raro.webp", titulo: "Sobre de raras", nivel: 3, sobre: "sobre_raro" },
-    { id: "epico", img: IMG + "sobre_epico.webp", titulo: "Sobre épico", nivel: 4, sobre: "sobre_epico" }
+    { id: "c10", img: IMG + "creditos_pocos.webp" + HUELLA, cifra: "+10 ◈", titulo: "10 créditos", nivel: 1 },
+    { id: "c20", img: IMG + "creditos_pocos.webp" + HUELLA, cifra: "+20 ◈", titulo: "20 créditos", nivel: 1 },
+    { id: "c30", img: IMG + "creditos_caja.webp" + HUELLA, cifra: "+30 ◈", titulo: "30 créditos", nivel: 1 },
+    { id: "sobre", img: IMG + "sobre.webp" + HUELLA, titulo: "Sobre de cromos", nivel: 1, sobre: "cromo" },
+    { id: "c50", img: IMG + "creditos_caja.webp" + HUELLA, cifra: "+50 ◈", titulo: "50 créditos", nivel: 2 },
+    { id: "grande", img: IMG + "sobre_grande.webp" + HUELLA, titulo: "Sobre grande", nivel: 2, sobre: "sobre_grande" },
+    { id: "c100", img: IMG + "creditos_botin.webp" + HUELLA, cifra: "+100 ◈", titulo: "100 créditos", nivel: 3 },
+    { id: "raro", img: IMG + "sobre_raro.webp" + HUELLA, titulo: "Sobre de raras", nivel: 3, sobre: "sobre_raro" },
+    { id: "epico", img: IMG + "sobre_epico.webp" + HUELLA, titulo: "Sobre épico", nivel: 4, sobre: "sobre_epico" }
   ];
   var COLORES = { acento: "#37e0ec", acento2: "#f5b043", rareza: ["#8fd8e0", "#3fa9ff", "#b48cff", "#ffc94a"] };
 
@@ -127,7 +130,7 @@
     var c = CASILLAS.filter(function (x) { return x.id === P.casilla; })[0];
     if (c && !(c.sobre && !P.sobre)) return c;
     var n = Number(P.creditos || 0);
-    return { id: "pago", img: IMG + (n >= 100 ? "creditos_botin.webp" : n >= 30 ? "creditos_caja.webp" : "creditos_pocos.webp"),
+    return { id: "pago", img: IMG + (n >= 100 ? "creditos_botin.webp" : n >= 30 ? "creditos_caja.webp" : "creditos_pocos.webp") + HUELLA,
       cifra: "+" + n + " ◈", titulo: n + " créditos", nivel: c ? c.nivel : 1 };
   }
   function capsula(r) {
@@ -138,7 +141,7 @@
     var gana = casillaDe(P), lista = gana.id === "pago" ? CASILLAS.concat([gana]) : CASILLAS;
     pinta('<div class="card" id="tk-cap"></div>');
     window.GP.capsula.montar(document.getElementById("tk-cap"), {
-      imagen: IMG + "capsula.webp", alt: "La cápsula de suministros", boton: "Abrir la cápsula", colores: COLORES,
+      imagen: IMG + "capsula.webp" + HUELLA, alt: "La cápsula de suministros", boton: "Abrir la cápsula", colores: COLORES,
       rarezas: ["Común", "Raro", "Épico", "Legendario"], casillas: lista, ganadora: gana.id,
       antes: "<p><b>¡Ticket enviado!</b> Te llega una cápsula de suministros. ¿Qué habrá dentro?</p>",
       despues: "<p>" + (gana.cifra ? "Ya están en tu Nave, para el Mercado." : "Lo tienes en tu <b>Botín</b>: ábrelo desde tu Nave.")
