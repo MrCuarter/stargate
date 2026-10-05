@@ -91,6 +91,15 @@ c(/_EC_CAPTURAS = int\(_re\.search\(r"MAX_ADJ = \(\\d\+\)", _EC_BZ\)/.test(B) &&
 const nf = DATOS.match(/NOTA_FINAL = \{"continua": (\d+), "examen": (\d+)\}/);
 c(duda("nota").indexOf(nf[1] + " % evaluación continua y " + nf[2] + " % examen") >= 0 && H.indexOf('<b class="ec-gana-g">' + nf[1] + ' %</b>') >= 0, "la nota: la de NOTA_FINAL");
 
+console.log("  ¿El portfolio es obligatorio? (5-oct, Adriana)");
+const pts = [...DATOS.matchAll(/puntos="(\d+,\d+)"/g)].map(m => Number(m[1].replace(",", "."))).slice(0, 2);
+const ep = pts.map(x => x * 0.2), cont = ep[0] + ep[1], fin = cont * Number(nf[1]) / 100, es = x => x.toFixed(2).replace(".", ",");
+const PF = duda("portfolio"), NF = L("assets/js/nebula-faq.js");
+c(/ePortfolio \(20%\)/.test(DATOS) && PF.indexOf("hasta " + es(cont) + " puntos") >= 0 && PF.indexOf(es(fin) + " de la nota final") >= 0,
+  "la respuesta al docente: 20 % de cada actividad → " + es(cont) + " de la continua, " + es(fin) + " de la final (de las rúbricas)", PF.slice(0, 160));
+c(/id: "bitacora_obligatoria"/.test(NF) && NF.indexOf(es(ep[0]) + " puntos en cada una") >= 0 && NF.indexOf(es(cont) + " de 10") >= 0 && NF.indexOf(es(fin) + " de la nota final") >= 0,
+  "   y NEBULA le dice lo mismo al estudiante (mismas cifras)");
+
 console.log("  Sin emojis, sin «Claude»");
 c(!/Claude/.test(H), "nada visible dice «Claude»");
 c(!/[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}]/u.test(H.replace(/◈|✓/g, "")), "sin emojis: iconos propios");

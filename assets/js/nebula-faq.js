@@ -58,6 +58,10 @@ window.SG_NEBULA_FAQ = [
   { id: "bitacora_que", p: ["qué es la bitácora", "qué es el ePortfolio", "qué va en la bitácora", "cómo hago la bitácora"],
     claves: ["bitacora", "eportfolio", "portfolio", "plantilla"],
     r: "Tu Bitácora es tu <b>ePortfolio</b>: el curso entero termina en ella y vale el 20 % de cada Actividad. Cada página sigue el patrón evidencia → contexto → reflexión → autoevaluación. Hay <a href=\"guia-recluta.html#bitacora\" target=\"_blank\" rel=\"noopener\">plantilla oficial</a> (opcional); el reto principal del tema 1 es abrirla." },
+  // 5-oct · Norberto: no es obligatoria, pero es el 20 % de cada Actividad (4,3 × 20 % = 0,86 cada una). Lo vigila la batería 128.
+  { id: "bitacora_obligatoria", p: ["la bitácora es obligatoria", "el portfolio es obligatorio", "tengo que hacer el eportfolio", "qué pasa si no hago el portfolio", "cuánto baja la nota sin portfolio"],
+    claves: ["obligatorio", "obligatoria", "bitacora", "eportfolio", "portfolio", "nota"],
+    r: "No es obligatoria, pero cuenta mucho, recluta: tu Bitácora (el ePortfolio) es el <b>20 % de cada Actividad</b>. Sin ella pierdes hasta <b>0,86 puntos en cada una</b>: 1,72 de 10 en la evaluación continua, unos <b>0,69 de la nota final</b> (en los grupos PUA, los 1,72 enteros). Y es donde demuestras casi todos tus retos: cada entrada nueva es un reto que puedes registrar.", ir: "retos" },
   { id: "bitacora_plataforma", p: ["en qué plataforma hago la bitácora", "puedo hacer el portfolio en google sites", "vale wix para el eportfolio", "tengo que usar genially"],
     claves: ["plataforma", "sites", "wix", "genially", "blog", "bitacora"],
     r: "Formato y plataforma libres: Google Sites, Genially, Wix, un blog… La plantilla en Genially es opcional. Lo que no es opcional: que el enlace sea <b>público</b> (compruébalo en una ventana de incógnito)." },

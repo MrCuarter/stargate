@@ -4600,6 +4600,14 @@ _EC_XP = {k: f[3] for k, f in _EC_RETOS.items()}
 _EC_ARSENAL = [(n, c, mx) for n, c, mx, d, desde, t in RECOMPENSAS if t == "nota"]
 _EC_TIENDA = [r for r in RECOMPENSAS if r[5] != "nota"]
 _EC_INSIGNIAS = N_INSIGNIAS_MISION + len(SERIES_ALBUM)
+# 5-oct · ¿el ePortfolio es obligatorio? (Adriana). No, pero es el 20 % de cada actividad: lo que se pierde sin él sale de las
+# rúbricas (ACTIVIDADES: «ePortfolio (20%)») y de los puntos de cada actividad, nunca a mano.
+_EC_PESO_EP = 20
+assert all("ePortfolio (%d%%)" % _EC_PESO_EP in str(a) for a in ACTIVIDADES), "en claro: la rúbrica ya no dice ePortfolio (20%)"
+_ec_n = lambda x: ("%.2f" % x).replace(".", ",")
+_EC_EP_ACT = [float(a["puntos"].replace(",", ".")) * _EC_PESO_EP / 100 for a in ACTIVIDADES]
+_EC_EP_CONT = sum(_EC_EP_ACT)
+_EC_EP_FINAL = _EC_EP_CONT * NOTA_FINAL["continua"] / 100
 _EC_SEM_TEMA = {}
 for _s in CRONO:
     _m = _re.match(r"Tema (\d)", str(_s.get("tema") or ""))
@@ -4665,6 +4673,11 @@ EC_PREGUNTAS = [
       r=f"En la tienda de su web (Mercado): {len(_EC_TIENDA)} cosas del juego (sobres de cartas, héroes, adornos) desde la semana "
         f"{min(r[4] for r in _EC_TIENDA)}, y desde la {SEMANA_ARSENAL}, las {len(_EC_ARSENAL)} subidas de nota, lo único que toca la nota.",
       btn=None, donde="Su web (Nave del recluta) → Mercado"),
+ dict(id="portfolio", sec="gana", corta="¿El portfolio es obligatorio?", q="¿El portfolio es obligatorio?",
+      r=f"Técnicamente no, pero cuenta mucho: es el <b>{_EC_PESO_EP} % de cada actividad</b>. Sin él se pierden hasta <b>{_ec_n(_EC_EP_CONT)} puntos</b> "
+        f"de 10 en la evaluación continua ({' + '.join(_ec_n(x) for x in _EC_EP_ACT)}), unos <b>{_ec_n(_EC_EP_FINAL)} de la nota final</b> "
+        f"(PUA: {_ec_n(_EC_EP_CONT)}). Además, casi todos los retos se demuestran con una entrada en el portfolio: quien lo lleva al día suma retos.",
+      btn=("Ver la evaluación", "actividades.html", "notas"), donde="Guía → Actividades y evaluación (rúbricas oficiales)", buzon=True),
  dict(id="insignias", sec="gana", corta="Cuántas insignias hay", q="¿Cuántas insignias puede ganar?",
       r=f"<b>{_EC_INSIGNIAS}</b>: {N_INSIGNIAS_MISION} del curso (por los retos, los temas y los hitos) y {len(SERIES_ALBUM)} por completar las colecciones de cartas.",
       btn=("Ver las insignias", "guia.html#retos", "medalla"), donde="Guía → Dos retos por tema", buzon=True),
