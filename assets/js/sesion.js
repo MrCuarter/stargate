@@ -1246,7 +1246,7 @@
         f.addEventListener('load',function(){ if(++cargas>2) try{ localStorage.setItem(f.getAttribute('data-tk'),'1'); }catch(e){} });
         return null; }, html:
       '<div class="dia ticket ticket-form"><div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/ticket.png alt> '+(esPres?'Antes de ir a Fôrge':'Cerramos el tema')+'</div>'
-      +'<h2>'+(esPres?'¿Qué os ha parecido el embarque?':'El ticket de salida')+'</h2><p class="sub">Anónimo y rápido'+(esPres?'. Lo que digáis, lo proyectamos la próxima semana.':': se rellena al acabar cada tema. En la próxima clase proyectaremos lo que digáis.')+'</p>'
+      +'<h2>'+(esPres?'¿Qué os ha parecido el embarque?':'El ticket de salida')+'</h2><p class="sub">Anónimo y rápido'+(esPres?'. Lo que digáis, lo proyectamos la próxima semana.':': se rellena al acabar cada tema. En la próxima clase proyectaremos lo que digáis.')+' Y quien lo envía abre una cápsula de suministros.</p>'
       // (`embedded=true` es como Google sirve sus formularios dentro de otra página: sin su cabecera ni su pie)
       +'<iframe class="tk-form" src="'+esc(u+'&embedded=true')+'" title="Ticket de salida" loading="lazy" data-tk="'+esc('sgTicket:'+(st.per||'')+':'+opcion)+'"></iframe>'
       +'<p class="small muted tk-otro">¿No te cabe en la pantalla? <a href="'+esc(u)+'" target="_blank" rel="noopener">Ábrelo en otra pestaña</a>.</p></div></div>'};
@@ -1347,9 +1347,12 @@
       // 🔴 de MI escuadrón: el del docente que da la clase o, si la sigue un recluta, el de su Comandante
       var yo=elComandante();
       var mias=yo?lista.filter(function(x){ return String(campo(x.r,'profesor o profesora')).trim()===yo; }):lista;
-      if(mias.length) lista=mias;
+      var deSuTema=function(L){ return L.filter(function(x){ var v=campo(x.r,'Selecciona el tema'); return op.filtro ? op.filtro(v) : esDelTema(v, semLista, iTema); }); };
+      // 🔴 5-oct · ANÓNIMO DE VERDAD: un escuadrón con menos de 3 respuestas de este tema no se enseña por separado (con 1 o 2,
+      // y sabiendo quién cobró la cápsula, se adivinaría quién dijo qué): entonces se ve lo de todo el grupo.
+      if(deSuTema(mias).length>=3) lista=mias;
       // y de SU tema, el que se acaba de cerrar
-      var suyas=lista.filter(function(x){ var v=campo(x.r,'Selecciona el tema'); return op.filtro ? op.filtro(v) : esDelTema(v, semLista, iTema); });
+      var suyas=deSuTema(lista);
       if(suyas.length) lista=suyas;
       else if(lista.length){   // nadie marcó el tema (el formulario puede cambiar): lo último que llegó
         var t=function(x){ return new Date(x.fecha).getTime()||0; }, ult=Math.max.apply(null, lista.map(t));

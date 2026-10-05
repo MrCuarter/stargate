@@ -159,9 +159,10 @@
   function deTema(filas, lista, i, comandante) {
     var yo = String(comandante || "").trim();
     var mias = yo ? filas.filter(function (x) { return String(campo(x.r, "profesor o profesora")).trim() === yo; }) : filas;
-    if (!mias.length) mias = filas;
-    var suyas = mias.filter(function (x) { return esDelTema(campo(x.r, "Selecciona el tema"), lista, i); });
-    return suyas;
+    var delTema = function (L) { return L.filter(function (x) { return esDelTema(campo(x.r, "Selecciona el tema"), lista, i); }); };
+    // 🔴 5-oct · un escuadrón con menos de 3 respuestas de ese tema no se enseña por separado: se adivinaría quién dijo qué
+    var suyas = delTema(mias);
+    return suyas.length >= 3 ? suyas : delTema(filas);
   }
 
   window.SG = window.SG || {};

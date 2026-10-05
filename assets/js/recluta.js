@@ -4611,7 +4611,7 @@
     var clave='sgTicket:'+per+':'+op, hecho=false; try{ hecho=localStorage.getItem(clave)==='1'; }catch(e){}
     return '<details class="card tk-nave'+(hecho?' hecho':'')+'" data-tk="'+esc(clave)+'">'
       +'<summary><img class="tk-nave-i" src="assets/img/iconos/p/ticket.png" alt=""><span class="tk-nave-t"><b>'+(hecho?'Ticket de salida enviado':'El ticket de salida')+' · '+esc(op)+'</b>'
-      +'<small>'+(hecho?'Gracias: lo que dijisteis sale en la próxima clase. Puedes abrirlo otra vez si quieres añadir algo.':'Anónimo y en dos minutos. Cerramos el tema: lo que digáis se proyecta en la próxima clase.')+'</small></span>'
+      +'<small>'+(hecho?'Gracias: lo que dijisteis sale en la próxima clase. Puedes abrirlo otra vez si quieres añadir algo.':'Anónimo y en dos minutos, con una cápsula de suministros de premio. Lo que digáis se proyecta en la próxima clase.')+'</small></span>'
       +'<span class="btn'+(hecho?'':' primary')+' tk-nave-b">'+(hecho?'Abrir':'Rellenarlo')+'</span></summary>'
       +'<div class="tk-nave-f"><iframe data-src="'+esc(u+'&embedded=true')+'" title="Ticket de salida" loading="lazy"></iframe>'
       +'<p class="small muted">¿No se ve bien? <a href="'+esc(u)+'" target="_blank" rel="noopener">Ábrelo en otra pestaña</a>.</p></div></details>';

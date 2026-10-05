@@ -45,7 +45,8 @@
   function formulario() {
     var P = window.SG.TK.preguntasDe(TEMA), R = {};
     var html = '<form class="card tk-form" id="tk-f" novalidate><div class="kicker"><img class=ico src="assets/img/iconos/p/ticket.png" alt=""> Ticket de salida</div>'
-      + "<h2>" + esc(T[TEMA] || "El ticket") + '</h2><p class="small muted">Anónimo y en dos minutos: tu nombre no se guarda con lo que contestes.</p>';
+      + "<h2>" + esc(T[TEMA] || "El ticket") + '</h2><p class="small muted">Anónimo y en dos minutos: tu Comandante ve lo que dice la clase, '
+      + 'nunca quién lo dijo. Al enviarlo te llega una <b>cápsula de suministros</b> con un premio al azar.</p>';
     P.forEach(function (q) {
       html += '<fieldset class="tk-q" data-q="' + esc(q.id) + '"><legend>' + esc(q.texto) + (q.tipo === "escala" ? "" : ' <span class="muted small">(opcional)</span>') + "</legend>";
       if (q.tipo === "escala") {
@@ -80,9 +81,9 @@
       if (falta) { err.hidden = false; err.textContent = "Te falta valorar: «" + falta.texto + "»."; return; }
       var envio = {}; P.forEach(function (q) { var v = R[q.id]; if (v != null && v !== "") envio[q.id] = v; });
       boton.disabled = true; boton.textContent = "Enviando…"; err.hidden = true;
-      window.SG.MOTOR.llamar("modTicket", { accion: "enviar", projectId: PER, tema: TEMA, respuestas: envio }).then(function () {
+      window.SG.MOTOR.llamar("modTicket", { accion: "enviar", projectId: PER, tema: TEMA, respuestas: envio }).then(function (r) {
         marcarHecho();
-        aviso("<b>¡Ticket enviado!</b> Gracias: lo que habéis dicho sale en la próxima clase.");
+        capsula(r || {});
       }, function (e) {
         boton.disabled = false; boton.textContent = "Enviar el ticket";
         var m = String((e && e.message) || e || "");
@@ -90,6 +91,42 @@
         err.hidden = false; err.textContent = "No se ha podido enviar: " + m.replace(/^FirebaseError:\s*/, "") + " Vuelve a probar en un momento.";
       });
     };
+  }
+
+  /**
+   * 🔴 5-oct · LA CÁPSULA DE SUMINISTROS. Norberto: «una cápsula espacial, que al abrirla apareciera la recompensa con
+   * algún efecto molón». El premio ya lo ha tirado y pagado el servidor (`modTicket`, la rueda de TICKETS_POR_MOD): aquí
+   * solo se abre. Se abre al pulsar (la emoción es tuya), tiembla, se carga, estalla y enseña lo que había; cuanto más
+   * raro, más fuegos. Con «menos movimiento» en el sistema, se abre sin animación.
+   */
+  var IMG_CAPSULA = "assets/img/canje/_raw/capsula_rescate.jpg";
+  var IMG_SOBRE = { cromo: "assets/img/canje/_raw/sobre.jpg", sobre_grande: "assets/img/canje/_raw/sobre_grande.jpg",
+    sobre_raro: "assets/img/canje/_raw/sobre_raro.jpg", sobre_epico: "assets/img/canje/_raw/sobre_epico.jpg" };
+  var NOMBRE_SOBRE = { cromo: "Un sobre de cromos", sobre_grande: "Un sobre grande", sobre_raro: "Un sobre de raras", sobre_epico: "Un sobre épico" };
+  var RAREZA = { c10: 1, c20: 1, c30: 1, sobre: 1, c50: 2, grande: 2, c100: 3, raro: 3, epico: 4 };
+  var COLORES = { acento: "#37e0ec", acento2: "#f5b043", raro: "#b48cff", epico: "#ffd76a" };
+
+  function tripulacionHtml(r) {
+    return r.tripulacion > 0 ? '<p class="tk-tripu"><b>¡Parte de la tripulación!</b> Con tu ticket, más de la cuarta parte de la clase ha respondido: '
+      + "hay premio para toda la tripulación.</p>" : "";
+  }
+  /** La piel de STARGATE sobre la cápsula del motor (GamificaPro sdk/capsula.js → assets/js/capsula.js). */
+  function capsula(r) {
+    var P = r.premio;
+    if (!P || !window.GP || !window.GP.capsula) {
+      return aviso("<b>¡Ticket enviado!</b> Gracias: lo que habéis dicho sale en la próxima clase."
+        + (P ? " Te ha tocado " + (P.sobre ? esc(NOMBRE_SOBRE[P.tipo] || "un sobre").toLowerCase() : "+" + Number(P.creditos || 0) + " ◈") + "." : "") + tripulacionHtml(r));
+    }
+    var sobre = !!(P.sobre && P.tipo);
+    pinta('<div class="card" id="tk-cap"></div>');
+    window.GP.capsula.montar(document.getElementById("tk-cap"), {
+      imagen: IMG_CAPSULA, alt: "La cápsula de suministros", boton: "Abrir la cápsula", nivel: RAREZA[P.casilla] || 1, colores: COLORES,
+      antes: "<p><b>¡Ticket enviado!</b> Te llega una cápsula de suministros.</p>",
+      premio: sobre ? { img: IMG_SOBRE[P.tipo] || IMG_SOBRE.cromo } : { cifra: "+" + Number(P.creditos || 0) + " ◈" },
+      titulo: sobre ? "¡" + (NOMBRE_SOBRE[P.tipo] || "Un sobre") + "!" : "créditos",
+      despues: "<p>" + (sobre ? "Lo tienes en tu <b>Botín</b>: ábrelo desde tu Nave." : "Ya están en tu Nave, para el Mercado.")
+        + " Gracias: lo que habéis dicho sale en la próxima clase.</p>" + tripulacionHtml(r)
+    });
   }
 
   function arrancarTema() {

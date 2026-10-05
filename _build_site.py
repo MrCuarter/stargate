@@ -4679,6 +4679,13 @@ print("escrito: validar.html  (enlaces universales para Genially)")
 # Norberto: «el ticket de STARGATE, cuanto antes, prioridad 1». Sustituye al Google Form: TICKET_URL apunta aquí, y la
 # sesión, la Nave y la sala de En directo lo incrustan como antes incrustaban el formulario. Envía a GamificaPro
 # (`modTicket`), anónimo. Incrustado (o con ?embed=1), solo el formulario.
+# 5-oct · LA CÁPSULA ES DEL MOTOR (GamificaPro sdk/capsula.js): se copia aquí en cada build; no se edita en esta web.
+_CAPSULA_GP = "/Users/nor/Claude/vibewebs/gamificapro/sdk/capsula.js"
+if os.path.exists(_CAPSULA_GP):
+    _c = open(_CAPSULA_GP, encoding="utf-8").read()
+    if open(os.path.join(HERE, "assets", "js", "capsula.js"), encoding="utf-8").read() != _c if os.path.exists(os.path.join(HERE, "assets", "js", "capsula.js")) else True:
+        open(os.path.join(HERE, "assets", "js", "capsula.js"), "w", encoding="utf-8").write(_c)
+        print("copiado: assets/js/capsula.js  (de GamificaPro sdk/capsula.js)")
 _html = head("STARGATE · Ticket de salida",
              "El ticket de salida de cada tema: anónimo y en dos minutos.",
              "reg", publica=True).replace("</head>", _cabeza_motor() + """
@@ -4699,10 +4706,13 @@ _html = head("STARGATE · Ticket de salida",
 .tk-temas{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .tk-aviso p{font-size:17px;margin:0}
 .tk-aviso.mal p{color:#ffb3a8}
+.tk-tripu{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:rgba(245,176,67,.12);border:1px solid rgba(245,176,67,.45);font-size:15px}
+
 </style>
 </head>""") + '''
 <main id="tk-main"><div id="ticket-app"><p class="muted">Cargando…</p></div></main>
 ''' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' \
+     + '<script src="' + _v("assets/js/capsula.js") + '" defer></script>' \
      + '<script src="' + _v("assets/js/ticket.js") + '" defer></script>' + FOOT
 open(os.path.join(HERE, "ticket.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: ticket.html  (el ticket de salida, en GamificaPro)")

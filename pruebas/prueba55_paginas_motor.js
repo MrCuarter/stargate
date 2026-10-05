@@ -270,6 +270,10 @@ c(/llamar\("modTicket"/.test(TK_JS) && !/docs\.google\.com/.test(TK_JS), "🔴 y
 c(/function claveDe/.test(TK_JS) && /SG_TICKET_TEMAS/.test(TK_JS), "   entiende el tema por su clave o por el texto de la opción");
 c(/sgTicket:/.test(TK_JS), "   y lo apunta como hecho en el navegador, con la misma marca que miran la Nave y la sesión");
 c(/ticketsDelMotor/.test(TKC) && /function filasDelMotor/.test(TKC), "🔴 «Cómo os fue» y la Nave del Comandante leen las respuestas del motor, como filas de la hoja de antes");
+// 5-oct · la cápsula del premio es del MOTOR (GamificaPro sdk/capsula.js): aquí va la copia que hace el build, idéntica
+const CAP_GP = "/Users/nor/Claude/vibewebs/gamificapro/sdk/capsula.js";
+c(/capsula\.js/.test(TK_PAG) && /GP\.capsula\.montar/.test(TK_JS), "ticket.html abre el premio con la cápsula del motor (GP.capsula)");
+if (fs.existsSync(CAP_GP)) igual(js("capsula.js"), fs.readFileSync(CAP_GP, "utf8"), "🔴 assets/js/capsula.js es la de GamificaPro, sin tocar (se edita allí)");
 
 // Llega a las páginas: lo emite la cabecera común, no cada página por su cuenta.
 const CABEZA = fs.readFileSync(path.join(__dirname, "..", "_build_site.py"), "utf8");
