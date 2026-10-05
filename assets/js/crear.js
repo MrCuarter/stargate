@@ -140,7 +140,7 @@
   function avanceDe(a) {
     if (!a) return "Recién llegado";
     if (a.fin) return "Comandante de La Constancia";
-    return (a.sesiones || 0) + " de " + (a.total || 9) + " sesiones";
+    return (a.sesiones || 0) + " de " + (a.total || 8) + " paradas";
   }
   function pintarAcademia() {
     var el = $("#f-academia"); if (!el) return;

@@ -7774,6 +7774,17 @@ body.embed .bz-nueva h2,body.embed .bz-lista h2{font-size:1.05rem}
 @keyframes acd-salta{from{opacity:0;scale:.82}}
 @keyframes acd-brilla{50%{text-shadow:0 0 28px rgba(245,176,67,.65)}}
 
+/* ── 5-oct · LA ACADEMIA CON VÍDEOS TUTORIALES (academia.js → .acd-pieza.con-video). El vídeo manda: grande a la derecha, la
+   explicación corta a la izquierda y sin el personaje recortado (no cabe y no explica nada). En el móvil, uno debajo del otro. */
+.acd-pieza.con-video .acd-bocadillo{left:3%;top:8%;width:33%;max-height:84%}
+.acd-video{position:absolute;right:2.5%;top:50%;transform:translateY(-50%);width:60%;aspect-ratio:16/9;object-fit:contain;border-radius:12px;border:1px solid #2a3c55;box-shadow:0 10px 30px rgba(0,0,0,.55);background:#000}
+.acd-planeta{color:var(--mut);font-size:.9em}
+/* la llegada de cada parada: su título (más largo que un planeta), sin barra de desplazamiento mientras entra */
+.acd-llegada .acd-dia-txt{overflow:visible}
+.acd-llegada .acd-dia-h1{font-size:clamp(1.8rem,4.4vw,3.3rem)}
+@media (max-width:980px){.acd-video{position:relative;right:auto;top:auto;transform:none;width:100%;margin-top:12px}}
+@media (prefers-reduced-motion:no-preference){.acd-dia.acd-entra .acd-video{animation:acd-desde-der .8s cubic-bezier(.2,.8,.2,1) backwards .5s}}
+
 /* ── 4-oct · STARGATE EN CLARO (en-claro.html): el punto de partida del docente. 2.ª vuelta (Norberto): más visual, que respire,
    tarjetas de igual tamaño, poco texto y lo demás plegado. Rejillas de columnas iguales (stretch) y textos de largo parecido:
    las tarjetas de una fila miden lo mismo y sus botones quedan alineados sin huecos. Lo de referentes, solo con data-vista="ref". */

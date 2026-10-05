@@ -100,6 +100,11 @@ c(/ePortfolio \(20%\)/.test(DATOS) && PF.indexOf("hasta " + es(cont) + " puntos"
 c(/id: "bitacora_obligatoria"/.test(NF) && NF.indexOf(es(ep[0]) + " puntos en cada una") >= 0 && NF.indexOf(es(cont) + " de 10") >= 0 && NF.indexOf(es(fin) + " de la nota final") >= 0,
   "   y NEBULA le dice lo mismo al estudiante (mismas cifras)");
 
+console.log("  Los vídeos tutoriales (5-oct)");
+const vv = [...H.matchAll(/href="assets\/video\/tutoriales\/([a-z-]+)\.mp4\?v=([0-9a-f]{10})"/g)];
+c(vv.length >= 10 && vv.every(m => fs.existsSync(path.join(R, "assets/video/tutoriales", m[1] + ".mp4"))), "las dudas con tutorial llevan «Ver el vídeo», con su huella, y el vídeo existe (" + vv.length + ")");
+c(/tutoriales\/alumno-unirse\.mp4/.test(L("assets/js/nebula-faq.js")) && /tutoriales\/alumno-registrar-reto\.mp4/.test(L("assets/js/nebula-faq.js")), "   y NEBULA se los enseña al alumnado (alistarse, registrar un reto, la Bitácora)");
+
 console.log("  Sin emojis, sin «Claude»");
 c(!/Claude/.test(H), "nada visible dice «Claude»");
 c(!/[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}]/u.test(H.replace(/◈|✓/g, "")), "sin emojis: iconos propios");

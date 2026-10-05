@@ -4578,6 +4578,15 @@ Entra, resuelve lo que te pida y, al final, pulsa el botón que te espera: tu Na
 open(os.path.join(HERE, "fragmento.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: fragmento.html  (la puerta al Escape UNI, el reto secreto S7)")
 
+# ---------------------------------------------------------------- 5-oct · LOS VÍDEOS TUTORIALES (assets/video/tutoriales/)
+# Los graba stargate/tutoriales/grabar.cjs sobre la web de verdad (consola de ensayo, simulador del estudiante y modos de
+# demostración: nunca datos reales), con cursor y rótulos. Su huella va con la página: el CDN guarda 7 días.
+_TUT_DIR = os.path.join(HERE, "assets", "video", "tutoriales")
+TUTORIALES_V = {f[:-4]: hashlib.md5(open(os.path.join(_TUT_DIR, f), "rb").read()).hexdigest()[:10]
+                for f in sorted(os.listdir(_TUT_DIR)) if f.endswith(".mp4")} if os.path.isdir(_TUT_DIR) else {}
+_tut_faltan = sorted({b["video"] for e in ACADEMIA["estaciones"] for b in e["piezas"] if b.get("video")} - set(TUTORIALES_V))
+assert not _tut_faltan, "faltan vídeos tutoriales de la Academia: " + ", ".join(_tut_faltan) + " (node stargate/tutoriales/grabar.cjs)"
+
 # ---------------------------------------------------------------- 4-oct · STARGATE EN CLARO (en-claro.html)
 # Del resumen del buzón del 4-oct: en una semana, 6 de los 10 mensajes eran de la misma referente, y todas sus dudas tenían
 # respuesta en la web, pero repartida en varias pantallas y con el vocabulario de la ficción («no hables en chino
@@ -4721,6 +4730,11 @@ EC_PREGUNTAS = [
       btn=("Cerrar el curso", "gestion.html?tab=cerrar", "medalla"), donde="Gestionar grupos → el grupo → Cerrar el curso", ref=True),
 ]
 assert len({p["id"] for p in EC_PREGUNTAS}) == len(EC_PREGUNTAS), "en claro: dos preguntas con la misma ancla"
+# 5-oct · los vídeos tutoriales (los mismos de la Academia): «Ver el vídeo» en la duda que lo tiene
+EC_VIDEOS = {'enlace-foro': 'copiar-invitacion', 'antes-de-clase': 'antes-de-la-primera-sesion', 'en-clase': 'empezar-la-clase', 'no-suma': 'validar-quitar-reto', 'a-mano': 'validar-quitar-reto', 'cola-nota': 'cola-de-nota', 'subir-nota': 'cola-de-nota', 'puntos': 'alumno-registrar-reto', 'portfolio': 'alumno-bitacora', 'mercado': 'alumno-su-web', 'cuando-cuenta': 'semanas'}
+for _p in EC_PREGUNTAS:
+    if _p["id"] in EC_VIDEOS: _p["video"] = EC_VIDEOS[_p["id"]]
+assert all(v in TUTORIALES_V for v in EC_VIDEOS.values()), "en claro: un vídeo que no existe"
 assert all(not p.get("ref") or p["sec"] == "grupo" for p in EC_PREGUNTAS), "en claro: lo de referentes, solo en su sección"
 assert not any(_re.search(r"referente", p["q"] + p["r"] + p["donde"], _re.I) for p in EC_PREGUNTAS if not p.get("ref")), \
     "en claro: la parte de docentes no nombra a los referentes (Norberto, 4-oct)"
@@ -4756,7 +4770,7 @@ def _ec_duda(p):
     return ('<details class="ec-duda" id="' + p["id"] + '"' + (' data-solo="ref"' if p.get("ref") else "") + '><summary>' + p["q"] + '</summary>'
             '<div class="ec-duda-c"><p>' + p["r"] + '</p>' + p.get("tabla", "") + ('<p class="ec-nota">' + p["nota"] + '</p>' if p.get("nota") else "")
             + ('<p class="ec-tuyo" data-ec-tuyo="' + p["tuyo"] + '" hidden></p>' if p.get("tuyo") else "")
-            + '<div class="ec-duda-b">' + _ec_boton(p["btn"]) + '<span class="ec-donde">' + p["donde"] + '</span>'
+            + '<div class="ec-duda-b">' + _ec_boton(p["btn"]) + ('<a class="btn ec-btn ec-video" href="assets/video/tutoriales/' + p["video"] + '.mp4?v=' + TUTORIALES_V[p["video"]] + '" target="_blank" rel="noopener">' + _ec_ico("video") + ' Ver el vídeo</a>' if p.get("video") else "") + '<span class="ec-donde">' + p["donde"] + '</span>'
             '<a class="ec-ancla" href="#' + p["id"] + '" title="Enlace a esta respuesta" aria-label="Enlace a esta respuesta">#</a></div></div></details>')
 def _ec_grupo_dudas(claves):
     return "".join('<h3 class="ec-dudas-t">' + t + '</h3>' + "".join(_ec_duda(p) for p in EC_PREGUNTAS if p["sec"] == k) for k, t in EC_SECCIONES if k in claves)
@@ -4877,7 +4891,7 @@ print("escrito: profesores.html  (solo el Mando)")
 # Se entra por su enlace con Google: así queda el registro del profesorado que crear.html enseña para añadirlo con un clic.
 _html = head("STARGATE · La Academia de la Cero", "El curso del profesorado de STARGATE: la historia, el temario dentro de ella, la plataforma desde los dos lados y cómo hacerla tuya.",
              "acad").replace("</head>", _cabeza_motor() + '<meta name="robots" content="noindex,nofollow">\n'
-               + '<script>window.SG_ACADEMIA=' + json.dumps(ACADEMIA, ensure_ascii=False).replace("</", "<\\/") + ';</script>\n</head>') + '''
+               + '<script>window.SG_TUTORIALES=' + json.dumps(TUTORIALES_V) + ';window.SG_ACADEMIA=' + json.dumps(ACADEMIA, ensure_ascii=False).replace("</", "<\\/") + ';</script>\n</head>') + '''
 <section id="academia"><div class="wrap"><div id="acd-app"><p class="muted">Cargando la Academia…</p></div>
 ''' + '<script src="' + _v("assets/js/fiesta.js") + '" defer></script>' + '<script src="' + _v("assets/js/academia.js") + '" defer></script>' + '''
 </div></section>

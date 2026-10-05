@@ -13,12 +13,13 @@
  * `ir`: nave · retos · ruta · simulador · botin · botin:cromos · botin:heroes · botin:insignias · mercado · zoco ·
  * archivo · rankings · envivo (la Nave lo abre con location.hash).
  */
+// 5-oct · alistarse, registrar un reto y enlazar la Bitácora llevan su vídeo tutorial (stargate/tutoriales/grabar.cjs).
 window.SG_NEBULA_FAQ = [
 
   // ───────────────────────────── ALISTARSE, ENTRAR, CUENTA Y ALIAS ─────────────────────────────
   { id: "alistarse", p: ["cómo me alisto", "cómo me apunto a STARGATE", "cómo me registro en la web", "cómo me doy de alta", "primer día qué hago"],
     claves: ["alistarse", "alistar", "apuntarme", "alta", "inscribirme", "registrarme", "empezar"],
-    r: "Te alistas una vez y ya está, recluta: entra con tu cuenta de Google en la portada, escribe el <b>código de clase</b> que te da tu docente (o abre su invitación), rellena tu ficha (nombre real, alias, Comandante y personaje) y embarca. Te llevas la insignia de Reclutamiento y tus primeros xp y créditos. <a href=\"guia-recluta.html#empezar\" target=\"_blank\" rel=\"noopener\">Primer día, paso a paso</a>." },
+    r: "Te alistas una vez y ya está, recluta: entra con tu cuenta de Google en la portada, escribe el <b>código de clase</b> que te da tu docente (o abre su invitación), rellena tu ficha (nombre real, alias, Comandante y personaje) y embarca. Te llevas la insignia de Reclutamiento y tus primeros xp y créditos. <a href=\"guia-recluta.html#empezar\" target=\"_blank\" rel=\"noopener\">Primer día, paso a paso</a>. <a href=\"assets/video/tutoriales/alumno-unirse.mp4\" target=\"_blank\" rel=\"noopener\">▶ Míralo en 30 segundos</a>." },
   { id: "entrar", p: ["cómo entro en mi nave", "cómo inicio sesión", "dónde entro", "cómo accedo a la web", "cómo vuelvo a entrar"],
     claves: ["entrar", "acceder", "login", "iniciar", "sesion", "acceso"],
     r: "Entra con la <b>misma cuenta de Google</b> con la que te alistaste: vas directo a tu Nave. No hay contraseñas nuevas: tu cuenta es tu llave." },
@@ -54,7 +55,7 @@ window.SG_NEBULA_FAQ = [
     r: "Pulsa tu personaje en <b>Mi nave</b>: se abre tu vestuario con todo lo que tienes (tu personaje, las skins que desbloqueas al subir de rango y tus héroes). Cambiarte es gratis.", ir: "nave" },
   { id: "bitacora_enlazar", p: ["dónde pongo el enlace de mi bitácora", "cómo añado mi ePortfolio", "añadir mi bitácora", "dónde pego mi portfolio"],
     claves: ["bitacora", "eportfolio", "portfolio", "anadir", "enlace", "pegar"],
-    r: "En tu Nave, el botón <b>«Añadir mi Bitácora»</b>, junto a tus créditos. Así tu docente la encuentra y tú la tienes a un clic. También puedes pegarla al alistarte.", ir: "nave" },
+    r: "En tu Nave, el botón <b>«Añadir mi Bitácora»</b>, junto a tus créditos. Así tu docente la encuentra y tú la tienes a un clic. También puedes pegarla al alistarte. <a href=\"assets/video/tutoriales/alumno-bitacora.mp4\" target=\"_blank\" rel=\"noopener\">▶ Míralo en 20 segundos</a>.", ir: "nave" },
   { id: "bitacora_que", p: ["qué es la bitácora", "qué es el ePortfolio", "qué va en la bitácora", "cómo hago la bitácora"],
     claves: ["bitacora", "eportfolio", "portfolio", "plantilla"],
     r: "Tu Bitácora es tu <b>ePortfolio</b>: el curso entero termina en ella y vale el 20 % de cada Actividad. Cada página sigue el patrón evidencia → contexto → reflexión → autoevaluación. Hay <a href=\"guia-recluta.html#bitacora\" target=\"_blank\" rel=\"noopener\">plantilla oficial</a> (opcional); el reto principal del tema 1 es abrirla." },
@@ -119,7 +120,7 @@ window.SG_NEBULA_FAQ = [
   // ───────────────────────────── RETOS ─────────────────────────────
   { id: "reto_registrar", p: ["dónde subo el reto", "cómo registro un reto", "cómo entrego un reto", "dónde marco que lo he hecho"],
     claves: ["registrar", "subir", "entregar", "marcar", "reto", "hecho"],
-    r: "En <b>Retos</b>: abre el reto, pulsa «Cómo se hace, paso a paso», hazlo, pega el enlace de lo que has hecho (el «+» añade otro) y pulsa <b>«Lo he hecho»</b>. Sin enlace no se registra: antes, comprueba que se abre en una ventana de incógnito.", ir: "retos" },
+    r: "En <b>Retos</b>: abre el reto, pulsa «Cómo se hace, paso a paso», hazlo, pega el enlace de lo que has hecho (el «+» añade otro) y pulsa <b>«Lo he hecho»</b>. Sin enlace no se registra: antes, comprueba que se abre en una ventana de incógnito. <a href=\"assets/video/tutoriales/alumno-registrar-reto.mp4\" target=\"_blank\" rel=\"noopener\">▶ Míralo en 20 segundos</a>.", ir: "retos" },
   { id: "reto_que_hay", p: ["qué retos hay", "cuántos retos hay", "qué tipos de retos existen", "cuáles son los retos"],
     claves: ["retos", "cuantos", "tipos", "hay", "lista"],
     r: "Dos por tema: el <b>relámpago</b> (en clase, 15 minutos) y el <b>reto principal</b> (en casa). Además: tu presentación de la semana 1, las dos Actividades (se marcan al enviarlas), un reto secreto y el simulacro del examen. Todos, explicados en Retos.", ir: "retos" },

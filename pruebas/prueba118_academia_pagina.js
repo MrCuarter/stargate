@@ -47,7 +47,7 @@ c(/Copiar el enlace para el profesorado/.test(AJS) && /href="crear\.html"/.test(
 // 30-sep · «además de ver la Academia como tal… ver los emails, modificarlos, echar a un profesor antiguo»
 c(/function pestanasOrg\(cual\)/.test(AJS) && /data-org="profes"/.test(AJS) && /data-org="curso"/.test(AJS) && /function verCurso\(\) \{ DEMO = true; VER = true;/.test(AJS),
   "🔴 dos pestañas: «Tu profesorado» y «La Academia» (el curso tal cual, sin registrarse ni alistarse)");
-c(/function abierta\(i\) \{ if \(VER\) return true;/.test(AJS) && /if \(!VER && !\(hecha\(k\)/.test(AJS), "   en «La Academia» ve todas las sesiones abiertas");
+c(/function abierta\(i\) \{ return true; \}/.test(AJS), "   en «La Academia» ve todas las paradas abiertas (5-oct: abiertas para todos)");
 c(/M\.academiaEditar\(uid, \{ nombre: nombre, correo: correo \}\)/.test(AJS) && /async function academiaEditar\(uid, campos\)/.test(MOT), "🔴 corrige el nombre y el correo de cada docente");
 c(/\(f \? M\.darDeBaja\(G, f\.id\) : Promise\.resolve\(\)\)\.then\(function \(\) \{ return M\.academiaQuitar\(uid\); \}\)/.test(AJS) && /async function academiaQuitar\(uid\)/.test(MOT),
   "🔴 echa a quien ya no la va a hacer: su ficha de recluta (la baja de siempre) y su registro");
@@ -97,7 +97,7 @@ const textosAJS = AJS.split("\n").filter(l => !/^\s*(\/\/|\*)/.test(l)).join("\n
 c(!/Claude/.test(textosAJS) && /Pregunta a NEBULA/.test(AJS) && /Enviar a NEBULA/.test(AJS) && /se lo paso al Alto Mando/.test(AJS),
   "🔴 en la Academia no sale Claude: se pregunta a NEBULA, y lo que no sabe lo pasa al Alto Mando");
 const SD8 = L("_site_data.py");
-c(!/nave Cero|pasillos de la Cero|Laberinto de la Cero|Comandante de la Cero/.test(SD8) && /"planeta": "La Constancia"/.test(SD8) && /"titulo": "Comandante de La Constancia"/.test(SD8),
+c(!/nave Cero|pasillos de la Cero|Laberinto de la Cero|Comandante de la Cero/.test(SD8) && /la nave <b>La Constancia<\/b>/.test(SD8) && /"titulo": "Comandante de La Constancia"/.test(SD8),
   "🔴 la nave es La Constancia (el prólogo, el título final, los juegos); «la Cero» es la Tripulación Cero");
 c(/\.pest\.cn-t \.pest-n\{position:absolute/.test(L("assets/css/stargate.css")), "   en el móvil, el aviso de la Cola de nota va en la esquina de la pestaña (empujaba el icono)");
 

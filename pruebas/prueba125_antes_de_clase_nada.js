@@ -20,10 +20,10 @@ const q = (D.match(/\{"p": "¿Qué te toca antes de clase\?", "o": \[([^\]]*)\],
 const ops = q[1] ? JSON.parse("[" + q[1] + "]") : [];
 c(ops[Number(q[2])] === "En principio, nada: está todo montado", "🔴 Academia · «¿Qué te toca antes de clase?»: la buena es «En principio, nada: está todo montado»", ops[Number(q[2])]);
 c(!ops.some(o => /foro/i.test(o)), "   y copiar el mensaje al foro ya no sale como respuesta (ni buena ni falsa: es opcional)");
-c(/"porque": "La clase, su vídeo y el mensaje del foro \(que a tu alumnado le sale solo en su Nave\) ya están\. Lo que viene genial: echar un vistazo a la sesión de la semana, enlazar tu Genially si quieres y escoger qué diapositivas mostrar\."/.test(D),
+c(/"porque": "La sesión, su vídeo y el mensaje del foro ya están\. Lo que viene genial: echar un vistazo a la sesión de la semana, enlazar tu Genially si quieres y escoger qué diapositivas mostrar\."/.test(D),
   "   el porqué cuenta lo que viene genial: la sesión, tu Genially y qué diapositivas");
-c(/"p": "<b>Antes<\/b>: en principio, nada; está todo montado\. Viene genial, eso sí, echar un vistazo a la sesión de la semana, enlazar tu Genially si quieres y escoger qué diapositivas mostrar\./.test(D)
-  && !/lo copias a la plataforma de la UNIR/.test(D), "🔴 Academia · «Tu semana de Comandante» (Ecos) dice lo mismo");
+c(/"titulo": "Antes del primer día", "tema": "Lo que puedes dejar preparado \(todo es opcional\)"/.test(D) && /La sesión de cada semana <b>ya viene montada<\/b>/.test(D)
+  && !/lo copias a la plataforma de la UNIR/.test(D), "🔴 Academia · la parada «Antes del primer día» (5-oct) dice lo mismo: ya viene montada, todo es opcional");
 c(/cod="D2", t="Uno: un vistazo a la sesión de la semana", pose="senala", img="r7_consola\.png"/.test(D) && !/sigues con tu vida/.test(D),
   "   guía · «Si das las clases», paso 1: un vistazo a la sesión (no «copias el mensaje del foro»)");
 c(/"Antes de clase, en principio nada: la sesión trae la diapositiva <b>«Únete a la clase»<\/b>/.test(B), "   guía · la primera sesión: antes, nada (el código sale en grande en la sesión)");

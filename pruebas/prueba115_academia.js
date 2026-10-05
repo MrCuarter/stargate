@@ -21,68 +21,73 @@ const HTML = L("academia.html"), JS = L("assets/js/academia.js"), CSS = L("asset
 const STG = L("assets/js/stargate.js"), SES = L("assets/js/sesion.js"), CONS = L("assets/js/consola.js"), FUE = L("assets/js/fuente.js");
 const CREAR = L("assets/js/crear.js"), ALI = L("assets/js/alistarse.js");
 
-// ── 1 · Los objetivos, en su orden (de lo más grande a lo más concreto)
-// 30-sep · planeta a planeta (Norberto eligió la B del borrador: un prólogo en la Cero y una sesión por planeta)
-c(JSON.stringify(E.map(e => e.id)) === JSON.stringify(["cero", "forge", "ecos", "sendara", "reliae", "umbral", "ludo", "vinculo", "liminar"]),
-  "🔴 la Cero y los ocho planetas, en el orden del viaje", E.map(e => e.id).join(","));
-c(JSON.stringify(E.slice(1).map(e => e.planeta)) === JSON.stringify(["Fôrge", "Ecos", "Sendara", "Reliae", "Umbral", "Ludo", "Vínculo", "Liminar"]) &&
-  E.slice(1).every((e, k) => new RegExp("^Tema " + (k + 1) + " · ").test(e.tema)), "   cada planeta, con su tema (Fôrge el 1… Liminar el 8)");
+// ── 1 · 5-oct · OCHO PARADAS, EN EL ORDEN EN QUE SE NECESITAN (Norberto: «ni los profes referentes han hecho el curso… necesito
+// que la academia sea un lugar ÚTIL»; las propuso él: narrativa, antes del primer día, primer día, primera semana, progreso,
+// estudiantes, cerrando el curso y canjes). Una por planeta, con los fondos de siempre.
+c(JSON.stringify(E.map(e => e.titulo)) === JSON.stringify(["La historia y tu panel", "Antes del primer día", "El primer día", "La primera semana",
+  "El progreso", "Tus estudiantes", "Cerrando el curso", "Los canjes: subir nota"]), "🔴 las ocho paradas, en el orden en que un docente las necesita", E.map(e => e.titulo).join(" · "));
+c(JSON.stringify(E.map(e => e.planeta)) === JSON.stringify(["Fôrge", "Ecos", "Sendara", "Reliae", "Umbral", "Ludo", "Vínculo", "Liminar"]) &&
+  JSON.stringify(E.map(e => e.id)) === JSON.stringify(["forge", "ecos", "sendara", "reliae", "umbral", "ludo", "vinculo", "liminar"]), "   una por planeta, con sus fondos (sin el prólogo aparte: la historia es la primera parada)");
 c(C.titulo === "La Academia de la Cero" && C.final.titulo === "Comandante de La Constancia", "   «La Academia de la Cero» y, al terminar, «Comandante de La Constancia» (la nave es La Constancia; la Cero, la tripulación)");
 c(C.organiza && C.organiza.correo === "n.cuartero.10@gmail.com", "   organiza Norberto (n.cuartero.10)");
 c(A.per === "academia-cero" && C.grupo === A.per, "   su grupo propio: academia-cero");
 c(/^[A-HJ-NP-Z2-9]{6}$/.test(C.codigo), "🔴 el grupo existe: su código de clase está en los datos (lo escribió academia_grupo.cjs --crear)", C.codigo);
 
-// ── 2 · Poco a poco y con la cara de las clases en directo
-c(E.every(e => Number(e.min) > 0 && Number(e.min) <= 25), "🔴 cada sesión dice cuánto dura (y ninguna pasa de 25 minutos)");
-c(E.every(e => e.piezas.length >= 2 && e.piezas.length <= 3), "   dos o tres piezas de la herramienta por sesión");
-c(E.every(e => e.piezas.every(b => b.p.replace(/<[^>]+>/g, "").length <= 700)), "   ninguna pieza es un muro de texto (≤ 700 caracteres)",
+// ── 2 · Corta, con vídeos y sin cifras a mano
+const total = E.reduce((a, e) => a + Number(e.min), 0);
+c(E.every(e => Number(e.min) > 0 && Number(e.min) <= 6) && total <= 35, "🔴 cada parada, de pocos minutos (toda la Academia, " + total + " min)");
+c(E.every(e => e.piezas.length >= 2 && e.piezas.length <= 3), "   dos o tres explicaciones por parada");
+c(E.every(e => e.piezas.every(b => b.p.replace(/<[^>]+>/g, "").length <= 260)), "   ninguna explicación es un muro de texto (≤ 260 caracteres; el detalle, en sus pasos)",
   E.map(e => e.piezas.map(b => b.p.replace(/<[^>]+>/g, "").length)).join(" | "));
-const PLAN = E.slice(1);
-c(PLAN.every(e => e.carta && e.retrato && e.cita && e.quien && e.historia), "🔴 cada planeta, con su tripulante: su carta, su retrato, su lema y su historia");
-c(E.every(e => (e.historia.match(/[.!?](\s|$)/g) || []).length <= 2), "   la historia, en dos frases como mucho", E.map(e => (e.historia.match(/[.!?](\s|$)/g) || []).length).join(","));
-c(/function pantallas\(i\)/.test(JS) && /\{ t: "llegada" \}/.test(JS) && /t: "historia"/.test(JS) && /t: "pieza"/.test(JS) && /t: "hito"/.test(JS) && /\{ t: "fin" \}/.test(JS),
-  "🔴 cada sesión, pantalla a pantalla: la llegada → la historia → las piezas → un hito por pantalla → completada");
+const vids = [].concat(...E.map(e => e.piezas.filter(b => b.video).map(b => b.video)));
+c(vids.length >= 12 && new Set(vids).size === vids.length, "🔴 casi cada explicación, con su vídeo tutorial (" + vids.length + ", ninguno repetido)");
+c(vids.every(v => fs.existsSync(path.join(R, "assets/video/tutoriales", v + ".mp4"))), "   y todos los vídeos existen", vids.filter(v => !fs.existsSync(path.join(R, "assets/video/tutoriales", v + ".mp4"))).join(","));
+c(/<video class="acd-video" src="' \+ esc\(VIDEO\(b\.video\)\) \+ '" autoplay muted loop playsinline controls/.test(JS) && /window\.SG_TUTORIALES=/.test(HTML), "   se ven grandes, en bucle, sin sonido y con su huella (el CDN guarda 7 días)");
+c(/\.acd-video\{position:absolute;right:2\.5%/.test(CSS) && /@media \(max-width:980px\)\{\.acd-video\{position:relative/.test(CSS), "   a la derecha de la explicación; en el móvil, debajo");
+c(!/\{\{/.test(JSON.stringify(C)) && /<b>Semana 15<\/b>: las subidas de nota/.test(JSON.stringify(C)) && /Subir 0,5 en un entregable<\/b>: 550/.test(JSON.stringify(C)),
+  "🔴 ninguna cifra a mano: las semanas y los precios los pone _site_data.py desde el motor");
+c(/function pantallas\(i\)/.test(JS) && /\{ t: "llegada" \}/.test(JS) && /t: "pieza"/.test(JS) && /t: "hito"/.test(JS) && /\{ t: "fin" \}/.test(JS),
+  "🔴 cada parada, pantalla a pantalla: la llegada → las explicaciones → la práctica → hecha");
 c(/class="acd-dia ' \+ cls/.test(JS) && /acd-dia-barra/.test(JS) && /acd-flecha ant/.test(JS) && /\.acd-dia\{position:relative;isolation:isolate;overflow:hidden;border-radius:20px;border:1px solid var\(--line\);background:#060a12;aspect-ratio:16\/9/.test(CSS),
   "🔴 con la cara de las clases en directo: diapositiva 16:9, fondo del planeta, flechas y barra de pasos");
 c(/@media \(max-width:980px\)\{\s*\.acd-dia\{aspect-ratio:auto/.test(CSS), "   en el móvil (y en ventanas estrechas), la diapositiva crece con su contenido");
 c(/ev\.key === "ArrowRight"/.test(JS) && /ev\.key === "ArrowLeft"/.test(JS), "   y se pasa con las flechas del teclado, como la clase");
-c(/¿Suficiente por hoy\?/.test(JS) && /seguirás justo donde lo dejaste/.test(JS) && /lsPoner\("pos"/.test(JS), "   al acabar cada sesión, «¿Suficiente por hoy?», y se sigue donde se dejó");
-c(/sesiones más, que se abren/.test(JS) && /function abierta\(i\)/.test(JS), "   el mapa no enseña todo el camino: lo hecho, la de ahora y cuántas quedan");
+c(/¿Suficiente por hoy\?/.test(JS) && /seguirás justo donde lo dejaste/.test(JS) && /lsPoner\("pos"/.test(JS), "   al acabar cada parada, «¿Suficiente por hoy?», y se sigue donde se dejó");
+c(/function abierta\(i\) \{ return true; \}/.test(JS) && !/sesiones más, que se abren/.test(JS), "🔴 todas las paradas abiertas: quien solo quiere «el primer día», va directo");
 
-// ── 3 · Las preguntas, DENTRO de un minijuego distinto por planeta (Norberto: «¡usa los minijuegos para preguntar!»)
-c(E[0].juego == null && PLAN.every(e => e.juego && e.juego.maquina && e.juego.n), "🔴 cada planeta tiene su minijuego (la Cero, el prólogo, no)");
-const maq = PLAN.map(e => e.juego.maquina), arcade = maq.filter(m => !/^ruta:/.test(m));
+// ── 3 · El minijuego con sus preguntas, como repaso OPCIONAL (no cierra la parada)
+c(E.every(e => e.juego && e.juego.maquina && e.juego.n), "   cada parada tiene su minijuego");
+const maq = E.map(e => e.juego.maquina), arcade = maq.filter(m => !/^ruta:/.test(m));
 c(JSON.stringify(arcade.slice().sort()) === JSON.stringify(["conquista", "descenso", "evacuacion", "laberinto", "ruta-azul"]) && new Set(maq).size === maq.length,
-  "🔴 un minijuego distinto en cada planeta: las cinco máquinas de Joran y la Ruta (a Ludo, Vínculo y Liminar)", maq.join(","));
-c(maq.filter(m => /^ruta:m\d$/.test(m)).length === 3, "   la Ruta, en tres tramos distintos");
-c(PLAN.every(e => e.preguntas.length === 5), "🔴 cinco preguntas por planeta", PLAN.map(e => e.preguntas.length).join(","));
-c(PLAN.every(e => e.preguntas.every(q => q.p && q.o.length >= 3 && q.o.length <= 4 && q.ok === 0 && q.porque && new Set(q.o).size === q.o.length)),
+  "   un minijuego distinto en cada una: las cinco máquinas de Joran y la Ruta", maq.join(","));
+c(E.every(e => e.preguntas.length === 5), "   cinco preguntas por parada", E.map(e => e.preguntas.length).join(","));
+c(E.every(e => e.preguntas.every(q => q.p && q.o.length >= 3 && q.o.length <= 4 && q.ok === 0 && q.porque && new Set(q.o).size === q.o.length)),
   "   cada una con 3 o 4 opciones distintas (la Ruta no admite más), su buena y su porqué");
-c(/function hitoJuego\(e\)/.test(JS) && /tipo: "juego"/.test(JS) && /e\.hitos\.concat\(e\.juego \? \[hitoJuego\(e\)\] : \[\]\)/.test(JS), "   el juego es un hito más de su sesión (se da por hecho al acertarlas todas)");
+c(/tipo: "juego", opcional: true/.test(JS) && /return h\.opcional \|\| estado\(h\)\.ok/.test(JS) && /if \(h\.opcional\) return; t\+\+/.test(JS), "🔴 el juego es OPCIONAL: no cierra la parada ni cuenta para el título");
 c(/"&banco=academia&embed=1&tanda=" \+ encodeURIComponent\(e\.id\)/.test(JS) && /window\.SG_BANCO_JUEGO = e\.preguntas/.test(JS), "   se abre en modo Academia, con sus preguntas");
-c(/ev\.origin !== location\.origin/.test(JS) && /m\.tanda !== e\.id/.test(JS) && /if \(m\.todas\)/.test(JS) && /if \(m\.siguiente\)/.test(JS), "🔴 y la Academia escucha al juego: «todas» (hito hecho) y «siguiente» (sin fiarse de otros orígenes)");
+c(/ev\.origin !== location\.origin/.test(JS) && /m\.tanda !== e\.id/.test(JS) && /if \(m\.todas\)/.test(JS) && /if \(m\.siguiente\)/.test(JS), "   y la Academia escucha al juego (sin fiarse de otros orígenes)");
 c(/function escribiendo\(\) \{ var t = document\.activeElement && document\.activeElement\.tagName; return JUGANDO \|\|/.test(JS), "   mientras se juega, la página no se repinta sola (se perdería la partida)");
 
-// ── 4 · Una misión en la consola de ensayo por sesión, y lo real en el grupo de la Academia
-const hitos = [].concat(...E.map(e => e.hitos)), AUTO = /^((alta|nave|reto:[A-Z]\d|ruta:m\d|repaso|dif:\d+|sim:(clase|rueda|panel)|ens:[a-z]+)(\+|$))+$/;
-const ensayo = (h) => h.tipo === "auto" && String(h.comprobar).split("+").every(x => /^(sim|ens):/.test(x));
-c(E.every(e => e.hitos.filter(ensayo).length === 1), "🔴 UNA misión en la consola de ensayo por sesión", E.map(e => e.hitos.filter(ensayo).length).join(","));
-c(hitos.every(h => ["auto", "diseno"].indexOf(h.tipo) >= 0), "   todos los hitos se corrigen solos (o los comenta Claude: el diseño)");
-c(hitos.filter(h => h.tipo === "auto").every(h => AUTO.test(h.comprobar)), "   cada misión dice qué se comprueba", hitos.filter(h => h.tipo === "auto").map(h => h.comprobar).join(","));
-c(hitos.some(h => h.comprobar === "reto:L1") && /imagen con IA/.test(JSON.stringify(E)), "🔴 la actividad del alumnado: el relámpago L1, la imagen con IA (la comenta Claude)");
-c(hitos.some(h => h.comprobar === "alta") && hitos.some(h => h.comprobar === "ruta:m0") && hitos.some(h => h.tipo === "diseno"), "   lo real: su ficha de recluta, su primer vuelo y su primera pieza");
-c(new Set(hitos.map(h => h.id).concat(PLAN.map(e => e.id + "-juego"))).size === hitos.length + PLAN.length, "   ids de hito únicos");
-c(/completedMissionIds/.test(JS) && /G \+ "__" \+ m\[1\]/.test(JS) && /stargateRuta/.test(JS) && /\.medalla !== "nada"/.test(JS), "   los retos y la Ruta se leen de SU ficha en el grupo de la Academia");
-c(/function hechosEnsayo\(\)/.test(JS) && /sgEnsayo\.hechos/.test(JS) && /String\(c\)\.split\("\+"\)\.every\(autoOk\)/.test(JS), "   lo hecho en el ensayo se lee de este navegador, y una misión compuesta pide todas sus partes");
+// ── 4 · Una práctica por parada, en la consola de ensayo, que se corrige sola
+const hitos = [].concat(...E.map(e => e.hitos)), AUTO = /^((alta|nave|reto:[A-Z]\d|ruta:m\d|repaso|dif:\d+|sim:(clase|rueda|panel|estudiante)|ens:[a-z]+|tab:[a-z]+)(\+|$))+$/;
+const ensayo = (h) => h.tipo === "auto" && String(h.comprobar).split("+").every(x => /^(sim|ens|tab):/.test(x));
+c(E.every(e => e.hitos.length === 1 && e.hitos.filter(ensayo).length === 1), "🔴 UNA práctica por parada, en la consola de ensayo o el simulador", E.map(e => e.hitos.filter(ensayo).length).join(","));
+c(hitos.every(h => AUTO.test(h.comprobar)), "   cada práctica dice qué se comprueba", hitos.map(h => h.comprobar).join(","));
+c(/if \(\(m = \/\^tab:\(\.\+\)\$\/\.exec\(c\)\)\) return !!\(R\.consola \|\| \{\}\)\[m\[1\]\]/.test(JS) && /\/\^\(sim\|dif\|ens\|tab\):\//.test(JS), "   «tab:<pestaña>»: la ha abierto en la consola de ensayo");
+c(/if \(\(m = \/\^ensayo:\(\.\+\)\$\/\.exec\(b\)\)\) return "ensayo\.html\?tab=" \+ encodeURIComponent\(m\[1\]\)/.test(JS), "   y su botón la abre directamente en esa pestaña");
+c(new Set(hitos.map(h => h.id).concat(E.map(e => e.id + "-juego"))).size === hitos.length + E.length, "   ids de práctica únicos");
+c(/completedMissionIds/.test(JS) && /G \+ "__" \+ m\[1\]/.test(JS) && /stargateRuta/.test(JS) && /\.medalla !== "nada"/.test(JS), "   los retos y la Ruta se siguen leyendo de SU ficha en el grupo de la Academia");
+c(/function hechosEnsayo\(\)/.test(JS) && /sgEnsayo\.hechos/.test(JS) && /String\(c\)\.split\("\+"\)\.every\(autoOk\)/.test(JS), "   lo hecho en el ensayo se lee de este navegador, y una práctica compuesta pide todas sus partes");
 
-// ── 5 · Nada de destripes (el repo es público)
+// ── 5 · Las palabras del máster, sin destripes ni emojis
 const TODO = JSON.stringify(C);
 c(!/Ashan|Archivista|Oren|Fragmento Prohibido|se convirtieron en NEBULA|antena/i.test(TODO), "🔴 sin destripes: ni qué fue de la Cero, ni quién es NEBULA, ni el pasado de Vaeon");
-// (en lo que se VE: los datos y el código sin sus comentarios, que llevan el 🔴 de la casa)
+c(/Estudiantes<\/b> \(Reclutas\)/.test(TODO) && /\(relámpago\)/.test(TODO) && /\(en STARGATE, la <b>Bitácora<\/b>\)/.test(TODO), "   las palabras del máster; las de STARGATE, entre paréntesis");
+c(!/referente/i.test(TODO), "   y ni rastro de «referente» (la Academia es para cualquier docente)");
 const JS_SIN_COMENT = JS.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
 c(!/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(TODO + JS_SIN_COMENT), "   sin emojis en lo que se ve");
-const imgs = [].concat(...E.map(e => [e.pj, e.bg, e.suelo, e.carta, e.retrato].concat(e.piezas.map(b => b.img)))).filter(Boolean);
-c(imgs.every(f => fs.existsSync(path.join(R, f))), "   los fondos, los tripulantes y los pantallazos existen", imgs.filter(f => !fs.existsSync(path.join(R, f))).join(","));
+const imgs = [].concat(...E.map(e => [e.pj, e.bg, e.suelo, e.carta].concat(e.piezas.map(b => b.img)))).filter(Boolean);
+c(imgs.every(f => fs.existsSync(path.join(R, f))), "   los fondos, las cartas y las imágenes existen", imgs.filter(f => !fs.existsSync(path.join(R, f))).join(","));
 c(["maq_conquista", "maq_evacuacion", "maq_laberinto", "maq_rutaazul", "maq_descenso", "maq_vuelo"].every(k => fs.existsSync(path.join(R, "juegos/joran/img", k + ".jpg"))), "   y la imagen de cada máquina");
 
 // ── 6 · La página, el motor y el registro del profesorado
@@ -109,7 +114,7 @@ c(f(ins).url === "https://view.genially.com/66f0c0ffee1234567890abcd", "🔴 del
 c(!!f('<iframe src="https://malo.example.com/x"></iframe>').error, "   un iframe de otro sitio, no");
 c(!!f('<iframe title="sin src"></iframe>').error && !!f("http://view.genially.com/x").error, "   ni sin dirección, ni sin https");
 c(f("https://view.genially.com/abc").url === "https://view.genially.com/abc" && f("").url === "", "   el enlace a secas sigue valiendo (y vacío, vuelve al oficial)");
-c(/Que no se note el cambio/.test(TODO) && /fondos/.test(TODO), "   y los fondos de la clase para su Genially («que no se note»)");
+c(/Los fondos de cada planeta \(Drive del equipo\)/.test(TODO), "   y los fondos de cada planeta para su Genially (el Drive del equipo)");
 
 // ── 9 · Al entrar, docente Y recluta; y la Academia siempre a mano en su Nave (Norberto, 29-sep)
 const REC = L("assets/js/recluta.js");

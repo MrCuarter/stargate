@@ -119,13 +119,13 @@
   var ACA = window.SG_ACADEMIA_PRES || {};
   function urlAcademia() { return location.origin + "/academia.html"; }
   function academia() {
-    var horas = Math.max(1, Math.round((ACA.min || 120) / 60));
+    var minutos = ACA.min || 30;   // 5-oct · la Academia, en paradas cortas
     return { rot: "La Academia", html: escena({ cls: "pr-aca", bg: "cero_ensenando.webp", cap: ["senala", "Antes del lunes, un paseo por la Academia. Luego la clase se da sola."],
       cuerpo: '<div class="kicker">Antes de vuestra primera clase</div>' +
-        '<h2>' + esc(ACA.titulo || "La Academia de la Cero") + ': aprendedlo jugando</h2>' +
-        '<ul class="pr-aca-l"><li><b>' + (ACA.sesiones || 9) + ' sesiones cortas</b>, planeta a planeta: la historia y la herramienta a la vez. Unas ' + horas + ' horas en total, a vuestro ritmo.</li>' +
-          '<li>En cada una, <b>una misión en la consola de ensayo</b>: vuestra Nave con treinta reclutas de mentira. No se rompe nada.</li>' +
-          '<li>Las preguntas van <b>dentro de los minijuegos</b> de vuestro alumnado: los probáis antes que ellos.</li>' +
+        '<h2>' + esc(ACA.titulo || "La Academia de la Cero") + ': lo justo, en el orden en que lo necesitáis</h2>' +
+        '<ul class="pr-aca-l"><li><b>' + (ACA.sesiones || 8) + ' paradas cortas</b>, de la historia al cierre del curso, cada una con su vídeo. Unos ' + minutos + ' minutos en total, a vuestro ritmo.</li>' +
+          '<li>En cada una, <b>una práctica en la consola de ensayo</b>: vuestro panel con treinta estudiantes de mentira. No se rompe nada.</li>' +
+          '<li>Y, si os apetece, un repaso <b>dentro de los minijuegos</b> de vuestros estudiantes: los probáis antes que ellos.</li>' +
           '<li>Y cada día, alguien <b>os responde las dudas</b>.</li></ul>' +
         '<div class="pr-aca-enl"><div class="pr-aca-qr" id="pr-aca-qr" aria-hidden="true"></div>' +
           '<div class="pr-aca-txt"><p class="pr-aca-dir">' + esc(urlAcademia().replace(/^https?:\/\//, "")) + '</p>' +

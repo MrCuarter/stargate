@@ -469,7 +469,7 @@
   var ACADEMIA_DOC = null;
   function puertaAcademia() {
     var a = ACADEMIA_DOC; if (!a || ENSAYO || ORGANIZO_ACADEMIA()) return "";   // (quien la organiza la lleva desde el menú)
-    var av = a.avance || {}, t = av.fin ? "La has completado: repásala cuando quieras." : (av.total ? "Llevas " + (av.sesiones || 0) + " de " + av.total + " sesiones: sigue donde lo dejaste." : "Tu curso del profesorado: sigue donde lo dejaste.");
+    var av = a.avance || {}, t = av.fin ? "La has completado: repásala cuando quieras." : (av.total ? "Llevas " + (av.sesiones || 0) + " de " + av.total + " paradas: sigue donde lo dejaste." : "Tu curso del profesorado: sigue donde lo dejaste.");
     return '<div class="card acd-puerta ancha"><img src="assets/img/personajes/nebula.png" alt=""><div><b>La Academia de la Cero' + (av.fin ? " · Comandante de La Constancia" : "") + "</b><span>" + esc(t) + "</span></div>" +
       '<a class="btn primary" href="academia.html">Abrir la Academia →</a></div>';
   }
