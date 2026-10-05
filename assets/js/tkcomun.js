@@ -31,9 +31,14 @@
      * grupo es cuando precarga los tickets.
      */
     var propios = (M && M.ticketsGuardados) ? M.ticketsGuardados(per) : Promise.resolve([]);
+    // 🔴 5-oct · después, el ticket del motor (GamificaPro `modTicket`): sus respuestas, como filas de la hoja de antes
+    var motor = propios.catch(function () { return []; }).then(function (filas) {
+      if (filas && filas.length) return filas;
+      return ((M && M.ticketsDelMotor) ? M.ticketsDelMotor(per) : Promise.resolve([])).then(filasDelMotor, function () { return []; });
+    });
     var tope = new Promise(function (_, no) { setTimeout(function () { no(new Error("tarda demasiado")); }, 12000); });
     PROMESA = Promise.race([
-      propios.catch(function () { return []; }).then(function (filas) {
+      motor.then(function (filas) {
         if (filas && filas.length) return { tickets: filas, propios: true };
         if (!window.SG_TICKETS_API) return { error: "" };
         return ((M && M.credencial) ? M.credencial() : Promise.resolve("")).then(function (t) {
@@ -47,6 +52,49 @@
     return PROMESA;
   }
   function limpiar() { TK = null; PROMESA = null; }
+
+  /**
+   * 🔴 5-oct · LAS PREGUNTAS DEL TICKET (la piel; el servidor, GamificaPro `modTicketLogica.js`, solo conoce sus ids y su
+   * tipo: si se añade o se quita una, en los dos sitios). Los textos casan con `CORTO` de abajo, que les da su nombre corto.
+   * «p» es la presentación de la asignatura; el resto de temas y el balance final («0») llevan las de siempre.
+   */
+  var SEGUIDO = { id: "seguido", tipo: "opcion", texto: "¿Cómo has seguido esta clase?",
+    opciones: [["directo", "En DIRECTO"], ["diferido", "En diferido (la grabación)"]] };
+  var PREGUNTAS = {
+    p: [
+      { id: "vibra", tipo: "escala", texto: "¿Qué vibraciones te ha transmitido la presentación?" },
+      { id: "temario", tipo: "escala", texto: "Valora la utilidad que percibes del temario" },
+      { id: "previos", tipo: "escala", texto: "Valora tus conocimientos iniciales sobre la asignatura" },
+      SEGUIDO,
+      { id: "espera", tipo: "texto", texto: "¿Qué esperas de la asignatura?" },
+      { id: "duda", tipo: "texto", texto: "¿Alguna duda o comentario?" }],
+    tema: [
+      { id: "general", tipo: "escala", texto: "Valora la satisfacción general del desarrollo de la clase" },
+      { id: "herramientas", tipo: "escala", texto: "Valora la utilidad de las herramientas vistas" },
+      { id: "teoria", tipo: "escala", texto: "Valora los contenidos teóricos" },
+      { id: "practica", tipo: "escala", texto: "Valora las estrategias prácticas" },
+      SEGUIDO,
+      { id: "duda", tipo: "texto", texto: "¿Alguna duda o comentario?" }]
+  };
+  function preguntasDe(tema) { return PREGUNTAS[String(tema)] || PREGUNTAS.tema; }
+
+  /** Los documentos de `mod_tickets` → las filas de la hoja de antes ({ r: { columna: valor }, fila, fecha }). */
+  function filasDelMotor(docs) {
+    var T = window.SG_TICKET_TEMAS || {}, out = [];
+    (docs || []).forEach(function (d) {
+      var P = preguntasDe(d.tema);
+      (d.filas || []).forEach(function (f) {
+        var r = { "Selecciona el tema": T[String(d.tema)] || "", "Tu profesor o profesora": f.c || "" };
+        P.forEach(function (q) {
+          var v = (f.r || {})[q.id]; if (v == null || v === "") return;
+          if (q.tipo === "opcion") { var o = (q.opciones || []).filter(function (x) { return x[0] === v; })[0]; v = o ? o[1] : v; }
+          r[q.texto] = String(v);
+        });
+        out.push({ r: r, fila: f.k, fecha: "" });
+      });
+    });
+    return out;
+  }
 
   /**
    * Las columnas que no son ni una nota ni un comentario: la cabecera del formulario y las de elegir.
@@ -117,5 +165,5 @@
   }
 
   window.SG = window.SG || {};
-  window.SG.TK = { pedir: pedir, limpiar: limpiar, corto: corto, analizar: analizar, esDelTema: esDelTema, deTema: deTema, idTexto: idTexto, campo: campo };
+  window.SG.TK = { pedir: pedir, limpiar: limpiar, PREGUNTAS: PREGUNTAS, preguntasDe: preguntasDe, filasDelMotor: filasDelMotor, corto: corto, analizar: analizar, esDelTema: esDelTema, deTema: deTema, idTexto: idTexto, campo: campo };
 })();

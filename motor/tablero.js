@@ -508,7 +508,8 @@
       // cada recluta. Así el mismo enlace vale en todos los grupos y en todos los años.
       // (20-sep · {TEMA} solo lo sabe la sesión proyectada, que es la que cierra un tema: aquí se vacía
       //  para que el enlace de siempre —la Nave, el tablero, los Geniallys— no lleve un hueco a la vista.)
-      formTicket: String(S.ticket || "").replace("{GRUPO}", encodeURIComponent(P.id || "")).replace("{TEMA}", ""),
+      // 5-oct · el ticket es ya la página del motor (ticket.html): los grupos creados antes guardaron el Google Form
+      formTicket: "/ticket.html?per=" + encodeURIComponent(P.id || ""),
       // 🔴 Los escuadrones, para los rankings. Van SIN el correo de quien los comanda: el tablero se
       // proyecta en clase. `teacherName` ya es público —el alumnado necesita saber quién le imparte—
       // y es la llave que ata cada recluta (`profe`) con su escuadrón.

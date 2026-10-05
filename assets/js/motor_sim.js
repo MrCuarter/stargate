@@ -2375,6 +2375,18 @@ async function ticketsGuardados(perId) {
     return (v && Array.isArray(v.filas)) ? v.filas : [];
   } catch (e) { return []; }
 }
+/**
+ * 🔴 5-oct · EL TICKET DEL MOTOR (GamificaPro `modTicket`, colección `mod_tickets`). Sustituye al Google Form: las
+ * respuestas sin nombre de cada tema, que lee el equipo docente. `assets/js/tkcomun.js` las convierte en las mismas filas
+ * que daba la hoja, así la sesión y la Nave del Comandante las pintan igual. [] si no hay o si Firestore dice que no.
+ */
+async function ticketsDelMotor(perId) {
+  if (!perId) return [];
+  try {
+    const q = await getDocs(query(collection(db, "mod_tickets"), where("projectId", "==", perId)));
+    return q.docs.map((d) => d.data());
+  } catch (e) { return []; }
+}
 async function marcasTicket(perId) {
   const yo = await sesion(); if (!yo || !perId) return { fijadas: [], ocultas: [] };
   const d = await getDoc(doc(db, "projects", perId, "privado", "tickets_" + yo.uid));
@@ -2522,7 +2534,7 @@ if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaResponder, academiaAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
-                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, marcasTicket, marcarTicket,
+                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo, esDelEquipoDe, pasarAFantasma,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
                     zocoDatos, zocoTratosGrupo, zocoAnunciosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,

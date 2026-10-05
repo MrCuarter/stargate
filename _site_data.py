@@ -2644,9 +2644,11 @@ PANEL_MAESTRO = "https://view.genially.com/6a8bfc4f5068ad5903fc39e3"
 # el de edición como el de visualización). Al crear un grupo y en sus Ajustes, estos dos van ya puestos.
 PANEL_MAESTRO_EDICION = "https://app.genially.com/editor/6a8bfc4f5068ad5903fc39e3"
 
-TICKET_URL = ("https://docs.google.com/forms/d/e/"
-              "1FAIpQLScqkZRCiUqKkq24s7_yzy2d2ldHXlWz8GoHCqXXmHbQlgKhIQ/viewform"
-              "?usp=pp_url&entry.489397158={GRUPO}&entry.856117988={COMANDANTE}&entry.240809630={TEMA}")
+# 🔴 5-oct · EL TICKET YA NO ES UN GOOGLE FORM: es la página ticket.html, que envía a GamificaPro (`modTicket`). Mismos
+# huecos que antes ({GRUPO}, {COMANDANTE}, {TEMA}) para que la sesión, la Nave y En directo no cambien. Con «/» delante:
+# la sala de En directo la incrusta desde juegos/directo/. El formulario de antes (por si hay que mirar ediciones viejas):
+# docs.google.com/forms/d/e/1FAIpQLScqkZRCiUqKkq24s7_yzy2d2ldHXlWz8GoHCqXXmHbQlgKhIQ/viewform
+TICKET_URL = "/ticket.html?per={GRUPO}&c={COMANDANTE}&tema={TEMA}"
 
 # 🔴 20-sep · EL TEMA, YA ELEGIDO. El ticket se rellena AL ACABAR CADA TEMA (no cada semana), y la sesión
 # que lo cierra lo incrusta en su última diapositiva. Si el tema va ya marcado, las respuestas se pueden

@@ -246,53 +246,50 @@ c(/SpreadsheetApp\.create\("STARGATE · Tickets de salida"\)/.test(BON),
 // huecos y llega a las páginas que lo necesitan. Sin esto, todo lo de arriba pasaría en verde con
 // TICKET_URL vacío y el ticket no existiría.
 const DATOS = fs.readFileSync(path.join(__dirname, "..", "_site_data.py"), "utf8");
-const mURL = DATOS.match(/TICKET_URL = \(([\s\S]*?)\)\n/);
-const TICKET = mURL ? (mURL[1].match(/"([^"]*)"/g) || []).map(x => x.slice(1, -1)).join("") : "";
+// 🔴 5-oct · EL TICKET YA NO ES UN GOOGLE FORM: es ticket.html, que envía a GamificaPro (`modTicket`), anónimo por
+// construcción (el servidor guarda la respuesta sin nombre y aparte que ya lo enviaste). Los mismos tres huecos de antes.
+const mURL = DATOS.match(/^TICKET_URL = "([^"]*)"/m);
+const TICKET = mURL ? mURL[1] : "";
 c(TICKET.length > 0, "🔴 TICKET_URL está puesto: sin él, la Nave no tiene ticket que enseñar");
-c(/^https:\/\/docs\.google\.com\/forms\/d\/e\/[\w-]+\/viewform\?/.test(TICKET),
-  "   y es la dirección pública de un formulario de Google, no el enlace de edición");
-c(TICKET.indexOf("usp=pp_url") > 0,
-  "🔴 lleva `usp=pp_url`: sin eso Google ignora los valores y los dos huecos no rellenan nada");
-c(/[?&]entry\.\d+=\{GRUPO\}/.test(TICKET), "   el hueco del GRUPO cuelga de un campo `entry.N` de verdad");
-c(/[?&]entry\.\d+=\{COMANDANTE\}/.test(TICKET), "   y el del COMANDANTE, de otro distinto");
-const campos = (TICKET.match(/entry\.(\d+)=/g) || []);
-igual(campos.length, new Set(campos).size, "   y no es el MISMO campo dos veces (se pisarían)");
-
-// 🔴 Anonimato. Es la única razón por la que el ticket sigue siendo un formulario de Google y no una
-// misión del motor. Un hueco de más aquí —el correo, el alias, la ficha— y deja de serlo.
+c(/^\/ticket\.html\?/.test(TICKET), "   y es la página del ticket (con «/» delante: En directo la incrusta desde juegos/directo/)");
+c(/[?&]per=\{GRUPO\}/.test(TICKET) && /[?&]tema=\{TEMA\}/.test(TICKET) && /[?&]c=\{COMANDANTE\}/.test(TICKET),
+  "   con el GRUPO, el TEMA y el COMANDANTE, cada uno en su parámetro");
 ["{EMAIL}", "{CORREO}", "{ALIAS}", "{NOMBRE}", "{FICHA}", "{UID}"].forEach(function (h) {
   c(TICKET.indexOf(h) < 0, "🔴 el ticket NO lleva " + h + ": es anónimo o no es un ticket");
 });
 igual((TICKET.match(/\{[A-Z]+\}/g) || []).sort(), ["{COMANDANTE}", "{GRUPO}", "{TEMA}"],
   "🔴 y esos tres son los ÚNICOS huecos: cualquier otro habría que rellenarlo, y nadie lo haría");
-// 🔴 20-sep · el TEMA. El ticket se rellena al acabar cada tema, así que la sesión que lo cierra deja el tema
-// ya elegido; el resto de enlaces (la Nave, el tablero, los Geniallys) lo vacían, que ahí no se sabe cuál es.
-c(/[?&]entry\.\d+=\{TEMA\}/.test(TICKET), "   y el del TEMA cuelga de otro campo `entry.N`");
 const TABLERO_JS = fs.readFileSync(path.join(__dirname, "..", "motor", "tablero.js"), "utf8");
-c(/replace\("\{TEMA\}", ""\)/.test(TABLERO_JS), "🔴 el tablero VACÍA el hueco del tema: fuera de la sesión no se sabe cuál es");
+c(/formTicket: "\/ticket\.html\?per=" \+ encodeURIComponent/.test(TABLERO_JS),
+  "🔴 el tablero da la página del ticket con su grupo y SIN tema (fuera de la sesión no se sabe cuál es), también a los grupos que guardaron el formulario");
 const SESION_JS = fs.readFileSync(path.join(__dirname, "..", "assets", "js", "sesion.js"), "utf8");
-c(/SG_TICKET_TEMAS/.test(SESION_JS) && /opcionTema/.test(SESION_JS), "   y la sesión lo rellena con el texto exacto de la opción del formulario");
+c(/SG_TICKET_TEMAS/.test(SESION_JS) && /opcionTema/.test(SESION_JS), "   y la sesión pone el tema (el texto de su opción; ticket.html lo entiende)");
+const TK_PAG = fs.readFileSync(path.join(__dirname, "..", "ticket.html"), "utf8"), TK_JS = js("ticket.js"), TKC = js("tkcomun.js");
+c(/motor\.js/.test(TK_PAG) && /tkcomun\.js/.test(TK_PAG) && /ticket\.js/.test(TK_PAG), "ticket.html carga el motor, las preguntas (tkcomun.js) y el formulario (ticket.js)");
+c(/llamar\("modTicket"/.test(TK_JS) && !/docs\.google\.com/.test(TK_JS), "🔴 y envía a GamificaPro (`modTicket`), no a Google");
+c(/function claveDe/.test(TK_JS) && /SG_TICKET_TEMAS/.test(TK_JS), "   entiende el tema por su clave o por el texto de la opción");
+c(/sgTicket:/.test(TK_JS), "   y lo apunta como hecho en el navegador, con la misma marca que miran la Nave y la sesión");
+c(/ticketsDelMotor/.test(TKC) && /function filasDelMotor/.test(TKC), "🔴 «Cómo os fue» y la Nave del Comandante leen las respuestas del motor, como filas de la hoja de antes");
 
 // Llega a las páginas: lo emite la cabecera común, no cada página por su cuenta.
 const CABEZA = fs.readFileSync(path.join(__dirname, "..", "_build_site.py"), "utf8");
 c(/window\.SG_TICKET_URL\s*=/.test(CABEZA), "la cabecera del motor lo emite como `window.SG_TICKET_URL`");
-["crear.html", "consola.html", "alistarse.html", "validar.html"].forEach(function (f) {
+["crear.html", "consola.html", "alistarse.html", "validar.html", "ticket.html"].forEach(function (f) {
   const h = fs.readFileSync(path.join(__dirname, "..", f), "utf8");
   c(h.indexOf(TICKET) > 0, "   " + f + " lo lleva escrito, entero y sin recortar");
 });
 c(/SG_TICKET_URL/.test(CREAR),
   "🔴 y la consola del referente lo trae ya escrito en la casilla: crear un grupo no obliga a buscarlo");
 
-// ---------------------------------------------------------------- r) los dos huecos, rellenados
-// La prueba de arriba abajo: se rellena el hueco del grupo como lo hace el tablero y el del
-// Comandante como lo hace la Nave, y se mira si lo que queda es una dirección que Google entiende.
+// ---------------------------------------------------------------- r) los tres huecos, rellenados
 const conGrupo = TICKET.replace("{GRUPO}", encodeURIComponent("CLASE DEMO/25"));
 const listo = conGrupo.split("{COMANDANTE}").join(encodeURIComponent("Mr Cuarter")).split("{TEMA}").join(encodeURIComponent("Tema 3: Contenidos interactivos (Sendara)"));
 c(listo.indexOf("{") < 0, "🔴 rellenados los tres, no queda ni un hueco sin sustituir");
-const q = new URL(listo).searchParams;
-const valores = [...q.entries()].filter(e => e[0].indexOf("entry.") === 0).map(e => e[1]);
-igual(valores.sort(), ["CLASE DEMO/25", "Mr Cuarter", "Tema 3: Contenidos interactivos (Sendara)"],
-  "🔴 y Google recibe los valores tal cual: la barra y el espacio sobreviven al escapado");
+const q = new URL(listo, "https://stargate.mistercuarter.es/juegos/directo/alumno.html").searchParams;
+igual([q.get("per"), q.get("c"), q.get("tema")], ["CLASE DEMO/25", "Mr Cuarter", "Tema 3: Contenidos interactivos (Sendara)"],
+  "🔴 y la página recibe los valores tal cual: la barra y el espacio sobreviven al escapado");
+igual(new URL(listo, "https://stargate.mistercuarter.es/juegos/directo/alumno.html").pathname, "/ticket.html",
+  "   y desde la sala de En directo (juegos/directo/) sigue llevando a la página del ticket");
 c(listo.indexOf("CLASE DEMO/25") < 0,
   "   porque van escapados en la dirección, no en crudo (en crudo, la barra partiría la ruta)");
 

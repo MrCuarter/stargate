@@ -4672,6 +4672,38 @@ pulsa, porque se le busca por su cuenta. Móntalo una vez en tu presentación y 
 open(os.path.join(HERE, "validar.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: validar.html  (enlaces universales para Genially)")
 
+# ---------------------------------------------------------------- 5-oct · EL TICKET DE SALIDA, DENTRO DE GAMIFICAPRO
+# Norberto: «el ticket de STARGATE, cuanto antes, prioridad 1». Sustituye al Google Form: TICKET_URL apunta aquí, y la
+# sesión, la Nave y la sala de En directo lo incrustan como antes incrustaban el formulario. Envía a GamificaPro
+# (`modTicket`), anónimo. Incrustado (o con ?embed=1), solo el formulario.
+_html = head("STARGATE · Ticket de salida",
+             "El ticket de salida de cada tema: anónimo y en dos minutos.",
+             "reg", publica=True).replace("</head>", _cabeza_motor() + """
+<meta name="robots" content="noindex,nofollow">
+<style>
+.tk-solo body>*:not(#tk-main){display:none!important}
+.tk-solo body{background:transparent}
+#tk-main{max-width:720px;margin:0 auto;padding:18px 16px 28px}
+.tk-form{display:flex;flex-direction:column;gap:14px}
+.tk-form h2,.tk-form .kicker,.tk-form>p{margin:0}
+.tk-q{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.tk-q legend{font-weight:700;margin-bottom:6px;font-size:16px}
+.tk-escala{display:flex;flex-wrap:wrap;gap:8px}
+.tk-escala .btn{min-width:48px;justify-content:center}
+.tk-extremos{display:flex;justify-content:space-between;max-width:300px}
+.tk-t{width:100%;font:inherit;font-size:15px;padding:10px;border-radius:10px;border:1px solid rgba(55,224,236,.35);background:rgba(8,12,20,.6);color:inherit}
+.tk-error{color:#ff8a7a;font-weight:700;margin:0}
+.tk-temas{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.tk-aviso p{font-size:17px;margin:0}
+.tk-aviso.mal p{color:#ffb3a8}
+</style>
+</head>""") + '''
+<main id="tk-main"><div id="ticket-app"><p class="muted">Cargando…</p></div></main>
+''' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' \
+     + '<script src="' + _v("assets/js/ticket.js") + '" defer></script>' + FOOT
+open(os.path.join(HERE, "ticket.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: ticket.html  (el ticket de salida, en GamificaPro)")
+
 # ---------------------------------------------------------------- 15-sep · EL FRAGMENTO PROHIBIDO (S7) → EL ESCAPE UNI
 # El enlace escondido en la presentación del planeta Vínculo llevaba aquí, a un enigma. 15-sep (tarde): el reto secreto
 # es el Escape UNI (Norberto), así que esta página es ya su PUERTA: quien encuentre el enlace de Vínculo entra en el

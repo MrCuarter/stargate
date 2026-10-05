@@ -55,7 +55,7 @@ c(SEMJSON.every((s, i) => i === 0 || !(F.primeraDelTema(SEMJSON, i) && F.ultimaD
   "   un tema de una sola semana (el 5 y el 6) abre y cierra en la misma sesión, y eso está bien");
 
 // el tema del formulario va ya elegido, con el texto EXACTO de la opción de Google
-c(/[?&]entry\.\d+=\{TEMA\}/.test(HTML), "🔴 el ticket lleva el hueco del TEMA");
+c(/[?&]tema=\{TEMA\}/.test(HTML), "🔴 el ticket lleva el hueco del TEMA (5-oct: ticket.html, en GamificaPro)");
 // 🔴 23-sep · Norberto: «en el ticket de salida elimina las actividades. Solo presentación, 8 temas y final»
 SEMJSON.forEach(function (s) {
   if (!s.tema_n) return;
