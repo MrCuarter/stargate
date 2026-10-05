@@ -1321,6 +1321,11 @@ TRIPULANTES = {
  "P8_noa":   ("Noa Lieth", "La Arquitecta de capas", "Construía realidades superpuestas para que un mundo pudiera ensayar su futuro antes de vivirlo. Su fragmento es La Última Noche: la votación de las ocho manos y la decisión de quedarse.", "Enseñar futuros."),
 }
 
+# 🔴 5-oct · LO QUE SALE DE SERIE (Norberto: «elimina por defecto la diapositiva de la cuenta de estudiante fantasma, va a liar
+# más que otra cosa… quizá no es necesario mostrar el ranking todas las sesiones, o quién ha hecho los retos… mostrar por
+# defecto esa información cuando empecemos un tema nuevo. No quiero borrarlas, solo desactivar algunas por defecto para no
+# agobiar de primeras a los docentes»). Un 4.º campo opcional: "off" = apagada de serie (el docente la enciende en la rueda);
+# "tema" = solo en la primera clase de cada tema (o en todas, si la marca así). Lo que el docente quite, no sale nunca.
 SESION_SECCIONES = [
     ("portada", "Portada", "El planeta de la semana y el capítulo de la historia."),
     ("unete", "Únete a la clase", "Semanas 1 y 2: el código y el enlace para alistarse, y «Copiar invitación» para el chat."),
@@ -1331,10 +1336,10 @@ SESION_SECCIONES = [
     ("pregunta", "La pregunta de la clase", "La pregunta del calendario oficial, con tu comandante. La resuelves tú en clase."),
     ("mensaje", "Mensaje de la semana", "La transmisión con el logo de STARGATE."),
     ("videos", "Vídeos de apertura", "La sinopsis, la Bitácora o la entrada al planeta."),
-    ("repaso", "Repaso de la semana anterior", "Quién hizo cada misión la semana pasada."),
-    ("clasificacion", "Clasificación", "Han movido ficha, la semana, el top 5 y los escuadrones."),
-    ("coleccion", "Coleccionistas", "Quién va más avanzado en su colección."),
-    ("simulador", "La sala de Joran", "Los récords de la clase en las máquinas de Joran."),
+    ("repaso", "Repaso de la semana anterior", "Quién hizo cada misión la semana pasada.", "tema"),
+    ("clasificacion", "Clasificación", "Han movido ficha, la semana, el top 5 y los escuadrones.", "tema"),
+    ("coleccion", "Coleccionistas", "Quién va más avanzado en su colección.", "tema"),
+    ("simulador", "La sala de Joran", "Los récords de la clase en las máquinas de Joran.", "tema"),
     ("votacion", "Votación", "La votación de la semana, si la hay."),
     # 27-sep · la misión de nave al cerrar cada tema (y tras la presentación, y Vaeon en la última clase) · borrador
     ("ruta", "La Ruta de la Estática", "Al cerrar cada tema: la misión de nave hasta el planeta siguiente (unos 5 minutos, una decena de preguntas). Tras la presentación, el primer vuelo; en la última clase, Vaeon."),
@@ -1344,7 +1349,9 @@ SESION_SECCIONES = [
     # 27-sep · el reto entre escuadrones: semana 11, el lanzamiento; semana 12, el resultado (borrador)
     ("asedio", "El Asedio", "Semana 11: el reto entre escuadrones. Semana 12: el podio y el salón de héroes y heroínas."),
     ("oferta", "Oferta de la semana", "La rebaja de esta semana en el Mercado."),
-    ("novedades", "Novedades de la semana", "Lo que se abre en la Nave, y tu Nave de ejemplo para enseñarlo."),
+    ("novedades", "Novedades de la semana", "Lo que se abre en la Nave esta semana."),
+    # 5-oct · la Nave de un recluta de mentira, en simulacro, dentro de la clase: aparte de las novedades y apagada de serie
+    ("naveejemplo", "La Nave de ejemplo", "La Nave de un recluta de mentira, para enseñarla en clase (lo que compras o registras ahí no cuenta).", "off"),
     ("despegue", "El despegue", "Tu Genially: la teoría y la práctica guiada."),
     # 21-sep · solo en las semanas que lanzan una actividad (la 2 y la 6): qué pide y qué retos la construyen
     ("actividad", "La misión mayor", "La actividad que puntúa y los retos que ya le han hecho un trozo; y su entrega, las semanas antes."),

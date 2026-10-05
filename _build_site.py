@@ -2401,6 +2401,20 @@ window.SG.rastroAcademia = function (campos) {
     return r;
   } catch (e) { return null; }
 };
+/**
+ * 🔴 5-oct · LO QUE SALE DE SERIE (SESION_SECCIONES, 4.º campo). En la lista que guarda cada docente, «clave» = la quita siempre y
+ * «+clave» = la enciende (una apagada de serie) o la quiere en todas las clases (una «solo al empezar tema»). Sin lista, los de serie.
+ */
+window.SG.seccionesApagadas = function (guardadas, empiezaTema) {
+  guardadas = Array.isArray(guardadas) ? guardadas : [];
+  var off = guardadas.filter(function (k) { return String(k).charAt(0) !== "+"; });
+  (window.SG_SECCIONES_SESION || []).forEach(function (x) {
+    var k = x[0], modo = x[3];
+    if (!modo || off.indexOf(k) >= 0 || guardadas.indexOf("+" + k) >= 0) return;
+    if (modo === "off" || (modo === "tema" && !empiezaTema)) off.push(k);
+  });
+  return off;
+};
 window.SG.CFGSESION = (function () {
   function e(x){ return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
   function ico(k, grande){ return '<img class="ico'+(grande?' grande':'')+'" src="assets/img/iconos/'+(grande?'':'p/')+k+'.png" alt="" width="20" height="20">'; }
@@ -2409,15 +2423,19 @@ window.SG.CFGSESION = (function () {
   function casillas(off) {
     var hay = window.SG_CAPTURAS_SESION || [];
     return '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
-      var k = x[0], sc = SIN_CAPTURA[k] || ["video", "Sale cuando esa semana tiene algo que enseñar"];
-      return '<label class="m-sec"><input type="checkbox" data-sec="' + e(k) + '"' + ((off || []).indexOf(k) < 0 ? " checked" : "") + '>' +
+      var k = x[0], modo = x[3] || "", sc = SIN_CAPTURA[k] || ["video", "Sale cuando esa semana tiene algo que enseñar"], L = off || [];
+      var marcada = modo === "off" ? L.indexOf("+" + k) >= 0 : L.indexOf(k) < 0;
+      // (las de serie, con su nota; y las «al empezar tema», con su casilla para tenerlas en todas las clases)
+      var nota = modo === "off" ? '<i class="m-sec-def">Apagada de serie: márcala si la quieres</i>'
+               : modo === "tema" ? '<i class="m-sec-def">De serie, solo en la primera clase de cada tema · <span class="m-sec-todas"><input type="checkbox" data-todas="' + e(k) + '"' + (L.indexOf("+" + k) >= 0 ? " checked" : "") + '> en todas</span></i>' : "";
+      return '<label class="m-sec"><input type="checkbox" data-sec="' + e(k) + '" data-modo="' + e(modo) + '"' + (marcada ? " checked" : "") + '>' +
         (hay.indexOf(k) >= 0 ? '<img class="m-sec-img" src="assets/img/sesion/' + e(k) + '.jpg" alt="" loading="lazy" width="480" height="270">'
                              : '<span class="m-sec-img sin">' + ico(sc[0]) + '<small>' + e(sc[1]) + '</small></span>') +
-        '<span><b>' + e(x[1]) + '</b><em>' + e(x[2]) + '</em></span></label>'; }).join("") + '</div>';
+        '<span><b>' + e(x[1]) + '</b><em>' + e(x[2]) + '</em>' + nota + '</span></label>'; }).join("") + '</div>';
   }
   function bloque(off) {
     return '<div class="card m-sesion"><h3>Tu sesión en directo</h3>' +
-      '<p class="small muted">Marca lo que quieres en tu presentación. Por defecto sale todo; lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
+      '<p class="small muted">Marca lo que quieres en tu presentación. De serie sale casi todo: la Nave de ejemplo va apagada, y el ranking y quién hizo los retos salen en la primera clase de cada tema. Lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
       'Cada semana solo aparece lo que ese día tiene algo que enseñar.</p>' + casillas(off) +
       '<p class="small m-sec-msg" id="m-sec-msg" aria-live="polite"></p></div>';
   }
@@ -2446,9 +2464,14 @@ window.SG.CFGSESION = (function () {
     var tecla = function (ev) { if (ev.key === "Escape") cerrar(); };
     document.addEventListener("keydown", tecla);
     capa.addEventListener("click", function (ev) { if (ev.target === capa || ev.target.closest("[data-cfg-x]")) cerrar(); });
-    var cajas = function () { return Array.prototype.slice.call(capa.querySelectorAll(".m-sec input")); };
+    var cajas = function () { return Array.prototype.slice.call(capa.querySelectorAll(".m-sec input[data-sec]")); };
     var guarda = async function (revertir) {
-      var off = cajas().filter(function (x) { return !x.checked; }).map(function (x) { return x.getAttribute("data-sec"); });
+      // la lista: «clave» la quita; «+clave» enciende una apagada de serie, o pone en todas las clases una «al empezar tema»
+      var off = [];
+      cajas().forEach(function (x) { var k = x.getAttribute("data-sec"), modo = x.getAttribute("data-modo");
+        if (modo === "off") { if (x.checked) off.push("+" + k); return; }
+        if (!x.checked) { off.push(k); return; }
+        var t = capa.querySelector('[data-todas="' + k + '"]'); if (modo === "tema" && t && t.checked) off.push("+" + k); });
       var msg = capa.querySelector("#m-sec-msg"); msg.textContent = "Guardando…";
       // 29-sep · en la consola de ensayo no se escribe nada: se apunta para la Academia (su hito «Quita una diapositiva»)
       if (o.demo) { if (off.length && window.SG.rastroAcademia) window.SG.rastroAcademia({ rueda: true });
@@ -2457,10 +2480,14 @@ window.SG.CFGSESION = (function () {
         await guardar(o.per, o.nombre, off);
         if (typeof o.alGuardar === "function") o.alGuardar(off);
         if (window.SG_ENSAYO === 1 && off.length && window.SG.rastroAcademia) window.SG.rastroAcademia({ rueda: true });   // (la consola de ensayo SÍ guarda)
-        msg.textContent = "✓ Guardado" + (off.length ? " · quitas " + off.length + (off.length === 1 ? " sección" : " secciones") : " · sale todo");
+        var quitas = off.filter(function (k) { return k.charAt(0) !== "+"; }).length;
+        msg.textContent = "✓ Guardado" + (quitas ? " · quitas " + quitas + (quitas === 1 ? " sección" : " secciones") : "");
       } catch (err) { if (revertir) revertir(); msg.textContent = "No se ha podido guardar: " + (err.message || err); }
     };
     cajas().forEach(function (c) { c.onchange = function () { guarda(function () { c.checked = !c.checked; }); }; });
+    Array.prototype.forEach.call(capa.querySelectorAll("[data-todas]"), function (c) {
+      c.onclick = function (ev) { ev.stopPropagation(); };   // (dentro de la etiqueta de la sección: no la marca ni la desmarca)
+      c.onchange = function () { guarda(function () { c.checked = !c.checked; }); }; });
     var todo = capa.querySelector("[data-cfg-todo]");
     if (todo) todo.onclick = function () { cajas().forEach(function (c) { c.checked = true; }); guarda(); };
     var primera = capa.querySelector(".m-sec input"); if (primera) primera.focus();

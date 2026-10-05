@@ -1687,7 +1687,7 @@
 
   var SEC_DE_K={portada:'portada', llamada:'llamada', foro:'mensaje', anteriores:'repaso', reflexion:'repaso',
     movido:'clasificacion', semanal:'clasificacion', top:'clasificacion', escuadrones:'clasificacion', coleccion:'coleccion',
-    simulador:'simulador', votacion:'votacion', ticket:'ticket', oferta:'oferta', nuevo:'novedades', simulacro:'novedades',
+    simulador:'simulador', votacion:'votacion', ticket:'ticket', oferta:'oferta', nuevo:'novedades', simulacro:'naveejemplo',
     genially:'despegue', puente:'despegue', act:'actividad', actretos:'actividad', entrega:'actividad',
     reto:'misiones', hito:'misiones', insignias:'recompensa', ruta:'ruta', directo:'directo', asedio:'asedio'};
   function secDe(x){ return x.sec || SEC_DE_K[x.k] || 'misiones'; }
@@ -1695,6 +1695,14 @@
     var S=st.sesionesDelGrupo||(st.d&&st.d.sesiones)||{}, quien=String((!st.alumno&&st.miNombre)||st.profeMio||'').trim();
     return (quien&&Array.isArray(S[quien]))?S[quien]:[];
   }
+  // 5-oct · lo que de verdad no sale esa clase: lo que quitó el docente y lo que va apagado de serie (la Nave de ejemplo) o solo
+  // en la primera clase de cada tema (el ranking, el repaso…), salvo que lo haya encendido (SG.seccionesApagadas, en stargate.js)
+  function empiezaTema(s){
+    if(!s||!Number(s.tema_n)) return false;
+    var prev=SEM.filter(function(x){ return Number(x.sem)===Number(s.sem)-1; })[0];
+    return !prev || Number(prev.tema_n)!==Number(s.tema_n);
+  }
+  function apagadasEn(s){ return window.SG&&SG.seccionesApagadas ? SG.seccionesApagadas(apagadas(), empiezaTema(s)) : apagadas(); }
   /**
    * ════════ 🔴 23-sep · LA SEMANA 1: EL EMBARQUE ════════
    *
@@ -1984,7 +1992,7 @@
     var todo = TRAMO==='ap' ? out.filter(function(x){ return x.t==='ap'; }) : TRAMO==='ci' ? out.filter(function(x){ return x.t==='ci'; }) : out;
     if(st.alumno) todo=todo.filter(function(x){ return x.k!=='simulacro'; });
     if(DIFERIDO) todo=todo.filter(function(x){ return SOLO_EN_DIRECTO.indexOf(x.k)<0; });   // (en diferido no se ficha ni se alista)
-    var off=apagadas();
+    var off=apagadasEn(s);
     if(off.length){ var quedan=todo.filter(function(x){ return off.indexOf(secDe(x))<0; }); todo=quedan.length?quedan:[todo[0]]; }
     return todo.length?todo:[diaEmbarque(s)];
   }
@@ -2450,7 +2458,7 @@
      * 18-sep · LA SESIÓN A MEDIDA. Cada docente quita en «Mis enlaces» las secciones que no quiere; al recluta que le
      * sigue le pasa lo mismo (se mira la elección de SU Comandante). Nunca se queda vacía: como poco, la portada.
      */
-    var off=apagadas();
+    var off=apagadasEn(s);
     if(off.length){ var quedan=todo.filter(function(x){ return off.indexOf(secDe(x))<0; }); todo=quedan.length?quedan:[todo[0]]; }
     return todo;
   }
