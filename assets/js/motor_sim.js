@@ -397,7 +397,8 @@ async function aliasOcupado(perId, alias, excepto) {
  */
 function esDelEquipoDe(proy, yo) {
   if (!proy || !yo) return false;
-  if (proy.teacherId === yo.uid || proy.ownerId === yo.uid) return true;
+  // (con uid: en la demo del alistamiento no hay ni uid ni titular, y «undefined === undefined» la hacía pasar por fantasma)
+  if (yo.uid && (proy.teacherId === yo.uid || proy.ownerId === yo.uid)) return true;
   const c = String(yo.correo || "").toLowerCase();
   return !!c && (proy.coTeacherEmails || []).some(e => String(e || "").toLowerCase() === c);
 }
