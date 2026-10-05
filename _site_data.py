@@ -2361,8 +2361,8 @@ PASOS = [
     hacer="Bloque <b>2 · Los enlaces</b>: el Padlet y el panel de control. El ticket de salida ya va solo.",
     voz="Aquí van el Padlet de la clase y tu panel de control. El ticket de salida ya no se pregunta: "
         "es el mismo para todos los grupos y para todos los años, y la Nave le dice "
-        "sola de qué grupo y de qué Comandante viene cada respuesta. Sigue siendo un formulario de "
-        "Google porque tiene que ser anónimo, y eso es innegociable."),
+        "sola de qué grupo y de qué Comandante viene cada respuesta. Va dentro de STARGATE y es "
+        "anónimo, y eso es innegociable."),
 
    dict(cod="R4", t="El equipo docente", pose="tablet", img="r4_equipo.png",
     hacer="Bloque <b>3 · El equipo</b>: un nombre y un correo por persona. Marca quién es referente.",

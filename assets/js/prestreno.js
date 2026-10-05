@@ -782,7 +782,7 @@
         ['<b>Pulsa una semana que aún no haya llegado</b>: pasa a no lectiva (otra vez, y vuelve).', '<b>«Al guardar»</b> dice a qué día se mueve cada cosa y hasta cuándo se registran retos y se canjea.', '<b>Guardar el calendario</b> (o deshacer). Lo pasado no se toca.'],
         'Aquí también: <b>Abrir ya</b> un capítulo de la Nave antes de tiempo, y el primer día de la semana 1. Las festivas de la UNIR se saltan solas.'),
       rx("ajustes", "Ajustes", "Gestionar grupos → Ajustes", "Los ajustes del grupo",
-        ['El nombre y el <b>padlet de la clase</b> (el reto de presentación lo abre), el <b>ticket de salida</b> (formulario anónimo) y el <b>panel de control</b> para ver y para editar.', 'Las fechas se cambian en el <b>Calendario</b>.'],
+        ['El nombre, el <b>padlet de la clase</b> (el reto de presentación lo abre) y el <b>panel de control</b> para ver y para editar.', 'Las fechas se cambian en el <b>Calendario</b>.'],
         'Más abajo: <b>copiar la puerta escondida</b> del Escape UNI (para el Genially de Vínculo) y <b>borrar el grupo</b> (solo para grupos de prueba; pide escribir su nombre).'),
       rx("ficha-referente", "Congelar o dar de baja", "En la ficha de un recluta · solo el referente", "Cambiar de Comandante, congelar o dar de baja",
         ['<b>Congelar</b>: puede mirar, pero no registrar, comprar, fichar ni usar el Zoco. <b>Descongelar</b> lo devuelve todo.', '<b>Dar de baja</b>: borra su ficha y libera su alias; podrá alistarse de cero.'],

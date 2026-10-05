@@ -4542,7 +4542,6 @@
       '<p class="small">Semana 1: <b>' + esc(S.inicio || "—") + '</b> · retos hasta ' + esc(S.cierre || "—") + ' · canje hasta ' +
       esc(S.cierreCanje || "—") + ' <button class="btn min" data-tab="calendario" type="button"><img class=ico src=assets/img/iconos/p/calendario.png alt> Cambiar en Calendario</button></p>' +
       '<label>Padlet de la clase<input id="s-padlet" value="' + esc(S.padlet || "") + '"></label>' +
-      '<label>Ticket de salida <i>(formulario de Google, anónimo)</i><input id="s-ticket" value="' + esc(S.ticket || "") + '"></label>' +
       '<label>Panel de control (ver)<input id="s-panel" value="' + esc(S.panelVer || window.SG_PANEL_MAESTRO || "") + '"></label>' +
       '<label>Panel de control (editar)<input id="s-paneled" value="' + esc(P.panelEdit || window.SG_PANEL_MAESTRO_EDICION || "") + '"></label>' +
       '<p><button class="btn" id="s-guardar">Guardar</button></p></div>' +
@@ -4610,7 +4609,6 @@
         await MOTOR.guardarAjustes(PER,
           { name: $("#s-nombre").value.trim(),
             "stargate.padlet": $("#s-padlet").value.trim(),
-            "stargate.ticket": $("#s-ticket").value.trim(),
             "stargate.panelVer": $("#s-panel").value.trim() },
           { panelEdit: $("#s-paneled").value.trim() });
         await refrescar(); aviso("Guardado", true);

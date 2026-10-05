@@ -3346,7 +3346,9 @@ automáticos al alumnado.</p>
   inicio de sesión y el almacenamiento de archivos, dentro de un proyecto gestionado por el equipo
   docente del máster. La conexión va cifrada y las reglas de la base de datos impiden que nadie lea
   la ficha de otra persona.</li>
-<li>Los <b>tickets de salida</b>, que son anónimos, van a un formulario y una hoja de cálculo de Google.
+<li>Los <b>tickets de salida</b> son anónimos y se guardan en la propia plataforma, sin tu nombre: solo tus
+  respuestas y el nombre de tu Comandante, para que cada docente vea lo de su escuadrón. (Los de grupos anteriores
+  al 5 de octubre de 2026 se recogieron con un formulario y una hoja de cálculo de Google.)
   El correo de bienvenida sale por Google Apps Script (punto 4).</li>
 <li>Las páginas de la web (que no guardan tus datos) se sirven desde un <b>alojamiento web</b> que, como
   cualquier servidor, registra técnicamente las visitas.</li>
@@ -3518,9 +3520,10 @@ cualquier grupo y en cualquier curso: se montan una vez y se olvidan.</li>
 <h2>Dónde están los datos de antes</h2>
 <p>Donde estaban. La hoja maestra sigue en la cuenta de la asignatura con sus pestañas de respuestas,
 y los formularios de los grupos que la usan siguen abiertos. No se ha borrado ni una fila.</p>
-<p>Los <b>tickets de salida</b> son la excepción, y a mejor: desde ahora se recogen en una hoja
-propia, compartida por todos los grupos y todos los años, para que la hoja maestra se pueda congelar
-el día que toque sin arrastrar nada.</p>
+<p>Los <b>tickets de salida</b> fueron la excepción: se recogieron en una hoja propia, compartida por
+todos los grupos, para que la hoja maestra se pudiera congelar sin arrastrar nada. Desde el 5 de octubre de
+2026 ya no hay formulario: el ticket va dentro de STARGATE y sus respuestas se guardan en la plataforma. La
+hoja de antes se conserva con lo que se respondió hasta entonces.</p>
 
 <h2>Cómo era</h2>
 <p class="small muted">Estas capturas se conservan porque explican de dónde viene el sistema. Las
