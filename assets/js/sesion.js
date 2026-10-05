@@ -300,7 +300,7 @@
    * Norberto, desde las sesiones de Mythos: «las cartas que se voltean, lo que se descubre pulsando y las animaciones».
    * La receta es la de Mythos (mythosclaude/docs/RECETA_MOVIMIENTO_Y_SONIDO.md); el motor, el de los fragmentos que ya
    * tenía el podio: lo escondido lleva `data-f="1"` y la diapositiva `frag:1`. Como mucho UNA cosa por diapositiva (con
-   * más pasos, la clase se alarga), salvo el podio. Se descubre pulsándolo (`data-revelable`), con → / espacio / el mando
+   * más pasos, la clase se alarga), salvo el podio y la rueda de la nota (5-oct: «que se llene con cada nota»). Se descubre pulsándolo (`data-revelable`), con → / espacio / el mando
    * (primero descubre y a la siguiente pasa) o con R (descubre o vuelve a esconder). Al volver atrás se ve entera.
    * Lo que no tiene datos no sale escondido: sale como siempre.
    *   · rev-antes: se ve hasta descubrir · rev-despues: se ve al descubrir (los dos, con `data-f`)
@@ -1719,6 +1719,53 @@
       +'</div>'};
   }
   /**
+   * 🔴 5-oct · LA NOTA, CON UN EJEMPLO, EN UNA RUEDA. Norberto: «una gráfica circular que se llene con cada nota hasta llegar
+   * al 100 %… con un ejemplo real: si sacas un 4 en esta actividad, un 3 en esta, haces x tests y en el examen un 9, tu nota
+   * sería…». La rueda es la nota final sobre 10 y cada parte ocupa lo que pesa; con cada → se llena una (las cifras, del
+   * build: SG_NOTA_EJEMPLO, de ACTIVIDADES, EVALUACION y NOTA_FINAL). El último →: «¿y sin portfolio?».
+   */
+  var NX_COL={act:'#f5b043', act2:'#ffd98a', test:'#37e0ec', asis:'#b49bff', exa:'#6ee7a0'};
+  function nxN(x){ return String(Math.round(x*100)/100).replace('.',','); }
+  function diaNotaEjemplo(){
+    var D=(window.SG_NOTA_EJEMPLO||{})[st.tipo==='PUA'?'PUA':'REGULAR']; if(!D||!D.filas||!D.filas.length) return null;
+    var R=80, C=2*Math.PI*R, G=1.6, cum=0, arcos='', filas='', nA=0, N=D.filas.length;
+    D.filas.forEach(function(f,i){
+      var col=f.c==='act'?(nA++?NX_COL.act2:NX_COL.act):NX_COL[f.c], ini=cum/10*C, len=f.max/10*C, ll=Math.max(0, f.val/10*C-G);
+      var circ=function(cl, extra){ return '<circle class="'+cl+'" cx="100" cy="100" r="'+R+'"'+extra+'/>'; };
+      arcos+=circ('nx-pista', ' stroke="'+col+'" stroke-dasharray="'+Math.max(0,len-G).toFixed(2)+' 600" stroke-dashoffset="'+(-ini).toFixed(2)+'"')
+        +circ('nx-f', ' data-f="'+(i+1)+'" stroke="'+col+'" style="--l:'+ll.toFixed(2)+'" stroke-dashoffset="'+(-ini).toFixed(2)+'"');
+      if(f.ep) arcos+=circ('nx-ep', ' data-f="'+(N+1)+'" stroke-dasharray="'+Math.max(0,f.ep/10*C-G).toFixed(2)+' 600" stroke-dashoffset="'+(-(ini+(f.val-f.ep)/10*C)).toFixed(2)+'"');
+      filas+='<li class="nx-fila" data-f="'+(i+1)+'" data-v="'+f.val+'" style="--c:'+col+'"><i></i><div><b>'+esc(f.t)+'</b><span>'+esc(f.d)+'</span></div><em>'+esc(f.vt)+'</em></li>';
+      cum+=f.max;
+    });
+    filas+='<li class="nx-fila nx-sinep" data-f="'+(N+1)+'" data-v="'+(-D.perdidoEP)+'" style="--c:#ff5d6c"><i></i><div><b>¿Y sin portfolio?</b><span>Es el '+D.pesoEP
+      +' % de cada actividad: aunque no es obligatorio, sin él se pierde esto</span></div><em>−'+nxN(D.perdidoEP)+'</em></li>';
+    var exa=D.filas.filter(function(f){ return f.c==='exa'; })[0]||{val:0};
+    var cuenta=D.we?'Evaluación continua: <b>'+nxN(D.continua)+'</b> sobre 10 × '+D.wc+' % = <b>'+nxN(D.continua*D.wc/100)+'</b> · Examen: <b>'+nxN(exa.val*100/D.we)+'</b> × '+D.we+' % = <b>'+nxN(exa.val)+'</b> → <b>'+nxN(D.total)+'</b>'
+      :'Sin examen final: la evaluación continua es <b>toda la nota</b> ('+nxN(D.continua)+' sobre 10)';
+    return {k:'embarque_nota_ej', sec:'embarque', rot:'Tu nota, un ejemplo', frag:N+1, montar:montarNotaEjemplo, html:
+      '<div class="dia emb con-fondo">'+capaEscena('hangar')+'<div class="kicker"><img class=ico src=assets/img/iconos/p/notas.png alt> La nota, con un ejemplo</div>'
+      +'<h2>¿Qué nota sacarías?</h2>'
+      +'<div class="nx"><div class="nx-rueda"><svg viewBox="0 0 200 200" role="img" aria-label="La nota final sobre 10, llenándose parte a parte">'+arcos+'</svg>'
+      +'<div class="nx-centro" aria-live="polite"><b class="nx-tot">0</b><span>de 10</span><small class="nx-lbl">tu nota final</small></div></div>'
+      +'<div><ol class="nx-filas">'+filas+'</ol><p class="nx-cuenta" data-f="'+N+'">'+cuenta+'</p></div></div></div>'};
+  }
+  function montarNotaEjemplo(el){
+    var tot=el.querySelector('.nx-tot'), lbl=el.querySelector('.nx-lbl'); if(!tot) return null;
+    var ahora=0, raf=0, reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function calc(){
+      var meta=0, sin=false;
+      Array.prototype.forEach.call(el.querySelectorAll('.nx-fila.on'),function(x){ meta+=Number(x.getAttribute('data-v'))||0; if(x.classList.contains('nx-sinep')) sin=true; });
+      lbl.textContent=sin?'sin portfolio':'tu nota final'; lbl.classList.toggle('sin', sin);
+      cancelAnimationFrame(raf); var de=ahora, t0=performance.now();
+      if(reduce){ ahora=meta; tot.textContent=nxN(meta); return; }
+      (function paso(t){ var k=Math.min(1,(t-t0)/900), e=1-Math.pow(1-k,3); ahora=de+(meta-de)*e; tot.textContent=nxN(ahora); if(k<1) raf=requestAnimationFrame(paso); })(t0);
+    }
+    var ob=new MutationObserver(calc); ob.observe(el,{subtree:true, attributes:true, attributeFilter:['class']});
+    calc();
+    return function(){ ob.disconnect(); cancelAnimationFrame(raf); };
+  }
+  /**
    * 🔴 26-sep · LA PRESENTACIÓN DE LA ASIGNATURA: LO OFICIAL, ANTES QUE EL JUEGO. Norberto: «aislar la sesión 1
    * (presentación)… con la información de puntuaciones y fechas… STARGATE es totalmente voluntario… la asistencia (la que
    * cuenta para nota) y las actividades 1 y 2 se entregan por la plataforma UNIR… las dudas, en el foro de UNIR… los
@@ -1847,6 +1894,7 @@
       else if(pieza==='viaje') add(diaViaje());
       else if(pieza==='semana') add(diaSemanaTipo());
       else if(pieza==='nota') add(diaNota());
+      else if(pieza==='nota_ejemplo') add(diaNotaEjemplo());
       else if(pieza==='bitacora') add(diaBitacora());
       else if(pieza==='nave') add(diapositivasNuevas(s));
       else if(pieza==='plantilla') add(diaPlantilla('embarque'));

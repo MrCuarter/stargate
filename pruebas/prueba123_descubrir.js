@@ -88,7 +88,8 @@ c(/k:'insignias', rot:'Insignias', frag:1/.test(S) && /cartaRev\(dorsoRev\('', f
   "🔴 las insignias de la semana, boca abajo: una pulsación las voltea todas (una detrás de otra)");
 c(/<div class="podio" data-revelable data-f="'\+n\+'"/.test(S) && /Pulsa para ver quién sube/.test(S), "   el podio se pulsa (sube uno cada vez) y lleva su pista");
 const conFrag = (S.match(/\bfrag:[^,}\s]+, (?:html|montar):/g) || []).length;   // (las diapositivas que declaran algo escondido)
-c(conFrag === 7, "   y nada más esconde nada: retos, relámpago, tripulante, despedida, «¿Os acordáis?», podio e insignias", conFrag);
+// 5-oct · y la rueda de la nota de la presentación (Norberto: «que se llene con cada nota»): otra excepción, como el podio
+c(conFrag === 8 && /k:'embarque_nota_ej', sec:'embarque', rot:'Tu nota, un ejemplo', frag:N\+1/.test(S), "   y nada más esconde nada: retos, relámpago, tripulante, despedida, «¿Os acordáis?», podio, insignias y la rueda de la nota", conFrag);
 
 // ── 3 · el motor: pulsar, →, R, al volver atrás entera, y lo descubierto llega a quien sigue al docente
 c(/function fijarF\(f\)\{/.test(S) && /var antes=st\.f; st\.f=f; frags\(\); emitir\(\);/.test(S), "🔴 descubrir pasa por un solo sitio: pinta, emite y suena");

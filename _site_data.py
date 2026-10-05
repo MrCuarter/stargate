@@ -1168,6 +1168,12 @@ EVALUACION_EXAMEN = "Y el examen final, en la semana de exámenes: se construye 
 # 🔴 28-sep · EL REPARTO DE LA NOTA FINAL (Norberto): «40 % evaluación continua (tests de final de tema, asistencias más nota
 # de actividades) y 60 % examen». La evaluación continua se puntúa sobre 10 (EVALUACION: 4,3 + 4,3 + 0,8 + 0,6).
 NOTA_FINAL = {"continua": 40, "examen": 60}
+# 🔴 5-oct · LA NOTA, CON UN EJEMPLO, EN UNA RUEDA (Norberto: «al explicar cómo será la nota del estudiante, que hubiera una
+# gráfica circular que se llene con cada nota hasta llegar al 100 %… acompáñalo de un ejemplo real: si sacas un 4 en esta
+# actividad, un 3 en esta, haces x tests y en el examen tienes un 9, tu nota sería…»). Solo el ejemplo vive aquí: los pesos y
+# los máximos salen de ACTIVIDADES, EVALUACION y NOTA_FINAL (la cuenta la hace el build). Notas de cada actividad sobre sus
+# puntos; tests y clases en directo, cuántos; el examen, sobre 10.
+NOTA_EJEMPLO = {"actividades": [4, 3], "tests": 6, "asistencias": 2, "examen": 9}
 # 🔴 28-sep · EN PUA NO HAY EXAMEN. Norberto: «¡Atención! En PUA no hay examen. El 100% de la nota es la ev continua».
 # La evaluación continua es la misma (EVALUACION, sobre 10); lo que cambia es que es toda la nota.
 NOTA_FINAL_PUA = {"continua": 100, "examen": 0}
@@ -1252,6 +1258,8 @@ SESION_EMBARQUE = [
     ("bloque", "2", "ap", "**Bloque 2 · M-Learning** (temas 4 y 5): Reliae y Umbral"),
     ("bloque", "3", "ap", "**Bloque 3 · Gamificación en el aula** (temas 6 a 8): Ludo, Vínculo y Liminar"),
     ("nota", "", "ap", "**Lo que cuenta para tu nota**, con las fechas de este grupo: las dos actividades, los tests, la asistencia y, en REGULAR, el examen (en PUA no hay: la continua es el 100 %)"),
+    # 5-oct · Norberto: «una gráfica circular que se llene con cada nota hasta llegar al 100 %… con un ejemplo real»
+    ("nota_ejemplo", "", "ap", "**¿Qué nota sacarías?**: una rueda que se llena nota a nota con un ejemplo (un 4 y un 3 en las actividades, 6 tests, 2 clases y un 9 en el examen) y, al final, cuánto se pierde sin portfolio"),
     ("unir", "", "ap", "**Todo lo evaluable, por la plataforma de UNIR**: la asistencia que puntúa, las dos actividades y los tests"),
     ("dudas", "", "ap", "**Las dudas, en el foro de la asignatura** (UNIR)"),
     ("voluntario", "", "ap", "**Y ahora, el juego: STARGATE es voluntario**. Vivir una gamificación en primera persona, sin ninguna penalización"),

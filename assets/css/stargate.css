@@ -7888,3 +7888,37 @@ body.embed .bz-nueva h2,body.embed .bz-lista h2{font-size:1.05rem}
 @media (max-width:1000px){.ec-temas,.ec-ganas{grid-template-columns:repeat(2,minmax(0,1fr))}.ec-palabras{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:760px){.ec-pasos,.ec-dudas,.ec-fin{grid-template-columns:minmax(0,1fr)}.ec-dudas>div+div{margin-top:6px}.ec-grupo-der{margin-left:0}.ec-cab h1{font-size:1.35rem}.ec-palabras{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:460px){.ec-temas,.ec-ganas{grid-template-columns:minmax(0,1fr)}}
+
+/* 5-oct · «¿Qué nota sacarías?»: la rueda de la nota final que se llena con cada → (sesion.js, diaNotaEjemplo) */
+.nx{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(16px,3vw,44px);align-items:center;margin-top:4px}
+.nx-rueda{position:relative;width:min(100%,50vh,440px);aspect-ratio:1;margin:0 auto}
+.nx-rueda::before{content:"";position:absolute;inset:4%;border-radius:50%;background:rgba(6,10,18,.88)}
+.nx-rueda svg{position:relative;width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.nx-pista,.nx-f,.nx-ep{fill:none;stroke-width:26}
+.nx-pista{opacity:.16}
+.nx-f{stroke-dasharray:0 600;transition:stroke-dasharray 1s cubic-bezier(.2,.8,.2,1)}
+.nx-f.on{stroke-dasharray:var(--l) 600}
+.nx-ep{stroke:#ff5d6c;opacity:0;transition:opacity .6s .15s}
+.nx-ep.on{opacity:1}
+.nx-centro{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none}
+.nx-tot{font-family:Orbitron,sans-serif;font-size:clamp(2.4rem,8vh,4.6rem);line-height:1;color:#fff;font-variant-numeric:tabular-nums}
+.nx-centro span{color:var(--mut);font-size:1rem}
+.nx-lbl{margin-top:4px;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--teal2)}
+.nx-lbl.sin{color:#ff8a95}
+.nx-filas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.nx-fila{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 14px;border-radius:12px;
+  border:1px solid var(--line);background:rgba(10,16,26,.9);transition:border-color .45s,background .45s}
+.nx-fila>*{opacity:.35;transform:translateX(10px);transition:opacity .45s,transform .45s}
+.nx-fila.on{border-color:var(--c);background:rgba(14,22,36,.95)}
+.nx-fila.on>*{opacity:1;transform:none}
+.nx-fila>i{width:14px;height:14px;border-radius:4px;background:var(--c)}
+.nx-fila b{display:block;color:#fff;font-size:1rem}
+.nx-fila span{display:block;font-size:.9rem;line-height:1.35;color:var(--ink)}
+.nx-fila em{font-style:normal;font-family:Orbitron,sans-serif;font-size:1.3rem;color:var(--c);font-variant-numeric:tabular-nums}
+.nx-sinep{border-style:dashed}
+.nx-cuenta{margin:10px 0 0;padding:10px 14px;border-radius:12px;border:1px solid rgba(55,224,236,.45);background:rgba(10,16,26,.86);font-size:.95rem;
+  opacity:0;transition:opacity .5s}
+.nx-cuenta.on{opacity:1}
+.mazo:fullscreen .nx-fila span,body.embed .mazo .nx-fila span{font-size:clamp(.9rem,1.3vw,1.2rem)}
+@media (max-width:760px){.nx{grid-template-columns:minmax(0,1fr)}.nx-rueda{width:min(100%,300px)}}
+@media (prefers-reduced-motion:reduce){.nx-f,.nx-ep,.nx-fila,.nx-fila>*,.nx-cuenta{transition:none}}
