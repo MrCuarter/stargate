@@ -511,7 +511,8 @@
     var sub=st.arSub==='sesiones'?'sesiones':'narrativa';
     var pesta='<div class="ar-subtabs bt-puertas" role="tablist">'
       +puertaSec('narrativa', 'Narrativa y vídeos', sub==='narrativa', 'data-arsub="narrativa"').replace('class="bt-puerta','class="ar-sub bt-puerta')
-      +(per&&!SIMULACRO?puertaSec('sesiones', 'Sesiones de clase', sub==='sesiones', 'data-arsub="sesiones"').replace('class="bt-puerta','class="ar-sub bt-puerta'):'')
+      // 5-oct · también en el simulacro: el tutorial «dónde están las sesiones» y el docente que mira su grupo como recluta
+      +(per?puertaSec('sesiones', 'Sesiones de clase', sub==='sesiones', 'data-arsub="sesiones"').replace('class="bt-puerta','class="ar-sub bt-puerta'):'')
       +'</div>';
     if(sub==='sesiones'){
       var ses=sesionesArchivo(), sel=st.arSes||(ses.length?ses[ses.length-1].u:'');

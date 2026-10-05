@@ -14,6 +14,7 @@
  * archivo · rankings · envivo (la Nave lo abre con location.hash).
  */
 // 5-oct · alistarse, registrar un reto y enlazar la Bitácora llevan su vídeo tutorial (stargate/tutoriales/grabar.cjs).
+// 5-oct, más tarde · y comprar, el Gran Sorteo, los rankings, poner algo en el Zoco y las sesiones de clase (los «recluta-*»).
 window.SG_NEBULA_FAQ = [
 
   // ───────────────────────────── ALISTARSE, ENTRAR, CUENTA Y ALIAS ─────────────────────────────
@@ -234,7 +235,7 @@ window.SG_NEBULA_FAQ = [
     r: "Con los retos (relámpago 20 ◈, principal 50 ◈), la llamada a filas, los bonus de planeta y de constancia, las medallas de la Ruta, los hitos del Simulador de Joran, el juego En directo, el Asedio y vendiendo en el Zoco." },
   { id: "comprar", p: ["cómo gasto los créditos", "dónde compro", "cómo canjeo mis monedas", "en qué me gasto los créditos"],
     claves: ["comprar", "canjear", "gastar", "tienda", "bazar"],
-    r: "En <b>Mercado → Bazar</b>: sobres de cromos, cápsulas de héroes, adornos para tu ficha, participaciones del Gran Sorteo y, en la semana 15, las subidas de nota. Pulsas lo que quieres y confirmas.", ir: "mercado" },
+    r: "En <b>Mercado → Bazar</b>: sobres de cromos, cápsulas de héroes, adornos para tu ficha, participaciones del Gran Sorteo y, en la semana 15, las subidas de nota. Pulsas lo que quieres y confirmas. <a href=\"assets/video/tutoriales/recluta-comprar.mp4\" target=\"_blank\" rel=\"noopener\">▶ Míralo en 27 segundos</a>", ir: "mercado" },
   { id: "precios", p: ["cuánto cuesta cada cosa", "precios del mercado", "lista de precios", "qué vale un sobre"],
     claves: ["precio", "precios", "cuesta", "vale", "lista"],
     r: "Sobre de cromos 15 ◈ · sobre grande 25 · sobre de raras 35 · sobre épico 60 · cápsula de rescate 60 · de élite 140 · legendaria 320 · título 40 · fondo 35 · marco dorado 60. Todo, en el Bazar (cada cosa desde su semana).", ir: "mercado" },
@@ -294,7 +295,7 @@ window.SG_NEBULA_FAQ = [
   // ───────────────────────────── GRAN SORTEO ─────────────────────────────
   { id: "sorteo", p: ["qué es el gran sorteo", "qué se sortea", "cómo participo en el sorteo", "licencia de genially"],
     claves: ["sorteo", "participacion", "papeleta", "licencia", "loteria"],
-    r: "Se sortean <b>dos licencias de Genially de un año</b>. Desde la semana 6 compras participaciones en el Bazar (20 ◈ cada una, sin tope); cada una es una papeleta. Tu docente también puede regalarlas. Lo pagado no se devuelve y nadie gana dos. No hay Sorteo en el grupo PUA.", ir: "mercado" },
+    r: "Se sortean <b>dos licencias de Genially de un año</b>. Desde la semana 6 compras participaciones en el Bazar (20 ◈ cada una, sin tope); cada una es una papeleta. Tu docente también puede regalarlas. Lo pagado no se devuelve y nadie gana dos. No hay Sorteo en el grupo PUA. <a href=\"assets/video/tutoriales/recluta-sorteo.mp4\" target=\"_blank\" rel=\"noopener\">▶ Míralo en 20 segundos</a>", ir: "mercado" },
   { id: "sorteo_cuando", p: ["cuándo es el sorteo", "cuándo se sortea la licencia de genially", "cuándo sé si he ganado", "resultado del sorteo"],
     claves: ["sorteo", "cuando", "resultado", "ganado", "ganador"],
     r: "Se sortea solo en la <b>semana 16</b>: ese día, al entrar en tu Nave, verás el resultado." },
@@ -305,7 +306,7 @@ window.SG_NEBULA_FAQ = [
     r: "El <b>trueque</b> con tu tripulación (desde la semana 8): pones cromos, héroes o participaciones del Sorteo y te ofrecen créditos, cartas o héroes. Nada se ve fuera de tu grupo. No hay Zoco en PUA.", ir: "zoco" },
   { id: "zoco_vender", p: ["cómo vendo en el zoco", "cómo pongo un cromo en el zoco", "poner a la venta"],
     claves: ["vender", "vendo", "poner", "venta", "zoco"],
-    r: "En <b>Mercado → Zoco</b>, pon la pieza que te sobra. Te llegarán ofertas: aceptas, rechazas con un mensaje o contraofertas. Tres pasos y trato cerrado.", ir: "zoco" },
+    r: "En <b>Mercado → Zoco</b>, pon la pieza que te sobra. Te llegarán ofertas: aceptas, rechazas con un mensaje o contraofertas. Tres pasos y trato cerrado. <a href=\"assets/video/tutoriales/recluta-zoco.mp4\" target=\"_blank\" rel=\"noopener\">▶ Míralo en 25 segundos</a>", ir: "zoco" },
   { id: "zoco_comprar", p: ["cómo compro en el zoco", "cómo hago una oferta", "ofrecer créditos por un cromo"],
     claves: ["ofrecer", "oferta", "zoco", "comprar", "trato"],
     r: "En el Zoco, elige lo que quieres de otro recluta y ofrece lo tuyo: créditos, cartas o héroes. Lo que ofreces queda apartado hasta que te respondan.", ir: "zoco" },
@@ -367,7 +368,7 @@ window.SG_NEBULA_FAQ = [
   // ───────────────────────────── RANKINGS Y ESCUADRONES ─────────────────────────────
   { id: "rankings", p: ["qué rankings hay", "dónde veo la clasificación", "cómo voy en el ranking"],
     claves: ["ranking", "rankings", "clasificacion", "tablero", "puesto"],
-    r: "Seis clasificaciones: más xp, esta semana, constancia, coleccionistas, el Simulador y escuadrones; del grupo entero o de tu escuadrón. Siempre por alias.", ir: "rankings" },
+    r: "Seis clasificaciones: más xp, esta semana, constancia, coleccionistas, el Simulador y escuadrones; del grupo entero o de tu escuadrón. Siempre por alias. <a href=\"assets/video/tutoriales/recluta-ranking.mp4\" target=\"_blank\" rel=\"noopener\">▶ Míralo en 25 segundos</a>", ir: "rankings" },
   { id: "nombre_real", p: ["quién ve mi nombre real", "sale mi nombre en el ranking", "mis compañeros ven mi nombre"],
     claves: ["nombre", "real", "ve", "ven", "anonimo"],
     r: "Solo el profesorado. Tu clase te ve por tu <b>alias</b>: en los rankings, los juegos y el Zoco. Tu nombre real no sale nunca, ni aunque se comparta pantalla." },
@@ -444,7 +445,7 @@ window.SG_NEBULA_FAQ = [
     r: "La Estática apaga lo que nadie documenta. Por eso tu Bitácora es tu arma. El resto lo irás viendo en los vídeos del Archivo.", ir: "archivo" },
   { id: "sesiones", p: ["dónde están las diapositivas", "sesiones de clase", "presentación de la asignatura", "ver la presentación"],
     claves: ["diapositivas", "sesiones", "presentacion", "powerpoint", "slides"],
-    r: "En <b>Archivo → Sesiones de clase</b>: la presentación de la asignatura, cada semana tal como se vio en clase y la sesión de cada Actividad.", ir: "archivo" },
+    r: "En <b>Archivo → Sesiones de clase</b>: la presentación de la asignatura, cada semana tal como se vio en clase y la sesión de cada Actividad. <a href=\"assets/video/tutoriales/recluta-sesiones.mp4\" target=\"_blank\" rel=\"noopener\">▶ Míralo en 25 segundos</a>", ir: "archivo" },
   { id: "video_no_carga", p: ["no se ve el vídeo", "el vídeo no carga", "no se reproduce"],
     claves: ["video", "reproduce", "carga", "ve"],
     r: "Recarga la página y prueba otro navegador o desactiva el bloqueador de anuncios. Si sigue, envíame la duda con el vídeo que falla." },
