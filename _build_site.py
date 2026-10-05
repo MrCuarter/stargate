@@ -3292,7 +3292,8 @@ afecta a lo que se hizo antes.</p>
 <p>Se recibe <b>tu dirección de correo y tu nombre público</b>. En concreto:</p>
 <ul>
 <li><img class=ico src=assets/img/iconos/p/candado.png alt> <b>No</b> se recibe ni se pide tu contraseña.</li>
-<li><img class=ico src=assets/img/iconos/p/candado.png alt> <b>No</b> hay acceso a tu Drive, tu Gmail, tus contactos ni tus documentos.</li>
+<li><img class=ico src=assets/img/iconos/p/candado.png alt> <b>No</b> hay acceso a tu Drive, tu Gmail, tus contactos ni tus documentos. La pantalla de
+  permisos de Google lo dice: solo «ver tu dirección de correo electrónico».</li>
 <li>El correo sirve para <b>encontrar tu ficha</b>, para que nadie pueda registrar misiones ni
   canjear recompensas haciéndose pasar por ti y para el correo de bienvenida (punto 4).</li>
 </ul>

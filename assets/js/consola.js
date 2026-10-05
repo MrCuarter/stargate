@@ -473,6 +473,23 @@
     return '<div class="card acd-puerta ancha"><img src="assets/img/personajes/nebula.png" alt=""><div><b>La Academia de la Cero' + (av.fin ? " · Comandante de La Constancia" : "") + "</b><span>" + esc(t) + "</span></div>" +
       '<a class="btn primary" href="academia.html">Abrir la Academia →</a></div>';
   }
+  /**
+   * 5-oct-2026 · EL MODO FANTASMA Y EL CAMBIO DE PAPEL. Norberto: muchos docentes quieren «una cuenta de alumno para
+   * ponerse en la piel de su alumnado y hacer los retos antes que ellos». Si ya tienes ficha de recluta en este grupo,
+   * «Verme como recluta» te lleva a tu Nave (y allí «Verme como docente» te trae de vuelta). Si no la tienes, «Entrar
+   * como fantasma» te alista: al ser del equipo docente, entras en modo fantasma (alistarse.js) y nadie de la clase te ve.
+   */
+  function botonRecluta() {
+    if (ENSAYA || !PER || !DATOS || !YO || !YO.uid) return "";
+    var mia = (DATOS.perfiles || []).some(function (p) { return p && p.userId === YO.uid; });
+    if (mia) return '<a class="btn min cn-rol" href="recluta.html?per=' + encodeURIComponent(PER) + '" data-tip="Tu Nave de recluta en este grupo, tal como la ve tu alumnado">' +
+      ico("nave") + ' Verme como recluta</a>';
+    var cod = (DATOS.proyecto || {}).joinCode, pAqui = PERS.filter(function (x) { return x.id === PER; })[0];
+    if (!cod || (pAqui && pAqui.estado === "pasado")) return "";
+    return '<a class="btn min cn-rol" href="alistarse.html?per=' + encodeURIComponent(PER) + '&codigo=' + encodeURIComponent(cod) + '" ' +
+      'data-tip="Alístate en tu grupo en modo fantasma: lo verás todo como un recluta y harás los retos antes que tu alumnado, sin que nadie de la clase te vea">' +
+      ico("ojo") + ' Entrar como fantasma</a>';
+  }
   function heroComandante() {
     var V = vivos(), nombre = (YO && (YO.nombre || YO.displayName)) || "Comandante";
     var total = V.reduce(function (a, p) { return a + (Number(p.reclutas) || 0); }, 0), mio = miNombreAqui();
@@ -495,7 +512,7 @@
         '</div>' +
         // 🔴 23-sep · sin «Ajustes» (Norberto: «vamos a simplificar»): el comandante se cambia en el lápiz de tu avatar y las
         // diapositivas, en «Configurar diapositivas» de la tira «Antes de empezar» (y en la rueda del banner del grupo)
-        '<div class="cn-ficha-b">' + selectorDeGrupo() + selectorModo() + '</div>' +
+        '<div class="cn-ficha-b">' + selectorDeGrupo() + selectorModo() + botonRecluta() + '</div>' +
       '</div>' +
     '</div>' +
     // (la galería se monta al abrirla: escondida, sus imágenes se descargarían igual en cada visita)
@@ -1234,10 +1251,13 @@
         // 16-sep · con su avatar (Norberto: «en Mi gente quiero ver el avatar de los estudiantes»): el que lleva puesto
         var tipoG = ((DATOS.proyecto || {}).stargate || {}).tipo || "REGULAR";
         var cara = window.SG && SG.avatarImg ? SG.avatarImg(r.avatar, r.alias, "gente-av" + (r.marco === "oro" ? " marco-oro" : ""), r.xp, tipoG) : "";
-        return '<tr data-r="' + i + '" tabindex="0"' + (r.congelado ? ' class="congelado"' : '') + '><td>' + r.pos + '</td><td class="gente-quien"><div class="gq">' + cara + '<span><b>' + esc(r.alias) + '</b>' +
+        // (5-oct · un fantasma no tiene puesto en la clase: guion)
+        return '<tr data-r="' + i + '" tabindex="0"' + (r.congelado ? ' class="congelado"' : '') + '><td>' + (r.fantasma ? '—' : r.pos) + '</td><td class="gente-quien"><div class="gq">' + cara + '<span><b>' + esc(r.alias) + '</b>' +
           (r.corona ? " <img class=ico src=assets/img/iconos/p/corona.png alt>" : "") +
           (function () { var a = atraconDe(r); return a ? ' <span class="chip atracon" title="Ha registrado ' + a.n + ' retos el ' + a.dia + ': revisa sus enlaces">' + ico("aviso") + ' ' + a.n + ' retos el ' + a.dia + '</span>' : ""; })() +
-          (r.congelado ? ' <span class="chip" title="Cuenta congelada por el referente"><img class=ico src=assets/img/iconos/p/hielo.png alt> congelado</span>' : '') + '</span></div></td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
+          (r.congelado ? ' <span class="chip" title="Cuenta congelada por el referente"><img class=ico src=assets/img/iconos/p/hielo.png alt> congelado</span>' : '') +
+          (r.fantasma ? ' <span class="chip fantasma" title="Modo fantasma: alguien del equipo docente que juega como un recluta más. El alumnado no lo ve y no cuenta en rankings, sorteos ni medias."><img class=ico src=assets/img/iconos/p/ojo.png alt> fantasma</span>' : '') +
+          '</span></div></td><td>' + esc(r.nombre || "—") + '<br><span class="small muted">' +
           esc(r.email || "") + '</span></td>' + (conComandante ? '<td>' + esc(r.profe || "—") + '</td>' : '') + '<td>' + r.xp +
           '</td><td>' + r.creditos + '</td><td>' + r.n + "/" + NBADGES() + "</td>" + celdaBienvenida(r, caps) + "</tr>";
       }).join("") + "</tbody></table></div>";
@@ -1245,7 +1265,9 @@
   /** Una fila pulsada (o con Intro) abre su ficha. */
   function cablearFilas(donde, t) {
     Array.prototype.forEach.call(donde.querySelectorAll("[data-r]"), function (fila) {
-      var abre = function () { verFicha(t.reclutas[Number(fila.getAttribute("data-r"))]); };
+      // (5-oct · «f3» es el cuarto fantasma: van aparte de `reclutas`)
+      var k = String(fila.getAttribute("data-r"));
+      var abre = function () { verFicha(k.charAt(0) === "f" ? (t.fantasmas || [])[Number(k.slice(1))] : t.reclutas[Number(k)]); };
       fila.onclick = abre;
       fila.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abre(); } };
     });
@@ -1284,6 +1306,11 @@
       '<p class="small muted">El nombre y el correo solo los ves tú y el resto del equipo docente. ' +
       '<b>Pulsa una fila</b> y se abre su ficha: sus retos, los enlaces de lo que ha entregado y lo que puedes hacer.</p>' + chips +
       (lista.length ? tablaGente(lista, caps, !filtro) : '<p class="muted">' + (sinGenteQueVer(t) ? 'No tienes escuadrón en este grupo, así que aquí no hay alumnado a tu nombre.' : 'Todavía no hay nadie en este escuadrón.') + '</p>') +
+      // 5-oct · EL MODO FANTASMA: el equipo docente que juega como recluta. Aparte, con su marca: no son alumnado
+      ((t.fantasmas || []).length ? '<h4 class="cn-fantasmas-tit"><img class=ico src=assets/img/iconos/p/ojo.png alt> En modo fantasma</h4>' +
+        '<p class="small muted">Gente del equipo docente que juega como un recluta más para verlo todo antes que su alumnado. ' +
+        'Nadie de la clase los ve: no salen en rankings, sorteos, medias ni en la sesión, y no gastan existencias.</p>' +
+        tablaGente(t.fantasmas.map(function (r, i) { return [r, "f" + i]; }), caps, true) : '') +
       (ref && t.sin_docente ? '<p class="aviso"><img class=ico src=assets/img/iconos/p/aviso.png alt> ' + t.sin_docente + ' recluta(s) sin Comandante asignado.</p>' : "") +
       // 16-sep · la hoja de cálculo para evaluar: lo que hay en pantalla, tal cual, en un CSV
       (lista.length ? '<p class="gp-csv"><button type="button" class="btn min" id="c-csv"><img class=ico src=assets/img/iconos/p/rankings.png alt> Descargar CSV</button>' +
@@ -1434,7 +1461,7 @@
   /** Tras cambiar algo: el grupo releído y la misma ficha, abierta otra vez, con el aviso de lo hecho. */
   function reabrirFicha(fichaId, txt, bien) {
     var t = window.SG.TABLERO.tablero(DATOS, true);
-    var r = t.reclutas.filter(function (x) { return x.ficha === fichaId; })[0];
+    var r = t.reclutas.concat(t.fantasmas || []).filter(function (x) { return x.ficha === fichaId; })[0];   // (5-oct · y los fantasmas)
     if (!r) { cerrarFicha(); aviso(txt, bien); return; }
     verFicha(r); avisoFicha(txt, bien);
   }
@@ -1577,7 +1604,8 @@
           ((DATOS.proyecto || {}).stargate || {}).tipo || "REGULAR") : "") +
         (f && f.imageUrl ? '<img class="fi-emb" src="' + esc(f.imageUrl) + '" alt="" width="30" height="30" title="' + esc(f.name || "") + '">' : '') + '</div>' +
         '<div><div class="fi-esc">' + (f ? esc(f.name) + " · " : "") + "Comandante " + esc(r.profe || "—") + "</div>" +
-        "<h3>" + esc(r.alias) + (r.corona ? " <img class=ico src=assets/img/iconos/p/corona.png alt>" : "") + (r.nombre ? ' <span>· ' + esc(r.nombre) + "</span>" : "") + "</h3>" +
+        "<h3>" + esc(r.alias) + (r.corona ? " <img class=ico src=assets/img/iconos/p/corona.png alt>" : "") + (r.nombre ? ' <span>· ' + esc(r.nombre) + "</span>" : "") +
+          (r.fantasma ? ' <span class="chip fantasma" title="Alguien del equipo docente que juega como recluta: el alumnado no lo ve"><img class=ico src=assets/img/iconos/p/ojo.png alt> fantasma</span>' : '') + "</h3>" +
         (r.email ? '<p class="small muted">' + esc(r.email) + "</p>" : "") +
         (/^https?:\/\//i.test(String(r.bitacora || "")) ? '<p class="fi-bit"><a class="nb-bitacora" href="' + esc(r.bitacora) + '" target="_blank" rel="noopener noreferrer">' +
           '<img class=ico src=assets/img/iconos/p/libro.png alt> <b>Su Bitácora</b> ↗</a></p>' : '<p class="small muted fi-bit">Todavía no ha puesto el enlace de su Bitácora.</p>') +
@@ -1742,8 +1770,8 @@
   // ---------------------------------------------------------------- la cola de nota
   function verCanjes() {
     var pendientes = (DATOS.vales || []).filter(function (v) { return (v.status || "pending") === "pending"; });
-    var alias = {};
-    DATOS.perfiles.forEach(function (p) { alias[p.userId] = p.displayName; });
+    var alias = {}, fant = {};
+    DATOS.perfiles.forEach(function (p) { alias[p.userId] = p.displayName; if (p.fantasma === true) fant[p.userId] = 1; });
     $("#c-cuerpo").innerHTML = '<div class="card"><h3>Cola de nota</h3>' +
       // 🔴 La razón de que esta cola exista: con las subidas de nota concediéndose solas, un curso
       // terminaba con setenta cambios de nota. Aprobando en bloque y con precios altos, con tres o
@@ -1752,7 +1780,9 @@
       'Los créditos ya están retenidos; si deniegas, se le devuelven.</p>' +
       (pendientes.length
         ? pendientes.map(function (v) {
-            return '<div class="vale"><p><b>' + esc(alias[v.studentId] || v.studentId) + '</b> — ' +
+            // (5-oct · la de un fantasma, marcada: alguien del equipo docente probando, sin nota que subir)
+            return '<div class="vale"><p><b>' + esc(alias[v.studentId] || v.studentId) + '</b>' +
+              (fant[v.studentId] || v.fantasma === true ? ' <span class="chip fantasma"><img class=ico src=assets/img/iconos/p/ojo.png alt> fantasma: no es alumnado</span>' : '') + ' — ' +
               esc(v.rewardTitle || "") + ' <i>(' + (v.cost || 0) + ' ◈)</i>' +
               (v.stargateActividad ? '<br><span class="small">' + esc(v.stargateActividad) + "</span>" : "") + "</p>" +
               '<p><button class="btn min si" data-si="' + esc(v.id) + '">Conceder</button> ' +

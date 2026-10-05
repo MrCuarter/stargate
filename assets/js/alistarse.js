@@ -120,9 +120,23 @@
 
   function formulario() {
     var S = PROY.stargate || {};
+    /**
+     * 5-oct-2026 · EL MODO FANTASMA. Quien es del equipo docente de este grupo y se alista en él, se alista como
+     * fantasma (lo decide motor.js → esDelEquipoDe, y las reglas solo se lo dejan al equipo). Se le dice antes de
+     * empezar, en llano, y el botón final lo repite: no es un recluta más y no hay vuelta atrás.
+     */
+    var fantasma = !!(MOTOR.esDelEquipoDe && MOTOR.esDelEquipoDe(PROY, YO));
     app.innerHTML =
       '<div class="card cuenta"><p>Entras como <b>' + esc(YO.nombre || YO.correo) + '</b> · ' +
       esc(YO.correo) + ' <button class="btn min" id="a-salir">No soy yo</button></p></div>' +
+      (fantasma ? '<div class="card a-fantasma"><h3><img class=ico src=assets/img/iconos/p/ojo.png alt> Entras en modo fantasma</h3>' +
+        '<p>Eres del <b>equipo docente</b> de este grupo, así que te alistas como fantasma: un recluta como cualquier otro, ' +
+        'pero invisible para tu clase.</p><ul>' +
+        '<li><b>Lo ves todo como un recluta:</b> tu Nave, los retos, el Mercado y los juegos. Puedes hacer los retos antes que tu alumnado y avisar si algo falla.</li>' +
+        '<li><b>Tu progreso cuenta solo para ti:</b> ganas xp, créditos e insignias, pero no sales en los rankings, ni en la sesión, ni en los sorteos, ni en las medias del grupo.</li>' +
+        '<li><b>Nadie de la clase te ve.</b> Lo que compras no gasta existencias y no entras en el Zoco.</li>' +
+        '</ul><p class="small muted">El modo fantasma no se quita: esta ficha será siempre de fantasma. ' +
+        'Tu nombre real lo ve solo el equipo docente, como el de cualquier recluta.</p></div>' : '') +
       '<div id="a-aviso" class="aviso" hidden></div>' +
 
       '<div class="card"><h3>1 · Quién eres</h3>' +
@@ -190,10 +204,10 @@
        * vacía, y es el momento en que alguien entra en el juego para todo el curso. Si el sistema
        * pide épica en algún sitio, es aquí: se firma una vez y no se repite.
        */
-      '<div class="card a-firmar"><p class="a-firmar-lema">Todo listo, recluta.</p>' +
+      '<div class="card a-firmar"><p class="a-firmar-lema">' + (fantasma ? 'Todo listo, fantasma.' : 'Todo listo, recluta.') + '</p>' +
       '<button class="btn epico" id="a-enviar"><span class="ep-luz"></span>' +
-      '<span class="ep-txt"><img class=ico src=assets/img/iconos/p/rayo.png alt> Embarcar</span></button>' +
-      '<p class="a-firmar-pie">Se hace una sola vez. A partir de aquí, tu Nave.</p>' +
+      '<span class="ep-txt"><img class=ico src=assets/img/iconos/p/' + (fantasma ? 'ojo.png alt> Entrar como fantasma' : 'rayo.png alt> Embarcar') + '</span></button>' +
+      '<p class="a-firmar-pie">' + (fantasma ? 'Se hace una sola vez. A partir de aquí, tu Nave, sin que tu clase te vea.' : 'Se hace una sola vez. A partir de aquí, tu Nave.') + '</p>' +
       '<div id="a-paso" class="small muted"></div></div>';
 
     document.querySelector("#a-salir").onclick = function () { MOTOR.salir(); };

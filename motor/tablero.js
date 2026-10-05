@@ -198,7 +198,8 @@
                        xp: m ? m.points : 0, origen: "recluta", evidencia: "" });
       });
 
-      if (Object.keys(retos).length) {
+      // (5-oct · un fantasma no cuenta en «somos 18 y esto lo llevan 12»: ver más abajo, EL MODO FANTASMA)
+      if (Object.keys(retos).length && p.fantasma !== true) {
         activos++;
         Object.keys(retos).forEach(function (k) { retosN[k] = (retosN[k] || 0) + 1; });
       }
@@ -347,6 +348,8 @@
          * No destapa nada nuevo: la puerta pública ya devuelve el `id` de cada ficha en crudo.
          */
         fid: p.id || "",
+        // 5-oct · el modo fantasma (lo marca el servidor; ver EL MODO FANTASMA, abajo)
+        fantasma: p.fantasma === true,
         alias: p.displayName || "", avatar: avatar, xp: xp, nivel: niv.nivel, rango: niv.rango,
         rango_nombre: niv.rangoNombre, coleccion: coleccion,
         bonus: (p.completedCampaignIds || []).slice(),
@@ -412,11 +415,26 @@
       return out;
     });
 
+    /*
+     * 5-oct-2026 · EL MODO FANTASMA. Norberto: «muchos docentes quieren una cuenta de alumno para ponerse en la piel de
+     * sus estudiantes… un estudiante como cualquier otro, pero oculto para los demás… no está en los rankings». Una
+     * ficha con `fantasma` es de alguien del equipo docente: sale de `reclutas` ANTES de los puestos, la corona y los
+     * contadores, así que nada de lo que se cuenta, se ordena o se proyecta la ve (rankings, tripulación, «A bordo esta
+     * semana», la sesión, los escuadrones, los sorteos de clase). Va aparte, en `fantasmas`: su propia Nave se busca
+     * ahí (fuente.js) y la consola lo enseña al docente con su marca. Su `pos` es el puesto que tendría («irías el 5.º»),
+     * sin quitárselo a nadie; nunca lleva corona.
+     */
+    var fantasmas = lista.filter(function (x) { return x.fantasma; });
+    lista = lista.filter(function (x) { return !x.fantasma; });
     lista.sort(function (a, b) { return b.xp - a.xp || b.n - a.n || a.alias.localeCompare(b.alias); });
     lista.forEach(function (x, i) { x.pos = i + 1; });
     // La corona semanal: quien más xp ganó en los últimos 7 días. Puede haber empate.
     var maxSem = 0; lista.forEach(function (x) { if (x.xp7 > maxSem) maxSem = x.xp7; });
     lista.forEach(function (x) { x.corona = maxSem > 0 && x.xp7 === maxSem; });
+    fantasmas.forEach(function (x) {
+      x.pos = 1 + lista.filter(function (y) { return y.xp > x.xp; }).length;
+      x.corona = false;
+    });
 
     // Los nombres del profesorado son públicos (el alumnado necesita saber quién le imparte); los
     // correos y el enlace de edición solo llegan si Firestore ha dejado leer `privado`.
@@ -426,7 +444,7 @@
       per: P.id, nombre: P.name || "", tipo: tipo, escuela: !!S.escuela,
       profesorado: docentes.map(function (d) { return d.nombre; }).join(", "),
       referente: PRIV.referente || "", estado: P.active === false ? "cerrado" : "abierto",
-      inicio: inicio, reclutas: lista,
+      inicio: inicio, reclutas: lista, fantasmas: fantasmas,
       retos_n: retosN, activos: activos,
       // (17-sep · un sorteo RETIRADO de este grupo —lo común que se quitó antes de vender nada— no existe para el alumnado)
       recompensas: (datos.recompensas || []).filter(function (r) { return r.inStore !== false && !r.stargateRetirado; })
@@ -515,7 +533,7 @@
        * aprobar pueden haberse gastado el dinero en otra cosa.
        */
       var porUid = {};
-      lista.forEach(function (x) { if (x.uid) porUid[x.uid] = x; });
+      lista.concat(fantasmas).forEach(function (x) { if (x.uid) porUid[x.uid] = x; });
       res.pendientes = (datos.vales || [])
         .filter(function (v) { return (v.status || "pending") === "pending"; })
         .map(function (v) {
@@ -526,7 +544,9 @@
                    recompensa: v.rewardTitle || "", coste: coste,
                    actividad: v.stargateActividad || "",
                    saldo: q.creditos == null ? null : q.creditos,
-                   puede: q.creditos != null };
+                   puede: q.creditos != null,
+                   // 5-oct · la Cola de nota lo marca: un fantasma no tiene nota que subir
+                   fantasma: !!q.fantasma || v.fantasma === true };
         });
       // El código de acceso, para que la sala del docente pueda dar el enlace de alistamiento
       // completo. Va en la rama PRIVADA: no es un secreto de verdad, pero tampoco hay razón para

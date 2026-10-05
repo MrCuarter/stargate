@@ -880,6 +880,9 @@
   function pintaPresentes() {
     if (!SESION) return;
     MOTOR.fichajesDe(SESION.id).then(function (f) {
+      // 5-oct · el fichaje de un fantasma (el equipo docente jugando como recluta) no cuenta como alumnado presente
+      var fant = {}; ((D && D.fantasmas) || []).forEach(function (x) { if (x.uid) fant[x.uid] = 1; });
+      f = f.filter(function (x) { return !fant[x.userId]; });
       if (f.length !== PRESENTES.length) cargarPresentesHoy();
       PRESENTES = f;
       var np = document.getElementById("au-np"); if (np) np.textContent = f.length;

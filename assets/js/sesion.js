@@ -600,6 +600,10 @@
     var pintaGente=function(id){
       M.fichajesDe(id).then(function(f){
         if(!vivo) return;
+        // 5-oct · el fichaje de un fantasma (alguien del equipo docente jugando como recluta) no se proyecta ni se cuenta;
+        // y sin quitarlo aquí, no estar en `reclutas` haría pedir el tablero otra vez a cada vuelta
+        var fant={}; ((st.d&&st.d.fantasmas)||[]).forEach(function(p){ if(p.fid) fant[p.fid]=1; });
+        f=f.filter(function(x){ return !fant[x.studentProfileId]; });
         var porFicha={}; vivos().forEach(function(p){ if(p.fid) porFicha[p.fid]=p; });
         // quien no está en la lista se ha alistado después de abrir la sesión: se pide otra vez
         if(f.some(function(x){ return !porFicha[x.studentProfileId]; }))

@@ -4395,8 +4395,9 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
    La casilla del alistamiento (obligatoria, sin marcar de serie) y la pregunta única de la Nave a quien ya estaba
    alistado. El texto es el mismo en las dos, y se lee entero: nada de letra pequeña para lo que se firma. */
 .a-consiento{padding:16px 18px}
-.a-acepto{display:flex;align-items:flex-start;gap:12px;margin:0;cursor:pointer;font-size:.98rem;line-height:1.5;color:var(--ink)}
-.a-acepto input{flex:none;width:22px;height:22px;margin:2px 0 0;accent-color:var(--teal);cursor:pointer}
+#alistarse .a-acepto{display:flex;align-items:flex-start;gap:12px;margin:0;cursor:pointer;font-size:.98rem;line-height:1.5;
+  font-weight:400;color:var(--ink)}   /* (con #alistarse: el display:block de los label e input del formulario le ganaba) */
+#alistarse .a-acepto input{display:inline-block;flex:none;width:22px;height:22px;margin:2px 0 0;padding:0;accent-color:var(--teal);cursor:pointer}
 .a-acepto a{color:var(--teal)}
 .cons-caja{max-width:520px}
 .cons-texto{margin:6px 0 2px;padding:12px 14px;border-left:3px solid var(--teal);border-radius:8px;background:rgba(55,224,236,.07);
@@ -7999,3 +8000,17 @@ body.embed .bz-nueva h2,body.embed .bz-lista h2{font-size:1.05rem}
 .rc-txt b{color:#fff}
 @media (prefers-reduced-motion:reduce){.tk-nota .tk-n-b{animation:none;clip-path:none}.tk-med-f,.ll-aro-f,.esc-lista.carrera .esc-bar i{transition:none}
   .rc-hecho{animation:none;width:var(--hasta)}.rc-nave{animation:none;left:var(--hasta)}}
+
+/* 5-oct-2026 · EL MODO FANTASMA: el equipo docente que juega como recluta sin contar para la clase (violeta, como lo que
+   está y no se ve). El distintivo en la Nave y en «Mi gente», el aviso al alistarse, el paso a fantasma y el cambio de papel. */
+.chip.fantasma{background:rgba(170,102,204,.16);border:1px solid rgba(170,102,204,.6);color:#e3c6f2;font-size:.75rem;white-space:nowrap;vertical-align:middle}
+.chip.fantasma .ico{width:16px;height:16px;vertical-align:-3px}
+.a-fantasma,.fantasma-aviso{border-color:rgba(170,102,204,.6);background:linear-gradient(180deg,rgba(170,102,204,.16),rgba(170,102,204,.05))}
+.a-fantasma h3{color:#e3c6f2;margin-top:0}
+.a-fantasma ul{margin:8px 0;padding-left:20px}
+.a-fantasma li{margin:6px 0;font-size:1rem}
+.fantasma-aviso{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 14px}
+.fantasma-aviso p{margin:0;flex:1 1 320px;font-size:1.02rem}
+.nf-rol{margin:6px 0 0}
+.cn-rol{margin-left:8px}
+.cn-fantasmas-tit{margin:18px 0 4px;color:#e3c6f2}

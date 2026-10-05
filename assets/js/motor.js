@@ -140,6 +140,18 @@ async function leerPER(perId, conPrivados) {
 const tablero = async (perId, conPrivados) =>
   window.SG.TABLERO.tablero(await leerPER(perId, conPrivados), !!conPrivados);
 
+/**
+ * 5-oct · EL MODO FANTASMA. Cuántas fichas de un grupo son del equipo docente jugando como recluta (`fantasma`): no son
+ * alumnado y no cuentan en «reclutas a tu cargo». Contar no puede «excluir lo que no tiene el campo», así que se resta.
+ * Si la cuenta falla, cero: antes del modo fantasma no había ninguno.
+ */
+async function fantasmasEn(perId) {
+  try {
+    return (await getCountFromServer(query(collection(db, "student_profiles"), where("projectId", "==", perId),
+      where("fantasma", "==", true)))).data().count;
+  } catch (e) { return 0; }
+}
+
 /** Los PER en los que figuro como docente, más los que son de demostración. */
 /** Las dos cuentas que mandan siempre, leídas de donde viven (motor/paquete.js). */
 // 28-sep · + Anita y Caridad (Norberto: «añade como referentes vitalicios»). Ser vitalicio NO es ser del Mando (buzon.js y
@@ -241,7 +253,7 @@ async function misPERs(correo, opc) {
     try {
       const c = await getCountFromServer(query(collection(db, "student_profiles"),
                                                where("projectId", "==", x.id)));
-      x.reclutas = c.data().count;
+      x.reclutas = Math.max(0, c.data().count - await fantasmasEn(x.id));
     } catch (e) { x.reclutas = null; }   // sin dato es mejor que un cero que parece verdad
     // 15-sep · y las subidas de nota que esperan (Norberto: «que brille cuando hay algo pendiente»)
     try {
@@ -370,6 +382,23 @@ async function aliasOcupado(perId, alias, excepto) {
  * porque al CREAR no se miraba la economía. Los 100 xp y los 20 créditos del alistamiento los da el
  * servidor después, completando la misión H1, que es el único camino por el que entra dinero.
  */
+/**
+ * 5-oct-2026 · EL MODO FANTASMA. Norberto: «muchos docentes quieren una cuenta de alumno para ponerse en la piel de sus
+ * estudiantes y hacer los retos antes que ellos… un estudiante como cualquier otro, pero oculto para los demás». Quien
+ * está en el equipo docente de un grupo (su dueño o un correo de `coTeacherEmails`) y se alista en él, se alista en modo
+ * fantasma: juega todo, pero no sale en rankings, sorteos, medias, la sesión ni el Zoco, y no gasta existencias (lo
+ * decide el servidor: GamificaPro, `fantasma` en la ficha). Las reglas solo dejan nacer fantasma a quien es del equipo,
+ * y la marca no se quita nunca («una vez fantasma, siempre fantasma»).
+ */
+function esDelEquipoDe(proy, yo) {
+  if (!proy || !yo) return false;
+  if (proy.teacherId === yo.uid || proy.ownerId === yo.uid) return true;
+  const c = String(yo.correo || "").toLowerCase();
+  return !!c && (proy.coTeacherEmails || []).some(e => String(e || "").toLowerCase() === c);
+}
+/** Pasar a fantasma la ficha que ya tenías en un grupo donde eres del equipo docente (no se deshace). */
+const pasarAFantasma = (perId) => llamar("stargateFantasma", { projectId: perId });
+
 async function alistar(perId, datos, alAvanzar) {
   const yo = await sesion();
   if (!yo) throw new Error("Entra con tu cuenta antes de alistarte");
@@ -403,7 +432,9 @@ async function alistar(perId, datos, alAvanzar) {
     hubCustomization: {}, createdAt: Date.now(),
     squadId: escuadron ? escuadron.id : null, factionId: escuadron ? escuadron.id : null,
     stargateProfe: datos.comandante || "", stargateAvatar: datos.avatar || null,
-    stargateBio: datos.bio || ""
+    stargateBio: datos.bio || "",
+    // 5-oct · del equipo docente → nace fantasma (ver esDelEquipoDe)
+    ...(esDelEquipoDe(proy, yo) ? { fantasma: true } : {})
   };
   const lote = writeBatch(db);
   await reservarAlias(lote, perId, yo.uid, datos.alias);
@@ -1446,7 +1477,8 @@ async function referenteEnTodos(persona, perIds) {
 async function misGruposDeAlumno(uid) {
   const r = await getDocs(query(collection(db, "student_profiles"), where("userId", "==", uid)));
   // 18-sep · `profe` viene de balde (la ficha ya está leída) y sirve para firmar el mensaje de la semana con su Comandante
-  const fichas = r.docs.map(d => ({ ficha: d.id, per: d.data().projectId, profe: d.data().stargateProfe || "" })).filter(x => x.per);
+  // (5-oct · y si es una ficha en modo fantasma: la puerta lo dice en su tarjeta)
+  const fichas = r.docs.map(d => ({ ficha: d.id, per: d.data().projectId, profe: d.data().stargateProfe || "", fantasma: d.data().fantasma === true })).filter(x => x.per);
   // El nombre del grupo, para que la pantalla de «¿cómo entras hoy?» diga «PRUEBA HUMANA» y no
   // «prueba-humana». Son una o dos lecturas: nadie está alistado en diez grupos a la vez.
   // Y solo grupos de STARGATE: una ficha de GamificaPro en otro proyecto no es una Nave.
@@ -2394,7 +2426,7 @@ async function todosLosGrupos() {
   await Promise.all(gs.map(async x => {
     try { const pv = await getDoc(doc(db, "projects", x.id, "privado", "stargate")); x.equipo = (pv.exists() ? pv.data().docentes : null) || x.stargate.docentes || []; }
     catch (e) { x.equipo = x.stargate.docentes || []; }
-    try { x.reclutas = (await getCountFromServer(query(collection(db, "student_profiles"), where("projectId", "==", x.id)))).data().count; }
+    try { x.reclutas = Math.max(0, (await getCountFromServer(query(collection(db, "student_profiles"), where("projectId", "==", x.id)))).data().count - await fantasmasEn(x.id)); }
     catch (e) { x.reclutas = null; }
   }));
   return gs;
@@ -2429,7 +2461,7 @@ async function directoYo(perId) {
   if (r.empty) return null;
   const f = r.docs[0], p = f.data(), alias = String(p.displayName || "");
   let src = ""; try { src = window.SG.avatarSrc(p.stargateAvatar || {}, alias, Number(p.totalPoints) || 0).src; } catch (e) { /* sin avatar */ }
-  return { id: f.id, alias, avatar: src };
+  return { id: f.id, alias, avatar: src, fantasma: p.fantasma === true };
 }
 function directoCanal(perId, esDocente, yo, alMensaje) {
   const u = auth.currentUser, t0 = Date.now(), fuera = [];
@@ -2457,6 +2489,9 @@ function directoCanal(perId, esDocente, yo, alMensaje) {
       return;
     }
     if (!yo) return;
+    // 5-oct · EL MODO FANTASMA: juega en su móvil como todos, pero no escribe en la sala; la pantalla de la clase no lo ve
+    // ni le cuenta en el podio, los equipos o los sabotajes
+    if (yo.fantasma) return;
     if (m.t === "sabotaje") { addDoc(collection(db, "stargate_directo", perId, "eventos"), { t: "sabotaje", datos: { id: yo.id }, uid: u.uid, fichaId: yo.id, creado: Date.now() }).catch(() => {}); return; }
     miDoc = Object.assign({ projectId: perId, fichaId: yo.id, uid: u.uid, alias: yo.alias, avatar: String(yo.avatar || "").slice(0, 300), listo: false, puntos: 0, stats: {} }, miDoc || {});
     if (m.t === "hola") miDoc.listo = m.listo !== false;
@@ -2482,7 +2517,7 @@ window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaResponder, academiaAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, marcasTicket, marcarTicket,
-                    huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo,
+                    huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo, esDelEquipoDe, pasarAFantasma,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
                     zocoDatos, zocoTratosGrupo, zocoAnunciosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
                     crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta, sorteosDeGrupos, sorteoEnGrupos, retirarSorteo, participacionesEn,
