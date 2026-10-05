@@ -4616,6 +4616,16 @@
       +'<div class="tk-nave-f"><iframe data-src="'+esc(u+'&embedded=true')+'" title="Ticket de salida" loading="lazy"></iframe>'
       +'<p class="small muted">¿No se ve bien? <a href="'+esc(u)+'" target="_blank" rel="noopener">Ábrelo en otra pestaña</a>.</p></div></details>';
   }
+  // 5-oct · el ticket ya no es un Google Form: ticket.html avisa al enviarse (`sg-ticket-hecho`) y la tarjeta se da por hecha ya
+  window.addEventListener('message',function(ev){
+    var m=ev.data; if(ev.origin!==location.origin||!m||m.tipo!=='sg-ticket-hecho') return;
+    Array.prototype.forEach.call(document.querySelectorAll('details.tk-nave'),function(d){
+      var f=d.querySelector('iframe'); if(!f||f.contentWindow!==ev.source) return;
+      d.classList.add('hecho');
+      var b=d.querySelector('.tk-nave-t b'); if(b) b.textContent=b.textContent.replace(/^El ticket de salida/,'Ticket de salida enviado');
+      var bt=d.querySelector('.tk-nave-b'); if(bt){ bt.textContent='Abrir'; bt.classList.remove('primary'); }
+    });
+  });
   document.addEventListener('toggle',function(ev){
     var d=ev.target; if(!d||!d.classList||!d.classList.contains('tk-nave')||!d.open) return;
     var f=d.querySelector('iframe[data-src]'); if(!f||f.getAttribute('src')) return;
