@@ -103,6 +103,16 @@ const REG = {};   // cifras que se apuntan para el informe
   // 13-sep · los capítulos de NEBULA, ya vistos (para las secciones que no van de eso: si no, a mitad
   // de una prueba sale NEBULA contando el Mercado)
   const sinBienvenidas = p => p.js("['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10','c11'].forEach(function(k){localStorage.setItem('sgCap_lab-clase_'+k,'hecho')}); localStorage.setItem('sgNaveOnboard_lab-clase','1'); 1");
+  // 🔴 5-oct · lo que la sesión trae APAGADO de serie («La sesión, más ligera»: el mensaje, la Nave de ejemplo…) lo enciende
+  // cada docente en su rueda: «+clave» en stargate.sesiones[su nombre]. Las secciones que prueban esas diapositivas lo encienden.
+  const enciendeEnSuRueda = async (correo, claves) => {
+    const A = admin(), ref = A.firestore().doc("projects/lab-clase");
+    const eq = ((await leerDoc("projects/lab-clase/privado/stargate")) || {}).docentes || [];
+    const nom = (eq.filter(d => d.correo === correo)[0] || {}).nombre;
+    if (!nom) return;
+    const antes = ((((await leerDoc("projects/lab-clase")) || {}).stargate || {}).sesiones || {})[nom] || [];
+    await ref.update(new A.firestore.FieldPath("stargate", "sesiones", nom), Array.from(new Set(antes.concat(claves))));
+  };
   // alistarse de verdad, por la pantalla (lo usan la clase entera y el héroe por enlace)
   // 5-oct · cada «Embarcar» marca antes la casilla del consentimiento (obligatoria desde el 5-oct; sin ella el botón está apagado)
   const alistar = async (p, correo, nombre, alias, cmd) => {
@@ -1583,6 +1593,14 @@ const REG = {};   // cifras que se apuntan para el informe
 
     // ============================================================ 21 · LA SESIÓN QUE SE PROYECTA: LO NUEVO DE LA SEMANA
     if (hacer(21)) {
+      // 🔴 5-oct · «La Nave de ejemplo» (Enséñalo) y «El mensaje» salen APAGADAS de serie (la sesión, más ligera): Rita las
+      // enciende en su rueda, como haría un docente («+clave» en stargate.sesiones[su nombre]), y al acabar se deja como estaba
+      const A21 = admin(), ref21 = A21.firestore().doc("projects/lab-clase");
+      const eqRita = ((await leerDoc("projects/lab-clase/privado/stargate")) || {}).docentes || [];
+      const nomRita = (eqRita.filter(d => d.correo === "rita@lab.test")[0] || {}).nombre || "Rita Referente";
+      const ruta21 = new A21.firestore.FieldPath("stargate", "sesiones", nomRita);
+      const antes21 = (((await leerDoc("projects/lab-clase")) || {}).stargate || {}).sesiones || {};
+      await ref21.update(ruta21, ["+naveejemplo", "+mensaje"]);
       const rita = await nueva("Rita proyecta la semana 2");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       await rita.ir("sesion.html?per=lab-clase&sem=2");
@@ -1666,6 +1684,12 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.ir("sesion.html?per=lab-clase&sem=11"); await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
       const rot6 = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
       c("sesión · una semana que no abre nada no lleva esas diapositivas (la 11)", rot6.indexOf("Novedades") < 0, JSON.stringify(rot6));
+      // y sin encenderlas, de serie: ni la Nave de ejemplo ni el mensaje
+      await ref21.update(ruta21, A21.firestore.FieldValue.delete());
+      await rita.ir("sesion.html?per=lab-clase&sem=2"); await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
+      const rot0 = await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')})");
+      c("🔴 sesión · de serie, sin «Enséñalo» ni «El mensaje» (se encienden en la rueda)", rot0.indexOf("Enséñalo") < 0 && rot0.indexOf("El mensaje") < 0 && rot0.indexOf("Novedades") > 0, JSON.stringify(rot0));
+      if (antes21[nomRita]) await ref21.update(ruta21, antes21[nomRita]);
     }
 
     // ============================================================ 22 · EL ZOCO ESTELAR, TODAS LAS COMBINACIONES
@@ -2782,6 +2806,7 @@ const REG = {};   // cifras que se apuntan para el informe
      * (el botón copiaba una dirección suelta, y Genially necesita el código).
      */
     if (hacer(26)) {
+      await enciendeEnSuRueda("rita@lab.test", ["+mensaje"]);   // (el mensaje va apagado de serie desde el 5-oct)
       const A = admin(), fs = A.firestore(), P = "lab-clase", P2 = "lab-clase-dos";
       const base = (await fs.collection("projects").doc(P).get()).data();
       await fs.collection("projects").doc(P2).set(Object.assign({}, base, { name: "LAB · Segundo grupo", joinCode: "SEGUN2" }));
@@ -3192,7 +3217,8 @@ const REG = {};   // cifras que se apuntan para el informe
       const q1 = await nave("entra");
       c("🔴 ofertas · al entrar alguien, el servidor crea la oferta de la semana 10 (sola, sin tareas programadas)", await (async () => { for (let i = 0; i < 20; i++) { if (await leerDoc("rewards/" + P + "__oferta_s10")) return true; await dormir(700); } return false; })());
       const auto = await leerDoc("rewards/" + P + "__oferta_s10");
-      const inscritos = (await consultar("student_profiles", "projectId", P)).filter(x => !x.graduatedAt && x.isTeacherPreview !== true).length;
+      // 5-oct · como el servidor (`cuentaEnLaClase`): ni graduados, ni vistas previas, ni fantasmas
+      const inscritos = (await consultar("student_profiles", "projectId", P)).filter(x => !x.graduatedAt && x.isTeacherPreview !== true && x.fantasma !== true).length;
       const F = { "común": null, "rara": 0.5, "épica": 0.25, "legendaria": 0.1 }, FH = { "rara": null, "épica": 0.3, "legendaria": 0.1 };
       const so = auto.stargateOferta, fac = so.que.tipo === "heroe" ? FH[so.rareza] : F[so.rareza];
       const esperadas = fac == null ? null : Math.max(1, Math.ceil(inscritos * fac));
@@ -3609,6 +3635,7 @@ const REG = {};   // cifras que se apuntan para el informe
      */
     if (hacer(34)) {
       const P = "lab-clase", A = admin(), fs = A.firestore();
+      await enciendeEnSuRueda("dani@lab.test", ["+mensaje", "+naveejemplo"]);   // (el mensaje y la Nave de ejemplo van apagados de serie desde el 5-oct)
       const dani = await nueva("Dani proyecta la sesión");
       await dani.ir("entrar.html"); await dani.entrarComo("dani@lab.test", "Dani Docente");
       // una semana cuya anterior tenga misiones hechas (para las caras y sus entregas)
@@ -3853,8 +3880,9 @@ const REG = {};   // cifras que se apuntan para el informe
       if (brilla) {
         await rita.js("document.querySelector('.cn-t[data-sec=\"gente\"]').click(); 1");
         await rita.hasta("!!document.querySelector('.cn-sub .pest[data-tab=\"canjes\"]')", 20);
-        const cola = await rita.js("(function(){var u=document.querySelector('.cn-sub .pest[data-tab=\"canjes\"]'); return {brillo:u.classList.contains('pest-aviso'), n:(u.querySelector('.pest-n')||{}).textContent};})()");
-        c("cola · y dentro de «Mi gente», la pestaña «Cola de nota», brillando y con su número", cola && cola.brillo && cola.n === "1", JSON.stringify(cola));
+        // 28-sep · las subsecciones son puertas grandes (como en la Nave del recluta): el aviso es «1 espera» en la puerta
+        const cola = await rita.js("(function(){var u=document.querySelector('.cn-sub .pest[data-tab=\"canjes\"]'); return {aviso:(u.querySelector('.bt-p-aviso')||{}).textContent||''};})()");
+        c("cola · y dentro de «Mi gente», la puerta «Cola de nota» dice cuántas esperan", cola && cola.aviso === "1 espera", JSON.stringify(cola));
         await rita.js("document.querySelector('.cn-sub .pest[data-tab=\"canjes\"]').click(); 1"); await dormir(1200);
         await rita.foto(FOTOS + "/36-cola.png");
       }
@@ -4047,13 +4075,17 @@ const REG = {};   // cifras que se apuntan para el informe
         JSON.stringify({ q: PQ.q, todo: (PQ.todo || "").slice(0, 80), grande: PQ.grande }));
       await dormir(700); await rita.foto(FOTOS + "/37-pregunta.png");
       const veRetos = await ir("Los retos", ".dia.retos-semana");
+      // 2-oct · llegan sellados: se rompe el sello con R (lo que haría el docente en clase)
+      await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'R',bubbles:true})); 1"); await dormir(900);
       const rt = await rita.js("(function(){ var d=document.querySelector('.dia.retos-semana'); return d ? d.querySelector('img.cmd-cuerpo').dataset.pose + '|' + d.innerText.replace(/\\s+/g,' ') : ''; })()");
       c("🔴 sesión · los retos de la semana: el comandante, retador; el relámpago en clase y el principal en casa",
         veRetos && /^reto\|/.test(rt) && /En clase «Del boceto a la forja»/i.test(rt) && /En casa «La Bitácora en marcha»/i.test(rt), rt.slice(0, 200));
       await dormir(700); await rita.foto(FOTOS + "/37-retos.png");
       // 24-sep · el tripulante que se recupera esta semana: una página entera, con su fragmento «prohibido»
-      await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){ return x.title==='Bran'; })[0]; if(b) b.click(); return 1; })()");
-      const tp = await rita.hasta("(function(){ var i=document.querySelector('.dia.tripulante img.tp-carta'); return !!i && i.complete && i.naturalWidth>0; })()", 20);
+      // 2-oct · llega boca abajo («¿Quién es?»): se voltea con R
+      await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){ return x.title==='¿Quién es?'; })[0]; if(b) b.click(); return 1; })()");
+      await dormir(700); await rita.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'R',bubbles:true})); 1"); await dormir(1200);
+      const tp = await rita.hasta("(function(){ var i=document.querySelector('.dia.tripulante .tp-carta img');   /* 2-oct · la clase va en el marco de la carta */ return !!i && i.complete && i.naturalWidth>0; })()", 20);
       const tpTxt = tp ? await rita.js("document.querySelector('.dia.tripulante').innerText.replace(/\\s+/g,' ')") : "";
       c("🔴 sesión · la página del tripulante (Bran): su carta, su historia y su fragmento prohibido hasta hacer el relámpago",
         tp && /Bran Okafor/.test(tpTxt) && /prohibido/.test(tpTxt) && /«Del boceto a la forja»/.test(tpTxt), tpTxt.slice(0, 200));

@@ -205,6 +205,8 @@
        * pide épica en algún sitio, es aquí: se firma una vez y no se repite.
        */
       '<div class="card a-firmar"><p class="a-firmar-lema">' + (fantasma ? 'Todo listo, fantasma.' : 'Todo listo, recluta.') + '</p>' +
+      // 5-oct · con la casilla sin marcar el botón está apagado: se dice por qué (si no, en el móvil se pulsa y no pasa nada)
+      '<p id="a-pista" class="a-firmar-pista" hidden>☝️ Marca la casilla de arriba para poder embarcar.</p>' +
       '<button class="btn epico" id="a-enviar"><span class="ep-luz"></span>' +
       '<span class="ep-txt"><img class=ico src=assets/img/iconos/p/' + (fantasma ? 'ojo.png alt> Entrar como fantasma' : 'rayo.png alt> Embarcar') + '</span></button>' +
       '<p class="a-firmar-pie">' + (fantasma ? 'Se hace una sola vez. A partir de aquí, tu Nave, sin que tu clase te vea.' : 'Se hace una sola vez. A partir de aquí, tu Nave.') + '</p>' +
@@ -240,7 +242,8 @@
     pintarAvatares();
     document.querySelector("#a-enviar").onclick = alistar;
     var acepto = document.querySelector("#a-acepto"), enviar = document.querySelector("#a-enviar");
-    var repasa = function () { enviar.disabled = DEMO || !acepto.checked; };
+    var pista = document.querySelector("#a-pista");
+    var repasa = function () { enviar.disabled = DEMO || !acepto.checked; if (pista) pista.hidden = DEMO || acepto.checked; };
     acepto.onchange = repasa; repasa();
     // 🔴 13-sep · Marcado de antemano SOLO si hay un Comandante. Con varios, marcar el primero hacía
     // que quien no mirara acabara en el escuadrón de otro docente sin enterarse: se elige a mano.

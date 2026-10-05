@@ -4395,6 +4395,7 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
    La casilla del alistamiento (obligatoria, sin marcar de serie) y la pregunta única de la Nave a quien ya estaba
    alistado. El texto es el mismo en las dos, y se lee entero: nada de letra pequeña para lo que se firma. */
 .a-consiento{padding:16px 18px}
+.a-firmar-pista{margin:0 0 12px;color:var(--amber);font-weight:600}
 #alistarse .a-acepto{display:flex;align-items:flex-start;gap:12px;margin:0;cursor:pointer;font-size:.98rem;line-height:1.5;
   font-weight:400;color:var(--ink)}   /* (con #alistarse: el display:block de los label e input del formulario le ganaba) */
 #alistarse .a-acepto input{display:inline-block;flex:none;width:22px;height:22px;margin:2px 0 0;padding:0;accent-color:var(--teal);cursor:pointer}
