@@ -77,7 +77,8 @@ c(/\.\.\.\(esDelEquipoDe\(proy, yo\) \? \{ fantasma: true \} : \{\}\)/.test(MOTO
 c(/llamar\("stargateFantasma", \{ projectId: perId \}\)/.test(MOTOR), "motor: pasar a fantasma lo hace el servidor (stargateFantasma)");
 c(/esDelEquipoDe, pasarAFantasma/.test(MOTOR), "motor: los dos, en SG.MOTOR");
 c(/esDelEquipoDe, pasarAFantasma/.test(SIM), "y en la consola de ensayo (motor_sim.js, generado)");
-c(/where\("fantasma", "==", true\)/.test(MOTOR) && (MOTOR.match(/await fantasmasEn\(x\.id\)/g) || []).length === 2,
+// (5-oct · en misPERs, las tres cuentas van a la vez: `fantasmasEn(x.id)` dentro del Promise.all, y se resta con `- f`)
+c(/where\("fantasma", "==", true\)/.test(MOTOR) && (MOTOR.match(/fantasmasEn\(x\.id\)/g) || []).length === 2 && /c\.data\(\)\.count - f\)/.test(MOTOR),
   "motor: «reclutas a tu cargo» y el Mando restan los fantasmas");
 c(/fantasma: p\.fantasma === true \}/.test(MOTOR) && /if \(yo\.fantasma\) return;/.test(MOTOR),
   "el directo: el fantasma juega en su móvil, pero no escribe en la sala (la clase no lo ve)");

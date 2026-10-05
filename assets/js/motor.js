@@ -249,18 +249,18 @@ async function misPERs(correo, opc) {
    * Se cuenta con `getCountFromServer`, que no se trae las fichas: devuelve el número y ya. Con
    * doscientos alumnos por grupo, traerlas para contarlas sería absurdo.
    */
+  // 5-oct · las tres cuentas de cada grupo, A LA VEZ (antes, una detrás de otra: con muchos grupos —el Mando está en todos—
+  // «Gestionar grupos» tardaba en abrir la primera vez)
   await Promise.all(mios.map(async x => {
-    try {
-      const c = await getCountFromServer(query(collection(db, "student_profiles"),
-                                               where("projectId", "==", x.id)));
-      x.reclutas = Math.max(0, c.data().count - await fantasmasEn(x.id));
-    } catch (e) { x.reclutas = null; }   // sin dato es mejor que un cero que parece verdad
-    // 15-sep · y las subidas de nota que esperan (Norberto: «que brille cuando hay algo pendiente»)
-    try {
-      const v = await getCountFromServer(query(collection(db, "purchased_vouchers"),
-                                               where("projectId", "==", x.id), where("status", "==", "pending")));
-      x.cola = v.data().count;
-    } catch (e) { x.cola = 0; }
+    const [c, f, v] = await Promise.all([
+      getCountFromServer(query(collection(db, "student_profiles"), where("projectId", "==", x.id))).catch(() => null),
+      fantasmasEn(x.id),
+      // 15-sep · y las subidas de nota que esperan (Norberto: «que brille cuando hay algo pendiente»)
+      getCountFromServer(query(collection(db, "purchased_vouchers"),
+                               where("projectId", "==", x.id), where("status", "==", "pending"))).catch(() => null),
+    ]);
+    x.reclutas = c ? Math.max(0, c.data().count - f) : null;   // sin dato es mejor que un cero que parece verdad
+    x.cola = v ? v.data().count : 0;
   }));
 
   try { if (mios.length) localStorage.setItem("sgEsDocente", "1"); } catch (e) {}
