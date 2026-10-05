@@ -99,32 +99,49 @@
    * solo se abre. Se abre al pulsar (la emoción es tuya), tiembla, se carga, estalla y enseña lo que había; cuanto más
    * raro, más fuegos. Con «menos movimiento» en el sistema, se abre sin animación.
    */
-  var IMG_CAPSULA = "assets/img/canje/_raw/capsula_rescate.jpg";
-  var IMG_SOBRE = { cromo: "assets/img/canje/_raw/sobre.jpg", sobre_grande: "assets/img/canje/_raw/sobre_grande.jpg",
-    sobre_raro: "assets/img/canje/_raw/sobre_raro.jpg", sobre_epico: "assets/img/canje/_raw/sobre_epico.jpg" };
-  var NOMBRE_SOBRE = { cromo: "Un sobre de cromos", sobre_grande: "Un sobre grande", sobre_raro: "Un sobre de raras", sobre_epico: "Un sobre épico" };
-  var RAREZA = { c10: 1, c20: 1, c30: 1, sobre: 1, c50: 2, grande: 2, c100: 3, raro: 3, epico: 4 };
-  var COLORES = { acento: "#37e0ec", acento2: "#f5b043", raro: "#b48cff", epico: "#ffd76a" };
+  /**
+   * 🔴 5-oct · LA PIEL DE STARGATE SOBRE LA CÁPSULA DEL MOTOR (GamificaPro sdk/capsula.js → assets/js/capsula.js). Las casillas
+   * son las de la rueda del servidor (GamificaPro functions/modTicketLogica.js → TICKETS_POR_MOD.stargate.RUEDA: mismos ids);
+   * aquí, cómo se ven. Arte: Magnific, cuenta CCD, 5-oct (assets/img/ticket/; los sobres, recortados de assets/img/canje/_raw).
+   */
+  var IMG = "assets/img/ticket/";
+  var CASILLAS = [
+    { id: "c10", img: IMG + "creditos_pocos.webp", cifra: "+10 ◈", titulo: "10 créditos", nivel: 1 },
+    { id: "c20", img: IMG + "creditos_pocos.webp", cifra: "+20 ◈", titulo: "20 créditos", nivel: 1 },
+    { id: "c30", img: IMG + "creditos_caja.webp", cifra: "+30 ◈", titulo: "30 créditos", nivel: 1 },
+    { id: "sobre", img: IMG + "sobre.webp", titulo: "Sobre de cromos", nivel: 1, sobre: "cromo" },
+    { id: "c50", img: IMG + "creditos_caja.webp", cifra: "+50 ◈", titulo: "50 créditos", nivel: 2 },
+    { id: "grande", img: IMG + "sobre_grande.webp", titulo: "Sobre grande", nivel: 2, sobre: "sobre_grande" },
+    { id: "c100", img: IMG + "creditos_botin.webp", cifra: "+100 ◈", titulo: "100 créditos", nivel: 3 },
+    { id: "raro", img: IMG + "sobre_raro.webp", titulo: "Sobre de raras", nivel: 3, sobre: "sobre_raro" },
+    { id: "epico", img: IMG + "sobre_epico.webp", titulo: "Sobre épico", nivel: 4, sobre: "sobre_epico" }
+  ];
+  var COLORES = { acento: "#37e0ec", acento2: "#f5b043", rareza: ["#8fd8e0", "#3fa9ff", "#b48cff", "#ffc94a"] };
 
   function tripulacionHtml(r) {
     return r.tripulacion > 0 ? '<p class="tk-tripu"><b>¡Parte de la tripulación!</b> Con tu ticket, más de la cuarta parte de la clase ha respondido: '
       + "hay premio para toda la tripulación.</p>" : "";
   }
-  /** La piel de STARGATE sobre la cápsula del motor (GamificaPro sdk/capsula.js → assets/js/capsula.js). */
+  /** La casilla que se enseña: la que tocó; si era un sobre que el grupo no tiene, los créditos que se pagaron en su lugar. */
+  function casillaDe(P) {
+    var c = CASILLAS.filter(function (x) { return x.id === P.casilla; })[0];
+    if (c && !(c.sobre && !P.sobre)) return c;
+    var n = Number(P.creditos || 0);
+    return { id: "pago", img: IMG + (n >= 100 ? "creditos_botin.webp" : n >= 30 ? "creditos_caja.webp" : "creditos_pocos.webp"),
+      cifra: "+" + n + " ◈", titulo: n + " créditos", nivel: c ? c.nivel : 1 };
+  }
   function capsula(r) {
     var P = r.premio;
     if (!P || !window.GP || !window.GP.capsula) {
-      return aviso("<b>¡Ticket enviado!</b> Gracias: lo que habéis dicho sale en la próxima clase."
-        + (P ? " Te ha tocado " + (P.sobre ? esc(NOMBRE_SOBRE[P.tipo] || "un sobre").toLowerCase() : "+" + Number(P.creditos || 0) + " ◈") + "." : "") + tripulacionHtml(r));
+      return aviso("<b>¡Ticket enviado!</b> Gracias: lo que habéis dicho sale en la próxima clase." + tripulacionHtml(r));
     }
-    var sobre = !!(P.sobre && P.tipo);
+    var gana = casillaDe(P), lista = gana.id === "pago" ? CASILLAS.concat([gana]) : CASILLAS;
     pinta('<div class="card" id="tk-cap"></div>');
     window.GP.capsula.montar(document.getElementById("tk-cap"), {
-      imagen: IMG_CAPSULA, alt: "La cápsula de suministros", boton: "Abrir la cápsula", nivel: RAREZA[P.casilla] || 1, colores: COLORES,
-      antes: "<p><b>¡Ticket enviado!</b> Te llega una cápsula de suministros.</p>",
-      premio: sobre ? { img: IMG_SOBRE[P.tipo] || IMG_SOBRE.cromo } : { cifra: "+" + Number(P.creditos || 0) + " ◈" },
-      titulo: sobre ? "¡" + (NOMBRE_SOBRE[P.tipo] || "Un sobre") + "!" : "créditos",
-      despues: "<p>" + (sobre ? "Lo tienes en tu <b>Botín</b>: ábrelo desde tu Nave." : "Ya están en tu Nave, para el Mercado.")
+      imagen: IMG + "capsula.webp", alt: "La cápsula de suministros", boton: "Abrir la cápsula", colores: COLORES,
+      rarezas: ["Común", "Raro", "Épico", "Legendario"], casillas: lista, ganadora: gana.id,
+      antes: "<p><b>¡Ticket enviado!</b> Te llega una cápsula de suministros. ¿Qué habrá dentro?</p>",
+      despues: "<p>" + (gana.cifra ? "Ya están en tu Nave, para el Mercado." : "Lo tienes en tu <b>Botín</b>: ábrelo desde tu Nave.")
         + " Gracias: lo que habéis dicho sale en la próxima clase.</p>" + tripulacionHtml(r)
     });
   }
@@ -159,6 +176,7 @@
   var DEMO = Q.get("demo"), M_DEMO = null;
   if (DEMO !== null) {
     var casilla = DEMO.split(",")[0] || "epico", TIPO = { sobre: "cromo", grande: "sobre_grande", raro: "sobre_raro", epico: "sobre_epico" }[casilla];
+    if (!TIPO && !/^c\d+$/.test(casilla)) casilla = "epico", TIPO = "sobre_epico";
     var premio = TIPO ? { casilla: casilla, sobre: "demo", tipo: TIPO } : { casilla: casilla, creditos: Number(casilla.slice(1)) || 50 };
     M_DEMO = { sesion: function () { return Promise.resolve({ uid: "demo" }); }, entrar: function () { return Promise.resolve(); },
       llamar: function (n, d) { return Promise.resolve(d.accion === "estado" ? { hecho: false } : { ok: true, n: 1, premio: premio, tripulacion: /tripulacion/.test(DEMO) ? 30 : 0 }); } };
