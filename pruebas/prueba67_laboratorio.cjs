@@ -4953,8 +4953,11 @@ const REG = {};   // cifras que se apuntan para el informe
       };
       await rs.ir("entrar.html"); await rs.entrarComo("rita@lab.test", "Rita Referente");
       const hay = await aMisEnlaces();
-      const casillas = await rs.js("(function(){ var l=[].slice.call(document.querySelectorAll('.m-sec input')); return l.length+'|'+l.filter(function(x){return x.checked}).length; })()");
-      c("🔴 sesión a medida · la rueda de «Proyectar la clase» abre una casilla por sección y, por defecto, todas marcadas", hay && /^(\d+)\|\1$/.test(casillas) && Number(casillas.split("|")[0]) >= 24, casillas);   // 27-sep · 24: + la Ruta, el juego En directo y el Asedio   // (23-sep · 19 con «El embarque»; 20 con «La pregunta de la clase»; 21 con «El tripulante»)
+      // 5-oct · «la sesión, más ligera»: las apagadas de serie y las de «solo al empezar tema» (SESION_SECCIONES, 4.º campo
+      // «off»/«tema») salen sin marcar
+      const casillas = await rs.js("(function(){ var l=[].slice.call(document.querySelectorAll('.m-sec input')); var off=(window.SG_SECCIONES_SESION||[]).filter(function(x){return x[3]==='off'||x[3]==='tema'}).length; return l.length+'|'+l.filter(function(x){return x.checked}).length+'|'+off; })()");
+      const [nCas, nMarc, nOff] = String(casillas).split("|").map(Number);
+      c("🔴 sesión a medida · la rueda de «Proyectar la clase» abre una casilla por sección y, por defecto, todas menos las apagadas de serie", hay && nCas >= 24 && nMarc === nCas - nOff, casillas);   // 27-sep · 24: + la Ruta, el juego En directo y el Asedio   // (23-sep · 19 con «El embarque»; 20 con «La pregunta de la clase»; 21 con «El tripulante»)
       // (la sesión lee la elección del docente directamente del grupo; con el emulador atascado eso tarda: se espera a que
       // el mazo ACABE reflejándola, como mucho un minuto. En producción son milisegundos)
       const conTop = "[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Top 5'})";
@@ -4989,7 +4992,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await rs.js("document.getElementById('m-panel').value='https://view.genially.com/lab-panel-propio'; document.getElementById('m-guardar').click(); 1");
       await dormir(2500);
       const pan = (((await leerDoc("projects/" + P)) || {}).stargate || {}).paneles || {};
-      c("🔴 Mis enlaces · «Guardar» tu Genially propio funciona (antes fallaba en silencio)", Object.values(pan).indexOf("https://view.genially.com/lab-panel-propio") >= 0, JSON.stringify(pan));
+      c("🔴 Mis enlaces · «Guardar» tu Genially propio funciona (antes fallaba en silencio)", Object.values(pan).indexOf("https://view.genially.com/lab-panel-propio") >= 0,
+        JSON.stringify(pan) + " · " + JSON.stringify(((await rs.texto()).match(/.{0,60}(Guardado|No se ha|No puedo|error|permiso)[^.]{0,100}/i) || [""])[0]) + " · " + await rs.js("location.search + ' · panel:' + !!document.getElementById('m-panel')"));
       c("sesión a medida · sin errores", !rs.errores.filter(e => !/Failed to load resource/.test(e)).length, rs.errores[0] || "");
       await rs.cerrar();
     }
@@ -5295,8 +5299,9 @@ const REG = {};   // cifras que se apuntan para el informe
       const src = await rt.hasta("!!document.querySelector('.tk-form')", 20) && await rt.js("document.querySelector('.tk-form').getAttribute('src')");
       // (la semana 2 es la de la Actividad 1, y el formulario tiene su propia opción: esa es la que toca, no «Tema 1»)
       c("   con el formulario dentro, el grupo por su ID, la Comandante y el tema ya elegido",
-        /docs\.google\.com\/forms/.test(src || "") && /=lab-clase(&|$)/.test(src || "") && /Rita(\+|%20)Referente/.test(src || "")
-        && /entry\.240809630=(Tema|Actividad)(\+|%20)/.test(src || ""), src);
+        // 5-oct · el ticket ya es de GamificaPro (ticket.html, modTicket), no el formulario de Google
+        /^\/ticket\.html\?/.test(src || "") && /per=lab-clase(&|$)/.test(src || "") && /c=Rita(\+|%20)Referente/.test(src || "")
+        && /tema=(Tema|Actividad)(\+|%20)/.test(src || ""), src);
       c("   y sin huecos sin rellenar", (src || "").indexOf("{") < 0 && (src || "").indexOf("%7B") < 0, src);
       await rt.foto(FOTOS + "/49-ticket-form.png");
       // la semana 3 ABRE el tema 2: primero «Cómo os fue», después «Vuestras dudas»
