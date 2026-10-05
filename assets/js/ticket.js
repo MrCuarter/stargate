@@ -106,8 +106,9 @@
    */
   var IMG = "assets/img/ticket/";
   // 🔴 la huella: el CDN de Hostinger guarda 7 días lo que se le pide (también un 404 si se pide antes de publicar).
-  // Si se cambia una imagen de esta carpeta, se cambia la huella.
-  var HUELLA = "?v=20261005b";
+  // Si se cambia una imagen de esta carpeta, se cambia la huella. Y tras publicar, se comprueba con una sonda desechable
+  // (?v=sonda…) hasta que el origen tenga lo nuevo; pedir la dirección de verdad antes la envenena (pasó el 5-oct).
+  var HUELLA = "?v=20261005c";
   var CASILLAS = [
     { id: "c10", img: IMG + "creditos_pocos.webp" + HUELLA, cifra: "+10 ◈", titulo: "10 créditos", nivel: 1 },
     { id: "c20", img: IMG + "creditos_pocos.webp" + HUELLA, cifra: "+20 ◈", titulo: "20 créditos", nivel: 1 },
