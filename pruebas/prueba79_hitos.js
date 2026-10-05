@@ -70,12 +70,14 @@ const N = leer("assets/js/recluta.js"), F = leer("assets/js/fuente.js"), M = lee
   const zoco = de("c5"), sorteo = de("c6");
   c(zoco.semana < c9w.semana && sorteo.semana < c9w.semana, "   en REGULAR los logros llegan cuando ya está abierto TODO lo que piden (el Zoco y el Sorteo)");
   // el servidor abre el Zoco y saca las ofertas en las MISMAS semanas (un dato, dos sitios que se vigilan)
-  const txtZ = fs.existsSync(path.join(GP, "stargateZoco.js")) ? fs.readFileSync(path.join(GP, "stargateZoco.js"), "utf8") : "";
   const txtO = fs.existsSync(path.join(GP, "stargateOfertas.js")) ? fs.readFileSync(path.join(GP, "stargateOfertas.js"), "utf8") : "";
-  const mZ = txtZ.match(/SEMANA: \{ REGULAR: (\d+), PUA: (null|\d+) \}/), mO = txtO.match(/SEMANA_MIN: (\d+)/);
-  c(!!mZ && Number(mZ[1]) === zoco.semanas.REGULAR && mZ[2] === "null" && zoco.semanas.PUA === null,
-    "🔴 el servidor abre el Zoco la misma semana que su capítulo, y en PUA no lo abre nunca", mZ && mZ.slice(1).join("/"));
-  c(!!mO && Number(mO[1]) === de("c10").semana && de("c10").semanas.PUA === de("c10").semana, "🔴 y saca la primera oferta la semana de su capítulo", mO && mO[1]);
+  // 5-oct · los valores, preguntados al módulo (desde la fase 3 viven en gamificapro/functions/mods/stargate.js)
+  let SZ = null, SO = null;
+  try { SZ = (await import(pathToFileURL(path.join(GP, "stargateZoco.js")).href)).ZOCO.SEMANA; } catch (e) { SZ = null; }
+  try { SO = (await import(pathToFileURL(path.join(GP, "stargateOfertas.js")).href)).OFERTAS.SEMANA_MIN; } catch (e) { SO = null; }
+  c(!!SZ && SZ.REGULAR === zoco.semanas.REGULAR && SZ.PUA === null && zoco.semanas.PUA === null,
+    "🔴 el servidor abre el Zoco la misma semana que su capítulo, y en PUA no lo abre nunca", JSON.stringify(SZ));
+  c(SO != null && SO === de("c10").semana && de("c10").semanas.PUA === de("c10").semana, "🔴 y saca la primera oferta la semana de su capítulo", SO);
   c(/yaALaVenta\(premios, semana\)/.test(txtO), "   y solo con lo que ya está a la venta esa semana (nada del Hangar antes de su capítulo)");
 
   // 4 · el motor y la puerta de las escrituras

@@ -106,7 +106,9 @@ c(/id="doc-nom"/.test(CONS) && /id="doc-nom-g"/.test(CONS) && /function cablearN
 const FN = "/Users/nor/Claude/vibewebs/gamificapro/functions/stargateEquipo.js";
 if (fs.existsSync(FN)) {
   const src = fs.readFileSync(FN, "utf8"), i = src.indexOf("export function planMiNombre"), j = src.indexOf("export const stargateMiNombre");
-  const plan = new Function(src.slice(i, j).replace("export function", "function") + "; return planMiNombre;")();
+  // 5-oct · el plan pregunta de qué mod es el grupo (`modWebDe`, de comun.js): se trae también, tal cual
+  const com = fs.readFileSync(FN.replace("stargateEquipo.js", "comun.js"), "utf8"), k = com.indexOf("export function modWebDe"), k2 = com.indexOf("\n}\n", k) + 3;
+  const plan = new Function(com.slice(k, k2).replace("export function", "function") + src.slice(i, j).replace("export function", "function") + "; return planMiNombre;")();
   const proyecto = { factions: [{ teacherName: "Ana" }, { teacherName: "Luis" }],
     stargate: { paneles: { Ana: "p-ana", Luis: "p-luis" }, sesiones: { Ana: ["zoco"] }, avatares: { Ana: "c7" } } };
   const docentes = [{ nombre: "Ana", correo: "ana@x.es" }, { nombre: "Luis", correo: "luis@x.es" }];
