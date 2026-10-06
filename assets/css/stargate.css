@@ -8038,3 +8038,38 @@ body.embed .bz-nueva h2,body.embed .bz-lista h2{font-size:1.05rem}
   .rs-celda>.reto-sem[open]>summary{padding:14px 56px 12px 14px}
   .rs-celda>.reto-sem[open] .rs-detalle{padding:0 14px 16px}
 }
+
+/* ================================================================== 6-oct · LAS DEMÁS REJILLAS, CON LA MISMA NORMA
+   (GamificaPro CLAUDE.md, «lo que va junto, igual»; la estructura de la ventana es de sdk/tarjetas.js)
+   · Mercado: «Leer más…» abre la ficha entera en su ventana; antes «Ver más» se desplegaba dentro y estiraba la fila.
+   · Logros de a bordo: las cinco cubiertas y el Contramaestre, del mismo alto, con el premio al pie. */
+.nave-rec-u{--gpt-ancho:620px;--gpt-capa:60;--gpt-velo:rgba(4,8,14,.78);--gpt-cerrar-fondo:#101a28;--gpt-cerrar-borde:#3a5578;
+  --gpt-cerrar-tinta:var(--ink);--gpt-acento:var(--teal)}
+.rec-mas-c{margin-top:6px}
+.rec-mas-c>.rec-mas{margin:0}
+.rec-mas-c>.rec-mas>summary{cursor:pointer;color:var(--teal);font-size:.85rem;font-weight:700;list-style:none;display:inline-block}
+.rec-mas-c>.rec-mas>summary::-webkit-details-marker{display:none}
+.rec-mas-c>.rec-mas>summary::after{content:none}
+.rec-mas-c>.rec-mas:not([open])>summary:hover{text-decoration:underline}
+.rec-mas-c>.rec-mas[open]{background:#101a28;border:1px solid #3a5578;border-radius:14px;padding:20px 22px}
+.rec-mas-c>.rec-mas[open]>summary{display:none}
+.rec-ventana h3{margin:4px 50px 4px 0;font-size:1.25rem}
+.rec-ventana .rec-desc{margin:10px 0 0;font-size:.98rem;line-height:1.55;color:var(--ink)}
+.rec-ventana .rec-donde{margin:10px 0 0}
+.ab-cubiertas{grid-auto-rows:1fr;align-items:stretch}
+.ab-cub .ab-premio{margin-top:auto}
+.grid.nave-rec.nave-rec-u{grid-auto-rows:1fr}   /* (todas las filas, del alto de la más alta: el Gran Sorteo lleva una línea más) */
+/* · Sesión, «Lo que dijisteis» (se proyecta): las respuestas, del mismo alto; el texto recortado a seis líneas y «Leer más…»,
+     que abre la reflexión entera (abrirReflexion), con «Ver lo que hizo» al pie de todas. */
+.rfx-lista{grid-auto-rows:1fr}
+.rfx blockquote{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;line-clamp:6;overflow:hidden}
+.rfx-pie{margin-top:auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.rfx-pie:empty{display:none}
+/* · Academia de la Cero: las ocho paradas, iguales, en filas llenas (4 + 4; 2 por fila en estrecho) */
+.acd-mapa{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch}
+@media(max-width:900px){.acd-mapa{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.acd-mapa>.acd-parada{max-width:none;min-width:0}
+.acd-mapa>.acd-parada b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+.acd-mapa>.acd-parada small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acd-mapa>.acd-parada>span:last-child{min-width:0}
+.acd-mapa>.acd-quedan{grid-column:1/-1}

@@ -965,7 +965,9 @@
             +'<button type="button" class="rfx-ocultar" data-rfocultar="'+esc(x.id)+'" title="No enseñar esta respuesta">Ocultar</button>'
             +'<div class="rfx-quien">'+cara(p)+'<b>'+esc(p.alias)+'</b></div>'
             +'<blockquote>'+esc(corto)+'</blockquote>'
-            +(u?'<a class="ev-ver" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer"><img class=ico src=assets/img/iconos/p/enlace.png alt> Ver lo que hizo</a>':'')
+            // 6-oct · tarjetas iguales (norma de diseño de GamificaPro): el texto, recortado; «Leer más…» abre su reflexión entera
+            +'<div class="rfx-pie">'+(t.length>220?'<button type="button" class="ev-ver ev-leer" data-leer="'+esc(x.id)+'">Leer más…</button>':'')
+            +(u?'<a class="ev-ver" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer"><img class=ico src=assets/img/iconos/p/enlace.png alt> Ver lo que hizo</a>':'')+'</div>'
             +'</figure>'; }).join('')+'</div>'
         +(todas.length>elegidas.length?'<p class="sub rfx-mas">y '+(todas.length-elegidas.length)+' más en la Nave, en el propio reto</p>':'')
         +'</div>'};

@@ -2854,8 +2854,17 @@
     return '<div class="card rec-card sorteo">'+cab
       +'<p class="pts">'+x.coste+' ◈ <span class="small muted">cada participación</span></p>'
       +'<p class="sorteo-mias">Llevas <b>'+mias+'</b> participaci'+(mias===1?'ón':'ones')+(max?' <span class="small muted">(como mucho '+max+')</span>':'')+'</p>'
-      +'<p class="small rec-desc">'+(S.ganadores>1?'<b>'+S.ganadores+' ganadores</b>, nadie gana dos':'<b>1 ganador</b>')
-      +(S.fecha?' · se sortea <b>solo</b> el <b>'+fechaLarga(S.fecha)+'</b>: ese día, al entrar, verás el resultado':'')+'. Cada participación es una papeleta: cuantas más, más posibilidades. Tu docente también las regala. Como en una lotería, lo jugado no se devuelve.</p>'
+      // 6-oct · como las demás fichas (norma de diseño de GamificaPro): tres líneas a la vista y el resto en su ventana
+      +(function(){
+        var desc=(S.ganadores>1?'<b>'+S.ganadores+' ganadores</b>, nadie gana dos':'<b>1 ganador</b>')
+          +(S.fecha?' · se sortea <b>solo</b> el <b>'+fechaLarga(S.fecha)+'</b>: ese día, al entrar, verás el resultado':'')+'. Cada participación es una papeleta: cuantas más, más posibilidades. Tu docente también las regala. Como en una lotería, lo jugado no se devuelve.';
+        return '<p class="small rec-resumen">'+desc+'</p>'
+          +'<div class="gpt-celda rec-mas-c"><details class="gpt-tarjeta rec-mas"><summary><span class="gpt-mas">Leer más…</span><span hidden>'+esc(S.premio||x.nombre)+'</span></summary>'
+          +'<button type="button" class="gpt-cerrar" data-gpt-cerrar aria-label="Cerrar" title="Cerrar (Esc)">×</button>'
+          +'<div class="rec-ventana"><div class="rec-quees"><img class=ico src=assets/img/iconos/p/ticket.png alt> El Gran Sorteo</div><h3>'+esc(S.premio||x.nombre)+'</h3>'
+          +'<p class="pts">'+x.coste+' ◈ <span class="small muted">cada participación</span></p><p class="rec-desc">'+desc+'</p></div></details>'
+          +'<div class="gpt-velo" data-gpt-cerrar aria-hidden="true"></div></div>';
+      })()
       +'</div><div class="rec-pie">'+afford+boton+'</div></div>';
   }
   function queEs(tipo){ return QUE_ES[tipo] || ["<img class=ico src=assets/img/iconos/p/premios.png alt>","Recompensa","",'',""]; }
@@ -3011,7 +3020,14 @@
         +'<h3>'+esc(x.nombre)+'</h3>'
         +'<p class="pts'+(gratis?' libre':'')+'">'+(gratis?'Sin créditos':x.coste+' ◈')+'</p>'
         +(resumen?'<p class="small rec-resumen">'+esc(resumen)+'</p>':'')
-        +(mas?'<details class="rec-mas"><summary>Ver más</summary>'+mas+'</details>':'')
+        // 6-oct · «Leer más…» abre la ficha entera en una ventana (la pieza del motor, sdk/tarjetas.js): antes se desplegaba
+        // dentro y estiraba toda la fila (norma de diseño de GamificaPro: lo que va junto, igual)
+        +(mas?'<div class="gpt-celda rec-mas-c"><details class="gpt-tarjeta rec-mas"><summary><span class="gpt-mas">Leer más…</span><span hidden>'+esc(x.nombre)+'</span></summary>'
+          +'<button type="button" class="gpt-cerrar" data-gpt-cerrar aria-label="Cerrar" title="Cerrar (Esc)">×</button>'
+          +'<div class="rec-ventana"><div class="rec-quees">'+qe[0]+' '+esc(qe[1])+'</div><h3>'+esc(x.nombre)+'</h3>'
+          +'<p class="pts'+(gratis?' libre':'')+'">'+(gratis?'Sin créditos':x.coste+' ◈')+'</p>'
+          +(x.desc?'<p class="rec-desc">'+esc(x.desc)+'</p>':'')+(qe[2]?'<p class="rec-donde">'+esc(qe[2])+'</p>':'')+aviso+'</div></details>'
+          +'<div class="gpt-velo" data-gpt-cerrar aria-hidden="true"></div></div>':'')
         +'</div>'
         +'<div class="rec-pie">'+(x.tipo==='nota'?'<span class="chip rec-pend" title="Las subidas de nota quedan pendientes hasta que tu docente las aprueba">Pendiente de tu docente</span>':'')+afford+boton+'</div></div>';
     }).join('');
