@@ -8073,3 +8073,14 @@ body.embed .bz-nueva h2,body.embed .bz-lista h2{font-size:1.05rem}
 .acd-mapa>.acd-parada small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .acd-mapa>.acd-parada>span:last-child{min-width:0}
 .acd-mapa>.acd-quedan{grid-column:1/-1}
+/* · Archivo: en cada semana, las fichas del mismo alto; la tapa de lo que aún no se ha abierto llena su ficha (antes
+     quedaba una franja vacía debajo), y título y nota en dos líneas como mucho. */
+.ar-grid{grid-auto-rows:1fr;align-items:stretch}
+.ar-v.cerrada>.frag-tapa{flex:1 0 auto}
+.ar-txt{flex:1}
+.ar-txt b,.ar-txt em{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+/* · Mi botín, insignias por tema: los nombres, en dos líneas como mucho (el nombre entero, al pulsar la insignia). */
+.ins-temas .badge-col .b span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+/* · Sesión, «¿Qué semana quieres ver?»: todas las semanas del mismo alto, y su tema en dos líneas. */
+.dif-grid{grid-auto-rows:1fr;align-items:stretch}
+.dif-s>span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
