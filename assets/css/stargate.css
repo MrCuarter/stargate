@@ -8015,3 +8015,45 @@ body.embed .bz-nueva h2,body.embed .bz-lista h2{font-size:1.05rem}
 .nf-rol{margin:6px 0 0}
 .cn-rol{margin-left:8px}
 .cn-fantasmas-tit{margin:18px 0 4px;color:#e3c6f2}
+
+/* ================================================================== 6-oct · LOS RETOS DE LA SEMANA: TODOS IGUALES, Y SU VENTANA
+   Norberto: «haz que todos los retos tengan el mismo tamaño, se organicen de forma uniforme. Puedes añadir "leer más…": al
+   pulsar se abre el reto en ventana». Cerrada, cada tarjeta enseña lo justo (recortado) y todas las filas miden lo que la
+   más alta (grid-auto-rows:1fr); el premio y «Leer más…» van siempre al pie. Abierta, el mismo <details> es una ventana fija
+   encima de la Nave, con su velo y su ×; la celda se queda en la rejilla para que nada se mueva detrás. Por debajo de los
+   avisos (.modal-backdrop, 100): «Lo he hecho» puede sacar los suyos encima. */
+.retos-semana .rs-grid{grid-auto-rows:1fr;align-items:stretch}
+.rs-celda{display:flex;min-width:0}
+.rs-celda>.reto-sem{flex:1;min-width:0;display:flex;flex-direction:column;margin:0}
+.rs-celda>.reto-sem:not([open])>summary{flex:1;height:auto;gap:8px}
+.rs-celda>.reto-sem:not([open]) .rs-tit{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.rs-celda>.reto-sem:not([open]) .rs-gancho{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.rs-celda>.reto-sem:not([open]) .rs-que{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rs-celda>.reto-sem:not([open]) .re-rel{display:none}
+.rs-celda>.reto-sem:not([open]) .chip.rel em{display:none}
+.rs-celda>.reto-sem:not([open]) .rs-premio{margin-top:auto}
+.rs-celda .rs-abrir{align-self:flex-start;margin:0;font-size:.88rem;font-weight:700;color:var(--teal)}
+.reto-sem.ficha:not([open])>summary:hover .rs-abrir{text-decoration:underline}
+.rs-celda>.reto-sem.por-lanzar>.rs-cab{margin:0 0 8px}
+.rs-celda>.reto-sem.por-lanzar>.rs-tit{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.chip.rel{white-space:normal}
+.rs-cerrar{display:none}
+.rs-velo{display:none}
+/* abierta: la ventana */
+.rs-celda>.reto-sem[open]{position:fixed;z-index:60;top:24px;left:0;right:0;margin:0 auto;width:min(760px,calc(100vw - 32px));
+  max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);overflow:auto;overscroll-behavior:contain;display:block;
+  border-color:#3a5578;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.rs-celda>.reto-sem[open]>summary{cursor:default;padding:18px 60px 14px 20px}
+.rs-celda>.reto-sem[open] .rs-tit{font-size:1.2rem}
+.rs-celda>.reto-sem[open] .rs-detalle{padding:0 20px 20px}
+.rs-celda>.reto-sem[open]>.rs-cerrar{display:flex;align-items:center;justify-content:center;position:fixed;z-index:61;
+  top:34px;right:calc((100vw - min(760px,calc(100vw - 32px))) / 2 + 10px);width:38px;height:38px;border-radius:50%;
+  border:1px solid #3a5578;background:#101a28;color:var(--ink);font-size:1.5rem;line-height:1;cursor:pointer}
+.rs-celda>.reto-sem[open]>.rs-cerrar:hover,.rs-celda>.reto-sem[open]>.rs-cerrar:focus-visible{background:#1a2a40;border-color:var(--teal)}
+.rs-celda:has(>.reto-sem[open])>.rs-velo{display:block;position:fixed;inset:0;z-index:59;background:rgba(4,8,14,.78);cursor:pointer}
+@media(max-width:640px){
+  .rs-celda>.reto-sem[open]{top:8px;width:calc(100vw - 16px);max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px)}
+  .rs-celda>.reto-sem[open]>.rs-cerrar{top:16px;right:16px}
+  .rs-celda>.reto-sem[open]>summary{padding:14px 56px 12px 14px}
+  .rs-celda>.reto-sem[open] .rs-detalle{padding:0 14px 16px}
+}
