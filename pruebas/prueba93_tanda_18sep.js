@@ -28,7 +28,7 @@ c(mapa.B2 === 3 && mapa.L2 === 4 && mapa.L3 === 5 && mapa.B3 === 6 && mapa.L4 ==
 c(mapa.L5 === 9 && mapa.B5 === 9 && mapa.L6 === 10 && mapa.B6 === 10, "   los temas de una sola sesión (5 y 6) lanzan los dos a la vez");
 c(mapa.L7 === 11 && mapa.B7 === 12 && mapa.L8 === 13 && mapa.B8 === 14, "   y los temas 7 y 8, el principal a la semana siguiente");
 c(!Object.keys(mapa).some(k => /^A[1-8]$/.test(k)), "   y ningún A: ya no existen");
-c(/function retoPorLanzar\(id, ya\)/.test(NAVE) && /class="reto-sem por-lanzar '\+modo\+'"/.test(NAVE) && /La próxima semana/.test(NAVE),
+c(/function retoPorLanzar\(id, ya\)/.test(NAVE) && /class="reto-sem (?:gpt-tarjeta )?por-lanzar '\+modo\+'"/.test(NAVE) && /La próxima semana/.test(NAVE),
   "🔴 Nave · el reto que aún no se ha explicado sale en sombra, con «la próxima semana» y sin poder registrarse");
 c(/\.reto-sem\.por-lanzar\{opacity:\.5/.test(CSS), "   y se ve en sombra");
 

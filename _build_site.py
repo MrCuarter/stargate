@@ -4016,6 +4016,14 @@ EMBED = head("STARGATE · Enlaces y embeds", "Genera los enlaces, códigos de in
 html=(EMBED.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
 open(os.path.join(HERE,"embed.html"),"w",encoding="utf-8").write(html); print("escrito: embed.html")
 
+# 6-oct · LAS TARJETAS IGUALES SON DEL MOTOR (GamificaPro sdk/tarjetas.js, norma de diseño de su CLAUDE.md): se copian aquí
+# en cada build, antes de las páginas que las usan (su huella ?v= sale del fichero copiado); no se editan en esta web.
+_TARJETAS_GP = "/Users/nor/Claude/vibewebs/gamificapro/sdk/tarjetas.js"
+if os.path.exists(_TARJETAS_GP):
+    _c = open(_TARJETAS_GP, encoding="utf-8").read(); _d = os.path.join(HERE, "assets", "js", "tarjetas.js")
+    if not os.path.exists(_d) or open(_d, encoding="utf-8").read() != _c:
+        open(_d, "w", encoding="utf-8").write(_c)
+        print("copiado: assets/js/tarjetas.js  (de GamificaPro sdk/tarjetas.js)")
 # ================= v3 · LA NAVE DEL RECLUTA (web del alumnado por PER) =================
 RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -4025,6 +4033,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="theme-color" content="#080c14">
 <link rel="icon" href="{FAV}">
 <link rel="stylesheet" href="assets/css/stargate.css">
+<script src="assets/js/tarjetas.js"></script>
 <script src="assets/js/stargate.js" defer></script>
 </head><body>
 <!-- 🔴 El logo llevaba a recluta.html, o sea a si mismo: pulsarlo no hacia nada. Ahora sale a la

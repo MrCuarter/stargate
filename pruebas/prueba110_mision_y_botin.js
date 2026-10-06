@@ -113,8 +113,21 @@ c(/closest\("\.modo-sel \[data-modo\]"\)/.test(CON) && /\(m === "piloto" \|\| m 
   "🔴 las pestañas del ranking de la consola responden (el selector Piloto/Manual ya no las toma por suyas)");
 
 // 26-sep · el relámpago: «en clase… o después, cuando tú quieras» (Norberto), donde lo vea el recluta
-c(/En clase · 10-15 min <em>o después, cuando tú quieras<\/em>/.test(NAVE) && /o después, cuando tú quieras<\/b>/.test(SES) && /'En clase · 15 min, o después, cuando tú quieras'/.test(SES),
+c(/En clase · 10-15 min <em(?: class="gpt-solo-ventana")?>o después, cuando tú quieras<\/em>/.test(NAVE) && /o después, cuando tú quieras<\/b>/.test(SES) && /'En clase · 15 min, o después, cuando tú quieras'/.test(SES),
   "🔴 el relámpago dice «en clase… o después, cuando tú quieras» en su Nave, en la sesión y en el diferido");
+
+// 6-oct · las tarjetas iguales con «Leer más…» en ventana son del motor (GamificaPro sdk/tarjetas.js): la copia es exacta,
+// la Nave la carga sin defer (el estilo antes de la primera rejilla) y los retos de la semana usan sus clases
+{
+  const GP_T = path.resolve(R, "../../gamificapro/sdk/tarjetas.js"), WEB_T = path.join(R, "assets/js/tarjetas.js");
+  const REC = L("recluta.html");
+  c(fs.existsSync(WEB_T) && (!fs.existsSync(GP_T) || fs.readFileSync(GP_T, "utf8") === fs.readFileSync(WEB_T, "utf8")),
+    "🔴 tarjetas iguales · assets/js/tarjetas.js es la copia exacta de GamificaPro sdk/tarjetas.js");
+  c(/<script src="assets\/js\/tarjetas\.js\?v=[a-f0-9]+"><\/script>/.test(REC), "   la Nave la carga, sin defer y con su huella");
+  c(/class="rs-grid gpt-rejilla/.test(NAVE) && /class="rs-celda gpt-celda"/.test(NAVE) && /data-gpt-cerrar/.test(NAVE)
+    && /class="rs-abrir gpt-mas">Leer más…/.test(NAVE) && !/retoEnVentana/.test(NAVE),
+    "   los retos de la semana usan sus clases (rejilla, celda, velo, «Leer más…»), sin manejadores propios");
+}
 
 console.log("\n  Batería 110 · misión cumplida, Mi botín por puertas y el diferido con su índice");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");

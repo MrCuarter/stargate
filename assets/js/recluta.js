@@ -1168,17 +1168,17 @@
   function queTeLlevas(claves){
     var k=(claves||[])[0]; if(!k) return '';
     var c=CLASE_PREMIO[String(k).charAt(0)]||CLASE_PREMIO.R;
-    return '<span class="rs-que '+c[1]+'">· '+c[0].toLowerCase()+' <b>'+esc(NOMBRES[k]||k)+'</b></span>';
+    return '<span class="rs-que gpt-l1 '+c[1]+'">· '+c[0].toLowerCase()+' <b>'+esc(NOMBRES[k]||k)+'</b></span>';
   }
   function tarjetaReto(t, mios, modo){
     modo = modo==='fila' ? 'fila' : 'ficha';
     var r=st.yo||{}, d=st.d||{}, AY=window.SG_AYUDA_RETOS||{};
     var ya=!!mios[t[0]], pasos=pasosDeReto(AY[t[0]]);
     var cerradoHasta=retoPorLanzar(t[0], ya);
-    if(cerradoHasta) return '<div class="reto-sem por-lanzar '+modo+'" aria-disabled="true"><div class="rs-cab"><span class="chip pend">'
+    if(cerradoHasta) return '<div class="reto-sem gpt-tarjeta por-lanzar '+modo+'" aria-disabled="true"><div class="rs-cab"><span class="chip pend">'
       +(cerradoHasta===Number(st.actual||0)+1?'La próxima semana':'Semana '+cerradoHasta)+'</span>'
       +'<span class="small muted">'+esc(t[0])+'</span></div>'
-      +'<b class="rs-tit">'+esc(t[1])+'</b>'
+      +'<b class="rs-tit gpt-l3">'+esc(t[1])+'</b>'
       +'<p class="small muted">Se explica en clase '+(cerradoHasta===Number(st.actual||0)+1?'la próxima semana':'en la semana '+cerradoHasta)
       +'. Hasta entonces, no se puede registrar.</p></div>';
     var cuando=ya&&r.retos_fecha&&r.retos_fecha[t[0]]?' · '+fecha(r.retos_fecha[t[0]]):'';
@@ -1195,23 +1195,24 @@
     var cab='<div class="rs-cab"><span class="chip '+(ya?'ok':'pend')+'">'
         +(ya?'✓ Registrado'+cuando:'Pendiente')+'</span>'
         // 26-sep · y la aclaración (Norberto: «en clase… o después, cuando tú quieras»): no hace falta haber venido
-        +(rel?'<span class="chip rel"><img class=ico src=assets/img/iconos/p/rayo.png alt> En clase · 10-15 min <em>o después, cuando tú quieras</em></span>':'')
+        +(rel?'<span class="chip rel"><img class=ico src=assets/img/iconos/p/rayo.png alt> En clase · 10-15 min <em class="gpt-solo-ventana">o después, cuando tú quieras</em></span>':'')
         +cuantosLoLlevan(t[0])
         +'<span class="small muted">'+esc(t[0])+'</span>'+(modo==='fila'?queTeLlevas(t[2]):'')+'</div>';
     var premio='<span class="p xp">+'+t[3]+' xp</span><span class="p cr">+'+creditosDeReto(t[0])+' ◈</span>';
     // 26-sep · la Actividad 1 y la 2 llevan sus retos relacionados a la vista (los mismos que la tarjeta de la entrega)
     var actR=actividadDeReto(t[0]), relR=actR?relacionados(actR, true):'';
-    return '<details class="reto-sem '+modo+(ya?' hecho':'')+(rel?' relampago':'')+'" data-rid="'+esc(t[0])+'">'
+    return '<details class="reto-sem gpt-tarjeta '+modo+(ya?' hecho':'')+(rel?' relampago':'')+'" data-rid="'+esc(t[0])+'">'
       +(modo==='fila'
         ? '<summary class="rs-fila">'+miniPremio(t[2])+'<div class="rs-fila-t">'+cab+'<b class="rs-tit">'+esc(t[1])+'</b>'+relR+'</div>'
             +'<div class="rs-premio">'+premio+'</div><span class="rs-flecha" aria-hidden="true">▾</span></summary>'
         : '<summary>'+cab
-            +'<div class="rs-cuerpo">'+miniPremio(t[2])+'<div class="rs-cuerpo-t"><b class="rs-tit">'+esc(t[1])+'</b>'
-              +(gancho?'<p class="rs-gancho">'+esc(gancho)+'</p>':'')+queTeLlevas(t[2])+relR+'</div></div>'
-            +'<div class="rs-premio">'+premio
+            +'<div class="rs-cuerpo">'+miniPremio(t[2])+'<div class="rs-cuerpo-t"><b class="rs-tit gpt-l3">'+esc(t[1])+'</b>'
+              +(gancho?'<p class="rs-gancho gpt-l3">'+esc(gancho)+'</p>':'')+queTeLlevas(t[2])
+              +(relR?'<div class="gpt-solo-ventana">'+relR+'</div>':'')+'</div></div>'
+            +'<div class="rs-premio gpt-pie">'+premio
               +(ejPag?'<a class="rs-ej" href="'+ejPag+'" target="_blank" rel="noopener" title="Se abre en una pestaña nueva">Ver un ejemplo ↗</a>':'')+'</div>'
-            +'<div class="rs-abrir">Leer más…</div></summary>'
-            +'<button type="button" class="rs-cerrar" data-rs-cerrar aria-label="Cerrar el reto" title="Cerrar (Esc)">×</button>')
+            +'<div class="rs-abrir gpt-mas">Leer más…</div></summary>'
+            +'<button type="button" class="rs-cerrar gpt-cerrar" data-gpt-cerrar aria-label="Cerrar el reto" title="Cerrar (Esc)">×</button>')
       +'<div class="rs-detalle">'
       // (abierta, la insignia en grande a la derecha de los pasos: ahí sí hay texto que la acompañe)
       +'<div class="rs-det-cols"><div class="rs-det-main">'
@@ -1275,11 +1276,13 @@
      * 🔴 6-oct · TODAS LAS TARJETAS DEL MISMO TAMAÑO, Y EL RETO SE LEE EN SU VENTANA. Norberto: «haz que todos los retos
      * tengan el mismo tamaño, se organicen de forma uniforme. Puedes añadir "leer más…": al pulsar se abre el reto en
      * ventana». Cerrada, la tarjeta enseña lo justo (título, gancho y premio, recortados); al pulsarla, el mismo <details>
-     * se abre como ventana encima de la Nave (CSS: .rs-celda). Cada tarjeta va en su celda para que la rejilla no se
-     * mueva mientras la ventana está abierta, y el velo de detrás la cierra (como Esc y la ×).
+     * se abre como ventana encima de la Nave. Cada tarjeta va en su celda para que la rejilla no se mueva mientras la
+     * ventana está abierta, y el velo de detrás la cierra (como Esc y la ×). 🔴 Desde el 6-oct (tarde) la estructura es
+     * del motor, para todos los proyectos: GamificaPro sdk/tarjetas.js (clases gpt-*), copiada en assets/js/tarjetas.js.
+     * Aquí, solo el marcado y la piel (CSS «6-oct · LOS RETOS DE LA SEMANA»).
      */
-    var tarjetas=suyos.map(function(t){ return '<div class="rs-celda">'+tarjetaReto(t, mios)
-      +'<div class="rs-velo" data-rs-cerrar aria-hidden="true"></div></div>'; }).join('');
+    var tarjetas=suyos.map(function(t){ return '<div class="rs-celda gpt-celda">'+tarjetaReto(t, mios)
+      +'<div class="rs-velo gpt-velo" data-gpt-cerrar aria-hidden="true"></div></div>'; }).join('');
 
     // Los atrasados: lo abierto que todavía no ha registrado, sin contar los de esta semana.
     var deEstaSemana={}; suyos.forEach(function(t){ deEstaSemana[t[0]]=true; });
@@ -1302,7 +1305,7 @@
       +'<p class="small muted">'+(suyos.length===1?'Un reto':suyos.length+' retos')+' de '+esc(sm.tema)
       +'. Pulsa uno para ver qué hay que hacer, y márcalo aquí mismo cuando lo tengas.</p>'
       // filas llenas: con 4 retos, dos y dos (de tres en tres quedaba uno solo en la segunda fila)
-      +'<div class="rs-grid'+(suyos.length===4?' par':'')+'">'+tarjetas+'</div>'
+      +'<div class="rs-grid gpt-rejilla'+(suyos.length===4?' par':'')+'">'+tarjetas+'</div>'
       +(atrasados?'<p class="rs-atras"><img class=ico src=assets/img/iconos/p/tiempo.png alt> Y llevas <b>'+atrasados+'</b> reto'+(atrasados===1?'':'s')
         +' sin registrar de semanas anteriores. '
         +'<button class="btn small" type="button" data-tab="retos">Verlos en Retos →</button></p>':'')
@@ -1546,21 +1549,6 @@
       +(corto&&per&&!SIMULACRO&&actividadAbierta(a)?' · <a href="'+esc(urlActividad(a.n))+'" target="_blank" rel="noopener">La sesión de la actividad ↗</a>':'')+'</p>'
       +'<div class="re-rel-g">'+R.map(boton).join('')+'</div></div>';
   }
-  // 6-oct · la ventana del reto (ver retosDeLaSemana): se cierra con la ×, con el velo o con Esc; pulsar dentro, no la cierra
-  function retoEnVentana(){ return document.querySelector('.rs-celda > .reto-sem[open]'); }
-  document.addEventListener('click',function(ev){
-    var t=ev.target; if(!t||!t.closest) return;
-    var c=t.closest('[data-rs-cerrar]');
-    if(c){ var d=retoEnVentana(); if(d){ ev.preventDefault(); d.open=false; } return; }
-    var su=t.closest('.rs-celda > .reto-sem[open] > summary');
-    if(su && !t.closest('a,button,input,textarea,label')) ev.preventDefault();
-  });
-  document.addEventListener('keydown',function(ev){
-    if(ev.key!=='Escape') return;
-    var d=retoEnVentana(), a=document.activeElement; if(!d) return;
-    if(a && a!==document.body && !d.contains(a)) return;   // (si hay otra ventana encima, es ella la que se cierra)
-    d.open=false;
-  });
   function actividadDeReto(id){ return (window.SG_ACTIVIDADES||[]).filter(function(a){ return a.reto===id; })[0]||null; }
   // al pulsar uno: a «Mis retos», con ese reto abierto y a la vista
   document.addEventListener('click',function(ev){
