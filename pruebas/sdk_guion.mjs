@@ -1,5 +1,5 @@
 /**
- * EL GUION DE LA BATERÍA 136 (7-oct-2026): corre UNA centralita (motor.js) contra la consola de ensayo, con el reloj parado y el
+ * EL GUION DE LA BATERÍA 138 (7-oct-2026): corre UNA centralita (motor.js) contra la consola de ensayo, con el reloj parado y el
  * azar sembrado, y escribe en la salida lo que ha pasado paso a paso. La batería lo lanza dos veces, en procesos aparte: con el
  * motor.js de ANTES de los pasos 4-11 del SDK de GamificaPro (del historial de git) y con el de ahora, y compara las dos trazas.
  *

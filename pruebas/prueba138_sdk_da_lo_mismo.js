@@ -1,6 +1,6 @@
 'use strict';
 /**
- * BATERÍA 136 · LOS PASOS 4-11 DEL SDK DE GAMIFICAPRO DAN LO MISMO (7-oct-2026, fase 5 de gamificapro/docs/PLAN_CENTRALIZAR.md)
+ * BATERÍA 138 · LOS PASOS 4-11 DEL SDK DE GAMIFICAPRO DAN LO MISMO (7-oct-2026, fase 5 de gamificapro/docs/PLAN_CENTRALIZAR.md)
  *
  * motor.js sigue siendo la centralita con su misma API (window.SG.MOTOR); por dentro, alistarse y el alias, los premios por enlace,
  * la llamada a filas, las votaciones, los retos (avisos, reflexiones y comentarios), el equipo docente, el buzón y los vales,
@@ -63,7 +63,7 @@ function correr(motor, opc) {
 if (!viejo) {
   console.log("   (sin el historial de git: no tengo el motor de antes con el que comparar; me salto la batería)");
 } else {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sg-136-"));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sg-138-"));
   const fv = path.join(tmp, "motor_antes.js"); fs.writeFileSync(fv, viejo);
   const fn = path.join(R, "assets/js/motor.js");
   for (const [nombre, opc] of [["el docente de ensayo", []], ["con el buzón abierto", ["--buzon"]], ["un recluta (Tritón)", ["--yo=prueba_triton"]]]) {
@@ -92,6 +92,6 @@ if (!viejo) {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
-console.log("\n  Batería 136 · los pasos 4-11 del SDK dan lo mismo");
+console.log("\n  Batería 138 · los pasos 4-11 del SDK dan lo mismo");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);

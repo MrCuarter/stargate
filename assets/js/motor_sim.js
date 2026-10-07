@@ -739,7 +739,7 @@ async function miPapel() {
  * 7-oct · LOS PASOS 4-11 DEL SDK DE GAMIFICAPRO (su docs/PLAN_CENTRALIZAR.md, fase 5): cada pieza recibe las funciones de esta
  * centralita —las de Firestore, `llamar` y la sesión— y no importa Firebase ni lleva piel. En motor_sim.js (la consola de
  * ensayo) son las del Firebase de mentira; en el laboratorio, las del emulador. Los textos, los campos y las colecciones de
- * STARGATE se los pone cada función de aquí. Se demuestra que da lo mismo en la batería 136.
+ * STARGATE se los pone cada función de aquí. Se demuestra que da lo mismo en la batería 138.
  */
 const CTX = { fs: { db, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, writeBatch, onSnapshot, deleteField },
               llamar, sesion };
