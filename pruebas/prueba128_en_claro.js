@@ -22,7 +22,10 @@ const duda = id => { const m = H.match(new RegExp('<details class="ec-duda" id="
 
 console.log("  La página y dónde se encuentra");
 c(/open\(os\.path\.join\(HERE, "en-claro\.html"\)/.test(B), "la escribe _build_site.py (no se edita a mano)");
-c(/\("en-claro\.html","En claro","claro"\)\]/.test(B) && /<a class="lnk[^"]*" href="en-claro\.html">En claro<\/a>/.test(L("consola.html")), "«En claro» en el menú del profesorado (también en la consola)");
+// 7-oct · «En claro» y la Guía comparten página (guias.html), a la que lleva «Ayuda ▾ → Guías» desde todo el profesorado
+c(/cubre=\{"guia\.html": "guia", "en-claro\.html": "claro"\}/.test(B) && /href="guias\.html" data-gpm-paginas="guia\.html en-claro\.html"/.test(L("consola.html"))
+  && /<a class="gpt-tarjeta card gs-tarjeta" href="en-claro\.html">/.test(L("guias.html")), "«En claro» en el menú del profesorado (también en la consola): Ayuda ▾ → Guías → la guía rápida");
+c(/href="guias\.html" data-gpm-paginas="guia\.html en-claro\.html" aria-current="page"/.test(H), "   y en su página, «Guías» sale encendida");
 c(/href="en-claro\.html">STARGATE en claro<\/a>/.test(GUIA), "las preguntas frecuentes de la guía enlazan a la página");
 c(/<title>STARGATE en claro<\/title>/.test(H) && /classList\.add\("cerrado"\)/.test(H), "con su título y tras la puerta del profesorado, como la guía");
 c(/assets\/js\/motor\.js/.test(H) && /motor\/semanas\.js/.test(H) && /assets\/js\/en-claro\.js\?v=[0-9a-f]{10}/.test(H), "   lleva el motor (su grupo), las semanas y su JS con huella");

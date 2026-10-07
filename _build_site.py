@@ -89,9 +89,60 @@ FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0
 # hacen de verdad: crear un grupo y gobernarlo.
 # 29-sep (noche) · la Academia, en el menú de todo el profesorado. Norberto: «debería ser una página en el menú de arriba.
 # Academia (para todos los docentes), así separamos docencia de aprendizaje». Su grupo ya no sale en «Mi nave».
-NAV = [("consola.html","Mi nave","cons"),("gestion.html","Gestionar grupos","gest","referente"),("academia.html","Academia","acad"),("guia.html","Guía","guia"),
-       # 4-oct · STARGATE en claro: la capa sin ficción, con las preguntas de verdad y su botón (Norberto: «sí, en el menú»)
-       ("en-claro.html","En claro","claro")]
+# 🔴 7-oct · «AYUDA ▾». Norberto: «Las secciones de ayuda están creciendo mucho. En el menú superior del docente aparece
+# Academia, En claro más el botón de soporte. ¿No es lioso? ¿Y si ponemos en el menú "Ayuda" y al pulsar o pasar el ratón se
+# despliegan todas las opciones? Así el usuario sabe que todas ellas son AYUDA». Y luego: «En claro y Guía… quizá pudieran
+# compartir una página en la que hubiera dos botones con fotos de personajes diferenciando la guía exhaustiva o la guía
+# rápida». Así que arriba quedan las dos cosas que se HACEN (tu Nave y, al referente, Gestionar grupos) y todo lo que se
+# CONSULTA cuelga de «Ayuda ▾»: la Academia, las Guías (guias.html: la rápida, «En claro», y la completa, la «Guía») y
+# escribir al Mando (el buzón). El desplegable es del motor (GamificaPro sdk/menu.js → assets/js/menu.js): esta web lo
+# viste (stargate.css) y le da sus opciones. (4-oct · «En claro» entró en el menú; hoy va dentro de «Guías».)
+NAV = [("consola.html","Mi nave","cons"),("gestion.html","Gestionar grupos","gest","referente")]
+# Cada opción: la página, su texto, la clave de `active` (la de head()), una línea y, si cuelgan de ella, las páginas que cubre
+# con su clave (en ellas, la opción sale marcada); o, con `pulsa`, el botón de la página que abre.
+AYUDA_DOCENTE = [
+    dict(href="academia.html", texto="Academia", clave="acad", sub="El curso del profesorado, a tu ritmo"),
+    dict(href="guias.html", texto="Guías", clave="guias", sub="La rápida, sin historia, o la completa",
+         cubre={"guia.html": "guia", "en-claro.html": "claro"}),
+    dict(href="buzon.html?desde=menu", texto="Escribir al Mando", clave="buzon", sub="Una duda, una idea o algo que falla"),
+]
+# El alumnado, con SUS páginas (nunca las del profesorado). «Pregunta a NEBULA» pulsa el botón flotante de la Nave
+# (#neb-ayuda-b): fuera de la Nave, o si su chat no está encendido, la opción no sale (lo decide sdk/menu.js al abrir).
+AYUDA_RECLUTA = [
+    dict(href="guia-recluta.html", texto="Guía del recluta", clave="guiarec", sub="Cómo funciona todo"),
+    dict(href="ayuda.html", texto="Cómo comparto mi evidencia", clave="ayuda", sub="Que tu enlace abra lo tuyo"),
+    dict(pulsa="#neb-ayuda-b", texto="Pregunta a NEBULA", sub="Te contesta al momento"),
+]
+def _menu_ayuda(opciones, active):
+    """El desplegable «Ayuda ▾» con el marcado de GamificaPro sdk/menu.js (el mismo que da GP.menu.marcado). La opción de la
+    página actual sale ya marcada (aria-current) y el grupo, encendido: sin esperar al JS."""
+    def _actual(x): return bool(active) and (x.get("clave") == active or active in x.get("cubre", {}).values())
+    def _o(x):
+        dentro = x["texto"] + ('<span class="gpm-sub">' + x["sub"] + '</span>' if x.get("sub") else '')
+        if x.get("pulsa"):
+            return f'<button type="button" role="menuitem" tabindex="-1" data-gpm-pulsa="{x["pulsa"]}" hidden>{dentro}</button>'
+        cubre = f' data-gpm-paginas="{" ".join(x["cubre"])}"' if x.get("cubre") else ''
+        actual = ' aria-current="page"' if _actual(x) else ''
+        return f'<a role="menuitem" tabindex="-1" href="{x["href"]}"{cubre}{actual}>{dentro}</a>'
+    return (f'<div class="gpm gpm-derecha{" gpm-activo" if any(_actual(x) for x in opciones) else ""}" data-gpm id="nav-ayuda">'
+            '<button type="button" class="gpm-boton" aria-haspopup="true" aria-expanded="false" aria-controls="nav-ayuda-lista">'
+            'Ayuda <span class="gpm-flecha" aria-hidden="true">▾</span></button>'
+            '<div class="gpm-lista" id="nav-ayuda-lista" role="menu" hidden>' + "".join(_o(x) for x in opciones) + '</div></div>')
+
+# 7-oct · EL MENÚ DESPLEGABLE ES DEL MOTOR (GamificaPro sdk/menu.js): se copia aquí en cada build, antes de escribir ninguna
+# página; no se edita en esta web. Desde un worktree de GamificaPro: GAMIFICAPRO_DIR=<ruta> python3 _build_site.py. Sin
+# GamificaPro a mano (o si aún no la tiene), vale la copia que ya está en git.
+def _traer_menu():
+    _d = os.path.join(HERE, "assets", "js", "menu.js")
+    for _gp in [os.environ.get("GAMIFICAPRO_DIR"), "/Users/nor/Claude/vibewebs/gamificapro"]:
+        _src = os.path.join(_gp, "sdk", "menu.js") if _gp else None
+        if _src and os.path.exists(_src):
+            _c = open(_src, encoding="utf-8").read()
+            if not os.path.exists(_d) or open(_d, encoding="utf-8").read() != _c:
+                open(_d, "w", encoding="utf-8").write(_c); print("copiado: assets/js/menu.js  (de GamificaPro sdk/menu.js)")
+            break
+    assert os.path.exists(_d), "falta assets/js/menu.js (GamificaPro sdk/menu.js; desde un worktree, GAMIFICAPRO_DIR=<ruta>)"
+_traer_menu()
 # 🔴 19-sep · «Mis grupos» es ahora la NAVE DEL COMANDANTE (se entra directo en tu grupo) y «Crear grupo» vive dentro de
 # «Gestionar grupos», con todo lo que se hace una o dos veces por curso (Norberto: «simplicidad máxima en la página
 # principal… no queremos info que se usará una o dos veces en todo el curso»). Solo el referente la ve.
@@ -145,9 +196,11 @@ def head(title, desc, active, puerta=False, publica=False, alumno=False):
     # 🔴 12-sep · UNA PUERTA, NO DOS. La portada bifurcaba en «Soy estudiante» / «Soy docente», y
     # eso obliga a acertar ANTES de que el sistema sepa quién eres: quien elegía mal acababa en la
     # mitad equivocada de la web. Ahora se entra primero y el servidor reparte.
+    # 7-oct · y la ayuda, en «Ayuda ▾» (la del alumnado, la suya; la portada pública no lleva ninguna)
     links = ('<a class="lnk" href="entrar.html">Entrar</a>') if publica else \
-            ('<a class="lnk" href="entrar.html">Mi nave</a>') if alumno else \
-            "".join(_lnk(e[0], e[1], e[2], e[3] if len(e) > 3 else "") for e in NAV)
+            ('<a class="lnk" href="entrar.html">Mi nave</a>' + _menu_ayuda(AYUDA_RECLUTA, active)) if alumno else \
+            "".join(_lnk(e[0], e[1], e[2], e[3] if len(e) > 3 else "") for e in NAV) + _menu_ayuda(AYUDA_DOCENTE, active)
+    _menu_js = '' if publica else '<script src="assets/js/menu.js" defer></script>\n'   # (el de «Ayuda ▾»)
     return f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
@@ -159,7 +212,7 @@ def head(title, desc, active, puerta=False, publica=False, alumno=False):
 <script>window.SG_TABLERO_API="{TABLERO_API}";</script>
 <script src="assets/js/stargate.js" defer></script>
 <script src="assets/js/tour.js" defer></script>
-{('<script>document.documentElement.classList.add("cerrado")' + (';document.documentElement.setAttribute("data-puerta","sesion")' if puerta == "sesion" else '') + '</script><script src="assets/js/puerta.js" defer></script>') if puerta else ''}
+{_menu_js}{('<script>document.documentElement.classList.add("cerrado")' + (';document.documentElement.setAttribute("data-puerta","sesion")' if puerta == "sesion" else '') + '</script><script src="assets/js/puerta.js" defer></script>') if puerta else ''}
 </head><body>
 <nav class="nav"><div class="wrap">
 <a class="brand" href="index.html">◈ STARGATE {'' if publica else '<span class="modo recluta">Recluta<i> · alumnado</i></span>' if alumno else '<span class="modo docente">Comandante<i> · docentes</i></span>'}</a>
@@ -2901,7 +2954,7 @@ TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _b
    {p:'consola.html',sel:'.ht-retos',listo:'.cn-secs',espera:1,si:1,pose:'senala',t:'Los retos de este tema',x:'Aquí, <b>todos los retos del tema</b> con cuántos los han hecho: el <b>relámpago</b>, en clase y en quince minutos, recupera a un tripulante; el <b>reto principal</b> deja una evidencia en la Bitácora. Los que aún no se han abierto salen <b>en gris</b>, con su semana. Tu alumnado los registra solo; tú <b>no validas nada</b>: si dudas de una entrega, abres su enlace desde la ficha del recluta y la anulas con un motivo.'},
    {p:'consola.html',sel:'.pt-tk',listo:'.cn-secs',espera:1,si:1,pose:'tablet',t:'Los tickets de salida',x:'Lo que escribió tu escuadrón al cerrar el tema: cada pregunta con su reparto de notas, y sus comentarios. Sale el <b>último tema cerrado</b>, y el desplegable abre los anteriores. Tú decides qué se lee en clase: lo que <b>fijes</b> sale seguro, lo que <b>ocultes</b> no sale, y del resto salen los que quepan en la diapositiva.'},
    {p:'consola.html',sel:'.lnk.solo-referente',listo:'.cn-secs',espera:1,si:1,soloRef:1,pose:'senala',t:'Como referente',x:'Crear un grupo, el equipo docente, los escuadrones, los ajustes y el calendario, mover reclutas, graduar y borrar: en <b>Gestionar grupos</b>, aquí arriba. Lo que se hace una o dos veces por curso, fuera de tu Nave.'},
-   {p:'consola.html',sel:'.lnk[href="guia.html"]',listo:'.cn-secs',espera:1,pose:'brazos',t:'Ahora nos vamos a la Guía',x:'Hasta aquí, <b>tu Nave</b>: lo de tu grupo. Lo que viene está en la <b>Guía</b>, este enlace de arriba, y es <b>común a todos los grupos</b>: la base del proyecto —la historia, los retos, el calendario de las 15 semanas y la evaluación—. Pulsa <b>Siguiente</b> y te llevo; al acabar vuelves aquí solo.'},
+   {p:'consola.html',sel:'#nav-ayuda .gpm-boton',listo:'.cn-secs',espera:1,pose:'brazos',t:'Ahora nos vamos a la Guía',x:'Hasta aquí, <b>tu Nave</b>: lo de tu grupo. Lo que viene está en la <b>Guía</b> (aquí arriba, en <b>Ayuda ▾ → Guías</b>, con la Academia y el buzón del Mando) y es <b>común a todos los grupos</b>: la base del proyecto —la historia, los retos, el calendario de las 15 semanas y la evaluación—. Pulsa <b>Siguiente</b> y te llevo; al acabar vuelves aquí solo.'},
    {p:'guia.html',sel:'#pers',pose:'brazos',t:'Las voces y la Tripulación Cero',x:'Ya estás en la <b>Guía</b>. <b>NEBULA</b> narra, <b>yo</b> doy las órdenes de cada misión, <b>tú</b> eres el Comandante de tu grupo y <b>Vaeon</b> silencia. Ocho tripulantes esperan a que tu alumnado los recupere, uno por tema. Pulsa cualquier insignia: verás su reto y su frase. Quien hace el relámpago de un tripulante <b>desbloquea su fragmento de vídeo</b> antes que nadie: se coleccionan en <b>El Archivo</b> de su Nave.'},
    {p:'guia.html',sel:'#retos',pose:'tablet',t:'Dos retos por tema',x:'Los dos prácticos. El <b>relámpago</b>, en clase, recupera al tripulante y da su <b>insignia</b>: no cuenta para nota, aunque da 100 xp y __CRED_A__ ◈. El <b>reto principal</b>, en casa, es la experiencia del portfolio del tema (250 xp y __CRED_B__ ◈) y <b>pide su enlace</b>. Los <b>xp</b> suben de nivel y nunca se gastan; los <b>créditos ◈</b> son lo que se canjea. __TOPE_FRASE__'},
    {p:'cronologia.html',sel:'#mapa',pose:'senala',t:'Tu carta de navegación',x:'El mapa de las <b>15 semanas</b>: qué vídeo proyectar, qué reto lanzar, qué insignia entregar y el hito de evaluación. Sin fechas: semanas, como tu aula.'},
@@ -3436,7 +3489,7 @@ hay que volver a aceptar, tu Nave te lo preguntará la próxima vez que entres.<
 AYUDA = head("STARGATE · Cómo comparto mi evidencia",
   "Los dos enlaces que más se fallan al registrar un reto: la publicación de Padlet y la página "
   "concreta de un Genially. Con los pasos en movimiento.",
-  "ayuda", publica=True) + '''
+  "ayuda", alumno=True) + '''
 <header class="hero"><div class="kicker">Guía rápida · alumnado</div>
 <h1>Que tu enlace abra <i>lo tuyo</i></h1>
 <p>Cuando un reto te pide un enlace, ese enlace tiene que llevar <b>directamente a tu trabajo</b>:
@@ -4102,10 +4155,12 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <link rel="stylesheet" href="assets/css/stargate.css">
 <script src="assets/js/tarjetas.js"></script>
 <script src="assets/js/stargate.js" defer></script>
+<script src="assets/js/menu.js" defer></script>
 </head><body>
 <!-- 🔴 El logo llevaba a recluta.html, o sea a si mismo: pulsarlo no hacia nada. Ahora sale a la
      portada, que es la puerta publica del proyecto. -->
-<nav class="nav"><div class="wrap"><a class="brand" href="index.html">◈ STARGATE <span class="modo recluta">Recluta<i> · alumnado</i></span></a></div></nav>
+<!-- 7-oct · y «Ayuda ▾» con la ayuda del alumnado (la guía, cómo compartir la evidencia y NEBULA), la misma de sus páginas -->
+<nav class="nav"><div class="wrap"><a class="brand" href="index.html">◈ STARGATE <span class="modo recluta">Recluta<i> · alumnado</i></span></a>{_menu_ayuda(AYUDA_RECLUTA, "")}</div></nav>
 <header class="hero con-imagen"><div class="hero-img" style="background-image:url('assets/img/pres/hangar.webp')" aria-hidden="true"></div><div class="kicker">Canal del alumnado</div><h1>La Nave del Recluta</h1>
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
@@ -5078,6 +5133,35 @@ _html = head("STARGATE en claro",
 <script src="''' + _v("assets/js/en-claro.js") + '''" defer></script>
 ''' + FOOT
 open(os.path.join(HERE, "en-claro.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+
+# ---------------------------------------------------------------- 7-oct · LAS GUÍAS (guias.html): la rápida o la completa
+# Norberto: «En claro y Guía… quizá pudieran compartir una página en la que hubiera dos botones con fotos de personajes
+# diferenciando la guía exhaustiva o la guía rápida. Así vamos quitando opciones que agobien al docente». «Ayuda ▾ → Guías»
+# lleva aquí; las dos páginas siguen donde estaban (sus enlaces no se rompen). Dos tarjetas iguales (la norma de las tarjetas,
+# GamificaPro sdk/tarjetas.js: misma altura, el botón abajo en las dos), cada una con su personaje: el Capitán, con su
+# tableta, para la rápida (las órdenes, al grano); NEBULA, que narra el viaje, para la completa (con la historia).
+GUIAS_OPCIONES = [
+    ("en-claro.html", "assets/img/capitan/tablet.png", "El Capitán, con su tableta", "La guía rápida", "STARGATE en claro",
+     "Sin la historia y al grano: lo que haces tú, lo que hacen tus estudiantes y el temario, tema a tema.",
+     "Abrir la guía rápida"),
+    ("guia.html", "assets/img/personajes/nebula.png", "NEBULA", "La guía completa", "La Guía",
+     "Con la historia entera: la Tripulación Cero, los retos y las insignias, el calendario de las 15 semanas y la evaluación.",
+     "Abrir la guía completa"),
+]
+_html = head("STARGATE · Las guías",
+             "Las dos guías de STARGATE para el profesorado: la rápida, sin la historia, y la completa.",
+             "guias", puerta=True).replace("</head>", '<script src="' + _v("assets/js/tarjetas.js") + '"></script>\n</head>') + '''
+<header class="hero gs-hero"><div class="kicker">Ayuda · profesorado</div><h1>Las guías</h1>
+<p>Dos maneras de conocer STARGATE. Elige la de hoy: puedes cambiar cuando quieras.</p></header>
+<section class="gs"><div class="wrap"><div class="gpt-rejilla gs-rejilla">''' + "".join(
+    '<div class="gpt-celda"><a class="gpt-tarjeta card gs-tarjeta" href="' + h + '">'
+    '<span class="gs-foto"><img src="' + img + '" alt="' + alt + '" loading="lazy"></span>'
+    '<span class="gs-texto"><span class="kicker">' + k + '</span><b class="gs-t">' + t + '</b><span class="gs-que">' + que + '</span>'
+    '<span class="btn primary gs-btn gpt-pie">' + boton + ' →</span></span></a></div>'
+    for h, img, alt, k, t, que, boton in GUIAS_OPCIONES) + '''</div></div></section>
+''' + FOOT
+open(os.path.join(HERE, "guias.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: guias.html  (las dos guías: la rápida y la completa)")
 # lo que el buzón enseña antes de escribir (y sus enlaces): las marcadas `buzon`, con su sección
 SG_CLARO = [[p["id"], p["corta"], next(s[1] for s in EC_SECCIONES if s[0] == p["sec"]), 1 if p.get("ref") else 0] for p in EC_PREGUNTAS if p.get("buzon")]
 print("escrito: en-claro.html  (STARGATE en claro: %d dudas, %d solo para referentes)" % (len(EC_PREGUNTAS), sum(1 for p in EC_PREGUNTAS if p.get("ref"))))
@@ -5088,7 +5172,7 @@ print("escrito: en-claro.html  (STARGATE en claro: %d dudas, %d solo para refere
 # llegan aquí. Lo resuelve el asistente del proyecto; lo que no, lo decide el coordinador.
 _html = head("STARGATE · Frecuencia de mando",
              "Escribe al equipo de STARGATE: un problema, una duda o una idea. Te respondemos aquí.",
-             "grp").replace("</head>", _cabeza_motor()
+             "buzon").replace("</head>", _cabeza_motor()
                + '<script>window.SG_AVERIAS=' + json.dumps(AVERIAS, ensure_ascii=False) + ';window.SG_FAQ=' + json.dumps(FAQ, ensure_ascii=False) + ';window.SG_CLARO=' + json.dumps(SG_CLARO, ensure_ascii=False)
                + ';window.SG_GENIALLY_CARPETA=' + json.dumps(GENIALLY_CARPETA) + ';window.SG_DRIVE_EQUIPO=' + json.dumps(DRIVE_EQUIPO) + ';</script>'
                + "\n</head>") + '''
@@ -5572,3 +5656,18 @@ for _f in AVISO_EN:
     if _s2 != _s:
         open(_ruta, "w", encoding="utf-8").write(_s2)
 print("aviso de respuestas en:", ", ".join(AVISO_EN))
+
+# ---------------------------------------------------------------- 7-oct · el menú «Ayuda ▾», con su huella en TODAS las páginas
+# assets/js/menu.js (GamificaPro sdk/menu.js) lo pide la cabecera de cada página del profesorado y del alumnado; unas se
+# escriben antes del cache-bust general y otras después, así que la huella se pone aquí, al final, en todas a la vez.
+_TAG_MENU = 'assets/js/menu.js?v=' + _ver("assets/js/menu.js") + '"'
+_con_menu = []
+for _html in _glob2.glob(os.path.join(HERE, "*.html")):
+    _s = open(_html, encoding="utf-8").read()
+    _s2 = _re2.sub(r'assets/js/menu\.js(\?v=[0-9a-f]+)?"', _TAG_MENU, _s)
+    if 'data-gpm' in _s2:
+        assert 'assets/js/menu.js' in _s2, os.path.basename(_html) + ": lleva «Ayuda ▾» pero no carga assets/js/menu.js"
+        _con_menu.append(os.path.basename(_html))
+    if _s2 != _s:
+        open(_html, "w", encoding="utf-8").write(_s2)
+print("menú «Ayuda ▾» en:", len(_con_menu), "páginas")
