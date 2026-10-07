@@ -2015,11 +2015,15 @@
     var RET=(window.SG_RETOS||{})[(st.d&&st.d.tipo)||'REGULAR']||[];
     return L.slice(0,3).map(function(x){
       var s=x.stargate||{}, anul=s.accion==='anulado', val=s.accion==='validado';
+      // 7-oct · los mensajes del sistema (GamificaPro, functions/modMensajes.js) los firma NEBULA, no tu Comandante. Norberto: «que
+      // no te hagas pasar por el docente, sino como NEBULA». Su marca es `modSistema.voz` (`GP_SDK.retos.remitente` en el paquete
+      // nuevo); los primeros del 7-oct solo traían `de: 'NEBULA'`.
+      var voz=(x.modSistema&&x.modSistema.voz)||(s.de==='NEBULA'?'NEBULA':'');
       var r=RET.filter(function(f){ return f[0]===s.reto; })[0];
       var cuando=x.createdAt?new Date(x.createdAt):null;
       return '<div class="card msg-cmd'+(anul?' anulado':val?' validado':'')+'" role="status">'
         +'<p class="mc-cab"><span class="mc-ico" aria-hidden="true">'+(anul?'↩':val?'<img class=ico src=assets/img/iconos/p/hecho.png alt>':'<img class=ico src=assets/img/iconos/p/envivo.png alt>')+'</span>'
-        +'<b>Mensaje de tu Comandante'+(s.de?' · '+esc(s.de):'')+'</b>'
+        +'<b>'+(voz?'Mensaje de '+esc(voz):'Mensaje de tu Comandante'+(s.de?' · '+esc(s.de):''))+'</b>'
         +(cuando?'<span class="mc-cuando">'+esc(cuando.toLocaleDateString('es-ES',{day:'numeric',month:'short'}))+', '+esc(cuando.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}))+'</span>':'')
         // (el «Entendido», en la misma línea: una fila entera para un botón era aire)
         +'<button type="button" class="btn min" data-msg-leido="'+esc(x.id)+'">Entendido</button></p>'

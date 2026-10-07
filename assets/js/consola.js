@@ -720,6 +720,56 @@
     catch (e) { return fallo("No he podido leer el grupo: " + e.message); }
     pintar();
     quizaBienvenida();
+    vigilarSistema();   // 7-oct · los mensajes de NEBULA a su alumnado
+  }
+  /**
+   * 🔴 7-oct · LO QUE NEBULA LE HA DICHO A TU ALUMNADO. Norberto (de baja, con Claude de asistente): «que no te hagas pasar por el
+   * docente, sino como NEBULA. Ese mensaje debe aparecer al profesor responsable y al estudiante». El servidor de GamificaPro
+   * (functions/modMensajes.js) escribe uno al recluta y otro a su Comandante; aquí se ven los segundos, sin leer, arriba de todo y
+   * en cualquier sección, con las mismas tarjetas que el mensaje de la Nave (`.msg-cmd`). «Entendido» lo da por leído (solo tu
+   * copia: la del recluta sigue en su Nave). Si el grupo no tiene ninguno, no se pinta nada.
+   */
+  var SISTEMA = [], SISTEMA_PER = null, PARA_SISTEMA = null;
+  function vigilarSistema() {
+    if (GESTION || !MOTOR || !MOTOR.vigilarMensajesDelSistema || SISTEMA_PER === PER) return;
+    if (PARA_SISTEMA) { try { PARA_SISTEMA(); } catch (e) {} }
+    SISTEMA = []; SISTEMA_PER = PER;
+    var este = PER;
+    try {
+      PARA_SISTEMA = MOTOR.vigilarMensajesDelSistema(PER, function (l) {
+        if (este !== PER) return;
+        SISTEMA = l || [];
+        var c = document.getElementById("c-sistema");
+        if (c) { c.innerHTML = avisosSistema(); cablearSistema(c); }
+      });
+    } catch (e) { PARA_SISTEMA = null; }
+  }
+  function avisosSistema() {
+    if (!SISTEMA.length) return "";
+    return SISTEMA.slice(0, 5).map(function (x) {
+      var m = x.modSistema || {}, anul = m.accion === "anulado", val = m.accion === "validado";
+      var cuando = x.createdAt ? new Date(x.createdAt) : null, quien = esc(m.alumno || "un recluta");
+      return '<div class="card msg-cmd' + (anul ? " anulado" : val ? " validado" : "") + '" role="status">' +
+        '<p class="mc-cab"><span class="mc-ico" aria-hidden="true">' + (anul ? "↩" : val ? ico("hecho") : ico("envivo")) + "</span>" +
+        "<b>Mensaje de " + esc(m.voz) + " · a " + quien + "</b>" +
+        (cuando ? '<span class="mc-cuando">' + esc(cuando.toLocaleDateString("es-ES", { day: "numeric", month: "short" })) + ", " + esc(cuando.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })) + "</span>" : "") +
+        '<button type="button" class="btn min" data-sis-leido="' + esc(x.id) + '">Entendido</button></p>' +
+        (m.reto ? '<p class="mc-que">' + (anul ? "Ha anulado el reto " : val ? "Ha validado el reto " : "Le ha escrito sobre el reto ") + "<b>" + esc(m.reto) + "</b> de " + quien + ".</p>"
+                : '<p class="mc-que">Le ha escrito a ' + quien + ".</p>") +
+        (x.message ? '<p class="mc-txt">«' + esc(x.message) + "»</p>" : "") + "</div>";
+    }).join("") + (SISTEMA.length > 5 ? '<p class="small muted">Y ' + (SISTEMA.length - 5) + " más: se ven al dar por leídos estos.</p>" : "");
+  }
+  function cablearSistema(raiz) {
+    Array.prototype.forEach.call(raiz.querySelectorAll("[data-sis-leido]"), function (b) {
+      b.onclick = function () {
+        var id = b.getAttribute("data-sis-leido");
+        b.disabled = true;
+        SISTEMA = SISTEMA.filter(function (x) { return x.id !== id; });
+        var c = document.getElementById("c-sistema");
+        if (c) { c.innerHTML = avisosSistema(); cablearSistema(c); }
+        if (MOTOR && MOTOR.mensajeLeido) MOTOR.mensajeLeido(id).catch(function () {});
+      };
+    });
   }
   /** Tu cita en el grupo que tienes abierto (`stargate.citas[tu nombre]`). */
   /**
@@ -1107,7 +1157,7 @@
     // las pestañas para que la encendida sea la que se ve.
     if (!misTabs().some(function (x) { return x[0] === TAB; })) TAB = misTabs()[0][0];
     // 19-sep · tu ficha y NEBULA, solo en el Puente (como «Mi nave» del recluta); en las demás secciones, al grano
-    app.innerHTML = avisoBorrado() + (TAB === "portada" ? heroComandante() + puertaAcademia() : "") +
+    app.innerHTML = avisoBorrado() + '<div id="c-sistema">' + avisosSistema() + "</div>" + (TAB === "portada" ? heroComandante() + puertaAcademia() : "") +
       bannerGrupo(t) + barraSecciones() + subPestanas() +
       '<div id="c-aviso" class="aviso" hidden></div>' +
       '<div id="c-cuerpo"></div>';
@@ -1120,6 +1170,7 @@
       b.onclick = function () { var id = b.getAttribute("data-grupo"); if (id !== PER) abrir(id); };
     });
     if (TAB === "portada") cablearHero();
+    cablearSistema(app);   // 7-oct · los mensajes de NEBULA (vigilarSistema)
     cablearEscuela();   // el selector de semana de la Nave Escuela va en el banner: está en todas las secciones
     // Copiar un enlace, con confirmación visible: sin ella no sabes si ha ido.
     cablearCopiar(app);
