@@ -16,7 +16,8 @@ from _site_data import (GOOGLE_CLIENT_ID, RUTA, SALA_JORAN, DIRECTO, ASEDIO, JUE
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES,
                         HITOS_A_BORDO, CUBIERTAS_A_BORDO, HEROES_A_BORDO, CARTA_A_BORDO, BATALLA, SIN_PUA, VOTACION,
                         PLANETA_FIN, TRIPULANTES,
-                        PRIVACIDAD_V, PRIVACIDAD_FECHA, PRIVACIDAD_CONTACTO, CONSENTIMIENTO_TEXTO)
+                        PRIVACIDAD_V, PRIVACIDAD_FECHA, PRIVACIDAD_CONTACTO, CONSENTIMIENTO_TEXTO,
+                        INVESTIGACION_V, INVESTIGACION_TITULO, INVESTIGACION_TEXTO, INVESTIGACION_ACEPTO)
 # Los logros de a bordo, tal y como los lee el navegador (un dato, un sitio: _site_data.py)
 _A_BORDO = {
     "cubiertas": [{"clave": c[0], "nombre": c[1], "sub": c[2], "premio": c[3]} for c in CUBIERTAS_A_BORDO],
@@ -357,7 +358,7 @@ tiles = [
  ("actividades.html","<img class=ico src=assets/img/iconos/p/diana.png alt>","Misiones y evaluación","Las dos actividades, el ePortfolio y el examen con los requisitos oficiales."),
  ("registro.html","<img class=ico src=assets/img/iconos/p/medalla.png alt>","El tablero y las insignias","Cómo se entrega una insignia, el ranking de cada grupo y los dos marcadores: xp y créditos."),
  ("recluta.html?per=demo-stargate&amp;demo=1","<img class=ico src=assets/img/iconos/p/cohete.png alt>","La Nave del Recluta","Así la ve tu alumnado: su ficha, la orden de la semana, los retos, el álbum y el Mercado. Ábrela en modo demostración."),
- ("tickets.html","<img class=ico src=assets/img/iconos/p/ticket.png alt>","Tickets de salida","Valoraciones y dudas anónimas del alumnado, por tema y por clase."),
+ ("tickets.html","<img class=ico src=assets/img/iconos/p/ticket.png alt>","Tickets de salida","Valoraciones y dudas del alumnado, sin nombre, por tema y por clase."),
  ("panel.html","<img class=ico src=assets/img/iconos/p/varios.png alt>","Panel de control","El mapa de los ocho planetas sobre el universo: cada uno lleva a la presentación de su tema."),
  ("recursos.html","<img class=ico src=assets/img/iconos/p/botin.png alt>","Sala de recursos",f"Las {N_INSIGNIAS} insignias, los cromos y los materiales."),
  ("crear.html","<img class=ico src=assets/img/iconos/p/estrella.png alt>","Crear un grupo","Solo referentes: siembra un grupo entero —retos, planetas, tienda y álbum— en un minuto."),
@@ -642,7 +643,7 @@ FAQ = [
  ("¿Qué uso durante la clase en directo?", "Tres botones en el <b>Puente</b> de tu Nave, en su orden: <b>1 · Empezar la clase</b> (la sesión de la semana montada: planeta, vídeos, retos e insignias; pasa con las flechas), <b>2 · Llamada a filas</b> (el pase de lista: tu alumnado pulsa «Presente» en su Nave y se lleva créditos y un sobre de cromos) y <b>3 · El aula</b> (quién ha fichado, a quién felicitar, el ranking y, en Mando manual, los premios a mano). La sesión termina, todas las semanas, con <b>En directo</b>: el juego del final, tres minutos con toda la clase desde el móvil (detrás del ticket, cuando lo hay). Y <b>la primera vez que usas algo</b> —el juego, la llamada, las Herramientas, Proyectar, el relámpago, el Asedio— NEBULA te señala paso a paso qué pulsar; el botón con su cara, arriba, lo repite. Si tu referente te ha dado el <b>Genially de clase</b>, ya los lleva dentro: al abrirlo entras con tu cuenta y eliges el grupo. Si montas el tuyo, copia su código en tu Nave → <b>Enlaces</b> → «&lt;/&gt; Código» (en Mando manual; en Genially: Insertar → Otros → Código)."),
  ("Un estudiante ha marcado retos que no ha hecho. ¿Qué hago?", "En tu Nave → <b>Reclutas</b>, pulsa su fila y <b>anula</b> el reto (con <b>Mando manual</b>; en Piloto automático lo hace tu referente): se le descuentan los xp y los créditos que dio, y queda anotado. Si ya se había gastado los créditos, lo cosmético que compró se queda (el aviso te dice qué no se ha podido retirar), pero <b>la nota está a salvo</b>: ninguna subida de nota se aplica sin que la apruebes en la <b>Cola de nota</b>. Con el enlace obligatorio, y el aviso que te da NEBULA en el Puente si alguien registra " + str(AVISO_RETOS_DIA) + " retos o más en un solo día, una trampa así se ve enseguida."),
  ("¿Puedo dar un premio que se reclame desde una presentación?", "Sí: en tu Nave, con <b>Mando manual</b>, <b>Premios</b> → <b>Premios por enlace</b>. Eliges qué da (xp, créditos, un sobre de cromos, un héroe…), cuántas veces (en total, por escuadrón o por persona) y te llevas un enlace para pegar en cualquier web o presentación. Por ejemplo: «los 5 primeros de cada escuadrón que lo pulsen, un sobre». Quien llega tarde lee que ya se ha agotado."),
- ("¿Dónde veo las dudas y valoraciones de mi alumnado?", "En los <a href='tickets.html'>tickets de salida</a>: al final de cada clase el alumnado valora la sesión y deja dudas de forma <b>anónima</b> («Contacta con NEBULA»), y tú las ves por tema y fecha, y marcas las resueltas."),
+ ("¿Dónde veo las dudas y valoraciones de mi alumnado?", "En los <a href='tickets.html'>tickets de salida</a>: al final de cada clase el alumnado valora la sesión y deja dudas <b>sin su nombre</b> («Contacta con NEBULA»), y tú las ves por tema y fecha, y marcas las resueltas."),
  ("Un estudiante dice que no puede entrar", "Casi siempre es la cuenta: tiene que entrar con la <b>misma cuenta de Google</b> con la que se alistó (en un ordenador compartido, la pantalla «¿Eres tú?» le deja cambiar de cuenta). Si nunca se alistó, que escriba el <b>código de clase</b> al entrar. En <b>Reclutas</b> ves el correo con el que se alistó cada uno."),
  ("¿Qué hago exactamente en la primera sesión?", "Antes de clase, en principio nada: la sesión trae la diapositiva <b>«Únete a la clase»</b>, con el <b>código de clase</b> en grande, y se alistan en el momento. Si quieres adelantarte, en el <b>Puente</b> de <a href='consola.html'>tu Nave</a> pulsa <b>«Copiar invitación»</b> y pégala en el foro de la plataforma de UNIR. En clase: pon el vídeo de <b>Sinopsis</b>, después el de <b>La Bitácora</b> (ePortfolio), preséntate como su <b>Comandante</b> y deja que se alisten en el momento: al hacerlo se llevan la insignia de <b>Reclutamiento</b>, que merece su minuto de ceremonia. Deja una pregunta en el aire: «¿por qué se apagan los mundos?»."),
  ("¿Cuándo pongo cada vídeo?", "La <a href='cronologia.html'>cronología</a> lo dice semana a semana: la <b>intro</b> del planeta al abrir el tema, el <b>cierre</b> al terminar el bloque y el <b>fragmento</b> del tripulante justo después, como recompensa. Las misiones (Bitácora, Act. 1, Act. 2) al lanzar cada una."),
@@ -1248,7 +1249,7 @@ retos que se lanzan. Léela primero: es el mapa de la semana.</p></div>
 el botón <b>Presente</b>. Púlsalo y te llevas xp y créditos; si vienes a varias clases seguidas, la racha suma un extra.
 ¿No pudiste venir? <b>La sesión está en tu Nave</b> («Ver la sesión de la semana» y El Archivo): empieza por el índice de semanas y la ves a tu ritmo.</p></div>
 <div class="card"><h3>3 · Los retos</h3><p>Dos por tema: el <b>relámpago</b>, que haces en clase en quince minutos (o después, cuando tú quieras), y el <b>reto principal</b>, en casa.
-Los registras en la pestaña <b>Retos</b> {('(como mucho <b>' + str(TOPE_RETOS_SEMANA) + '</b> por semana; los relámpagos no cuentan)') if TOPE_RETOS_SEMANA else '(sin tope: a tu ritmo)'}. Al acabar cada tema, el <b>ticket de salida</b>: anónimo, para decir qué te llevas y qué duda queda (si no estás en clase, te sale en tu Nave).</p></div>
+Los registras en la pestaña <b>Retos</b> {('(como mucho <b>' + str(TOPE_RETOS_SEMANA) + '</b> por semana; los relámpagos no cuentan)') if TOPE_RETOS_SEMANA else '(sin tope: a tu ritmo)'}. Al acabar cada tema, el <b>ticket de salida</b>: sin tu nombre, para decir qué te llevas y qué duda queda (si no estás en clase, te sale en tu Nave). Lleva un seudónimo solo si participas en la investigación, que es voluntaria.</p></div>
 </div>
 <div class="gr-dos" style="margin-top:18px">
 {_gr_img("orden", "La orden de la semana, con el vídeo y la firma de tu Comandante", "La orden de la semana.")}
@@ -1703,7 +1704,7 @@ lo que no puede faltar es tu ceremonia:</p>
 <p class="small muted"><img class=ico src=assets/img/iconos/p/aviso.png alt> Ese enlace <b>no lleva el grupo dentro</b>: se deduce de tu cuenta. Se monta una vez en todos tus Geniallys y no se toca más, ni al crear un grupo nuevo ni el curso que viene.</p></div>
 <div class="card"><h3><img class=ico src=assets/img/iconos/p/clase.png alt> Llamada a filas</h3><p>El pase de lista. Lo tocas tú —y solo tú: quien no sea Comandante recibe un aviso que se lo explica— y se abre el fichaje <b>solo para tu escuadrón</b>, los minutos que elijas. En la Nave de tu gente aparece el botón <b><img class=ico src=assets/img/iconos/p/gente.png alt> Presente</b> con su cuenta atrás, y al pulsarlo cobran. <a href="llamada.html">llamada.html</a>, también universal.</p>
 <p class="small muted">No hay palabra que dictar: lo que no se puede adivinar es <b>cuándo</b> la vas a tocar.</p></div>
-<div class="card"><h3><img class=ico src=assets/img/iconos/p/ticket.png alt> Ticket de salida «Contacta con NEBULA»</h3><p>El alumnado valora la clase y deja dudas de forma <b>anónima</b> (presentación / tema / actividad / repaso, indicando quién imparte). Tú lo explotas en el <a href="tickets.html">panel visual de tickets</a>: valoraciones 1–5 por sección y dudas que puedes marcar como resueltas cuando las trates en clase.</p></div>
+<div class="card"><h3><img class=ico src=assets/img/iconos/p/ticket.png alt> Ticket de salida «Contacta con NEBULA»</h3><p>El alumnado valora la clase y deja dudas <b>sin su nombre</b> (presentación / tema / actividad / repaso, indicando quién imparte). Tú lo explotas en el <a href="tickets.html">panel visual de tickets</a>: valoraciones 1–5 por sección y dudas que puedes marcar como resueltas cuando las trates en clase.</p></div>
 <div class="card"><h3><img class=ico src=assets/img/iconos/p/premios.png alt> El Mercado Estelar</h3><p>Los xp no se gastan nunca: lo que se canjea son los <b>créditos ◈</b>, en el Mercado de la Nave, sin formularios (sobres de cromos, héroes, adornos…). Las recompensas que tocan la <b>nota</b> no se conceden solas: esperan en la <b>Cola de nota</b> de tu grupo (<a href="consola.html">tu Nave</a> → Reclutas, que brilla cuando hay alguna) hasta que las apruebas.</p></div>
 </div>
 </div></section>
@@ -3258,6 +3259,11 @@ borradores.</p>
 # 🔴 Aquí no se nombra ninguna herramienta concreta de inteligencia artificial: «herramientas de inteligencia artificial».
 _CONTACTO_A = '<a href="mailto:' + PRIVACIDAD_CONTACTO + '">' + PRIVACIDAD_CONTACTO + '</a>'
 _CONSENT_JSON = json.dumps({"v": PRIVACIDAD_V, "texto": CONSENTIMIENTO_TEXTO, "contacto": PRIVACIDAD_CONTACTO}, ensure_ascii=False)
+# 7-oct · LA INVESTIGACIÓN DEL TICKET (voluntaria y aparte): su texto y su versión, para la Nave y el ticket
+# (assets/js/investigacion.js). «</» se escapa: va dentro de un <script>.
+_INVESTIGACION_JSON = json.dumps({"v": INVESTIGACION_V, "titulo": INVESTIGACION_TITULO, "texto": INVESTIGACION_TEXTO,
+                                  "acepto": INVESTIGACION_ACEPTO, "contacto": PRIVACIDAD_CONTACTO},
+                                 ensure_ascii=False).replace("</", "<\\/")
 PRIVACIDAD = head("STARGATE · Política de privacidad",
   "Qué datos recoge STARGATE, para qué, quién los ve y cómo pedir que se borren.",
   "", publica=True) + '''
@@ -3282,8 +3288,9 @@ Protección de Datos). Al alistarte marcas una casilla que dice:</p>
 <p>Se guarda que lo aceptaste, cuándo y la versión de esta página que aceptaste. Quien ya estaba
 alistado antes de esta versión lo confirma una vez, la próxima vez que entra en su Nave.</p>
 <p><b>Es voluntario:</b> si prefieres no usar STARGATE, díselo a tu docente y se acuerda otra forma de
-seguir la asignatura. Y puedes retirar el consentimiento cuando quieras (punto 9); retirarlo no
+seguir la asignatura. Y puedes retirar el consentimiento cuando quieras (punto 10); retirarlo no
 afecta a lo que se hizo antes.</p>
+<p>La <b>investigación del ticket de salida</b> lleva su propio consentimiento, aparte y voluntario (punto 8).</p>
 
 <h2>3 · Qué datos se recogen</h2>
 <p>Solo lo necesario para que el juego funcione.</p>
@@ -3315,8 +3322,9 @@ actividades en directo; tus compras en el Bazar, lo que intercambias en el Zoco 
 participaciones en los sorteos. Y la constancia de tu consentimiento (punto 2).</p>
 
 <h3>Los tickets de salida</h3>
-<p><b>Son anónimos.</b> No se guarda quién los escribe. Sirven para que el docente sepa qué ha
-quedado flojo en clase, no para saber quién lo dijo.</p>
+<p><b>No llevan tu nombre.</b> Si aceptas la investigación (voluntaria), llevan un seudónimo: solo tus
+referentes y el investigador pueden saber que es tuyo, y cada consulta queda registrada (punto 8). Sirven
+para que el docente sepa qué ha quedado flojo en clase, no para saber quién lo dijo.</p>
 
 <h3>En tu navegador</h3>
 <p>La web guarda en tu propio navegador tu sesión y algunas preferencias (por ejemplo, qué
@@ -3346,8 +3354,10 @@ automáticos al alumnado.</p>
   inicio de sesión y el almacenamiento de archivos, dentro de un proyecto gestionado por el equipo
   docente del máster. La conexión va cifrada y las reglas de la base de datos impiden que nadie lea
   la ficha de otra persona.</li>
-<li>Los <b>tickets de salida</b> son anónimos y se guardan en la propia plataforma, sin tu nombre: solo tus
-  respuestas y el nombre de tu Comandante, para que cada docente vea lo de su escuadrón. (Los de grupos anteriores
+<li>Los <b>tickets de salida</b> no llevan tu nombre y se guardan en la propia plataforma: solo tus
+  respuestas y el nombre de tu Comandante, para que cada docente vea lo de su escuadrón. Si aceptas la
+  investigación (voluntaria), llevan un seudónimo: solo tus referentes y el investigador pueden saber que es
+  tuyo, y cada consulta queda registrada (punto 8). (Los de grupos anteriores
   al 5 de octubre de 2026 se recogieron con un formulario y una hoja de cálculo de Google.)
   El correo de bienvenida sale por Google Apps Script (punto 4).</li>
 <li>Las páginas de la web (que no guardan tus datos) se sirven desde un <b>alojamiento web</b> que, como
@@ -3366,15 +3376,43 @@ automáticos al alumnado.</p>
 <li><img class=ico src=assets/img/iconos/p/candado.png alt> <b>El tablero público de clase enseña SOLO tu alias</b>, tu avatar y tus puntos. Nunca tu
   correo ni tu nombre real, ni siquiera si el docente comparte pantalla. Está construido así a
   propósito: esos datos no salen del servidor.</li>
+<li><b>Si participas en la investigación del ticket</b>, las personas referentes de tu grupo y el
+  investigador pueden saber qué seudónimo es tuyo (punto 8).</li>
 <li><b>Nadie más</b>, fuera de los proveedores de servicio de los puntos 5 y 6. No se venden, no se ceden,
   no se usan para publicidad y no hay analítica ni rastreo de terceros en esta web.</li>
 </ul>
 
-<h2>8 · Cuánto tiempo</h2>
+<h2>8 · La investigación del ticket de salida (voluntaria)</h2>
+<p><b>Norberto Cuartero</b>, docente del máster, investiga para su tesis doctoral y para publicaciones
+científicas cómo evoluciona la opinión del alumnado a lo largo de un curso gamificado. Participar es
+<b>aparte y voluntario</b>: se te pregunta en tu Nave y en la página del ticket, y la casilla no viene marcada.</p>
+<ul>
+<li><b>Qué se trata.</b> Tus respuestas al ticket de salida, las mismas de siempre, y un <b>seudónimo</b>: un
+  código que es siempre el mismo para ti en STARGATE. No contiene tu nombre ni tu correo, y no se puede
+  deshacer sin una clave secreta que custodia el investigador. No se recoge ningún dato nuevo.</li>
+<li><b>Para qué.</b> Solo investigación educativa: resultados de conjunto o con seudónimo, <b>nunca</b> con tu
+  nombre ni con nada que te identifique. Si se citara una frase tuya, se quitaría antes lo que pudiera
+  reconocerte.</li>
+<li><b>Por qué se puede.</b> Por tu consentimiento para esto (artículo 6.1.a del RGPD), distinto del de usar
+  STARGATE (punto 2). Se guarda que aceptaste, cuándo y la versión del texto; y también cuándo lo retiras.</li>
+<li><b>Quién.</b> Solo las personas referentes de tu grupo y el investigador pueden saber que un código es
+  tuyo, con la clave. Cada vez que alguien la usa queda registrado: quién, cuándo y de qué grupo. El resto
+  del profesorado sigue viendo las respuestas sin nombre; tus compañeros, nunca.</li>
+<li><b>Cuánto tiempo.</b> Mientras dure la investigación y, como mucho, cinco años después de la última
+  publicación (o lo que indique el comité de ética). Si se borra tu grupo, se borran sus seudónimos y
+  consentimientos.</li>
+<li><b>Cómo retirarlo.</b> Cuando quieras y sin dar explicaciones, en tu Nave o en la página del ticket:
+  desde ese momento tus tickets dejan de llevar el código. Con <b>«Borrar mi código»</b> se quita también de
+  todo lo que ya enviaste, en todos tus grupos de STARGATE.</li>
+<li><b>No cambia nada más:</b> ni tu nota, ni tu xp, ni tus créditos, ni el premio del ticket.</li>
+<li>Para cualquier duda: ''' + _CONTACTO_A + '''.</li>
+</ul>
+
+<h2>9 · Cuánto tiempo</h2>
 <p>Durante el curso y el periodo de evaluación. Después el grupo se archiva, y se borra cuando ya no
 hace falta para justificar las calificaciones. Puedes pedir que se borre lo tuyo antes.</p>
 
-<h2>9 · Tus derechos y cómo dejarlo</h2>
+<h2>10 · Tus derechos y cómo dejarlo</h2>
 <p>Puedes pedir <b>ver, corregir o borrar</b> tus datos, <b>oponerte</b> a su uso, <b>limitarlo</b> o
 <b>llevártelos</b>, cuando quieras.</p>
 <ul>
@@ -3387,7 +3425,7 @@ hace falta para justificar las calificaciones. Puedes pedir que se borre lo tuyo
   <a href="https://www.aepd.es" target="_blank" rel="noopener">Agencia Española de Protección de Datos</a>.</li>
 </ul>
 
-<h2>10 · Si esto cambia</h2>
+<h2>11 · Si esto cambia</h2>
 <p>Si algún día se recoge algo distinto, se cambia esta página <b>el mismo día</b> y se avisa en
 clase. La fecha y la versión de arriba dicen cuándo se tocó por última vez; si el cambio es de los que
 hay que volver a aceptar, tu Nave te lo preguntará la próxima vez que entres.</p>
@@ -3780,7 +3818,7 @@ for name, html in [("profes.html", PROFES), ("foro.html", FORO_PAGE)]:
 TICKETS = head("STARGATE · Tickets de salida", "Panel visual de los tickets de salida «Contacta con NEBULA»: valoraciones por sección y dudas por resolver, por PER y por profesor/a.", "reg") + f'''
 <header class="hero"><div class="kicker">Solo profesorado</div><h1>Contacta con NEBULA</h1>
 <p>Elige tu grupo y tu clase: verás de un vistazo las valoraciones (1-5) de cada sección y las dudas del alumnado, y podrás marcarlas como resueltas cuando las trates en clase.</p>
-<p class="small muted">El ticket es <b>uno solo para todos los grupos y todos los años</b>, y es <b>anónimo</b>: el formulario no recoge ni nombres ni correos. La Nave le dice sola de qué grupo y de qué Comandante viene cada respuesta.</p>
+<p class="small muted">El ticket es <b>uno solo para todos los grupos y todos los años</b>, y <b>no lleva el nombre de nadie</b>: no recoge ni nombres ni correos. La Nave le dice sola de qué grupo y de qué Comandante viene cada respuesta.</p>
 <p class="small muted">Embed para el Genially del profesorado: <code>tickets.html?embed=1</code> (o <code>?per=&lt;id&gt;&amp;embed=1</code>). <a href="tickets.html?demo=1">Ver una demostración con datos ficticios</a>.</p></header>
 <section id="panel"><div class="wrap">
 <div id="tickets-app"></div>
@@ -3825,7 +3863,7 @@ TOUR_CLASE = {
        "<span class=\'small muted\'>En los grupos del sistema anterior vuelven a la misma Bitácora y "
        "editan su respuesta: no se empieza de cero.</span>"},
   {"sel":"[data-acc=\'ticket\']","sel2":"#sala-clase","pose":"senala","t":"4 · Al terminar la clase: el ticket",
-   "x":"El <b>ticket de salida</b>, treinta segundos y <b>anónimo</b>. Lo que escriban te llega aquí, "
+   "x":"El <b>ticket de salida</b>, treinta segundos y <b>sin nombre</b>. Lo que escriban te llega aquí, "
        "a «Con qué empezar la clase», filtrable por tema y por fecha. Es tu termómetro de la sesión."},
   {"sel":"[data-acc=\'canje\']","sel2":"#sala-enlaces","pose":"brazos","t":"5 · Cuando tengan créditos: el canje",
    "x":"El <b>Mercado Estelar</b>, dentro de su Nave: canjean ahí mismo y los créditos se descuentan "
@@ -4078,6 +4116,7 @@ tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <script src="assets/js/sobre.js" defer></script>
 <script src="assets/js/nebula-faq.js" defer></script>
 <script src="assets/js/nebula-chat.js" defer></script>
+<script>window.SG_INVESTIGACION={_INVESTIGACION_JSON};</script><script src="assets/js/investigacion.js" defer></script>
 <script src="assets/js/recluta.js" defer></script>
 </div></section>
 <section id="nave-ranking"><div class="wrap">
@@ -4716,7 +4755,8 @@ print("escrito: validar.html  (enlaces universales para Genially)")
 # ---------------------------------------------------------------- 5-oct · EL TICKET DE SALIDA, DENTRO DE GAMIFICAPRO
 # Norberto: «el ticket de STARGATE, cuanto antes, prioridad 1». Sustituye al Google Form: TICKET_URL apunta aquí, y la
 # sesión, la Nave y la sala de En directo lo incrustan como antes incrustaban el formulario. Envía a GamificaPro
-# (`modTicket`), anónimo. Incrustado (o con ?embed=1), solo el formulario.
+# (`modTicket`), sin nombre (con seudónimo solo para quien acepta la investigación, 7-oct). Incrustado (o con ?embed=1),
+# solo el formulario.
 # 5-oct · LA CÁPSULA ES DEL MOTOR (GamificaPro sdk/capsula.js): se copia aquí en cada build; no se edita en esta web.
 _CAPSULA_GP = "/Users/nor/Claude/vibewebs/gamificapro/sdk/capsula.js"
 if os.path.exists(_CAPSULA_GP):
@@ -4725,7 +4765,7 @@ if os.path.exists(_CAPSULA_GP):
         open(os.path.join(HERE, "assets", "js", "capsula.js"), "w", encoding="utf-8").write(_c)
         print("copiado: assets/js/capsula.js  (de GamificaPro sdk/capsula.js)")
 _html = head("STARGATE · Ticket de salida",
-             "El ticket de salida de cada tema: anónimo y en dos minutos.",
+             "El ticket de salida de cada tema: sin tu nombre y en dos minutos.",
              "reg", publica=True).replace("</head>", _cabeza_motor() + """
 <meta name="robots" content="noindex,nofollow">
 <style>
@@ -4745,12 +4785,15 @@ _html = head("STARGATE · Ticket de salida",
 .tk-aviso p{font-size:17px;margin:0}
 .tk-aviso.mal p{color:#ffb3a8}
 .tk-tripu{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:rgba(245,176,67,.12);border:1px solid rgba(245,176,67,.45);font-size:15px}
+#tk-inv:not([hidden]){margin:0 0 12px}
 
 </style>
 </head>""") + '''
 <main id="tk-main"><div id="ticket-app"><p class="muted">Cargando…</p></div></main>
 ''' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' \
      + '<script src="' + _v("assets/js/capsula.js") + '" defer></script>' \
+     + '<script>window.SG_INVESTIGACION=' + _INVESTIGACION_JSON + ';</script>' \
+     + '<script src="' + _v("assets/js/investigacion.js") + '" defer></script>' \
      + '<script src="' + _v("assets/js/ticket.js") + '" defer></script>' + FOOT
 open(os.path.join(HERE, "ticket.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: ticket.html  (el ticket de salida, en GamificaPro)")

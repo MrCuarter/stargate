@@ -121,6 +121,8 @@ const priv = fs.readFileSync(path.join(__dirname, "..", "privacidad.html"), "utf
 c(/Pol[ií]tica de privacidad/i.test(priv), "existe la política de privacidad");
 c(priv.indexOf("puerta.js") < 0, "🔴 y es PÚBLICA: una política detrás de un PIN no es una política");
 c(/ver tu direcci[óo]n de correo/i.test(priv), "dice exactamente qué se pide a Google");
-c(/tickets de salida/i.test(priv) && /an[óo]nimos/i.test(priv), "y que los tickets de salida son anónimos");
+// 7-oct · «anónimos» ya no es toda la verdad: sin nombre siempre, y con seudónimo solo para quien acepta la investigación
+c(/tickets de salida/i.test(priv) && /No llevan tu nombre/.test(priv) && /seud[óo]nimo/.test(priv),
+  "y que los tickets de salida no llevan tu nombre (con seudónimo solo si aceptas la investigación)");
 
 E.resumen("Entrar con Google");

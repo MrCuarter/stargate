@@ -306,6 +306,10 @@ function sortea(cofre) {
   return items.length ? items[items.length - 1].rewardId : null;
 }
 const FUNCIONES = {
+  // 7-oct · la investigación del ticket (GamificaPro modConsentimiento / modOlvidarSeudonimo): en el ensayo nadie ha decidido
+  // nada y no hay seudónimos que borrar (docs/INVESTIGACION_TICKET.md, §7.6)
+  async modConsentimiento() { return { ok: true, investigacion: null }; },
+  async modOlvidarSeudonimo() { return { ok: true, retirados: 0, borradas: 0, temas: 0, sinSecreto: true, ya: true }; },
   async applyXpDelta(x) {
     const ruta = "student_profiles/" + x.studentProfileId, f = ficha(x.studentProfileId);
     hacerUpdate(refDoc(ruta), [{ totalPoints: Math.max(0, (Number(f.totalPoints) || 0) + (Number(x.deltaXp) || 0)), coins: Math.max(0, (Number(f.coins) || 0) + (Number(x.deltaCoins) || 0)) }]);

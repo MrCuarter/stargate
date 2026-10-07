@@ -3,8 +3,14 @@
  *
  * Norberto (5-oct): «el ticket de STARGATE, cuanto antes, prioridad 1». Sustituye al Google Form: la misma dirección se
  * incrusta donde antes iba el formulario (la última diapositiva de la sesión, la tarjeta de la Nave y la sala de espera de
- * En directo), y lo que se envía va a GamificaPro (`modTicket`), anónimo: el servidor guarda la respuesta sin nombre y
+ * En directo), y lo que se envía va a GamificaPro (`modTicket`), sin nombre: el servidor guarda la respuesta sin nombre y
  * apunta aparte que ya lo enviaste. Las preguntas (la piel) están en tkcomun.js (`SG.TK.PREGUNTAS`).
+ *
+ * 7-oct · LA INVESTIGACIÓN (voluntaria; assets/js/investigacion.js): quien la acepta, su ticket lleva además un seudónimo
+ * (lo pone el servidor). Aquí, la entradilla dice la verdad según participe o no, la tarjeta «¿Nos ayudas a investigar?» se
+ * ofrece (una vez, y se puede cerrar) a quien no ha decidido, y «[Cambiar]» abre el texto con «Retirarme» y «Borrar mi
+ * código». El formulario se envía igual sin decidir nada. Si el servidor no contesta (sin desplegar, sin la pieza), nada de
+ * esto se ve y el ticket es el de antes.
  *
  * `tema` es la clave («p», «0», «1»…«8») o el texto de la opción del formulario de antes (SG_TICKET_TEMAS): las dos valen.
  * Sin tema, se elige. Al enviarlo se apunta en este navegador (`sgTicket:<grupo>:<opción>`), como hacía el formulario,
@@ -42,11 +48,62 @@
     });
   }
 
+  /**
+   * 7-oct · LA INVESTIGACIÓN EN EL TICKET. `INV` = { per, ficha, estado } cuando el servidor ha contestado; si no, null y
+   * todo como antes. La entradilla (GamificaPro docs/INVESTIGACION_TICKET.md, §6) y la tarjeta van aparte del formulario:
+   * cambiar de opinión no borra lo que ya has marcado.
+   */
+  var INV = null, invAbierta = false;
+  var CAPSULA_TXT = 'Al enviarlo te llega una <b>cápsula de suministros</b> con un premio al azar.';
+  function entradilla() {
+    if (INV && window.SG.INV.participa(INV.estado)) {
+      return '<b>Sin tu nombre</b> y en dos minutos. Participas en la investigación: tu ticket lleva tu seudónimo, y solo tus '
+        + 'referentes y el investigador pueden saber que es tuyo. <button type="button" class="tk-cambiar" data-tk-inv>Cambiar</button> ' + CAPSULA_TXT;
+    }
+    return '<b>Sin tu nombre</b> y en dos minutos: tu Comandante ve lo que dice la clase, nunca quién lo dijo. ' + CAPSULA_TXT;
+  }
+  function pintarInvestigacion() {
+    var e = document.getElementById("tk-entra"), hueco = document.getElementById("tk-inv");
+    if (e) e.innerHTML = entradilla();
+    if (!hueco) return;
+    var I = window.SG.INV;
+    if (INV && invAbierta) {
+      hueco.hidden = false; hueco.className = "card inv-tarjeta";
+      hueco.innerHTML = '<div class="inv-dentro"></div>';
+      I.panel(hueco.firstChild, { M: MOTOR(), per: INV.per, ficha: INV.ficha, estado: INV.estado, cerrar: "Volver al ticket",
+        alCambiar: function (nuevo) { INV.estado = nuevo; var e2 = document.getElementById("tk-entra"); if (e2) e2.innerHTML = entradilla(); cablearCambiar(); },
+        alCerrar: function () { invAbierta = false; pintarInvestigacion(); } });
+      try { hueco.scrollIntoView({ block: "nearest" }); } catch (x) { /* nada */ }
+    } else if (INV && I.ofrecer(INV.estado, INV.ficha)) {
+      hueco.hidden = false; hueco.className = "card inv-oferta";
+      hueco.innerHTML = '<p><b>¿Nos ayudas a investigar?</b> Es voluntario y no cambia tu nota ni tu premio.</p>'
+        + '<span class="inv-oferta-bot"><button type="button" class="btn min primary" data-tk-leer>Leer y decidir</button>'
+        + '<button type="button" class="inv-x" data-tk-cerrar aria-label="Cerrar: ahora no">×</button></span>';
+      hueco.querySelector("[data-tk-leer]").onclick = function () { invAbierta = true; pintarInvestigacion(); };
+      hueco.querySelector("[data-tk-cerrar]").onclick = function () { I.marcarVisto(INV.ficha); pintarInvestigacion(); };
+    } else { hueco.hidden = true; hueco.innerHTML = ""; }
+    cablearCambiar();
+  }
+  function cablearCambiar() {
+    var b = app.querySelector("[data-tk-inv]");
+    if (b) b.onclick = function () { invAbierta = true; pintarInvestigacion(); };
+  }
+  /** La ficha de quien ha entrado en este grupo (la da la sesión, como en la Nave), y si participa. Nunca falla: null. */
+  function investigacion(yo) {
+    var M = MOTOR(), I = window.SG.INV;
+    if (!I || !I.disponible() || !yo || !yo.uid || !M.getDocs || !M.query || !M.where || !M.collection) return Promise.resolve(null);
+    return M.getDocs(M.query(M.collection(M.db, "student_profiles"), M.where("userId", "==", yo.uid), M.where("projectId", "==", PER)))
+      .then(function (r) {
+        var d = r && r.docs && r.docs[0];
+        if (!d || (d.data() || {}).fantasma === true) return null;   // (un fantasma no participa: lo suyo no cuenta para la clase)
+        return I.consultar(M, PER, d.id).then(function (e) { return e ? { per: PER, ficha: d.id, estado: e } : null; });
+      }).catch(function () { return null; });
+  }
+
   function formulario() {
     var P = window.SG.TK.preguntasDe(TEMA), R = {};
-    var html = '<form class="card tk-form" id="tk-f" novalidate><div class="kicker"><img class=ico src="assets/img/iconos/p/ticket.png" alt=""> Ticket de salida</div>'
-      + "<h2>" + esc(T[TEMA] || "El ticket") + '</h2><p class="small muted">Anónimo y en dos minutos: tu Comandante ve lo que dice la clase, '
-      + 'nunca quién lo dijo. Al enviarlo te llega una <b>cápsula de suministros</b> con un premio al azar.</p>';
+    var html = '<div id="tk-inv" hidden></div><form class="card tk-form" id="tk-f" novalidate><div class="kicker"><img class=ico src="assets/img/iconos/p/ticket.png" alt=""> Ticket de salida</div>'
+      + "<h2>" + esc(T[TEMA] || "El ticket") + '</h2><p class="small muted" id="tk-entra">' + entradilla() + '</p>';
     P.forEach(function (q) {
       html += '<fieldset class="tk-q" data-q="' + esc(q.id) + '"><legend>' + esc(q.texto) + (q.tipo === "escala" ? "" : ' <span class="muted small">(opcional)</span>') + "</legend>";
       if (q.tipo === "escala") {
@@ -64,6 +121,7 @@
     });
     html += '<p class="tk-error" role="alert" hidden></p><button type="submit" class="btn primary">Enviar el ticket</button></form>';
     pinta(html);
+    pintarInvestigacion();
     Array.prototype.forEach.call(app.querySelectorAll(".tk-q"), function (fs) {
       var id = fs.getAttribute("data-q");
       Array.prototype.forEach.call(fs.querySelectorAll(".tk-v"), function (b) {
@@ -150,12 +208,15 @@
     });
   }
 
+  var YO = null;
   function arrancarTema() {
     if (!TEMA) return elegirTema();
     aviso("Un momento…");
+    // (a la vez, si participa en la investigación: no retrasa nada, y si no contesta, el ticket de siempre)
+    var inv = investigacion(YO);
     MOTOR().llamar("modTicket", { accion: "estado", projectId: PER, tema: TEMA }).then(function (r) {
       if (r && r.hecho) { marcarHecho(); return aviso("<b>Ya enviaste el ticket de este tema.</b> ¡Gracias!"); }
-      formulario();
+      return inv.then(function (x) { INV = x; formulario(); });
     }, function (e) {
       var m = String((e && e.message) || e || "");
       if (/permission-denied|alumnado del grupo/i.test(m)) return aviso("Este ticket es del alumnado del grupo. Entra con la cuenta con la que te alistaste.", true);
@@ -165,7 +226,8 @@
   }
 
   function puerta() {
-    pinta('<div class="card"><h2>El ticket de salida</h2><p>Entra con la cuenta de Google con la que te alistaste. Es anónimo: tu nombre no se guarda con lo que contestes.</p>'
+    pinta('<div class="card"><h2>El ticket de salida</h2><p>Entra con la cuenta de Google con la que te alistaste. Tu nombre no se guarda con lo que contestes. '
+      + 'Si participas en la investigación (voluntaria), tu ticket lleva un seudónimo.</p>'
       + '<button type="button" class="btn primary" id="tk-entrar">Entrar con Google</button></div>');
     document.getElementById("tk-entrar").onclick = function () {
       MOTOR().entrar().catch(function (e) { aviso("No se ha podido entrar: " + esc((e && e.message) || e), true); });
@@ -195,7 +257,7 @@
   function arrancar() {
     if (!PER) return aviso("Falta el grupo en la dirección del ticket.", true);
     var M = MOTOR();
-    var una = function (yo) { if (!yo) return puerta(); if (lanzado) return; lanzado = true; arrancarTema(); };
+    var una = function (yo) { if (!yo) return puerta(); if (lanzado) return; lanzado = true; YO = yo; arrancarTema(); };
     M.sesion().then(una);
     if (DEMO === null) document.addEventListener("sg:sesion", function (e) { una(e.detail); });
   }

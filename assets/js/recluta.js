@@ -1424,9 +1424,11 @@
       +diplomaCaja()
       +votacionCaja()
       +retosDeLaSemana()
+      +investigacionOferta()
       +ticketDelTema()
       +asedioCaja()+directoCaja()
-      +panelEmbebido();
+      +panelEmbebido()
+      +investigacionLinea();
   }
   /**
    * 🔴 23-sep · LO QUE TE DICE NEBULA: una frase, la que más te sirve hoy. En este orden, porque es el de lo que más
@@ -4182,6 +4184,7 @@
         try{ if(!DEMO&&!SIMULACRO){ localStorage.setItem('sgEsRecluta','1'); document.dispatchEvent(new CustomEvent('sg:rol')); } }catch(e){}
         // 5-oct · antes que nada, el consentimiento (una vez): lo de siempre al entrar va detrás, y solo si acepta
         pedirConsentimiento(function(){
+        cargarInvestigacion();   // 7-oct · la investigación del ticket: voluntaria, se ofrece en una tarjeta (no bloquea nada)
         setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200); setTimeout(sorteosAlEntrar, 900); setTimeout(ofertaAlEntrar, 1100);
         setTimeout(comprobarHitos, 1800);   // 15-sep · el día a bordo y los logros que ya se vean en los datos
         setTimeout(comprobarBatalla, 2400);  // 16-sep · el reto de la batalla, si ganó y no llegó a registrarse (desde el 23-sep, ninguno: BT.reto = null)
@@ -4639,11 +4642,61 @@
     var clave='sgTicket:'+per+':'+op, hecho=false; try{ hecho=localStorage.getItem(clave)==='1'; }catch(e){}
     return '<details class="card tk-nave'+(hecho?' hecho':'')+'" data-tk="'+esc(clave)+'">'
       +'<summary><img class="tk-nave-i" src="assets/img/iconos/p/ticket.png" alt=""><span class="tk-nave-t"><b>'+(hecho?'Ticket de salida enviado':'El ticket de salida')+' · '+esc(op)+'</b>'
-      +'<small>'+(hecho?'Gracias: lo que dijisteis sale en la próxima clase. Puedes abrirlo otra vez si quieres añadir algo.':'Anónimo y en dos minutos, con una cápsula de suministros de premio. Lo que digáis se proyecta en la próxima clase.')+'</small></span>'
+      +'<small>'+(hecho?'Gracias: lo que dijisteis sale en la próxima clase. Puedes abrirlo otra vez si quieres añadir algo.'
+        :'Sin tu nombre'+(invMia()&&window.SG.INV.participa(st.inv.estado)?' (con tu seudónimo: participas en la investigación)':'')+' y en dos minutos, con una cápsula de suministros de premio. Lo que digáis se proyecta en la próxima clase.')+'</small></span>'
       +'<span class="btn'+(hecho?'':' primary')+' tk-nave-b">'+(hecho?'Abrir':'Rellenarlo')+'</span></summary>'
       +'<div class="tk-nave-f"><iframe data-src="'+esc(u+'&embedded=true')+'" title="Ticket de salida" loading="lazy"></iframe>'
       +'<p class="small muted">¿No se ve bien? <a href="'+esc(u)+'" target="_blank" rel="noopener">Ábrelo en otra pestaña</a>.</p></div></details>';
   }
+  /**
+   * 🔴 7-oct · LA INVESTIGACIÓN DEL TICKET, VOLUNTARIA DE VERDAD (assets/js/investigacion.js; GamificaPro
+   * docs/INVESTIGACION_TICKET.md). A quien ya está alistado se le OFRECE una vez en su Nave, con una tarjeta que se puede
+   * cerrar (nunca una ventana obligatoria al entrar, como la de la política): «¿Nos ayudas a investigar?». Si la cierra, lee
+   * el texto o dice que no, este navegador no se la vuelve a ofrecer, y no cambia nada más. Al pie de la Nave queda siempre
+   * la línea «Investigación del ticket: participas / no participas · Cambiar», con el mismo texto, «Retirarme» y «Borrar mi
+   * código». Solo si el servidor contesta (`modConsentimiento`): sin desplegar, sin la pieza o sin red, nada de esto se ve.
+   * Nunca en la Nave proyectada o incrustada, el simulacro, la demo ni a un fantasma (lo suyo no cuenta para la clase).
+   *   st.inv: undefined (sin preguntar) · null (no hay investigación que enseñar) · { per, ficha, estado }
+   */
+  function cargarInvestigacion(){
+    var I=window.SG&&window.SG.INV, M=window.SG&&window.SG.MOTOR;
+    var ficha=st.yo&&st.yo.ficha;
+    if(st.invPara===ficha) return;     // (una pregunta por ficha; si entra otra cuenta, se vuelve a preguntar)
+    st.invPara=ficha; st.inv=null;
+    if(!I||!I.disponible()||!M||DEMO||SIMULACRO||q.get('embed')==='1'||window.top!==window.self||!ficha||st.yo.fantasma) return;
+    I.consultar(M, per, ficha).then(function(e){
+      if(!e||!st.yo||st.yo.ficha!==ficha) return;
+      st.inv={per:per, ficha:ficha, estado:e}; render();
+    });
+  }
+  function invMia(){ return !!(st.inv&&st.yo&&st.inv.ficha===st.yo.ficha&&window.SG&&window.SG.INV); }
+  function investigacionOferta(){
+    var I=window.SG&&window.SG.INV;
+    if(!invMia()||!I.ofrecer(st.inv.estado, st.inv.ficha)) return '';
+    return '<div class="card inv-oferta" role="region" aria-label="Investigación del ticket de salida"><p><b>¿Nos ayudas a investigar?</b> '
+      +'Es voluntario y no cambia tu nota ni tu premio.</p><span class="inv-oferta-bot">'
+      +'<button type="button" class="btn min primary" data-inv-abrir>Leer y decidir</button>'
+      +'<button type="button" class="inv-x" data-inv-cerrar aria-label="Cerrar: ahora no">×</button></span></div>';
+  }
+  function investigacionLinea(){
+    var I=window.SG&&window.SG.INV;
+    if(!invMia()) return '';
+    var e=st.inv.estado;
+    return '<p class="inv-linea"><img class=ico src=assets/img/iconos/p/ticket.png alt> <span>Investigación del ticket de salida (voluntaria): <b>'
+      +(I.participa(e)?'participas':I.decidido(e)?'no participas':'no has decidido')+'</b></span>'
+      +'<button type="button" class="btn min" data-inv-abrir>'+(I.decidido(e)?'Cambiar':'Leer y decidir')+'</button></p>';
+  }
+  document.addEventListener('click',function(ev){
+    var t=ev.target&&ev.target.closest?ev.target.closest('[data-inv-abrir],[data-inv-cerrar]'):null;
+    var I=window.SG&&window.SG.INV;
+    if(!t||!invMia()) return;
+    ev.preventDefault();
+    if(t.hasAttribute('data-inv-cerrar')){ I.marcarVisto(st.inv.ficha); render(); return; }
+    I.ventana({ M:window.SG.MOTOR, per:st.inv.per, ficha:st.inv.ficha, estado:st.inv.estado,
+      alCambiar:function(e){ if(st.inv){ st.inv.estado=e; } },
+      // (leída la propuesta, ya se le ha ofrecido: la tarjeta no vuelve; la línea del pie, siempre)
+      alCerrar:function(){ if(st.inv){ I.marcarVisto(st.inv.ficha); } render(); } });
+  });
   // 5-oct · el ticket ya no es un Google Form: ticket.html avisa al enviarse (`sg-ticket-hecho`) y la tarjeta se da por hecha ya
   window.addEventListener('message',function(ev){
     var m=ev.data; if(ev.origin!==location.origin||!m||m.tipo!=='sg-ticket-hecho') return;

@@ -214,11 +214,42 @@ PLANTILLA_EPORTFOLIO = "https://view.genially.com/695f825d05cc22f3f7fac45b"
 # («Versión 2026-10-05»), el alistamiento la guarda con lo que se firma (privado/datos.consentimiento = {v, t}) y la Nave
 # vuelve a preguntar una vez a quien tenga otra versión o ninguna. Si la política cambia en algo que haya que volver a
 # aceptar, se cambia aquí (y la fecha de la página va con ella).
-PRIVACIDAD_V = "2026-10-05"
-PRIVACIDAD_FECHA = "5 de octubre de 2026"
+# 7-oct · sube con la investigación del ticket (abajo): la política cuenta qué se recoge si se acepta, así que se vuelve a
+# preguntar el consentimiento general una vez (GamificaPro, docs/INVESTIGACION_TICKET.md, §7).
+PRIVACIDAD_V = "2026-10-07"
+PRIVACIDAD_FECHA = "7 de octubre de 2026"
 PRIVACIDAD_CONTACTO = "n.cuartero.10@gmail.com"
 CONSENTIMIENTO_TEXTO = ("He leído la política de privacidad y acepto participar en STARGATE. Es voluntario: "
                         "puedo dejarlo y pedir que se borren mis datos cuando quiera.")
+
+# ---------- 7-oct-2026 · LA INVESTIGACIÓN DEL TICKET (texto aprobado por Norberto: «Me parece genial») ----------
+# 🔴 Voluntaria de verdad y APARTE del consentimiento de arriba: nunca obliga, nunca bloquea, no cambia la nota, ni la xp,
+# ni los créditos, ni el premio del ticket. Quien acepta, sus tickets llevan un seudónimo (lo calcula el servidor de
+# GamificaPro con un secreto: `modConsentimiento`, `modOlvidarSeudonimo`; docs/INVESTIGACION_TICKET.md, §5). La versión es
+# la del texto que se enseña y se guarda con el sí. Si el texto cambia, cambia la versión (y lo decide el comité de ética).
+INVESTIGACION_V = "inv-2026-10"
+INVESTIGACION_TITULO = "Investigación sobre el ticket de salida · voluntaria"
+INVESTIGACION_TEXTO = [
+    "Norberto Cuartero, docente de este máster, investiga para su tesis doctoral y para publicaciones científicas cómo "
+    "evoluciona la opinión del alumnado a lo largo de un curso gamificado. Para eso le ayudaría saber que el ticket del tema 1 "
+    "y el del tema 5 son <b>de la misma persona</b>, aunque no sepa quién es.",
+    "<b>Qué se recoge.</b> Nada nuevo: tus respuestas al ticket se guardan como hasta ahora. Si aceptas, cada una lleva además "
+    "un <b>seudónimo</b>, un código que es siempre el mismo para ti en STARGATE. El código no contiene tu nombre ni tu correo, "
+    "y no se puede deshacer sin una clave secreta que custodia el investigador.",
+    "<b>Para qué.</b> Solo para investigación educativa: estudiar cómo cambian las respuestas a lo largo del curso y publicar "
+    "resultados de conjunto o con seudónimo. <b>Nunca</b> con tu nombre ni con nada que te identifique. Si alguna vez se citara "
+    "una frase tuya, se quitaría antes lo que pudiera reconocerte.",
+    "<b>Quién puede saber que un código es tuyo.</b> Solo las personas referentes de tu grupo y el investigador, con la clave. "
+    "Cada vez que alguien la usa queda registrado: quién, cuándo y de qué grupo. Tu Comandante y el resto del profesorado "
+    "siguen viendo las respuestas sin nombre, como siempre. Tus compañeros, nunca.",
+    "<b>Es voluntario.</b> Si no aceptas, tu ticket se guarda igual que siempre, sin código. <b>No afecta a tu nota</b>, ni a tu "
+    "xp, ni a tus créditos, ni al premio del ticket: la cápsula te toca igual.",
+    "<b>Puedes retirarlo cuando quieras</b>, en tu Nave o en la página del ticket. Desde ese momento tus tickets dejan de llevar "
+    "el código y la clave deja de nombrarte. Si además quieres que se quite el código de lo que ya enviaste, pulsa <b>«Borrar mi "
+    "código»</b> en el mismo sitio: se quita de todos tus tickets de STARGATE. Si algo no va, escribe a "
+    + PRIVACIDAD_CONTACTO + ".",
+]
+INVESTIGACION_ACEPTO = "Acepto que mis tickets de salida lleven un seudónimo para esta investigación, en estas condiciones."
 
 # ---------- Geniallys (rellenar cuando haya enlaces) ----------
 # 15-sep · el paquete del equipo en Drive (mutecdgami): se comparte SOLO LECTURA con cada docente que se añade a un
@@ -425,7 +456,7 @@ ACADEMIA = {
         "p": "El portfolio (en STARGATE, la <b>Bitácora</b>) es el <b>{{PESO_EP}} % de cada actividad</b>. Tus estudiantes lo enlazan en su web y tú lo ves en su ficha.",
         "pasos": ["En su web: <b>«Añadir mi Bitácora»</b> y pegan la dirección pública.", "Si aún no lo tienen, al lado está la plantilla."]},
        {"h": "El ticket de salida y el foro", "pj": "capitan:senala", "video": "ticket-y-foro",
-        "p": "Al acabar cada tema, el <b>ticket de salida</b>: anónimo, qué se llevan y qué duda queda. Va al final de la sesión; quien no esté, lo ve en su web.",
+        "p": "Al acabar cada tema, el <b>ticket de salida</b>: sin nombre, qué se llevan y qué duda queda. Va al final de la sesión; quien no esté, lo ve en su web.",
         "pasos": ["Tú ves los resultados en tu panel → <b>Tickets de salida</b>.", "El <b>mensaje del foro</b> de cada semana ya va escrito: a tus estudiantes les sale solo en su web y, si quieres, lo copias al foro de la UNIR."]},
      ],
      "hitos": [
@@ -437,7 +468,7 @@ ACADEMIA = {
        {"p": "¿Cuántos retos trae cada tema?", "o": ["Dos: uno en clase y otro en casa", "Uno", "Cinco"], "ok": 0, "porque": "El relámpago, en clase; el principal, en casa."},
        {"p": "¿Quién registra un reto?", "o": ["El estudiante, en su web, con su enlace", "Tú, uno a uno", "Se registran solos"], "ok": 0, "porque": "Retos → el reto → el enlace → «Lo he hecho»."},
        {"p": "¿Los retos puntúan?", "o": ["No: la nota es la de siempre", "Sí, un 20 %", "Solo los de casa"], "ok": 0, "porque": "Lo que cuenta sigue en la plataforma de la UNIR."},
-       {"p": "¿Es anónimo el ticket de salida?", "o": ["Sí", "No: lleva su nombre", "Solo lo ve el equipo de la UNIR"], "ok": 0, "porque": "Por eso dicen lo que piensan de verdad."},
+       {"p": "¿Es anónimo el ticket de salida?", "o": ["Sí: sin nombre. Con seudónimo solo si lo aceptan para la investigación", "No: lleva su nombre", "Solo lo ve el equipo de la UNIR"], "ok": 0, "porque": "Nadie del profesorado ve quién dijo qué: por eso dicen lo que piensan de verdad. La investigación es voluntaria y aparte."},
        {"p": "¿Tienes que escribir el mensaje del foro?", "o": ["No: ya va escrito y les sale en su web", "Sí, cada semana", "Solo el primer día"], "ok": 0, "porque": "Copiarlo al foro de la UNIR es opcional."},
      ]},
     {"id": "umbral", "planeta": "Umbral", "titulo": "El progreso", "tema": "Qué se abre cada semana, las novedades y el soporte", "min": 3,
@@ -2361,8 +2392,8 @@ PASOS = [
     hacer="Bloque <b>2 · Los enlaces</b>: el Padlet y el panel de control. El ticket de salida ya va solo.",
     voz="Aquí van el Padlet de la clase y tu panel de control. El ticket de salida ya no se pregunta: "
         "es el mismo para todos los grupos y para todos los años, y la Nave le dice "
-        "sola de qué grupo y de qué Comandante viene cada respuesta. Va dentro de STARGATE y es "
-        "anónimo, y eso es innegociable."),
+        "sola de qué grupo y de qué Comandante viene cada respuesta. Va dentro de STARGATE y no "
+        "lleva el nombre de nadie, y eso es innegociable."),
 
    dict(cod="R4", t="El equipo docente", pose="tablet", img="r4_equipo.png",
     hacer="Bloque <b>3 · El equipo</b>: un nombre y un correo por persona. Marca quién es referente.",
@@ -2441,7 +2472,7 @@ PASOS = [
 
    dict(cod="D5", t="Cuatro: los tickets", pose="pensativo", img="d5_tickets.png",
     hacer="Portada → <b>Tickets de salida</b> → pulsa cualquier valoración.",
-    voz="El ticket de salida es tu termómetro, y es anónimo, así que la gente dice lo que piensa de "
+    voz="El ticket de salida es tu termómetro, y no lleva el nombre de nadie, así que la gente dice lo que piensa de "
         "verdad. Pulsa cualquier resultado y se ve en grande. Y hay una versión apaisada pensada "
         "para proyectarla en clase: enseñar lo que ha votado el grupo genera más conversación que "
         "preguntarlo en voz alta."),

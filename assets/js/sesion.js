@@ -1362,7 +1362,7 @@
       }
       // el nombre del tema, sin el «(cont.)» de la semana: el ticket es del TEMA, no de una semana suelta
       var tema=op.tema||String((semLista[iTema]&&semLista[iTema].tema)||'el tema anterior').replace(/\s*\(cont\.\)/,'');
-      if(!lista.length) return nada('Nadie de tu escuadrón rellenó el ticket de <b>'+esc(tema)+'</b>. Recuérdaselo al acabar este: son dos minutos y es anónimo.');
+      if(!lista.length) return nada('Nadie de tu escuadrón rellenó el ticket de <b>'+esc(tema)+'</b>. Recuérdaselo al acabar este: son dos minutos y no lleva su nombre.');
       var A=SG.TK.analizar(lista);
       if(que==='textos'){
         /**
@@ -1770,7 +1770,7 @@
       +paso(0,'La sesión en directo','Esta: la historia, el tema y las misiones de la semana.')
       +paso(1,'Los retos','Dos por tema, los dos prácticos. El <b>relámpago</b> se hace aquí, en clase, en quince minutos (o después, cuando tú quieras), y recupera a un tripulante; el <b>reto principal</b>, en casa, deja una pieza en tu Bitácora.')
       +paso(2,'Tu Nave','Los registras tú, con el enlace de lo que has hecho. Sin tope: cada cual a su ritmo, pensado para quien trabaja.')
-      +paso(3,'El ticket de salida','Al acabar cada tema, dos minutos y anónimo. Lo que digáis sale en la clase siguiente.')
+      +paso(3,'El ticket de salida','Al acabar cada tema, dos minutos y sin tu nombre. Lo que digáis sale en la clase siguiente.')
       +'</ol></div>'};
   }
   function diaNota(){
