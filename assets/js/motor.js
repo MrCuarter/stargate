@@ -713,9 +713,9 @@ function conIdsDeDocumento(per, x) {
 
 /**
  * Las funciones del servidor (GP_SDK.llamador): devuelve `data`, y si falla, el MISMO error de Firebase (code y message de
- * siempre) con marcas por código (`codigo`, `delServidor`, `sinDesplegar`). 🔴 `sinDesplegar` de aquí abajo (por palabras) NO
- * se cambia todavía por el del SDK: da otra respuesta cuando el servidor dice «no» sin tildes ni «recluta» (p. ej. «No existe
- * el reto»), y eso cambia lo que se ve. Va en la pausa de Navidad (GamificaPro, tests/sdk/llamar.test.ts lo documenta).
+ * siempre) con marcas por código (`codigo`, `delServidor`, `sinDesplegar`). 7-oct · y desde los pasos 4-11, los caminos «mientras
+ * no esté desplegado» de esta centralita miran el del SDK, POR CÓDIGO (`sinDesplegar`, más abajo): un «no» del servidor sin
+ * tildes («No existe el reto») ya no se toma por función sin desplegar (batería 138).
  */
 const llamar = SDK.llamador(nombre => httpsCallable(fns, nombre));
 /**
@@ -744,6 +744,13 @@ const ALISTARSE = SDK.alistarse.crear(CTX);
  * recluta en la bandeja de GamificaPro (`notifications`, con la marca `stargate`), las reflexiones y los comentarios.
  */
 const RETOS = SDK.retos.crear(CTX);
+/*
+ * El equipo docente (GP_SDK.equipo, paso 9): añadir, quitar y referente en todos por el servidor (`stargateEquipo`), lo del
+ * alumnado (`stargateAlumno`), el código para alistarse y los referentes de STARGATE con sus invitaciones (stargate_referentes,
+ * stargate_invitaciones). Quién es vitalicio, el enlace de la invitación y lo que recuerda el navegador, aquí.
+ */
+const EQUIPO = SDK.equipo.crear(CTX, { referentes: "stargate_referentes", invitaciones: "stargate_invitaciones" });
+const TEXTOS_EQUIPO = { sinSesion: "Entra con tu cuenta.", sinSesionCanje: "Entra con tu cuenta de Google.", correoMalo: "Ese correo no parece un correo." };
 const TEXTOS_RETOS = {
   sinDestino: "No sé a quién mandárselo",
   sinSesionReflexion: "Entra con tu cuenta para guardar tu reflexión.", reflexionVacia: "La reflexión está vacía.",
@@ -917,7 +924,7 @@ function vigilarLlamada(perId, alCambiar, elegir) {
  * solo para el referente. Norberto: «el referente tiene poder de eliminar o congelar (puede acceder,
  * pero no puede hacer nada, bloqueado)».
  */
-const alumno = (perId, fichaId, accion, extra) => llamar("stargateAlumno", Object.assign({ projectId: perId, fichaId, accion }, extra || {}));
+const alumno = (perId, fichaId, accion, extra) => EQUIPO.alumno(perId, fichaId, accion, extra);
 /**
  * 19-sep · CAMBIAR A UN RECLUTA DE GRUPO, con todo lo suyo (Norberto eligió «todo»: xp, créditos, insignias, cromos y
  * héroes). Lo hace el servidor (stargateAlumno, acción «mover»): traduce los identificadores de un grupo al otro
@@ -927,8 +934,10 @@ async function moverRecluta(perId, fichaId, destino) {
   try { return await alumno(perId, fichaId, "mover", { destino }); }
   catch (e) { if (sinDesplegar(e) || /accion|qué hacer/i.test(String(e && e.message))) throw new Error("Falta desplegar en el servidor la versión nueva de «stargateAlumno» (con «mover»): el comando está en el traspaso."); throw e; }
 }
-// ¿la función aún no está en el servidor? (un 404 del propio Firebase, no un «no» nuestro, que va en español)
-const sinDesplegar = e => /not-found|internal/.test(String(e && e.code)) && !/[áéíóúñ]|recluta|grupo/i.test(String(e && e.message));
+// ¿la función aún no está en el servidor? (un 404 del propio Firebase, no un «no» nuestro). 7-oct · POR CÓDIGO, del SDK de
+// GamificaPro (GP_SDK.errores): antes, por palabras (sin tildes ni «recluta» ni «grupo»), y un «no» del servidor sin tildes
+// —«No existe esa ficha»— pasaba por función sin desplegar y mandaba al camino viejo del navegador.
+const sinDesplegar = e => SDK.errores.sinDesplegar(e);
 async function darDeBaja(perId, fichaId) {
   // 🔴 Antes lo hacía el navegador, y las reglas solo dejan borrar fichas al DUEÑO del grupo: un
   // referente que no lo fuera se daba con «permiso denegado». Ahora, el servidor; si aún no está
@@ -1201,11 +1210,11 @@ async function anadirDocente(perId, persona) {
   // 🔴 15-sep · lo hace el SERVIDOR (`stargateEquipo`, solo para el referente): las reglas ya no dejan
   // que un codocente toque `coTeacherEmails` ni la lista de roles (antes, cualquiera podía hacerse
   // referente desde el navegador). Mientras la función no esté desplegada, el camino de antes.
+  // (7-oct · la petición, de GP_SDK.equipo; «sin desplegar», por código)
   try {
-    const r = await llamar("stargateEquipo", { projectId: perId, persona: persona || {} });
-    return r.persona || persona;
+    return await EQUIPO.anadirDocente(perId, persona);
   } catch (e) {
-    if (!/not-found|internal|unavailable/.test(String(e && e.code || "")) || /[áéíóú]/.test(String(e && e.message || ""))) throw e;
+    if (!sinDesplegar(e)) throw e;
   }
   const correo = String(persona && persona.correo || "").toLowerCase().trim();
   if (!correo || correo.indexOf("@") < 0) throw new Error("Hace falta un correo válido.");
@@ -1237,8 +1246,7 @@ async function anadirDocente(perId, persona) {
  * referente, ni a quien aún tenga alumnado a su nombre (la consola lo pasa antes a otro docente).
  */
 async function quitarDocente(perId, correo) {
-  const r = await llamar("stargateEquipo", { projectId: perId, persona: { correo: String(correo || "").toLowerCase() }, quitar: true });
-  return r;
+  return EQUIPO.quitarDocente(perId, correo);
 }
 
 /**
@@ -1256,10 +1264,9 @@ async function quitarDocente(perId, correo) {
 async function referenteEnTodos(persona, perIds) {
   // (15-sep · de una vez, en el servidor; y si aún no está desplegado, grupo a grupo como antes)
   try {
-    const r = await llamar("stargateEquipo", { projectIds: perIds, persona: Object.assign({}, persona, { rol: "referente" }) });
-    return { hechos: r.hechos || [], fallos: r.fallos || [] };
+    return await EQUIPO.referenteEnTodos(persona, perIds);
   } catch (e) {
-    if (!/not-found|internal|unavailable/.test(String(e && e.code || "")) || /[áéíóú]/.test(String(e && e.message || ""))) throw e;
+    if (!sinDesplegar(e)) throw e;
   }
   const hechos = [], fallos = [];
   for (const id of perIds) {
@@ -1626,9 +1633,8 @@ function cartaDeBotin(b) {
 }
 
 async function nuevoCodigo(perId) {
-  const c = window.SG.PAQUETE.codigoNuevo();
-  await updateDoc(doc(db, "projects", perId), { joinCode: c });
-  return c;
+  // (7-oct · GP_SDK.equipo; la receta del código, la de STARGATE)
+  return EQUIPO.nuevoCodigo(perId, window.SG.PAQUETE.codigoNuevo);
 }
 
 /**
@@ -1926,53 +1932,31 @@ async function fichajesDe(sesionId) {
  * Referente = puede crear grupos y ve lo de referente. Los vitalicios lo son siempre.
  */
 async function referenteGlobal(correo) {
-  correo = String(correo || "").toLowerCase();
-  if (REFERENTES_VITALICIOS.indexOf(correo) >= 0) return true;
-  try { const d = await getDoc(doc(db, "stargate_referentes", correo)); return d.exists() && d.data().activo === true; }
-  catch (e) { return false; }
-}
-function aleatorio(n) {
-  const a = new Uint8Array(n), L = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  crypto.getRandomValues(a); return Array.prototype.map.call(a, x => L[x % L.length]).join("");
+  return EQUIPO.referenteGlobal(correo, (c) => REFERENTES_VITALICIOS.indexOf(c) >= 0);
 }
 async function crearInvitacion(nombre) {
-  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta.");
-  const t = aleatorio(24), ahora = Date.now();
-  await setDoc(doc(db, "stargate_invitaciones", t), { nombre: String(nombre || "").trim().slice(0, 80), rol: "referente",
-    creado: ahora, caduca: ahora + 14 * 864e5, por: yo.correo, usadoPor: null, usadoCorreo: null, usadoEn: null });
-  return { token: t, enlace: location.origin + "/invitacion.html?t=" + t, caduca: ahora + 14 * 864e5 };
+  return EQUIPO.crearInvitacion(nombre, (t) => location.origin + "/invitacion.html?t=" + t, TEXTOS_EQUIPO);
 }
 async function leerInvitacion(t) {
-  const d = await getDoc(doc(db, "stargate_invitaciones", String(t || ""))); return d.exists() ? { id: d.id, ...d.data() } : null;
+  return EQUIPO.leerInvitacion(t);
 }
 async function canjearInvitacion(t) {
-  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta de Google.");
-  const inv = await leerInvitacion(t);
-  if (!inv) return { error: "no-existe" };
-  if (inv.usadoPor) return inv.usadoPor === yo.uid ? { ok: true, ya: true, nombre: inv.nombre } : { error: "usada" };
-  if (Number(inv.caduca) < Date.now()) return { error: "caducada" };
-  const b = writeBatch(db), ahora = Date.now();
-  b.set(doc(db, "stargate_referentes", yo.correo), { correo: yo.correo, nombre: yo.nombre || inv.nombre || yo.correo, activo: true,
-    desde: ahora, por: "invitacion", invitacion: t, actualizado: ahora });
-  b.update(doc(db, "stargate_invitaciones", t), { usadoPor: yo.uid, usadoCorreo: yo.correo, usadoEn: ahora });
-  await b.commit();
-  try { localStorage.setItem("sgEsReferente", "1"); localStorage.setItem("sgEsDocente", "1"); document.dispatchEvent(new CustomEvent("sg:rol")); } catch (e) {}
-  anotarConexion().catch(() => {});
-  return { ok: true, nombre: inv.nombre };
+  const r = await EQUIPO.canjearInvitacion(t, TEXTOS_EQUIPO);
+  if (r.ok && !r.ya) {
+    try { localStorage.setItem("sgEsReferente", "1"); localStorage.setItem("sgEsDocente", "1"); document.dispatchEvent(new CustomEvent("sg:rol")); } catch (e) {}
+    anotarConexion().catch(() => {});
+  }
+  return r;
 }
 /** Solo el Mando: la lista de invitaciones, la de referentes, poner o quitar uno, y las conexiones. */
 async function invitaciones() {
-  return (await getDocs(collection(db, "stargate_invitaciones"))).docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.creado || 0) - (a.creado || 0));
+  return EQUIPO.invitaciones();
 }
 async function referentes() {
-  return (await getDocs(collection(db, "stargate_referentes"))).docs.map(d => ({ id: d.id, ...d.data() }));
+  return EQUIPO.referentes();
 }
 async function ponerReferente(correo, activo, nombre) {
-  const yo = await sesion(); correo = String(correo || "").trim().toLowerCase();
-  if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(correo)) throw new Error("Ese correo no parece un correo.");
-  const ref = doc(db, "stargate_referentes", correo), d = await getDoc(ref), x = d.exists() ? d.data() : {};
-  await setDoc(ref, { correo, nombre: String(nombre || x.nombre || correo), activo: !!activo, desde: x.desde || Date.now(),
-    por: (yo && yo.correo) || "", actualizado: Date.now() });
+  await EQUIPO.ponerReferente(correo, activo, nombre, TEXTOS_EQUIPO);
 }
 async function profes() {
   return (await getDocs(collection(db, "stargate_profes"))).docs.map(d => ({ id: d.id, ...d.data() }));

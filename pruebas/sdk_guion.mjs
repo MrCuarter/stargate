@@ -248,6 +248,8 @@ try {
   await paso("anadirDocente", () => M.anadirDocente(NAVE, { correo: "nuevo@ensayo.invalid", nombre: "Nuevo", rol: "docente" }));
   ERRORES.stargateEquipo = { code: "functions/not-found", message: "not-found" };
   await paso("anadirDocente: sin desplegar (el camino de antes)", () => M.anadirDocente(NAVE, { correo: " Otro@Ensayo.invalid ", rol: "referente" }));
+  ERRORES.stargateEquipo = { code: "functions/unavailable", message: "unavailable" };
+  await paso("anadirDocente: sin red (en un grupo que no existe: el camino viejo no llega a escribir)", () => M.anadirDocente("no-existe", { correo: "sinred@ensayo.invalid" }));
   ERRORES.stargateEquipo = { code: "functions/permission-denied", message: "Solo el referente del grupo puede tocar su equipo." };
   await paso("anadirDocente: el servidor dice que no", () => M.anadirDocente(NAVE, { correo: "x@ensayo.invalid" }));
   await paso("quitarDocente", () => M.quitarDocente(NAVE, "Nuevo@Ensayo.invalid"));

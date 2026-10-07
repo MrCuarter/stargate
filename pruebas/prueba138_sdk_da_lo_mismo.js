@@ -37,6 +37,11 @@ const DIFERENCIAS = {
   // paso 8 · el porqué de una anulación sale ya cortado a 200 (el servidor lo cortaba igual: functions/stargate.js)
   "→ stargateAnularReto": { porque: "el porqué, cortado a 200 letras en el navegador (el servidor ya lo cortaba a 200)",
     espera: (a, b) => canon(Object.assign({}, a, { motivo: String(a.motivo || "").slice(0, 200) })) === canon(b) && String(a.motivo || "").length > 200 },
+  // paso 9 · lo mismo en darDeBaja y moverRecluta (el `sinDesplegar` de motor.js) y en el equipo
+  "darDeBaja: «no» del servidor sin tildes": { porque: "se ve el «no» del servidor, no el del camino viejo del navegador",
+    espera: (a, b) => a.error === "Esa ficha ya no está" && b.error === "No existe esa ficha" && b.code === "functions/not-found" },
+  "anadirDocente: sin red (en un grupo que no existe: el camino viejo no llega a escribir)": { porque: "sin red, se dice (antes iba al camino viejo, que escribe desde el navegador lo que las reglas ya no le dejan)",
+    espera: (a, b) => a.error === "No existe ese grupo." && b.error === "unavailable" && b.code === "functions/unavailable" },
   "anularReto: el servidor dice que no (sin tildes)": { porque: "se ve el «no» del servidor, no el del camino viejo del navegador",
     espera: (a, b) => a.error === "Ese reto no existe en este grupo: ZZ" && b.error === "No existe el reto" && b.code === "functions/not-found" },
 };
