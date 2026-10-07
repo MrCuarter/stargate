@@ -20,8 +20,7 @@ const leer = f => fs.readFileSync(path.join(RAIZ, f), "utf8");
 const K = leer("assets/js/consola.js"), M = leer("assets/js/motor.js"), H = leer("assets/js/huevo.js"), SG = leer("assets/js/stargate.js"),
       CSS = leer("assets/css/stargate.css"), PAQ = leer("motor/paquete.js"), SEM = leer("motor/sembrar_prueba.js");
 // 7-oct · la fontanería de los premios por enlace es del SDK de GamificaPro (GP_SDK.premios, paso 5), en el paquete fijado
-const SDKF = (leer("_build_site.py").match(/^SDK_FIJADO = "(mod-sdk\.v1\.[0-9a-f]{10}\.js)"$/m) || [])[1];
-const PZ = ((SDKF ? leer("assets/js/" + SDKF) : "").match(/\/\/ ─── GP_SDK pieza «premios»[^\n]*\n([\s\S]*?)\/\/ ─── fin de la pieza «premios» ───/) || [])[1] || "";
+const PZ = require("./sdk_pieza.js").pieza("premios");
 const delSDK = /const PREMIOS = SDK\.premios\.crear\(CTX\);/.test(M);
 
 // 1 · se guarda solo, y lo que se ve es lo del servidor

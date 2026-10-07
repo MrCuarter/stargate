@@ -28,7 +28,9 @@ c(/llamar\("modOtorgarReto"/.test(MOTOR) && /stargate: \{ apuntaOtorgado: 'starg
 c(/Number\(window\.SG_TOPE_SEMANA\)\?'Como mucho, <b>'/.test(NAVE) && /Sin tope: a tu ritmo\./.test(NAVE), "   la bienvenida lo dice: sin tope, a su ritmo (y si vuelve un tope, lo dice)");
 
 // ── 2 · la votación, en directo en la Nave
-c(/function vigilarVotaciones\(perId, alCambiar\)/.test(MOTOR) && /where\("isActive", "==", true\)/.test(MOTOR), "🔴 motor · las votaciones activas se ESCUCHAN (antes se miraban una vez)");
+c(/function vigilarVotaciones\(perId, alCambiar\)/.test(MOTOR) && (/where\("isActive", "==", true\)/.test(MOTOR) ||
+  // (7-oct · por el SDK de GamificaPro: GP_SDK.votacion, paso 7)
+  /return VOTACION\.vigilar\(perId, alCambiar\);/.test(MOTOR) && /fs\.onSnapshot\(fs\.query\(col\(grupo\), fs\.where\("isActive", "==", true\)\)/.test(require("./sdk_pieza.js").pieza("votacion"))), "🔴 motor · las votaciones activas se ESCUCHAN (antes se miraban una vez)");
 c(/function vigilarVotacion\(\)/.test(NAVE) && /vigilarVotacion\(\); vigilarEnVivo\(\);/.test(NAVE), "   la Nave las escucha desde que entra");
 c(/stargateModo: v\.modo === "diferido" \? "diferido" : "directo"/.test(MOTOR) && /name="au-vt-modo" value="diferido"/.test(AULA), "🔴 aula · votación en directo o en diferido (con sus días)");
 c(/stargateCierra && ahora>Number\(v\.stargateCierra\)/.test(NAVE), "   la de diferido se cierra sola a su hora");

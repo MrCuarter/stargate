@@ -13,9 +13,7 @@ console.log("\n▶ 58 · La Nave rediseñada");
 
 const NAVE = js("recluta.js"), TABLERO = js("tablero.js"), MOTOR = js("motor.js");
 // 7-oct · el motor ficha por el SDK de GamificaPro (GP_SDK.asistencia, paso 6): ASISTENCIA.fichar → llamar("modFichar")
-const FICHA_POR_SDK = (m) => /ASISTENCIA\.fichar\(perId, fichaId, \{ tz: tz \}\)/.test(m) && /ctx\.llamar\("modFichar", datos\)/.test((() => {
-  const R_ = require("path").join(__dirname, ".."), F_ = (require("fs").readFileSync(require("path").join(R_, "_build_site.py"), "utf8").match(/^SDK_FIJADO = "(mod-sdk\.v1\.[0-9a-f]{10}\.js)"$/m) || [])[1];
-  return F_ ? require("fs").readFileSync(require("path").join(R_, "assets/js", F_), "utf8") : ""; })());
+const FICHA_POR_SDK = (m) => /ASISTENCIA\.fichar\(perId, fichaId, \{ tz: tz \}\)/.test(m) && /ctx\.llamar\("modFichar", datos\)/.test(require("./sdk_pieza.js").pieza("asistencia"));
 
 const AULA = js("aula.js"), LLAMADA = js("llamada.js"), CSS = fs.readFileSync(
   path.join(__dirname, "..", "assets", "css", "stargate.css"), "utf8");

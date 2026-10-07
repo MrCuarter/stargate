@@ -18,9 +18,7 @@ console.log("\n▶ 55 · Las páginas del motor nuevo");
 const MOTOR = js("motor.js"), ALTA = js("alistarse.js"), CONSOLA = js("consola.js"), VALIDAR = js("validar.js");
 const CREAR = js("crear.js");
 // 7-oct · lo que el motor hace por el SDK de GamificaPro (fase 5, pasos 4-11) vive en el paquete fijado: cada pieza, tal cual
-const SDK_PAQ = js((fs.readFileSync(path.join(__dirname, "..", "_build_site.py"), "utf8").match(/^SDK_FIJADO = "(mod-sdk\.v1\.[0-9a-f]{10}\.js)"$/m) || [])[1] || "motor.js");
-const piezaSDK = (n) => ((SDK_PAQ.match(new RegExp("// ─── GP_SDK pieza «" + n + "»[^\\n]*\\n([\\s\\S]*?)// ─── fin de la pieza «" + n + "» ───")) || [])[1] || "");
-const SDK_ALTA = piezaSDK("alistarse");
+const SDK_ALTA = require("./sdk_pieza.js").pieza("alistarse");
 
 // ---------------------------------------------------------------- a) una sola puerta a Firebase
 // 🔴 Si cada página hablara con Firebase por su cuenta, un fallo de conexión habría que arreglarlo

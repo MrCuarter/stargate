@@ -1113,22 +1113,20 @@ async function borrarReflexion(perId, reto, fichaId) {
  * `votesPerPerson`, `costPerVote`, `maxPaidVotesPerPerson`, `eligibleFactionId`) y tres campos nuestros: la semana en que
  * se lanzó, la semana en que se resuelve y quién la puso.
  */
-const refVotaciones = (perId) => collection(db, "projects", perId, "voting_events");
+/*
+ * 7-oct · DEL SDK DE GAMIFICAPRO (GP_SDK.votacion, paso 7): las opciones (el id de cada una es su posición, «o1», «o2»…), crear,
+ * cerrar, borrar, la lista, escuchar las activas, votar por el servidor (`castVote`) y la papeleta. Aquí quedan los campos de
+ * STARGATE (la semana, en directo o en diferido, quién la puso, el voto extra) y los textos.
+ */
+const VOTACION = SDK.votacion.crear(CTX);
 async function votaciones(perId) {
-  const r = await getDocs(refVotaciones(perId));
-  return r.docs.map(d => ({ id: d.id, ...d.data() }))
-    .sort((a, b) => Number(b.creado || 0) - Number(a.creado || 0));
+  return VOTACION.lista(perId);
 }
 /** Crear una votación. `opciones` son textos; el id de cada una es su posición, que no cambia nunca. */
 async function crearVotacion(perId, v) {
-  const yo = await sesion();
-  const opciones = (v.opciones || []).map(String).map(s => s.trim()).filter(Boolean)
-    .map((titulo, i) => ({ id: "o" + (i + 1), title: titulo, totalFreeVotes: 0, totalCoinsInvested: 0 }));
-  if (opciones.length < 2) throw new Error("Una votación necesita al menos dos opciones.");
-  const doc_ = doc(refVotaciones(perId));
-  await setDoc(doc_, {
+  return VOTACION.nueva(perId, {
     title: String(v.pregunta || "").trim(), description: "",
-    options: opciones, isActive: true,
+    options: SDK.votacion.opciones(v.opciones), isActive: true,
     votesPerPerson: 1,
     costPerVote: Math.max(0, Math.floor(Number(v.extra) || 0)),
     maxPaidVotesPerPerson: Math.max(0, Math.floor(Number(v.maxExtra) || 0)),
@@ -1139,16 +1137,14 @@ async function crearVotacion(perId, v) {
     // cuando entra, y se cierra sola a su hora)
     stargateModo: v.modo === "diferido" ? "diferido" : "directo",
     stargateCierra: v.modo === "diferido" ? Date.now() + Math.max(1, Math.min(14, Number(v.dias) || 3)) * 864e5 : null,
-    creado: Date.now(), stargateSemana: Number(v.semana) || null,
+    stargateSemana: Number(v.semana) || null,
     stargateResuelve: Number(v.resuelve) || null, stargateProfe: String(v.profe || ""),
-    creadoPor: yo ? yo.uid : null,
   });
-  return doc_.id;
 }
-const cerrarVotacion = (perId, id) => updateDoc(doc(db, "projects", perId, "voting_events", id), { isActive: false, cerrada: Date.now() });
-const borrarVotacion = (perId, id) => deleteDoc(doc(db, "projects", perId, "voting_events", id));
+const cerrarVotacion = (perId, id) => VOTACION.cerrar(perId, id, { cerrada: Date.now() });
+const borrarVotacion = (perId, id) => VOTACION.borrar(perId, id);
 /** Votar: gratis o pagando el voto extra. Lo cobra y lo cuenta el servidor. */
-const votar = (perId, id, opcionId, tipo) => llamar("castVote", { projectId: perId, eventId: id, optionId: opcionId, voteType: tipo || "free" });
+const votar = (perId, id, opcionId, tipo) => VOTACION.votar(perId, id, opcionId, tipo);
 
 /**
  * 🔴 17-sep · LO EN VIVO. Norberto, en la prueba humana: «cuando inicio una votación, al estudiante no le aparece nada para
@@ -1165,9 +1161,7 @@ const votar = (perId, id, opcionId, tipo) => llamar("castVote", { projectId: per
  *   cambiar mientras está abierta), con su alias. Las reglas comprueban que la ficha es suya y la pregunta, abierta.
  */
 function vigilarVotaciones(perId, alCambiar) {
-  return onSnapshot(query(refVotaciones(perId), where("isActive", "==", true)),
-    r => alCambiar(r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => Number(b.creado || 0) - Number(a.creado || 0))),
-    () => alCambiar([]));
+  return VOTACION.vigilar(perId, alCambiar);
 }
 const ENVIVO = "stargate_envivo", RESPUESTAS = "stargate_respuestas";
 function vigilarEnVivo(perId, alCambiar) {
@@ -1205,9 +1199,7 @@ async function miRespuesta(perId, preguntaId, fichaId) {
 }
 /** Lo que ya ha votado esta persona en esa votación (papeleta por ficha). */
 async function miPapeleta(perId, id, fichaId) {
-  if (!fichaId) return {};
-  const d = await getDoc(doc(db, "projects", perId, "voting_events", id, "votes", fichaId));
-  return d.exists() ? (d.data().byOption || {}) : {};
+  return VOTACION.miPapeleta(perId, id, fichaId);
 }
 
 /**

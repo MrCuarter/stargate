@@ -16,9 +16,7 @@ console.log("\n▶ 63 · Racha de asistencia y regalo");
 
 const motor = raiz("assets/js/motor.js");
 // 7-oct · el motor ficha por el SDK de GamificaPro (GP_SDK.asistencia, paso 6): ASISTENCIA.fichar → llamar("modFichar")
-const FICHA_POR_SDK = (m) => /ASISTENCIA\.fichar\(perId, fichaId, \{ tz: tz \}\)/.test(m) && /ctx\.llamar\("modFichar", datos\)/.test((() => {
-  const R_ = require("path").join(__dirname, ".."), F_ = (require("fs").readFileSync(require("path").join(R_, "_build_site.py"), "utf8").match(/^SDK_FIJADO = "(mod-sdk\.v1\.[0-9a-f]{10}\.js)"$/m) || [])[1];
-  return F_ ? require("fs").readFileSync(require("path").join(R_, "assets/js", F_), "utf8") : ""; })());
+const FICHA_POR_SDK = (m) => /ASISTENCIA\.fichar\(perId, fichaId, \{ tz: tz \}\)/.test(m) && /ctx\.llamar\("modFichar", datos\)/.test(require("./sdk_pieza.js").pieza("asistencia"));
 
 
 // ---------------------------------------------------------------- a) la cuenta de la racha
