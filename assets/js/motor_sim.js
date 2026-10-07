@@ -28,6 +28,15 @@ import { getFunctions, httpsCallable, connectFunctionsEmulator }
   from "./sim/firebase_sim.js?h=e95a15e3a9";
 
 /**
+ * 7-oct · EL SDK DE CLIENTE DE GAMIFICAPRO (su docs/PLAN_CENTRALIZAR.md, fase 5): las semanas, `llamar` y `miPapel` vienen en
+ * assets/js/mod-sdk.v1.<huella>.js (lo copia y fija _build_site.py → _traer_sdk, y va en el <head> de cada página que carga
+ * motor/semanas.js). Esta centralita sigue igual por fuera (window.SG.MOTOR); por dentro, cada pieza pasa al SDK una a una,
+ * solo si da EXACTAMENTE lo mismo (hay alumnado dentro).
+ */
+const SDK = window.GP_SDK;
+if (!SDK || SDK.version !== "v1") throw new Error("[STARGATE] falta el SDK de GamificaPro (assets/js/mod-sdk.v1.*.js)");
+
+/**
  * 🔴 EL LABORATORIO. Con esto, la batería 67 recorre la web entera contra el motor DE VERDAD —las
  * reglas de Firestore, las Cloud Functions, el mismo código que corre en producción— sin tocar
  * producción y sin ninguna cuenta real. Los emuladores de Firebase corren en la máquina de quien
@@ -171,7 +180,7 @@ function estadoDelPER(S) {
   const total = (S.tipo === "PUA") ? (sem.PUA || 8) : (sem.REGULAR || 15);
   let semana = null;
   // con las semanas congeladas del calendario del referente (motor/semanas.js)
-  if (S.inicio) semana = window.SGSEMANAS.semanaDelCurso(S.inicio, S.pausas);
+  if (S.inicio) semana = SDK.semanas.semanaDelCurso(S.inicio, S.pausas);
   /**
    * 🔴 28-sep · EL FINAL DE UN GRUPO. Norberto: «para terminarlo del todo vamos a darle 20 semanas, pero un docente debe
    * poder recuperarlo fácilmente (hay estudiantes que suspenden y van a recuperación: pueden hacer retos en la semana 30)».
@@ -762,7 +771,24 @@ function conIdsDeDocumento(per, x) {
   return out;
 }
 
-const llamar = (nombre, datos) => httpsCallable(fns, nombre)(datos).then(r => r.data);
+/**
+ * Las funciones del servidor (GP_SDK.llamador): devuelve `data`, y si falla, el MISMO error de Firebase (code y message de
+ * siempre) con marcas por código (`codigo`, `delServidor`, `sinDesplegar`). 🔴 `sinDesplegar` de aquí abajo (por palabras) NO
+ * se cambia todavía por el del SDK: da otra respuesta cuando el servidor dice «no» sin tildes ni «recluta» (p. ej. «No existe
+ * el reto»), y eso cambia lo que se ve. Va en la pausa de Navidad (GamificaPro, tests/sdk/llamar.test.ts lo documenta).
+ */
+const llamar = SDK.llamador(nombre => httpsCallable(fns, nombre));
+/**
+ * 7-oct · ¿QUÉ PAPEL TENGO? (GP_SDK.papel → la callable `miPapel`): lo que dice el servidor de quien ha entrado, con las personas
+ * que Norberto da de alta en la app. Una pregunta por cuenta (la guarda por uid). → { vitalicio, mando } en STARGATE. Nadie lo usa aún: la web sigue
+ * con REFERENTES_VITALICIOS, que también sirve para marcar a OTRAS personas (el equipo de un grupo). Cambiarlo, en una pausa.
+ */
+const papel = SDK.papel(llamar);
+async function miPapel() {
+  const yo = await sesion();
+  if (!yo) return { vitalicio: false, mando: false };
+  return SDK.papelDe(await papel.miPapel(yo.uid), "stargate");
+}
 
 // El catálogo (retos, insignias, niveles, tienda) sale de Datos.gs y se congela en la construcción.
 // Se pide aquí y no se incrusta en cada página: son 25 KB que solo necesitan las pantallas del motor
@@ -1943,7 +1969,7 @@ async function guardarSorteo(perId, ticketDoc, c) {
     "stargateSorteo.premio": premio, "stargateSorteo.ganadores": ganadores, "stargateSorteo.fecha": Number(c.fecha),
     "stargateSorteo.desde": Number(c.desde), "stargateSorteo.fijo": true, "stargateSorteo.semanaSorteo": null,
     // la Nave lo enseña desde la semana de su fecha de venta
-    stargateSemana: Math.max(1, window.SGSEMANAS.semanaDelCurso(c.inicio || "", c.pausas || [], Number(c.desde)) || 1) });
+    stargateSemana: Math.max(1, SDK.semanas.semanaDelCurso(c.inicio || "", c.pausas || [], Number(c.desde)) || 1) });
   lote.update(doc(db, "rewards", t.data().linkedItemId), { title: premio, description: String(c.descripcion || ""),
     globalStock: ganadores, globalStockInitial: ganadores });
   await lote.commit();
@@ -2445,7 +2471,7 @@ function directoCanal(perId, esDocente, yo, alMensaje) {
 
 window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
-window.SG.MOTOR = { entrar, salir, sesion, credencial, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
+window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaResponder, academiaAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,

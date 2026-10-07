@@ -4024,6 +4024,35 @@ if os.path.exists(_TARJETAS_GP):
     if not os.path.exists(_d) or open(_d, encoding="utf-8").read() != _c:
         open(_d, "w", encoding="utf-8").write(_c)
         print("copiado: assets/js/tarjetas.js  (de GamificaPro sdk/tarjetas.js)")
+
+# 7-oct · EL SDK DE CLIENTE DE GAMIFICAPRO (fase 5 de su docs/PLAN_CENTRALIZAR.md): las semanas, `llamar` (errores por código)
+# y `miPapel` viven en GamificaPro (sdk/) y llegan en UN paquete, dist-sdk/mod-sdk.v1.<huella>.js. Aquí va FIJADO por su
+# nombre: un paquete nuevo en GamificaPro no cambia esta web hasta que se cambie esta línea y se publique. De él sale también
+# motor/semanas.js, la receta TAL CUAL (la cargan las páginas y las pruebas). Desde un worktree de GamificaPro:
+# GAMIFICAPRO_DIR=<ruta> python3 _build_site.py
+SDK_FIJADO = "mod-sdk.v1.953e604ce6.js"
+def _traer_sdk():
+    import re as _re_sdk
+    _js = os.path.join(HERE, "assets", "js"); _dst = os.path.join(_js, SDK_FIJADO)
+    for _gp in [os.environ.get("GAMIFICAPRO_DIR"), "/Users/nor/Claude/vibewebs/gamificapro"]:
+        _src = os.path.join(_gp, "dist-sdk", SDK_FIJADO) if _gp else None
+        if _src and os.path.exists(_src):
+            _c = open(_src, "rb").read()
+            if not os.path.exists(_dst) or open(_dst, "rb").read() != _c:
+                open(_dst, "wb").write(_c); print("copiado: assets/js/" + SDK_FIJADO + "  (de GamificaPro dist-sdk)")
+            break
+    assert os.path.exists(_dst), "falta assets/js/" + SDK_FIJADO + " (GamificaPro dist-sdk; desde un worktree, GAMIFICAPRO_DIR=<ruta>)"
+    _t = open(_dst, "rb").read()
+    assert hashlib.sha256(_t).hexdigest()[:10] == SDK_FIJADO[:-3].rsplit(".", 1)[1], "assets/js/" + SDK_FIJADO + ": la huella no cuadra"
+    for _f in os.listdir(_js):
+        if _f.startswith("mod-sdk.") and _f.endswith(".js") and _f != SDK_FIJADO:
+            os.remove(os.path.join(_js, _f)); print("quitado: assets/js/" + _f + "  (paquete del SDK que ya no se usa)")
+    _m = _re_sdk.search(r"// ─── GP_SDK pieza «semanas» \(sdk/semanas\.js\), tal cual ───\n(.*?)// ─── fin de la pieza «semanas» ───", _t.decode("utf-8"), _re_sdk.S)
+    assert _m, SDK_FIJADO + ": no lleva la pieza «semanas»"
+    _sem = os.path.join(HERE, "motor", "semanas.js")
+    if open(_sem, encoding="utf-8").read() != _m.group(1):
+        open(_sem, "w", encoding="utf-8").write(_m.group(1)); print("escrito: motor/semanas.js  (la pieza «semanas» de " + SDK_FIJADO + ")")
+_traer_sdk()
 # ================= v3 · LA NAVE DEL RECLUTA (web del alumnado por PER) =================
 RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -5470,11 +5499,13 @@ print("interruptor de motor puesto en: recluta, clase, panel, sesión, grupos, t
 # necesitan ya. La batería 73 comprueba que no falta en ninguna.
 import glob as _glob2, re as _re2
 _TAG_SEM = '<script src="motor/semanas.js?v=' + _ver("motor/semanas.js") + '"></script>'
+# 7-oct · y detrás, el SDK de GamificaPro (el motor lo necesita antes de cargar; su nombre ya es su huella)
+_TAG_SEM += '<script src="assets/js/' + SDK_FIJADO + '"></script>'
 _USA_SEMANAS = ("assets/js/calendario.js", "assets/js/fuente.js", "motor/paquete.js", "motor/tablero.js", "assets/js/motor.js")
 _con_sem = []
 for _html in _glob2.glob(os.path.join(HERE, "*.html")):
     _s = open(_html, encoding="utf-8").read()
-    _s2 = _re2.sub(r'<script src="motor/semanas\.js(\?v=[0-9a-f]+)?"></script>', '', _s)
+    _s2 = _re2.sub(r'<script src="motor/semanas\.js(\?v=[0-9a-f]+)?"></script>(<script src="assets/js/mod-sdk\.[^"]+"></script>)?', '', _s)
     if any(u in _s2 for u in _USA_SEMANAS) and '<script' in _s2:
         _i = _s2.index('<script'); _s2 = _s2[:_i] + _TAG_SEM + _s2[_i:]; _con_sem.append(os.path.basename(_html))
     if _s2 != _s:

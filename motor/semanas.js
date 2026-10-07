@@ -1,26 +1,26 @@
 'use strict';
 /**
- * STARGATE · LAS SEMANAS DEL CURSO, CON PAUSAS (13-sep-2026)
+ * GAMIFICAPRO · LAS SEMANAS DEL CURSO, CON PAUSAS — la receta única del cliente (pieza del SDK v1, fase 5 de
+ * docs/PLAN_CENTRALIZAR.md). Nació en STARGATE el 13-sep-2026 y DPG la copiaba letra a letra; desde el 7-oct vive aquí y las
+ * webs la reciben en su build (no se edita allí: aquí).
  *
- * Norberto: «a veces hay cambios: en Navidad se retrasa una semana, o Semana Santa… Debe ser fácil
- * para el referente ajustar el calendario: una página dedicada con el calendario, con posibilidad
- * de mover o congelar una semana».
+ * Norberto: «a veces hay cambios: en Navidad se retrasa una semana, o Semana Santa… Debe ser fácil para el referente
+ * ajustar el calendario: una página dedicada con el calendario, con posibilidad de mover o congelar una semana».
  *
- * Una semana CONGELADA es una semana del calendario que no cuenta para el curso: mientras dura, el
- * curso se queda en la semana en la que estaba, y todo lo de detrás se corre una semana. Se guarda
- * como la lista de días en que empiezan las semanas congeladas (`projects.stargate.pausas`), sobre
- * la misma rejilla que la semana 1 (si el curso empieza un lunes, son lunes).
+ * Una semana CONGELADA es una semana del calendario que no cuenta para el curso: mientras dura, el curso se queda en la
+ * semana en la que estaba, y todo lo de detrás se corre una semana. Se guarda como la lista de días en que empiezan las
+ * semanas congeladas (`pausas` del grupo), sobre la misma rejilla que la semana 1 (si el curso empieza un lunes, son lunes).
  *
- * 🔴 UNA SOLA RECETA. «¿En qué semana estamos?» se calculaba en SEIS sitios (la Nave, la sesión, la
- * consola, el traductor, el paquete, el foro) con la misma cuenta copiada. Añadir las pausas a seis
- * copias era garantizar que un día dos pantallas dijeran semanas distintas. Ahora todas preguntan
- * aquí. (El servidor del Zoco hace la misma cuenta en GamificaPro: stargateZoco.js → semanaDelCurso.)
+ * 🔴 UNA SOLA RECETA. «¿En qué semana estamos?» se calculaba en seis sitios de una web con la misma cuenta copiada, y
+ * después en dos webs. Ahora todas preguntan aquí. El servidor hace la misma cuenta en functions/semanas.js
+ * (`semanaCruda`, `inicioDeSemana`): tests/sdk/semanas.test.ts compara las dos instante a instante.
  *
- * Y de paso: la cuenta vieja dividía milisegundos entre 7 días, y el lunes siguiente al cambio de
- * hora de marzo salían 7 días MENOS UNA HORA → la semana anterior durante todo ese lunes. Aquí se
- * cuentan DÍAS (redondeando), así que el cambio de hora no mueve nada.
+ * Y de paso: la cuenta vieja dividía milisegundos entre 7 días, y el lunes siguiente al cambio de hora de marzo salían
+ * 7 días MENOS UNA HORA → la semana anterior durante todo ese lunes. Aquí se cuentan DÍAS (redondeando), así que el cambio
+ * de hora no mueve nada. Cuenta en la hora del navegador (la del curso, Madrid, para casi todo el alumnado).
  *
- * Se usa igual en Node (pruebas, sembrador) y en el navegador (window.SGSEMANAS).
+ * Se usa igual en Node (pruebas, sembradores: module.exports), en el navegador suelta (window.SGSEMANAS) y dentro del
+ * paquete del SDK (GP_SDK.semanas). Sin textos ni datos de ningún mod.
  */
 (function (raiz, fabrica) {
   if (typeof module === "object" && module.exports) module.exports = fabrica();
