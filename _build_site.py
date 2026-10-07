@@ -3,7 +3,7 @@
 Páginas: index (portada) · guia · cronologia · actividades · geniallys · registro · recursos.
 Ejecutar desde web-stargate/:  python3 _build_site.py
 Datos de cronología/vídeos/geniallys en _site_data.py."""
-import os, json, hashlib, subprocess, glob
+import os, sys, json, hashlib, subprocess, glob
 from _site_data import (GOOGLE_CLIENT_ID, RUTA, SALA_JORAN, DIRECTO, ASEDIO, JUEGOS,
                         V, yt, CRONO, GENIALLYS, GENIALLY_CARPETA, foro_por_semana,
                         PROCESO, PROCESO_CIFRAS, CASTING, DIRECTOR, BRAZOS,
@@ -34,6 +34,10 @@ _SEM_HEROE = _DESDE["Cápsula de rescate"]
 
 _SERIE_TIT_WEB = {k: t for k, t, _ in CROMO_SERIES}
 HERE = os.path.dirname(os.path.abspath(__file__))
+# Las guardas de build comunes (8-oct): GamificaPro sdk/build/guardas.py (la carpeta de al lado, o GAMIFICAPRO_DIR: p. ej. un worktree)
+GP = os.environ.get("GAMIFICAPRO_DIR") or os.path.join(os.path.dirname(os.path.dirname(HERE)), "gamificapro")
+sys.path.insert(0, os.path.join(GP, "sdk", "build"))
+import guardas as GB   # GamificaPro sdk/build/guardas.py
 
 # 🔴 27-sep · LOS JUEGOS, CON SU HUELLA. Lo de juegos/ no pasaba por _ver_assets: el CDN (y el navegador) guardan 7 días
 # cada fichero pedido sin ?v=, y la sala nueva se quedó colgada pidiendo a un comun.js viejo «CLASE_SRV» (Norberto: «no
@@ -133,15 +137,7 @@ def _menu_ayuda(opciones, active):
 # página; no se edita en esta web. Desde un worktree de GamificaPro: GAMIFICAPRO_DIR=<ruta> python3 _build_site.py. Sin
 # GamificaPro a mano (o si aún no la tiene), vale la copia que ya está en git.
 def _traer_menu():
-    _d = os.path.join(HERE, "assets", "js", "menu.js")
-    for _gp in [os.environ.get("GAMIFICAPRO_DIR"), "/Users/nor/Claude/vibewebs/gamificapro"]:
-        _src = os.path.join(_gp, "sdk", "menu.js") if _gp else None
-        if _src and os.path.exists(_src):
-            _c = open(_src, encoding="utf-8").read()
-            if not os.path.exists(_d) or open(_d, encoding="utf-8").read() != _c:
-                open(_d, "w", encoding="utf-8").write(_c); print("copiado: assets/js/menu.js  (de GamificaPro sdk/menu.js)")
-            break
-    assert os.path.exists(_d), "falta assets/js/menu.js (GamificaPro sdk/menu.js; desde un worktree, GAMIFICAPRO_DIR=<ruta>)"
+    GB.copiar_pieza(HERE, "menu.js", os.path.join(HERE, "assets", "js", "menu.js"), decir=print)
 _traer_menu()
 # 🔴 19-sep · «Mis grupos» es ahora la NAVE DEL COMANDANTE (se entra directo en tu grupo) y «Crear grupo» vive dentro de
 # «Gestionar grupos», con todo lo que se hace una o dos veces por curso (Norberto: «simplicidad máxima en la página
@@ -3149,18 +3145,7 @@ js = (JS_TEMPLATE.replace("__BADGE__", json.dumps(BADGE_INFO, ensure_ascii=False
                  .replace("__RANGOS__", json.dumps(RANGOS, ensure_ascii=False))
                  .replace("__NIVELES__", json.dumps([list(n) for n in NIVELES], ensure_ascii=False))
                  .replace("__XPVIAJE__", json.dumps(XP_VIAJE, ensure_ascii=False)))
-def _js_valido(nombre, codigo):
-    """Comprueba la sintaxis del JS generado antes de escribirlo. Sin esto, un error de comillas se
-    publica tal cual y la página se queda sin window.SG: la Nave carga a medias y nada lo canta."""
-    import subprocess, tempfile
-    with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as t:
-        t.write(codigo); ruta = t.name
-    r = subprocess.run(["node", "--check", ruta], capture_output=True, text=True)
-    os.unlink(ruta)
-    if r.returncode != 0:
-        raise SystemExit("\n🔴 %s tiene un error de sintaxis y NO se ha escrito:\n%s" % (nombre, r.stderr))
-
-_js_valido("stargate.js", js)
+GB.js_valido("stargate.js", js)   # (antes _js_valido: el JS generado se comprueba ANTES de escribirlo)
 open(os.path.join(HERE,"assets","js","stargate.js"),"w",encoding="utf-8").write(js)
 open(os.path.join(HERE,"assets","js","tour.js"),"w",encoding="utf-8").write(
   TOUR_JS.replace("__CRED_A__", str(CREDITOS["relampago"])).replace("__CRED_B__", str(CREDITOS["retoB"]))
@@ -3172,19 +3157,8 @@ open(os.path.join(HERE,"assets","js","tour.js"),"w",encoding="utf-8").write(
 # JS del navegador—, y se descubrió porque un profesor dijo «no se puede hacer nada aquí».
 # Un fichero roto no se puede desplegar: el build se para.
 _dir_js = os.path.join(HERE, "assets", "js")
-_rotos = []
-for _f in sorted(os.listdir(_dir_js)):
-    if not _f.endswith(".js"):
-        continue
-    _r = subprocess.run(["node", "--check", os.path.join(_dir_js, _f)], capture_output=True, text=True)
-    if _r.returncode != 0:
-        _rotos.append((_f, (_r.stderr or "").strip().split("\n")[:4]))
-if _rotos:
-    raise SystemExit("\n🔴 NO SE PUBLICA: %d fichero(s) JS no compilan\n\n%s"
-                     % (len(_rotos), "\n\n".join("   " + f + "\n      " + "\n      ".join(e)
-                                                  for f, e in _rotos)))
-print("js: los %d ficheros de assets/js compilan" %
-      len([f for f in os.listdir(_dir_js) if f.endswith(".js")]))
+_n = GB.comprobar_js([_dir_js])
+print("js: los %d ficheros de assets/js compilan" % _n)
 
 # ================= CÓMO SE HIZO (comosehizo.html) =================
 # Norberto quiso una página propia: «hacer clic e ir a otra página con todo explicado». La portada
@@ -3650,7 +3624,7 @@ exactamente el mismo tablero que devolvía la hoja.</p>
 
 PAGES=[("index.html",PORTADA),("comosehizo.html",COMOSEHIZO),("ayuda.html",AYUDA),("privacidad.html",PRIVACIDAD),("guia.html",GUIA),("cronologia.html",CRONOLOGIA),("actividades.html",ACT),
        ("registro.html",REGPAGE),("recursos.html",REC),("legacy.html",LEGACY),("guia-recluta.html",GUIA_RECLUTA)]
-def _ver(rel): return hashlib.md5(open(os.path.join(HERE,rel),"rb").read()).hexdigest()[:10]
+def _ver(rel): return GB.huella(os.path.join(HERE, rel))
 vc,vj,vt = _ver("assets/css/stargate.css"), _ver("assets/js/stargate.js"), _ver("assets/js/tour.js")
 for name,html in PAGES:
     html=(html.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"')
@@ -4109,12 +4083,8 @@ open(os.path.join(HERE,"embed.html"),"w",encoding="utf-8").write(html); print("e
 
 # 6-oct · LAS TARJETAS IGUALES SON DEL MOTOR (GamificaPro sdk/tarjetas.js, norma de diseño de su CLAUDE.md): se copian aquí
 # en cada build, antes de las páginas que las usan (su huella ?v= sale del fichero copiado); no se editan en esta web.
-_TARJETAS_GP = "/Users/nor/Claude/vibewebs/gamificapro/sdk/tarjetas.js"
-if os.path.exists(_TARJETAS_GP):
-    _c = open(_TARJETAS_GP, encoding="utf-8").read(); _d = os.path.join(HERE, "assets", "js", "tarjetas.js")
-    if not os.path.exists(_d) or open(_d, encoding="utf-8").read() != _c:
-        open(_d, "w", encoding="utf-8").write(_c)
-        print("copiado: assets/js/tarjetas.js  (de GamificaPro sdk/tarjetas.js)")
+# (buscar_en: siempre de la carpeta de al lado, como siempre; sin él, también de GAMIFICAPRO_DIR, como el SDK)
+GB.copiar_pieza(HERE, "tarjetas.js", os.path.join(HERE, "assets", "js", "tarjetas.js"), buscar_en=[GB.gamificapro_al_lado(HERE)])
 
 # 7-oct · EL SDK DE CLIENTE DE GAMIFICAPRO (fase 5 de su docs/PLAN_CENTRALIZAR.md): las semanas, `llamar` (errores por código)
 # y `miPapel` viven en GamificaPro (sdk/) y llegan en UN paquete, dist-sdk/mod-sdk.v1.<huella>.js. Aquí va FIJADO por su
@@ -4123,45 +4093,14 @@ if os.path.exists(_TARJETAS_GP):
 # GAMIFICAPRO_DIR=<ruta> python3 _build_site.py
 SDK_FIJADO = "mod-sdk.v1.2e2c1f885d.js"
 def _traer_sdk():
-    import re as _re_sdk
-    _js = os.path.join(HERE, "assets", "js"); _dst = os.path.join(_js, SDK_FIJADO)
-    for _gp in [os.environ.get("GAMIFICAPRO_DIR"), "/Users/nor/Claude/vibewebs/gamificapro"]:
-        _src = os.path.join(_gp, "dist-sdk", SDK_FIJADO) if _gp else None
-        if _src and os.path.exists(_src):
-            _c = open(_src, "rb").read()
-            if not os.path.exists(_dst) or open(_dst, "rb").read() != _c:
-                open(_dst, "wb").write(_c); print("copiado: assets/js/" + SDK_FIJADO + "  (de GamificaPro dist-sdk)")
-            break
-    assert os.path.exists(_dst), "falta assets/js/" + SDK_FIJADO + " (GamificaPro dist-sdk; desde un worktree, GAMIFICAPRO_DIR=<ruta>)"
-    _t = open(_dst, "rb").read()
-    assert hashlib.sha256(_t).hexdigest()[:10] == SDK_FIJADO[:-3].rsplit(".", 1)[1], "assets/js/" + SDK_FIJADO + ": la huella no cuadra"
-    for _f in os.listdir(_js):
-        if _f.startswith("mod-sdk.") and _f.endswith(".js") and _f != SDK_FIJADO:
-            os.remove(os.path.join(_js, _f)); print("quitado: assets/js/" + _f + "  (paquete del SDK que ya no se usa)")
-    _m = _re_sdk.search(r"// ─── GP_SDK pieza «semanas» \(sdk/semanas\.js\), tal cual ───\n(.*?)// ─── fin de la pieza «semanas» ───", _t.decode("utf-8"), _re_sdk.S)
-    assert _m, SDK_FIJADO + ": no lleva la pieza «semanas»"
-    _sem = os.path.join(HERE, "motor", "semanas.js")
-    if open(_sem, encoding="utf-8").read() != _m.group(1):
-        open(_sem, "w", encoding="utf-8").write(_m.group(1)); print("escrito: motor/semanas.js  (la pieza «semanas» de " + SDK_FIJADO + ")")
+    GB.traer_sdk(HERE, SDK_FIJADO, os.path.join(HERE, "assets", "js"), sacar={"semanas": os.path.join(HERE, "motor", "semanas.js")})
 _traer_sdk()
 # 7-oct · Y EL SIMULADOR COMÚN (GamificaPro sdk/sim, fase 5): el Firebase de mentira de la consola de ensayo llega en su propio
 # paquete, dist-sdk/mod-sim.v1.<huella>.js, fijado aquí y copiado al lado del envoltorio (assets/js/sim/firebase_sim.js, que lo
 # importa por su nombre). Nunca se carga en producción.
 SIM_FIJADO = "mod-sim.v1.3855e2af74.js"
 def _traer_sim(carpeta):
-    _dst = os.path.join(carpeta, SIM_FIJADO)
-    for _gp in [os.environ.get("GAMIFICAPRO_DIR"), "/Users/nor/Claude/vibewebs/gamificapro"]:
-        _src = os.path.join(_gp, "dist-sdk", SIM_FIJADO) if _gp else None
-        if _src and os.path.exists(_src):
-            _c = open(_src, "rb").read()
-            if not os.path.exists(_dst) or open(_dst, "rb").read() != _c:
-                open(_dst, "wb").write(_c); print("copiado: assets/js/sim/" + SIM_FIJADO + "  (de GamificaPro dist-sdk)")
-            break
-    assert os.path.exists(_dst), "falta assets/js/sim/" + SIM_FIJADO + " (GamificaPro dist-sdk; desde un worktree, GAMIFICAPRO_DIR=<ruta>)"
-    assert hashlib.sha256(open(_dst, "rb").read()).hexdigest()[:10] == SIM_FIJADO[:-3].rsplit(".", 1)[1], "assets/js/sim/" + SIM_FIJADO + ": la huella no cuadra"
-    for _f in os.listdir(carpeta):
-        if _f.startswith("mod-sim.") and _f.endswith(".js") and _f != SIM_FIJADO:
-            os.remove(os.path.join(carpeta, _f)); print("quitado: assets/js/sim/" + _f + "  (paquete del simulador que ya no se usa)")
+    GB.traer_sim(HERE, SIM_FIJADO, carpeta)
 # ================= v3 · LA NAVE DEL RECLUTA (web del alumnado por PER) =================
 RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -4291,15 +4230,10 @@ for _d in _IMG_DIRS:
         if os.path.isfile(_f) and _f.rsplit(".",1)[-1].lower() in ("png","jpg","jpeg","webp","mp4"):
             _rel = _d + "/" + os.path.basename(_f)
             _imgv[_rel] = _ver(_rel)
-def _bust_img(_s):
-    for _rel, _v in _imgv.items():
-        _s = _re.sub(_re.escape(_rel) + r'(\?v=[0-9a-f]+)?', _rel + "?v=" + _v, _s)
-    return _s
 for _html in _glob.glob(os.path.join(HERE,"*.html")):
     _s = open(_html, encoding="utf-8").read()
-    for _name, _v in _vers.items():
-        _s = _re.sub(r'assets/js/'+_re.escape(_name)+r'(\?v=[0-9a-f]+)?"', 'assets/js/'+_name+'?v='+_v+'"', _s)
-    _s = _bust_img(_s)
+    _s = GB.poner_huellas(_s, {"assets/js/" + _k: _v for _k, _v in _vers.items()}, cierre='"')
+    _s = GB.poner_huellas(_s, _imgv)
     open(_html, "w", encoding="utf-8").write(_s)
 print("cache-bust js:", ", ".join(k+"="+v[:6] for k,v in sorted(_vers.items())))
 print("cache-bust img:", len(_imgv), "imagenes versionadas · sendara =", _imgv.get("assets/img/planetas/p3_sendara.png","?")[:6])
@@ -4710,7 +4644,7 @@ def _ver_assets(html):
 def _v(rel):
     """La ruta con su huella. Sin esto, cambiar un fichero y no verlo cambiar es cuestión de tiempo
     —y el síntoma es siempre el mismo: «pero si eso ya lo he arreglado»."""
-    return rel + "?v=" + _ver(rel)
+    return GB.con_huella(HERE, rel)
 
 def _comandantes_genericos():
     """Claves de los comandantes genéricos (c1.jpg, c2.jpg…), en orden numérico, sacadas de la carpeta (23-sep: retrato/)."""
@@ -4831,12 +4765,7 @@ print("escrito: validar.html  (enlaces universales para Genially)")
 # (`modTicket`), sin nombre (con seudónimo solo para quien acepta la investigación, 7-oct). Incrustado (o con ?embed=1),
 # solo el formulario.
 # 5-oct · LA CÁPSULA ES DEL MOTOR (GamificaPro sdk/capsula.js): se copia aquí en cada build; no se edita en esta web.
-_CAPSULA_GP = "/Users/nor/Claude/vibewebs/gamificapro/sdk/capsula.js"
-if os.path.exists(_CAPSULA_GP):
-    _c = open(_CAPSULA_GP, encoding="utf-8").read()
-    if open(os.path.join(HERE, "assets", "js", "capsula.js"), encoding="utf-8").read() != _c if os.path.exists(os.path.join(HERE, "assets", "js", "capsula.js")) else True:
-        open(os.path.join(HERE, "assets", "js", "capsula.js"), "w", encoding="utf-8").write(_c)
-        print("copiado: assets/js/capsula.js  (de GamificaPro sdk/capsula.js)")
+GB.copiar_pieza(HERE, "capsula.js", os.path.join(HERE, "assets", "js", "capsula.js"), buscar_en=[GB.gamificapro_al_lado(HERE)])
 _html = head("STARGATE · Ticket de salida",
              "El ticket de salida de cada tema: sin tu nombre y en dos minutos.",
              "reg", publica=True).replace("</head>", _cabeza_motor() + """
