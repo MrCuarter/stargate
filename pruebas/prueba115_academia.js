@@ -93,7 +93,10 @@ c(["maq_conquista", "maq_evacuacion", "maq_laberinto", "maq_rutaazul", "maq_desc
 // ── 6 · La página, el motor y el registro del profesorado
 c(/window\.SG_ACADEMIA=/.test(HTML) && /window\.SG_PER_ACADEMIA=/.test(HTML) && /assets\/js\/academia\.js\?v=/.test(HTML) && /noindex/.test(HTML), "   academia.html: sus datos, su script con huella y fuera de los buscadores");
 c(/async function academiaGuardar/.test(MOT) && /"stargate_formacion"/.test(MOT) && /academiaMia, academiaGuardar, academiaEscuchar, academiaProfes/.test(MOT), "🔴 motor: su documento en stargate_formacion/{uid} (y la lista para crear grupos)");
-c(/correo: String\(yo\.correo/.test(MOT.slice(MOT.indexOf("async function academiaGuardar"))), "   con su correo de Google (el de verdad)");
+// 8-oct · lo guarda el servidor (GamificaPro: modFormacion, mod «stargate»): el correo sale de su sesión de Google, verificado, no de la web
+const GP_ST = ["/Users/nor/Claude/vibewebs/gamificapro/functions/mods/stargate.js"].find(f => require("fs").existsSync(f));
+c(/llamar\("modFormacion", \{ mod: "stargate", accion: "guardar", campos: limpio, nombre: String\(yo\.nombre \|\| ""\) \}\)/.test(MOT.slice(MOT.indexOf("async function academiaGuardar"))) &&
+  (!GP_ST || /identidad: \{ nombre: 80, correo: 120 \}/.test(require("fs").readFileSync(GP_ST, "utf8"))), "   con su correo de Google (el de verdad: lo pone el servidor, del token verificado)");
 c(/entrar ES registrarse/.test(JS) && /Tus estudiantes nunca verán tu correo/.test(JS), "🔴 entrar es registrarse, y avisa: «Tus estudiantes nunca verán tu correo»");
 c(/\(e\) => fn\(null, e\)/.test(MOT) && /SIN_GUARDAR/.test(JS), "   si no se puede leer su documento, la Academia se pinta y lo dice (no se queda colgada)");
 c(/function cargarAcademia/.test(CREAR) && /data-acd=/.test(CREAR) && /MOTOR\.academiaProfes/.test(CREAR) && /\.cr-acd\{/.test(CSS), "🔴 crear.html: el profesorado de la Academia, para añadirlo con un tic");

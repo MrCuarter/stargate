@@ -1126,31 +1126,43 @@ const ENVIVO = "stargate_envivo", RESPUESTAS = "stargate_respuestas";
 function vigilarEnVivo(perId, alCambiar) {
   return onSnapshot(doc(db, ENVIVO, perId), s => alCambiar(s.exists() ? s.data() : {}), () => alCambiar({}));
 }
-async function publicarEnVivo(perId, cambios) {
-  await setDoc(doc(db, ENVIVO, perId), Object.assign({ projectId: perId, actualizado: Date.now() }, cambios), { merge: true });
+/**
+ * 8-oct · LO EN VIVO LO ESCRIBE EL SERVIDOR (GamificaPro: `modClase`, sala «envivo» del mod; PLAN_CENTRALIZAR §1e y fase 6): los
+ * mismos documentos y campos que escribía este navegador (`stargate_envivo/{grupo}` y `stargate_respuestas`), hechos por la
+ * función. Leer sigue siendo directo (`onSnapshot`). `publicarEnVivo` va EN ORDEN, una llamada tras otra: antes, las escrituras de
+ * Firestore salían en el orden en que se pedían; con llamadas sueltas, dos diapositivas seguidas podrían llegar al revés.
+ */
+let colaEnVivo = Promise.resolve();
+function publicarEnVivo(perId, cambios) {
+  const hecha = colaEnVivo.catch(() => {}).then(async () => {
+    for (const parte of Object.keys(cambios || {}))
+      await llamar("modClase", { accion: "poner", projectId: perId, sala: "envivo", parte, valor: cambios[parte] });
+  });
+  colaEnVivo = hecha;
+  return hecha;
 }
 async function lanzarPregunta(perId, texto, por) {
   const t = String(texto || "").trim().slice(0, 300);
   if (!t) throw new Error("Escribe la pregunta.");
-  const id = "p" + azar(10);
-  await publicarEnVivo(perId, { pregunta: { id, texto: t, abierta: true, t: Date.now(), por: String(por || "").slice(0, 80) } });
-  return id;
+  const r = await llamar("modClase", { accion: "pregunta", projectId: perId, sala: "envivo", texto: t, por: String(por || "").slice(0, 80) });
+  return r.id;
 }
-async function cerrarPregunta(perId) { await updateDoc(doc(db, ENVIVO, perId), { "pregunta.abierta": false, actualizado: Date.now() }); }
+async function cerrarPregunta(perId) { await llamar("modClase", { accion: "cerrarPregunta", projectId: perId, sala: "envivo" }); }
+// (`alias` ya no viaja: el servidor pone el de la ficha, que es el que exigían las reglas)
 async function responderPregunta(perId, preguntaId, fichaId, alias, texto) {
   const u = auth.currentUser;
   if (!u) throw new Error("Entra con tu cuenta para responder.");
   const t = String(texto || "").trim().slice(0, 280);
   if (!t) throw new Error("Escribe tu respuesta.");
-  await setDoc(doc(db, RESPUESTAS, perId + "__" + preguntaId + "__" + fichaId),
-    { projectId: perId, pregunta: preguntaId, fichaId, uid: u.uid, alias: String(alias || ""), texto: t, creado: Date.now() });
+  await llamar("modClase", { accion: "responder", projectId: perId, sala: "envivo", pregunta: preguntaId, fichaId, texto: t });
 }
 function vigilarRespuestas(perId, preguntaId, alCambiar) {
   return onSnapshot(query(collection(db, RESPUESTAS), where("projectId", "==", perId), where("pregunta", "==", preguntaId)),
     r => alCambiar(r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.creado || 0) - (b.creado || 0))),
     () => alCambiar([]));
 }
-async function quitarRespuesta(id) { await deleteDoc(doc(db, RESPUESTAS, id)); }
+// (el id es `{grupo}__{pregunta}__{ficha}`: el grupo es lo de antes del primer «__»; los ids de grupo no llevan «__»)
+async function quitarRespuesta(id) { await llamar("modClase", { accion: "quitarRespuesta", projectId: String(id).split("__")[0], sala: "envivo", id }); }
 async function miRespuesta(perId, preguntaId, fichaId) {
   if (!fichaId || !preguntaId) return null;
   try { const d = await getDoc(doc(db, RESPUESTAS, perId + "__" + preguntaId + "__" + fichaId)); return d.exists() ? d.data() : null; }
@@ -2016,8 +2028,8 @@ async function academiaGuardar(campos) {
   const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta de Google.");
   const limpio = {};
   ACADEMIA_CAMPOS.forEach((k) => { if (campos[k] !== undefined) limpio[k] = campos[k]; });
-  await setDoc(doc(db, "stargate_formacion", yo.uid), Object.assign({ uid: yo.uid, correo: String(yo.correo || "").toLowerCase(),
-    nombre: String(yo.nombre || "").slice(0, 80), t: Date.now() }, limpio), { merge: true });
+  // 8-oct · lo guarda el servidor (GamificaPro: `modFormacion`, mod «stargate»): el mismo documento, con su correo verificado
+  await llamar("modFormacion", { mod: "stargate", accion: "guardar", campos: limpio, nombre: String(yo.nombre || "") });
 }
 function academiaEscuchar(fn) {
   // (si no se puede leer —las reglas sin desplegar, sin red—, se avisa igual: la Academia se pinta y lo dice, no se queda colgada)
@@ -2026,8 +2038,8 @@ function academiaEscuchar(fn) {
 /** El profesorado registrado en la Academia, para añadirlo a un grupo con un clic (lo leen el Mando y los referentes). */
 /** 29-sep (noche) · el panel del organizador (academia.html): todo lo de cada docente inscrito. Lo dejan leer las reglas al Mando y a los vitalicios. */
 async function academiaTodos() {
-  const r = await getDocs(collection(db, "stargate_formacion"));
-  return r.docs.map((d) => Object.assign({ uid: d.id }, d.data() || {})).filter((x) => x.correo);
+  const r = await llamar("modFormacion", { mod: "stargate", accion: "todos" });   // 8-oct · la lista la da el servidor (con el `uid` de cada una)
+  return ((r && r.lista) || []).map((x) => Object.assign({}, x)).filter((x) => x.correo);
 }
 /**
  * 30-sep · QUIEN ORGANIZA LA ACADEMIA corrige y echa (Norberto: «ver los emails, modificarlos, echar a un profesor antiguo que ya
@@ -2041,9 +2053,9 @@ async function academiaEditar(uid, campos) {
     c.correo = c.correo.toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(c.correo)) throw new Error("Ese correo no parece un correo.");
   }
-  await updateDoc(doc(db, "stargate_formacion", uid), c);
+  await llamar("modFormacion", { mod: "stargate", accion: "editar", uid, campos: c });   // 8-oct · lo hace el servidor
 }
-async function academiaQuitar(uid) { await deleteDoc(doc(db, "stargate_formacion", uid)); }
+async function academiaQuitar(uid) { await llamar("modFormacion", { mod: "stargate", accion: "quitar", uid }); }
 /**
  * 30-sep · UNA IMAGEN EN «PREGUNTA A NEBULA». Norberto: «añade la posibilidad de añadir adjuntos (arrastrar una imagen): eso
  * te ayudará a detectar errores». Va a la carpeta del grupo de la Academia (projects/<grupo>/mission_submissions/), cuya
@@ -2064,9 +2076,8 @@ async function academiaAdjuntar(perId, blob) {
 async function academiaResponder(uid, texto, de) {
   const t = String(texto || "").trim().slice(0, 2000);
   if (t.length < 2) throw new Error("Escribe algo antes de enviar.");
-  const ahora = Date.now();
-  await updateDoc(doc(db, "stargate_formacion", uid), { ["mando.mensajes." + ahora]: { texto: t, t: ahora, de: String(de || "El Mando").slice(0, 80) } });
-  return ahora;
+  // 8-oct · lo hace el servidor (`modFormacion`, acción «responder»): el mismo mensaje en `mando.mensajes.<ms>`; devuelve su hora
+  return (await llamar("modFormacion", { mod: "stargate", accion: "responder", uid, texto: t, de })).t;
 }
 /** Las fichas de recluta del grupo de la Academia, con su nombre y su correo (solo las lee su equipo docente). */
 async function academiaFichas(perId) {
@@ -2079,9 +2090,9 @@ async function academiaFichas(perId) {
   }));
 }
 async function academiaProfes() {
-  const r = await getDocs(collection(db, "stargate_formacion"));
-  return r.docs.map((d) => { const x = d.data() || {};
-    return { uid: d.id, correo: String(x.correo || "").toLowerCase(), nombre: String(x.nombre || x.alias || ""), avance: x.avance || null, t: Number(x.t) || 0 }; })
+  const r = await llamar("modFormacion", { mod: "stargate", accion: "todos" });   // 8-oct · la lista la da el servidor
+  return ((r && r.lista) || []).map((x) => { x = x || {};
+    return { uid: x.uid, correo: String(x.correo || "").toLowerCase(), nombre: String(x.nombre || x.alias || ""), avance: x.avance || null, t: Number(x.t) || 0 }; })
     .filter((x) => x.correo).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 }
 /**

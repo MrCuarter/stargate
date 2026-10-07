@@ -64,6 +64,7 @@ stargateSortear: "hacer el Gran Sorteo", modSortear: "hacer el Gran Sorteo", sta
 function servidor(S) {
   const { DATOS, escribir, hacerSet, hacerUpdate, resolverConsulta, trasEscribir, idNuevo, refDoc, YO, DB } = S.interno;
   const { query, collection, where, deleteField, arrayUnion, arrayRemove } = S;
+  const fallo = (code, texto) => Object.assign(new Error(texto), { code: "functions/" + code });
   const ficha = (id) => { const f = DATOS.get("student_profiles/" + id); if (!f) throw new Error("No encuentro esa ficha."); return f; };
   function misionDe(per, retoId) {
     const r = resolverConsulta(query(collection(DB, "missions"), where("projectId", "==", per), where("stargateId", "==", retoId)));
@@ -132,6 +133,68 @@ function servidor(S) {
         trasEscribir(); return { ok: true };
       }
       const e = new Error("En el ensayo no se puede mover a nadie de grupo: solo hay un grupo. En los tuyos de verdad, sí."); e.code = "functions/failed-precondition"; throw e;
+    },
+    // 8-oct · la Academia de la Cero la guarda el servidor (GamificaPro: modFormacion, mod «stargate»; PLAN_CENTRALIZAR §1e): lo mismo
+    // que escribía el navegador en stargate_formacion/{uid} (aquí no hay reglas: en el ensayo manda quien está dentro)
+    async modFormacion(x) {
+      const ruta = (uid) => "stargate_formacion/" + uid, ahora = Date.now();
+      if (x.mod !== "stargate") throw fallo("invalid-argument", "Ese mod no tiene formación del profesorado.");
+      if (x.accion === "guardar")
+        hacerSet(refDoc(ruta(YO.uid)), Object.assign({ uid: YO.uid, correo: String(YO.correo || "").toLowerCase(),
+          nombre: String(typeof x.nombre === "string" ? x.nombre : YO.nombre || "").slice(0, 80), t: ahora }, x.campos || {}), { merge: true });
+      else if (x.accion === "mia") return { ok: true, ficha: DATOS.get(ruta(YO.uid)) || null };
+      else if (x.accion === "todos")
+        return { ok: true, lista: [...DATOS.entries()].filter(([k]) => /^stargate_formacion\/[^/]+$/.test(k)).map(([k, v]) => Object.assign({}, v, { uid: k.split("/")[1] })) };
+      else if (x.accion === "editar" || x.accion === "responder" || x.accion === "quitar") {
+        if (x.accion === "quitar") escribir(ruta(String(x.uid || "")), null);
+        else {
+          if (!DATOS.get(ruta(String(x.uid || "")))) throw fallo("not-found", "Esa persona no está en la formación.");
+          if (x.accion === "editar") {
+            const c = {};
+            for (const k of ["nombre", "alias", "correo"]) if ((x.campos || {})[k] != null) c[k] = String(x.campos[k]).trim();
+            if (!Object.keys(c).length) throw fallo("invalid-argument", "No hay nada que corregir.");
+            if (c.correo != null) { c.correo = c.correo.toLowerCase(); if (!/^[^@\s]+@[^@\s]+[.][a-z]{2,}$/.test(c.correo)) throw fallo("invalid-argument", "Ese correo no parece un correo."); }
+            hacerUpdate(refDoc(ruta(x.uid)), [c]);
+          } else {
+            const t = String(x.texto || "").trim().slice(0, 2000);
+            if (t.length < 2) throw fallo("invalid-argument", "Escribe algo antes de enviar.");
+            hacerUpdate(refDoc(ruta(x.uid)), ["mando.mensajes." + ahora, { texto: t, t: ahora, de: String(x.de || "El Mando").slice(0, 80) }]);
+            trasEscribir(); return { ok: true, t: ahora };
+          }
+        }
+      } else throw fallo("invalid-argument", "En el simulador no se puede «" + x.accion + "».");
+      trasEscribir(); return { ok: true };
+    },
+    // 8-oct · lo en vivo lo escribe el servidor (GamificaPro: modClase, sala «envivo» de STARGATE): lo mismo que escribía el
+    // navegador en stargate_envivo/{grupo} y stargate_respuestas/{grupo}__{pregunta}__{ficha}. El juego del final (sala «directo»)
+    // sigue escribiéndolo el navegador, y aquí no se simula por esta puerta.
+    async modClase(x) {
+      const per = String(x.projectId || ""), ruta = "stargate_envivo/" + per, ahora = Date.now();
+      if (x.sala !== "envivo") throw fallo("failed-precondition", "En el simulador no se puede usar esa sala por el servidor.");
+      if (x.accion === "poner") {
+        if (x.parte !== "sesion" || !x.valor || typeof x.valor !== "object" || Array.isArray(x.valor)) throw fallo("invalid-argument", "Esa parte de la sala no existe.");
+        hacerSet(refDoc(ruta), { projectId: per, actualizado: ahora, sesion: x.valor }, { merge: true });
+      } else if (x.accion === "pregunta") {
+        const t = String(x.texto || "").trim().slice(0, 300);
+        if (!t) throw fallo("invalid-argument", "Escribe la pregunta.");
+        const id = "p" + Array.from({ length: 10 }, () => "abcdefghijkmnpqrstuvwxyz23456789"[Math.floor(Math.random() * 32)]).join("");
+        hacerSet(refDoc(ruta), { projectId: per, actualizado: ahora, pregunta: { id, texto: t, abierta: true, t: ahora, por: String(x.por || "").slice(0, 80) } }, { merge: true });
+        trasEscribir(); return { ok: true, id };
+      } else if (x.accion === "cerrarPregunta") {
+        if (!DATOS.get(ruta)) throw fallo("not-found", "No hay ninguna pregunta abierta.");
+        hacerUpdate(refDoc(ruta), [{ "pregunta.abierta": false, actualizado: ahora }]);
+      } else if (x.accion === "responder") {
+        const sala = DATOS.get(ruta), f = DATOS.get("student_profiles/" + x.fichaId), t = String(x.texto || "").trim().slice(0, 280);
+        if (!t) throw fallo("invalid-argument", "Escribe tu respuesta.");
+        if (!sala || !sala.pregunta || sala.pregunta.id !== x.pregunta || sala.pregunta.abierta !== true) throw fallo("failed-precondition", "Esa pregunta ya está cerrada.");
+        escribir("stargate_respuestas/" + per + "__" + x.pregunta + "__" + x.fichaId, { projectId: per, pregunta: x.pregunta, fichaId: x.fichaId, uid: YO.uid,
+          alias: String((f && f.displayName) || ""), texto: t, creado: ahora });
+      } else if (x.accion === "quitarRespuesta") {
+        const id = String(x.id || "");
+        if (id.indexOf(per + "__") !== 0) throw fallo("invalid-argument", "Esa respuesta no es de este grupo.");
+        escribir("stargate_respuestas/" + id, null);
+      } else throw fallo("failed-precondition", "En el simulador no se puede «" + x.accion + "».");
+      trasEscribir(); return { ok: true };
     },
     async stargateRegalar(x) {
       const per = x.projectId, regalo = x.regalo || {}, docs = premiosDe(per), tipo = String(regalo.tipo || "");

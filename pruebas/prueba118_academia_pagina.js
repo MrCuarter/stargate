@@ -65,8 +65,8 @@ c(/process\.argv\.includes\("--solo-organiza"\)/.test(GRUPO) && /lote\.update\(r
 
 // ── 5 · 30-sep · Responderle tú (el botón «Responder» en el hilo de cada docente) y «¿Cómo te ha resultado?» tras cada juego
 const MOT5 = L("assets/js/motor.js"), DIA = L("../academia/academia_diaria.cjs");
-c(/async function academiaResponder\(uid, texto, de\)/.test(MOT5) && /\["mando\.mensajes\." \+ ahora\]: \{ texto: t, t: ahora, de:/.test(MOT5) && /academiaResponder, academiaAdjuntar, academiaFichas/.test(MOT5),
-  "🔴 el motor: academiaResponder escribe solo mando.mensajes.<ahora>");
+c(/async function academiaResponder\(uid, texto, de\)/.test(MOT5) && /llamar\("modFormacion", \{ mod: "stargate", accion: "responder", uid, texto: t, de \}\)\)\.t;/.test(MOT5) && /academiaResponder, academiaAdjuntar, academiaFichas/.test(MOT5),
+  "🔴 el motor: academiaResponder, por el servidor (modFormacion), que escribe solo mando.mensajes.<ahora>");
 c(/data-responder>Responder<\/button>/.test(AJS) && /M\.academiaResponder\(uid, t, C\.organiza\.nombre\)/.test(AJS), "🔴 el panel: un «Responder» en el hilo de cada docente, firmado con el nombre de quien organiza");
 c(/Object\.keys\(md\)\.forEach\(function \(k\) \{ ult = Math\.max/.test(AJS), "   lo que respondes tú cuenta como respondido (se va el «sin respuesta»)");
 c(/de: "mando", quien: md\[k\]\.de/.test(AJS) && /m\.de === "mando" \? "El Alto Mando"/.test(AJS) && /\.acd-de-mando\{/.test(L("assets/css/stargate.css")),
