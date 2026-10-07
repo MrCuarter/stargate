@@ -1,6 +1,6 @@
 'use strict';
 /**
- * BATERÍA 136 · LA INVESTIGACIÓN DEL TICKET (7-oct-2026, texto aprobado por Norberto: «Me parece genial»)
+ * BATERÍA 137 · LA INVESTIGACIÓN DEL TICKET (7-oct-2026, texto aprobado por Norberto: «Me parece genial»)
  * GamificaPro guarda un seudónimo con el ticket de quien ACEPTA (docs/INVESTIGACION_TICKET.md). Aquí se vigila lo de la web:
  *   · los textos: el aprobado, palabra por palabra, y en ningún sitio del alumnado «anónimo» sin más (sin nombre, y con
  *     seudónimo solo si participa); la política, con su versión subida y su apartado;
@@ -237,7 +237,7 @@ const errorFirebase = (code, message) => Object.assign(new Error(message), { cod
     fs.readFileSync(path.join(R, "assets/sim/escuela.json"))])).digest("hex").slice(0, 10);
   c(L("assets/js/motor_sim.js").indexOf("./sim/firebase_sim.js?h=" + huella) > 0, "   y motor_sim.js lo carga con su huella nueva (build hecho)");
 
-  console.log("\n  Batería 136 · la investigación del ticket");
+  console.log("\n  Batería 137 · la investigación del ticket");
   console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
   process.exit(fallos.length ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(2); });
