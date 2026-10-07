@@ -108,10 +108,9 @@ if (fs.existsSync(FN)) {
   const src = fs.readFileSync(FN, "utf8"), i = src.indexOf("export function planMiNombre"), j = src.indexOf("export const stargateMiNombre");
   // 5-oct · el plan pregunta de qué mod es el grupo (`modWebDe`, de comun.js): se trae también, tal cual
   const com = fs.readFileSync(FN.replace("stargateEquipo.js", "comun.js"), "utf8"), k = com.indexOf("export function modWebDe"), k2 = com.indexOf("\n}\n", k) + 3;
-  // (7-oct · y lo que usa: la lista de mods —aquí, lo que dice de cada uno para reconocerlo— y sus dos ayudantes)
-  const ayudantes = (com.match(/^const propio = .*$/m) || [""])[0] + "\n" + (com.match(/^const conVersion = .*$/m) || [""])[0] + "\n";
-  const MODS = /\bMODS\b/.test(com.slice(k, k2)) ? "const MODS = { stargate: { reconocer: 'bloque' }, ceniza: {} };\n" : "";
-  const plan = new Function(MODS + ayudantes + com.slice(k, k2).replace("export function", "function") + src.slice(i, j).replace("export function", "function") + "; return planMiNombre;")();
+  // 7-oct · modWebDe recorre la lista MODS (functions/mods/index.js): con sus dos ayudantes y STARGATE reconocido por su bloque
+  const k0 = com.indexOf("const propio"), apoyo = k0 >= 0 && k0 < k ? com.slice(k0, k) + "const MODS = { stargate: { reconocer: 'bloque' }, ceniza: {} };\n" : "";
+  const plan = new Function(apoyo + com.slice(k, k2).replace("export function", "function") + src.slice(i, j).replace("export function", "function") + "; return planMiNombre;")();
   const proyecto = { factions: [{ teacherName: "Ana" }, { teacherName: "Luis" }],
     stargate: { paneles: { Ana: "p-ana", Luis: "p-luis" }, sesiones: { Ana: ["zoco"] }, avatares: { Ana: "c7" } } };
   const docentes = [{ nombre: "Ana", correo: "ana@x.es" }, { nombre: "Luis", correo: "luis@x.es" }];
