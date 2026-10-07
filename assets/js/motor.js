@@ -772,6 +772,13 @@ if (!window.SG_CATALOGO) {
  * la sesión, en el servidor, e ignora lo que le manden. Un alumno no decide cuánto cobra.
  */
 const LLAMADA = "attendance_sessions", FICHAJES = "attendance_records";
+/*
+ * 7-oct · LA LLAMADA ES DEL SDK DE GAMIFICAPRO (GP_SDK.asistencia, paso 6): la abierta (activa, sin caducar y la que acaba más
+ * tarde; con `elegir`, la de mi escuadrón o la mía), escucharla, abrirla (lo que paga va EN LA SESIÓN), cerrarla, quién ha
+ * fichado (en orden de llegada) y fichar por el servidor (`modFichar`). Aquí queda lo de STARGATE: lo que paga (15 xp y 30
+ * créditos), para qué escuadrón es, el regalo y cómo se abre.
+ */
+const ASISTENCIA = SDK.asistencia.crear(CTX);
 
 /**
  * La llamada abierta de un grupo, si la hay. Devuelve null si no hay ninguna o ya ha caducado.
@@ -782,22 +789,8 @@ const LLAMADA = "attendance_sessions", FICHAJES = "attendance_records";
  * otro. Una función (la de mi escuadrón) o 'mia' (la que abrió quien mira).
  */
 async function llamadaAbierta(perId, elegir) {
-  const r = await getDocs(query(collection(db, LLAMADA),
-    where("projectId", "==", perId), where("active", "==", true)));
-  const ahora = Date.now();
-  const vivas = r.docs
-    .map(d => ({ id: d.id, ...d.data() }))
-    .filter(x => fin(x) > ahora)
-    .sort((a, b) => fin(b) - fin(a));
-  let f = typeof elegir === "function" ? elegir : null;
-  if (elegir === "mia") { const yo = await sesion(); f = x => !!yo && x.teacherId === yo.uid; }
-  return (f ? vivas.filter(f) : vivas)[0] || null;
+  return ASISTENCIA.abierta(perId, elegir);
 }
-const fin = x => {
-  const t = x && x.endTime;
-  if (!t) return 0;
-  return t.toDate ? t.toDate().getTime() : new Date(t).getTime();
-};
 
 /**
  * Abrir la llamada. La abre un docente para SU escuadrón y nadie más.
@@ -820,25 +813,22 @@ async function abrirLlamada(perId, minutos, opciones) {
   const nombre = o.comandante || (mio && mio.nombre) || yo.nombre || yo.correo;
   const faccion = (proy.factions || []).filter(f => f.teacherName === nombre)[0] || null;
 
-  const ahora = new Date();
-  const hasta = new Date(ahora.getTime() + Math.max(1, Number(minutos) || 60) * 60000);
-  const ref = await addDoc(collection(db, LLAMADA), Object.assign({
-    projectId: perId, teacherId: yo.uid, teacherDisplayName: nombre,
-    startTime: ahora, endTime: hasta, active: true,
-    pointsReward: o.xp == null ? 15 : Number(o.xp),
-    coinsReward: o.creditos == null ? 30 : Number(o.creditos),
-    autoReward: true,
-    // 🔴 El regalo se guarda EN LA SESIÓN, no se decide al fichar. Así todo el mundo recibe lo
-    // mismo —lo eligió el docente al abrirla— y quien llega tarde no se lleva algo distinto.
-    stargateRegalo: String(o.regalo || "")
-  }, faccion ? { restrictedFactionId: faccion.id } : {}));
-  return { id: ref.id, hasta: hasta.getTime(), escuadron: faccion ? faccion.name : null,
-           comandante: nombre, minutos: Math.max(1, Number(minutos) || 60) };
+  const r = await ASISTENCIA.abrir(perId, {
+    minutos: Math.max(1, Number(minutos) || 60), nombre: nombre,
+    xp: o.xp == null ? 15 : Number(o.xp), creditos: o.creditos == null ? 30 : Number(o.creditos),
+    textos: { sinSesion: "Entra con tu cuenta para tocar llamada a filas" },
+    extra: Object.assign({
+      // 🔴 El regalo se guarda EN LA SESIÓN, no se decide al fichar. Así todo el mundo recibe lo
+      // mismo —lo eligió el docente al abrirla— y quien llega tarde no se lleva algo distinto.
+      stargateRegalo: String(o.regalo || "")
+    }, faccion ? { restrictedFactionId: faccion.id } : {})
+  });
+  return { id: r.id, hasta: r.hasta, escuadron: faccion ? faccion.name : null, comandante: nombre, minutos: r.minutos };
 }
 
 /** Cerrarla antes de tiempo. */
 async function cerrarLlamada(sesionId) {
-  await updateDoc(doc(db, LLAMADA, sesionId), { active: false, endTime: new Date() });
+  await ASISTENCIA.cerrar(sesionId);
 }
 
 /**
@@ -871,21 +861,15 @@ async function ficharLlamada(perId, fichaId) {
    */
   let tz = "Europe/Madrid";
   try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || tz; } catch (e) { /* la de Madrid */ }
-  const r = await llamar("modFichar", { projectId: perId, studentProfileId: fichaId, tz: tz });
+  const r = await ASISTENCIA.fichar(perId, fichaId, { tz: tz });
   if (r.repetido) return { ok: true, repetido: true };
   let regalo = null;
   try {
     if (r.regalo && r.regalo.rewardId) {
-      regalo = [];
-      for (let i = 0; i < Number(r.regalo.usos || 1); i++) {
-        try {
-          const c = await llamar("consumeItem", { projectId: perId, rewardId: r.regalo.rewardId, studentProfileId: fichaId });
-          const b = c && (c.botin || c.obtenido);
-          // la pantalla de la Nave espera {clave, nombre, rareza}; el servidor devuelve el id de la
-          // carta en cadena. Sin traducirlo, la celebración pedía «undefined_carta.png».
-          if (b) regalo.push(cartaDeBotin(b));
-        } catch (e) { break; }   // lo que no se abra se queda en el inventario, para abrirlo en el álbum
-      }
+      // en serie (GP_SDK.premios.abrir); lo que no se abra se queda en el inventario, para abrirlo en el álbum. La pantalla de
+      // la Nave espera {clave, nombre, rareza}; el servidor devuelve el id de la carta en cadena (sin traducirlo, la
+      // celebración pedía «undefined_carta.png»)
+      regalo = botines((await PREMIOS.abrir(perId, r.regalo.rewardId, fichaId, Number(r.regalo.usos || 1))).resultados).map(cartaDeBotin);
     }
   } catch (e) { /* el fichaje ya está hecho y pagado: abrir el regalo nunca puede tumbarlo */ }
 
@@ -909,16 +893,8 @@ function fechaDe(t) {
  * pestaña deja conexiones vivas de por vida.
  */
 function vigilarLlamada(perId, alCambiar, elegir) {
-  return onSnapshot(query(collection(db, LLAMADA),
-    where("projectId", "==", perId), where("active", "==", true)),
-    r => {
-      const ahora = Date.now();
-      const vivas = r.docs.map(d => ({ id: d.id, ...d.data() }))
-        .filter(x => fin(x) > ahora).sort((a, b) => fin(b) - fin(a));
-      // (15-sep · `elegir`: la de mi escuadrón o la mía, no «la más reciente del grupo»)
-      alCambiar((typeof elegir === "function" ? vivas.filter(elegir) : vivas)[0] || null, vivas);
-    },
-    () => alCambiar(null, []));
+  // (15-sep · `elegir`: la de mi escuadrón o la mía, no «la más reciente del grupo»)
+  return ASISTENCIA.vigilar(perId, alCambiar, elegir);
 }
 
 /**
@@ -1972,16 +1948,11 @@ const oferta = (perId, accion, datos) => llamar("stargateOferta", Object.assign(
  * (Dos igualdades y una de ellas es su uid: es lo que dejan leer las reglas, y no hace falta índice nuevo.)
  */
 async function yaFiche(sesionId, uid) {
-  if (!sesionId || !uid) return false;
-  const r = await getDocs(query(collection(db, FICHAJES), where("sessionId", "==", sesionId), where("userId", "==", uid)));
-  return !r.empty;
+  return ASISTENCIA.yaFiche(sesionId, uid);
 }
 
 async function fichajesDe(sesionId) {
-  const r = await getDocs(query(collection(db, FICHAJES), where("sessionId", "==", sesionId)));
-  return r.docs.map(d => ({ id: d.id, ...d.data() }))
-    .sort((a, b) => (a.registeredAt?.toDate ? a.registeredAt.toDate() : new Date(a.registeredAt))
-                  - (b.registeredAt?.toDate ? b.registeredAt.toDate() : new Date(b.registeredAt)));
+  return ASISTENCIA.fichajes(sesionId);
 }
 
 /**
