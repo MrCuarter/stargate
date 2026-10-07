@@ -45,9 +45,13 @@ c(/window\.SG_REFLEXION=/.test(html) && /window\.SG_REFLEXION=/.test(leer("sesio
   /window\.SG_REFLEXION=/.test(leer("validar.html")), "   la regla llega a la Nave, la sesión, la consola y la caja de validar");
 
 // 3 · el motor, en un solo sitio
-c(/const REFLEX = "stargate_reflexiones", COMENT = "stargate_comentarios"/.test(M), "el motor guarda en stargate_reflexiones y stargate_comentarios");
-c(/function idReflexion\(perId, reto, fichaId\) \{ return perId \+ "__" \+ reto \+ "__" \+ fichaId; \}/.test(M), "   una por recluta y reto (grupo__reto__ficha)");
-c(/async function borrarReflexion[\s\S]{0,600}where\("reflexion", "==", id\)[\s\S]{0,300}deleteDoc\(doc\(db, REFLEX, id\)\)/.test(M),
+// (7-oct · desde el paso 8 del SDK de GamificaPro, lo hace GP_SDK.retos y el motor le pasa sus textos)
+const RT = require("./sdk_pieza.js").pieza("retos"), retosSDK = /const RETOS = SDK\.retos\.crear\(CTX\);/.test(M);
+c(/const REFLEX = "stargate_reflexiones", COMENT = "stargate_comentarios"/.test(M) || retosSDK && /var REFLEX = "stargate_reflexiones", COMENT = "stargate_comentarios";/.test(RT), "el motor guarda en stargate_reflexiones y stargate_comentarios");
+c(/function idReflexion\(perId, reto, fichaId\) \{ return perId \+ "__" \+ reto \+ "__" \+ fichaId; \}/.test(M) ||
+  retosSDK && /const idReflexion = SDK\.retos\.idReflexion;/.test(M) && /function idReflexion\(grupo, reto, fichaId\) \{ return grupo \+ "__" \+ reto \+ "__" \+ fichaId; \}/.test(RT), "   una por recluta y reto (grupo__reto__ficha)");
+c(/async function borrarReflexion[\s\S]{0,600}where\("reflexion", "==", id\)[\s\S]{0,300}deleteDoc\(doc\(db, REFLEX, id\)\)/.test(M) ||
+  retosSDK && /RETOS\.borrarReflexion\(perId, reto, fichaId\)/.test(M) && /function borrarReflexion[\s\S]{0,600}fs\.where\("reflexion", "==", id\)[\s\S]{0,400}fs\.deleteDoc\(fs\.doc\(db, REFLEX, id\)\)/.test(RT),
   "   quitar una reflexión quita antes sus comentarios (si no, se quedarían colgando)");
 c(["guardarReflexion", "reflexionesDe", "misReflexiones", "comentariosDe", "comentar", "borrarComentario", "borrarReflexion", "enlaceDeReflexion"]
   .every(f => new RegExp("\\b" + f + ",").test(trozo(M, "window.SG.MOTOR = {", 3000))), "   y todo se exporta en window.SG.MOTOR");

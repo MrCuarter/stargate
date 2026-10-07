@@ -477,8 +477,8 @@ const AJUSTE_DOCENTE = "teacher_resource_adjustment";
 async function otorgarReto(perId, fichaId, retoId) {
   // 5-oct · lo hace el servidor de GamificaPro (`modOtorgarReto`): paga, marca, sella, pone la insignia y lo apunta como
   // validado a mano (no gasta hueco del tope) en UNA transacción. Antes eran dos pasos: si fallaba el segundo, el reto
-  // quedaba pagado y sin marcar, y se podía volver a pagar.
-  return llamar("modOtorgarReto", { projectId: perId, studentProfileId: fichaId, retoId: retoId });
+  // quedaba pagado y sin marcar, y se podía volver a pagar. (7-oct · la petición, de GP_SDK.retos)
+  return RETOS.otorgar(perId, fichaId, retoId);
 }
 
 /**
@@ -503,14 +503,15 @@ async function anularReto(perId, fichaId, retoId, motivo) {
    * anula un docente, para que la consola se lo diga.
    */
   try {
-    return await llamar("stargateAnularReto", { projectId: perId, studentProfileId: fichaId, retoId: retoId,
-                                                motivo: motivo || "" });
+    // (7-oct · la petición, de GP_SDK.retos: el porqué, cortado a 200 como lo corta el servidor)
+    return await RETOS.anular(perId, fichaId, retoId, motivo);
   } catch (e) {
     // 🔴 PLAN B mientras la función no esté desplegada en producción: el camino viejo, que para un
     // DOCENTE funciona (a un alumno el servidor se lo seguirá negando, como hasta hoy). Sin esto,
     // subir la web antes que la función le rompería al profesorado su «quitar reto».
-    const falta = /not-found|unimplemented|internal|does not exist/i.test(String((e && (e.code || "")) + " " + (e && e.message)));
-    if (!falta) throw e;
+    // (7-oct · «sin desplegar» POR CÓDIGO, del SDK: un «no» con texto del servidor, aunque no lleve tildes —«No existe el
+    // reto»—, ya no se toma por función sin desplegar ni manda al camino viejo)
+    if (!SDK.errores.sinDesplegar(e)) throw e;
     return anularRetoViejo(perId, fichaId, retoId, motivo);
   }
 }
@@ -523,8 +524,8 @@ async function anularReto(perId, fichaId, retoId, motivo) {
  * marca como leída solo su destinatario). Con `stargate` dentro, para que la Nave distinga los suyos de los del motor.
  */
 async function avisarRecluta(perId, userId, { reto = "", accion = "", texto = "", de = "", titulo = "", regalo = null } = {}) {
-  if (!userId) throw new Error("No sé a quién mandárselo");
-  const t = String(texto || "").trim().slice(0, 400);
+  if (!userId) throw new Error(TEXTOS_RETOS.sinDestino);
+  const t = String(texto || "").trim().slice(0, SDK.retos.TOPES.aviso);
   const tit = titulo || (accion === "anulado" ? "Tu Comandante ha anulado el reto " + reto
                                               : accion === "validado" ? "Tu Comandante ha validado el reto " + reto
                                               : accion === "regalo" ? "Un regalo de tu Comandante" : "Mensaje de tu Comandante");
@@ -540,11 +541,8 @@ async function avisarRecluta(perId, userId, { reto = "", accion = "", texto = ""
     piezas: (regalo.piezas || []).slice(0, 10).map(p => ({ clave: String(p.clave || ""), tipo: String(p.tipo || ""),
       nombre: String(p.nombre || "").slice(0, 80), rareza: String(p.rareza || "") }))
   };
-  const r = await addDoc(collection(db, "notifications"), {
-    userId, projectId: perId, type: accion === "validado" ? "mission_validated" : "internal_message",
-    title: tit, message: t, read: false, createdAt: Date.now(), stargate: sg
-  });
-  return r.id;
+  // (7-oct · lo escribe GP_SDK.retos: la bandeja de GamificaPro, con la marca de STARGATE en su campo)
+  return RETOS.avisar(perId, userId, { accion, titulo: tit, texto: t, campo: "stargate", marca: sg }, TEXTOS_RETOS);
 }
 /**
  * 🔴 20-sep · LA CREDENCIAL DE LA SESIÓN, para lo poco que vive FUERA de Firestore: el lector del ticket de
@@ -559,13 +557,9 @@ async function credencial() {
 /** La Nave, a la escucha de los mensajes sin leer de su Comandante en este grupo (en directo, como la llamada a filas). */
 function vigilarMensajes(perId, alCambiar) {
   const u = auth.currentUser;
-  if (!u) { alCambiar([]); return function () {}; }
-  return onSnapshot(query(collection(db, "notifications"), where("userId", "==", u.uid), where("projectId", "==", perId)),
-    r => alCambiar(r.docs.map(d => ({ id: d.id, ...d.data() }))
-      .filter(x => x.stargate && !x.read).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))),
-    () => alCambiar([]));
+  return RETOS.vigilarAvisos(perId, "stargate", alCambiar, u && u.uid);
 }
-async function mensajeLeido(id) { await updateDoc(doc(db, "notifications", id), { read: true }); }
+async function mensajeLeido(id) { await RETOS.avisoLeido(id); }
 
 async function anularRetoViejo(perId, fichaId, retoId, motivo) {
   const [mi, ficha] = await Promise.all([
@@ -745,6 +739,16 @@ async function miPapel() {
 const CTX = { fs: { db, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, writeBatch, onSnapshot, deleteField },
               llamar, sesion };
 const ALISTARSE = SDK.alistarse.crear(CTX);
+/*
+ * Los retos (GP_SDK.retos, paso 8): otorgar (`modOtorgarReto`) y anular (`stargateAnularReto`) por el servidor, el aviso al
+ * recluta en la bandeja de GamificaPro (`notifications`, con la marca `stargate`), las reflexiones y los comentarios.
+ */
+const RETOS = SDK.retos.crear(CTX);
+const TEXTOS_RETOS = {
+  sinDestino: "No sé a quién mandárselo",
+  sinSesionReflexion: "Entra con tu cuenta para guardar tu reflexión.", reflexionVacia: "La reflexión está vacía.",
+  sinSesionComentario: "Entra con tu cuenta para comentar.", comentarioVacio: "El comentario está vacío.",
+};
 
 // El catálogo (retos, insignias, niveles, tienda) sale de Datos.gs y se congela en la construcción.
 // Se pide aquí y no se incrusta en cada página: son 25 KB que solo necesitan las pantallas del motor
@@ -1019,73 +1023,39 @@ const BUZON_VALORA = {"si": "✓ Me ha resuelto la duda.", "mas": "Necesito algo
  * comentarios (`stargate_comentarios`), cortos: los quita su autor, el dueño de la reflexión o el profesorado. Las
  * reglas viven en GamificaPro (firestore.rules); qué retos la llevan, en `_site_data.py → REFLEXION_RETOS`.
  */
-const REFLEX = "stargate_reflexiones", COMENT = "stargate_comentarios";
-const TOPE_REFLEXION = 2000, TOPE_COMENTARIO = 400;
-function idReflexion(perId, reto, fichaId) { return perId + "__" + reto + "__" + fichaId; }
+/*
+ * 7-oct · DEL SDK DE GAMIFICAPRO (GP_SDK.retos, paso 8): guardar (conservando cuándo se creó), el enlace al día, leer, las
+ * mías, borrar con sus comentarios, y los comentarios. Aquí, los textos de STARGATE.
+ */
+const idReflexion = SDK.retos.idReflexion;
 async function guardarReflexion(perId, reto, fichaId, texto, enlace) {
-  const yo = await sesion();
-  if (!yo) throw new Error("Entra con tu cuenta para guardar tu reflexión.");
-  const t = String(texto || "").trim().slice(0, TOPE_REFLEXION);
-  if (!t) throw new Error("La reflexión está vacía.");
-  const ref = doc(db, REFLEX, idReflexion(perId, reto, fichaId));
-  let creado = Date.now();
-  try { const a = await getDoc(ref); if (a.exists()) creado = a.data().creado || creado; } catch (e) {}
-  const d = { projectId: perId, reto: reto, fichaId: fichaId, uid: yo.uid, texto: t, creado: creado, editado: Date.now() };
-  const e = String(enlace || "").trim().slice(0, 500);
-  if (e) d.enlace = e;
-  await setDoc(ref, d);
-  return ref.id;
+  return RETOS.guardarReflexion(perId, reto, fichaId, texto, enlace, TEXTOS_RETOS);
 }
 /** El enlace de una reflexión que ya existe, al día (se cambió desde «Cambiar enlace»). Si no hay reflexión, nada. */
 async function enlaceDeReflexion(perId, reto, fichaId, enlace) {
-  const ref = doc(db, REFLEX, idReflexion(perId, reto, fichaId));
-  try {
-    const a = await getDoc(ref);
-    if (!a.exists()) return;
-    await setDoc(ref, Object.assign({}, a.data(), { enlace: String(enlace || "").trim().slice(0, 500), editado: Date.now() }));
-  } catch (e) {}
+  await RETOS.enlaceDeReflexion(perId, reto, fichaId, enlace);
 }
 /** Todas las de un reto del grupo (o todas las del grupo), las más nuevas arriba (sin índices: se ordena aquí). */
 async function reflexionesDe(perId, reto) {
-  const q = reto ? query(collection(db, REFLEX), where("projectId", "==", perId), where("reto", "==", reto))
-                 : query(collection(db, REFLEX), where("projectId", "==", perId));
-  const r = await getDocs(q);
-  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.creado || 0) - (a.creado || 0));
+  return RETOS.reflexionesDe(perId, reto);
 }
 async function misReflexiones(perId) {
-  const yo = await sesion();
-  if (!yo) return [];
-  const r = await getDocs(query(collection(db, REFLEX), where("projectId", "==", perId), where("uid", "==", yo.uid)));
-  return r.docs.map(d => ({ id: d.id, ...d.data() }));
+  return RETOS.misReflexiones(perId);
 }
 /** Los comentarios de un reto del grupo, del más viejo al más nuevo (una conversación se lee así). */
 async function comentariosDe(perId, reto) {
-  const q = reto ? query(collection(db, COMENT), where("projectId", "==", perId), where("reto", "==", reto))
-                 : query(collection(db, COMENT), where("projectId", "==", perId));
-  const r = await getDocs(q);
-  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.creado || 0) - (b.creado || 0));
+  return RETOS.comentariosDe(perId, reto);
 }
 async function comentar(perId, reflexionId, reto, fichaId, texto) {
-  const yo = await sesion();
-  if (!yo) throw new Error("Entra con tu cuenta para comentar.");
-  const t = String(texto || "").trim().slice(0, TOPE_COMENTARIO);
-  if (!t) throw new Error("El comentario está vacío.");
-  const ref = await addDoc(collection(db, COMENT), { projectId: perId, reflexion: reflexionId, reto: reto,
-    fichaId: fichaId, uid: yo.uid, texto: t, creado: Date.now() });
-  return ref.id;
+  return RETOS.comentar(perId, reflexionId, reto, fichaId, texto, TEXTOS_RETOS);
 }
-async function borrarComentario(id) { await deleteDoc(doc(db, COMENT, id)); }
+async function borrarComentario(id) { await RETOS.borrarComentario(id); }
 /**
  * Quitar una reflexión: primero sus comentarios (si no, se quedarían colgando de nada) y luego ella. Lo hace su dueño
  * (al deshacer el reto) o el profesorado (para moderar). Un comentario que no se pueda quitar no para lo demás.
  */
 async function borrarReflexion(perId, reto, fichaId) {
-  const id = idReflexion(perId, reto, fichaId);
-  try {
-    const r = await getDocs(query(collection(db, COMENT), where("projectId", "==", perId), where("reflexion", "==", id)));
-    for (const d of r.docs) { try { await deleteDoc(d.ref); } catch (e) {} }
-  } catch (e) {}
-  await deleteDoc(doc(db, REFLEX, id));
+  await RETOS.borrarReflexion(perId, reto, fichaId);
 }
 
 /**

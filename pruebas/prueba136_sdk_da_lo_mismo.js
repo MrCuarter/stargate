@@ -33,6 +33,12 @@ const DIFERENCIAS = {
   // paso 4 · el SDK mira la reserva del alias ANTES de abrir la ficha (antes, solo las fichas, y la reserva paraba después)
   "alistar: un alias reservado sin ficha (de antes)": { porque: "el mismo «ya lo lleva alguien», sin enseñar antes «Abriendo tu ficha…»",
     espera: (a, b) => mismoError(a, b) && canon(a.progreso) === canon(["Abriendo tu ficha…"]) && canon(b.progreso) === "[]" },
+  // paso 8 · «sin desplegar» POR CÓDIGO (GP_SDK.errores): un «no» con texto del servidor sin tildes ya no manda al camino viejo
+  // paso 8 · el porqué de una anulación sale ya cortado a 200 (el servidor lo cortaba igual: functions/stargate.js)
+  "→ stargateAnularReto": { porque: "el porqué, cortado a 200 letras en el navegador (el servidor ya lo cortaba a 200)",
+    espera: (a, b) => canon(Object.assign({}, a, { motivo: String(a.motivo || "").slice(0, 200) })) === canon(b) && String(a.motivo || "").length > 200 },
+  "anularReto: el servidor dice que no (sin tildes)": { porque: "se ve el «no» del servidor, no el del camino viejo del navegador",
+    espera: (a, b) => a.error === "Ese reto no existe en este grupo: ZZ" && b.error === "No existe el reto" && b.code === "functions/not-found" },
 };
 
 /**

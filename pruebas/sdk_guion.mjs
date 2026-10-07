@@ -207,6 +207,8 @@ try {
   // ─── paso 8 · los retos, los avisos, las reflexiones y los comentarios
   await paso("otorgarReto", () => M.otorgarReto(NAVE, UNA, "L1"));
   await paso("anularReto", () => M.anularReto(NAVE, UNA, "L1", "x".repeat(250)));
+  ERRORES.stargateAnularReto = { code: "functions/not-found", message: "not-found" };
+  await paso("anularReto: sin desplegar (el camino de antes)", () => M.anularReto(NAVE, UNA, "X1", "porque"));
   ERRORES.stargateAnularReto = { code: "functions/not-found", message: "No existe el reto" };
   await paso("anularReto: el servidor dice que no (sin tildes)", () => M.anularReto(NAVE, UNA, "ZZ", "porque"));
   ERRORES.stargateAnularReto = { code: "functions/failed-precondition", message: "Ya no tienes los créditos" };
