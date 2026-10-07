@@ -23,6 +23,7 @@ const REG = {};   // cifras que se apuntan para el informe
     console.log("  Arráncalos con: firebase emulators:start --only auth,firestore,functions --project demo-stargate");
     process.exit(3);
   }
+  await L.cargarMapa();   // 7-oct · dónde está cada colección del servidor (L.sitio): vale antes y después de pasarlas a mod_*
   const CODIGO = await L.reiniciar();
   process.stderr.write("  laboratorio sembrado · código de clase " + CODIGO + "\n");
   await L.arrancar(VER);
@@ -355,8 +356,11 @@ const REG = {};   // cifras que se apuntan para el informe
       const cartasDespues = (dAna.inventory || []).filter(x => /__cromo_/.test(x)).length;
       c("🔴 clase · y el REGALO: tres cartas nuevas en su álbum", cartasDespues - cartasAntes === 3,
         "cartas " + cartasAntes + "→" + cartasDespues + " · inventario: " + (dAna.inventory || []).slice(-5).join(","));
-      const marca = await leerDoc("stargate_asistencia/" + hoy[0]._id + "__" + fAna._uid);
+      // 7-oct · donde diga el mapa (stargate_asistencia, o mod_asistencia cuando se pase), con el mismo id
+      const marca = await leerDoc(L.sitio("stargate_asistencia") + "/" + L.idEn("stargate_asistencia", hoy[0]._id + "__" + fAna._uid));
       c("clase · y queda apuntado que ya cobró (no se paga dos veces)", !!marca, JSON.stringify(marca));
+      if (L.nueva("stargate_asistencia"))
+        c("🔴 clase · la marca está en " + L.sitio("stargate_asistencia") + " con su mod y sin lo del espejo", !!marca && marca.mod === "stargate" && !("espejoDe" in marca), JSON.stringify(marca));
       await ana.foto(FOTOS + "/5-ana-presente.png");
 
       // pulsar otra vez no paga otra vez
@@ -573,8 +577,10 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 deshacer · la ALUMNA deshace su propio reto (el botón que Norberto marcó IMPORTANTE)",
         deshecho.totalPoints === antes.totalPoints && (deshecho.completedMissionIds || []).indexOf(retoNuevo) < 0,
         "xp " + tras.totalPoints + " → " + deshecho.totalPoints + " (tenía " + antes.totalPoints + ") · " + (await ana.texto()).slice(0, 160));
-      const aud = await consultar("stargate_anulaciones", "projectId", "lab-clase");
+      const aud = await consultar(L.sitio("stargate_anulaciones"), "projectId", "lab-clase");   // 7-oct · donde diga el mapa
       c("deshacer · y queda escrito quién lo deshizo", aud.some(x => x.por === "recluta"), JSON.stringify(aud.map(x => x.por)));
+      if (L.nueva("stargate_anulaciones"))
+        c("🔴 deshacer · el registro está en " + L.sitio("stargate_anulaciones") + " con su mod y sin lo del espejo", aud.length > 0 && aud.every(x => x.mod === "stargate" && !("espejoDe" in x)), JSON.stringify(aud.map(x => x.mod)));
     }
     // ============================================================ 8 · ABRIR UN SOBRE, CARTA A CARTA
     if (hacer(8)) {
@@ -3083,7 +3089,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.foto(FOTOS + "/27-ficha-anular-con-motivo.png");
       await rita.responder();
       c("mensaje · anulado, y le llega", await rita.hasta("/Anulado " + rG + "[\\s\\S]*le ha llegado tu mensaje/.test((document.querySelector('#c-modal .c-modal-aviso')||{}).textContent||'')", 30));
-      const anG = (await consultar("stargate_anulaciones", "projectId", P)).filter(x => x.retoId === rG && x.por === "docente").sort((a, b) => a.fecha - b.fecha).pop();
+      const anG = (await consultar(L.sitio("stargate_anulaciones"), "projectId", P)).filter(x => x.retoId === rG && x.por === "docente").sort((a, b) => a.fecha - b.fecha).pop();
       c("mensaje · el porqué queda también en el registro de anulaciones", !!anG && /no es público/.test(anG.motivo || "") && anG.por === "docente", JSON.stringify(anG && anG.motivo));
       const g7 = await naveDe("gelida", "mensajes");
       c("🔴 mensaje · Gélida ve arriba de su Nave los dos mensajes de su Comandante", await g7.hasta("document.querySelectorAll('.msg-cmd').length===2", 20)
@@ -4353,8 +4359,12 @@ const REG = {};   // cifras que se apuntan para el informe
       const limpia = q0 ? await nova.js(`(function(){ var t=document.documentElement.innerHTML + JSON.stringify(window.SG_BATALLA||{});
         return t.indexOf(${JSON.stringify((q0.correccion || "").slice(0, 40))}) < 0; })()`) : false;
       c("🔴 batalla · la página NO tiene la respuesta ni la corrección antes de responder", !!q0 && limpia === true, idQ);
-      const leer = await nova.js(`(async function(){ try { var M=window.SG.MOTOR; var r=await M.getDocs(M.query(M.collection(M.db,'stargate_batallas'))); return 'leidas:'+r.size; } catch(e){ return String(e.code||e.message); } })()`);
-      c("🔴 batalla · y las batallas no se pueden leer desde el navegador (dentro está el mazo)", /permission/i.test(leer), leer);
+      // 7-oct · las batallas no se leen desde el navegador, estén donde estén: se prueban SIEMPRE los dos sitios (la vieja y su
+      // mod_*; las reglas tampoco dejan la nueva), así vale antes y después de pasarla
+      for (const col of ["stargate_batallas", "mod_batallas"]) {
+        const leer = await nova.js(`(async function(){ try { var M=window.SG.MOTOR; var r=await M.getDocs(M.query(M.collection(M.db,${JSON.stringify(col)}))); return 'leidas:'+r.size; } catch(e){ return String(e.code||e.message); } })()`);
+        c("🔴 batalla · y " + col + " no se puede leer desde el navegador (dentro está el mazo)", /permission/i.test(leer), leer);
+      }
 
       // 3 · jugar: se responde lo correcto (el banco lo sabe esta prueba, no la web) y se golpea
       let vueltas = 0, gano = false;

@@ -27,6 +27,38 @@ const PUBLICA = `http://127.0.0.1:${EMU.functions}/${PROYECTO}/us-central1/table
 const BASE = `http://127.0.0.1:${P_WEB}/`;
 const dormir = ms => new Promise(r => setTimeout(r, ms));
 
+// ------------------------------------------------------------------ dónde está cada colección del servidor
+/**
+ * 7-oct · DÓNDE ESTÁ HOY CADA COLECCIÓN DEL SERVIDOR (PLAN_CENTRALIZAR de GamificaPro, «Las herramientas de las webs, antes
+ * de pasar cada colección»). Las funciones del emulador leen y escriben `stargate_asistencia`, `stargate_anulaciones`… donde
+ * diga su interruptor `fase` en el mapa de GamificaPro (functions/mods/colecciones.js): con 'vieja', en la de siempre; con
+ * 'nueva', en su `mod_*` y con `mod: 'stargate'`. El laboratorio pregunta al MISMO mapa —el del GamificaPro cuyas funciones
+ * corren en los emuladores: GAMIFICAPRO_DIR o el checkout de siempre— en vez de escribir el nombre, así que vale ANTES y
+ * DESPUÉS de pasar cada colección. Si ese GamificaPro es de antes del mapa, nada está pasado y valen los nombres de siempre.
+ *
+ *   await L.cargarMapa();                    una vez, al empezar
+ *   L.sitio("stargate_asistencia")           → "stargate_asistencia" o "mod_asistencia"
+ *   L.nueva("stargate_asistencia")           → true si ya está pasada
+ *   L.idEn("stargate_asistencia", id)        → el id donde esté (los 'suelto' llevan delante su mod; estas tres son 'azar')
+ */
+const GP = process.env.GAMIFICAPRO_DIR || "/Users/nor/Claude/vibewebs/gamificapro";
+let _mapa;   // undefined: sin cargar · null: GamificaPro de antes del mapa
+async function cargarMapa() {
+  if (_mapa !== undefined) return _mapa;
+  const f = path.join(GP, "functions", "mods", "colecciones.js");
+  _mapa = fs.existsSync(f) ? (await import(require("url").pathToFileURL(f).href)).COLECCIONES : null;
+  return _mapa;
+}
+function entradaDe(v) {
+  if (_mapa === undefined) throw new Error("laboratorio: falta `await L.cargarMapa()` antes de preguntar dónde está «" + v + "»");
+  if (_mapa === null) return null;
+  if (!_mapa[v]) throw new Error("«" + v + "» no está en el mapa de colecciones de GamificaPro (" + GP + "/functions/mods/colecciones.js)");
+  return _mapa[v];
+}
+const nueva = v => { const e = entradaDe(v); return !!e && e.fase === "nueva"; };
+const sitio = v => nueva(v) ? entradaDe(v).nueva : v;
+const idEn = (v, id) => nueva(v) && entradaDe(v).ids === "suelto" ? entradaDe(v).mod + "__" + id : String(id);
+
 // ------------------------------------------------------------------ emuladores
 async function emuladoresVivos() {
   try {
@@ -361,5 +393,5 @@ function comprobar(nombre, cierto, detalle) {
   fallos.push(t); process.stderr.write("   ✗ " + t + "\n"); return false;
 }
 
-module.exports = { emuladoresVivos, reiniciar, leerDoc, consultar, arrancar, parar, persona, comprobar, dormir, admin, fichaDe,
+module.exports = { cargarMapa, sitio, nueva, idEn, emuladoresVivos, reiniciar, leerDoc, consultar, arrancar, parar, persona, comprobar, dormir, admin, fichaDe,
                    marcador: () => ({ ok, fallos }), BASE, P_WEB2, PUBLICA, RAIZ };
