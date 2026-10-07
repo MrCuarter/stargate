@@ -84,10 +84,18 @@ const RESPUESTAS = {
   stargateAlumno: { ok: true, estado: "congelado" }, modVale: { ok: true, estado: "aprobado" },
   stargateSortear: { ok: true, ganadores: ["Tritón"] }, modSortear: { ok: true, ganadores: ["Tritón"] },
   stargateSorteosPendientes: { ok: true, resueltos: [] }, stargateOferta: (d) => ({ ok: true, oferta: d.accion === "crear" ? "rewards-oferta-" + d.projectId : undefined }),
+  stargateSecreto: (d) => ({ ok: d.texto === "lapalabra" }), stargateHitos: { ok: true, hitos: { reto: 1 }, nuevos: [] },
+  stargateBatalla: (d) => ({ ok: true, accion: d.accion, estado: "en curso" }), stargateMiNombre: (d) => ({ ok: true, grupos: ["nave-escuela"], fallos: [], nombre: d.nombre }),
   stargateFantasma: { ok: true }, miPapel: { ok: true, mods: { stargate: { vitalicio: false, mando: false } } },
 };
-globalThis.__SG_SERVIDOR = async (nombre, datos) => {
-  apunta("→ " + nombre, datos);
+// 7-oct (noche) · los nombres del motor son la MISMA función que los de siempre (GamificaPro functions/mods/nombres.js): el mostrador
+// apunta el nombre con que le llaman, y contesta (y falla) como la función de siempre, llamen por el que llamen
+const MISMA = { modEquipo: "stargateEquipo", modCambiarDocente: "stargateCambiarDocente", modMiNombre: "stargateMiNombre", modAlumno: "stargateAlumno",
+  modAnularReto: "stargateAnularReto", modSorteosPendientes: "stargateSorteosPendientes", modOferta: "stargateOferta", modLogros: "stargateHitos",
+  modSecreto: "stargateSecreto", modBatalla: "stargateBatalla" };
+globalThis.__SG_SERVIDOR = async (llamado, datos) => {
+  apunta("→ " + llamado, datos);
+  const nombre = MISMA[llamado] || llamado;
   if (ERRORES[nombre]) { const x = ERRORES[nombre]; delete ERRORES[nombre]; throw Object.assign(new Error(x.message), { code: x.code }); }
   const r = RESPUESTAS[nombre];
   return { data: typeof r === "function" ? r(datos) : JSON.parse(JSON.stringify(r === undefined ? { ok: true } : r)) };
@@ -314,6 +322,15 @@ try {
   await paso("oferta", () => M.oferta(NAVE, "semana"));
   await paso("crearOfertaEnGrupos", () => M.crearOfertaEnGrupos({ que: "sobre", pct: 20, dias: 3, unidades: 5 }, [NAVE]));
   await paso("ofertaEnGrupos", () => M.ofertaEnGrupos([{ per: NAVE, docId: "o1" }, { per: B, docId: "o2" }], "extender", { dias: 2 }));
+
+  // ─── 7-oct (noche) · las llamadas a mano que cambian al nombre del motor: la palabra secreta, los logros, la batalla y el nombre
+  await paso("traerPalabra: vale", () => M.traerPalabra(NAVE, "S7", "lapalabra"));
+  await paso("traerPalabra: no vale", () => M.traerPalabra(NAVE, "S7", "otra"));
+  await paso("hitos", () => M.hitos(NAVE));
+  ERRORES.stargateHitos = { code: "functions/not-found", message: "not-found" };
+  await paso("hitos: sin desplegar", () => M.hitos(NAVE));
+  await paso("batalla", async () => [await M.batalla("empezar", { projectId: NAVE, fichaId: UNA }), await M.batalla("responder", { projectId: NAVE, r: 2 })]);
+  await paso("cambiarMiNombre", () => M.cambiarMiNombre("  Comandante Ana  "));
 } catch (e) {
   apunta("💥 el guion se ha caído", { error: String((e && e.stack) || e) });
 }

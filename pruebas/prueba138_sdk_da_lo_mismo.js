@@ -36,7 +36,7 @@ const DIFERENCIAS = {
     espera: (a, b) => mismoError(a, b) && canon(a.progreso) === canon(["Abriendo tu ficha…"]) && canon(b.progreso) === "[]" },
   // paso 8 · «sin desplegar» POR CÓDIGO (GP_SDK.errores): un «no» con texto del servidor sin tildes ya no manda al camino viejo
   // paso 8 · el porqué de una anulación sale ya cortado a 200 (el servidor lo cortaba igual: functions/stargate.js)
-  "→ stargateAnularReto": { porque: "el porqué, cortado a 200 letras en el navegador (el servidor ya lo cortaba a 200)",
+  "→ modAnularReto": { porque: "el porqué, cortado a 200 letras en el navegador (el servidor ya lo cortaba a 200)",
     espera: (a, b) => canon(Object.assign({}, a, { motivo: String(a.motivo || "").slice(0, 200) })) === canon(b) && String(a.motivo || "").length > 200 },
   // paso 9 · lo mismo en darDeBaja y moverRecluta (el `sinDesplegar` de motor.js) y en el equipo
   "darDeBaja: «no» del servidor sin tildes": { porque: "se ve el «no» del servidor, no el del camino viejo del navegador",
@@ -69,6 +69,10 @@ const RENOMBRES = {
   // paso 11 · sortear, por el sorteo del motor (functions/stargateSorteo.js: el mismo sortearAhora, con el mod «stargate» de
   // siempre y el mismo candado, solo el referente; no mira la pieza «sorteo», que todos los grupos de STARGATE tienen)
   "→ stargateSortear": "→ modSortear",
+  // 8-oct · y el nombre del motor de lo demás que tiene (GamificaPro functions/mods/nombres.js, la MISMA función en el servidor):
+  // lo que va por el SDK (equipo, alumnado, anular, sorteos pendientes, oferta; cambiarDocente no lo llama ninguna pantalla de aquí)
+  "→ stargateEquipo": "→ modEquipo", "→ stargateAlumno": "→ modAlumno",
+  "→ stargateAnularReto": "→ modAnularReto", "→ stargateSorteosPendientes": "→ modSorteosPendientes", "→ stargateOferta": "→ modOferta",
 };
 function correr(motor, opc) {
   const r = spawnSync(process.execPath, [path.join(__dirname, "sdk_guion.mjs"), motor].concat(opc), { cwd: R, encoding: "utf8", maxBuffer: 64 << 20, env: Object.assign({}, process.env, { TZ: "Europe/Madrid" }) });

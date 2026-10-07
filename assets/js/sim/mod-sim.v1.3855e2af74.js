@@ -355,14 +355,21 @@ var simulador = pieza(function (module, exports) {
 
     // ── las funciones del servidor (httpsCallable): las que simula la web; las demás, dichas con palabras
     const QUE_HACE = o.queHace || {};
+    // 7-oct (noche) · el nombre del motor de una función es la MISMA función que su nombre de siempre (functions/mods/nombres.js;
+    // esta copia la comprueba tests/functions/mod-nombres.test.ts): la web que simule una la tiene con los dos nombres.
+    const MISMA = { modEquipo: "stargateEquipo", modCambiarDocente: "stargateCambiarDocente", modMiNombre: "stargateMiNombre",
+      modAlumno: "stargateAlumno", modAnularReto: "stargateAnularReto", modSorteosPendientes: "stargateSorteosPendientes",
+      modOferta: "stargateOferta", modLogros: "stargateHitos", modSecreto: "stargateSecreto", modBatalla: "stargateBatalla" };
+    const otroNombre = (n) => MISMA[n] || Object.keys(MISMA).find((k) => MISMA[k] === n) || null;
     const sinServidor = o.sinServidor || ((que) => "En el simulador no se puede " + que + ": eso lo hace el servidor, y aquí no hay servidor. En tu grupo de verdad, sí.");
     let FUNCIONES = null;
     function httpsCallable(fns, nombre) {
       return async (datos) => {
         await pausa();
         if (!FUNCIONES) FUNCIONES = (typeof o.funciones === "function" ? o.funciones(S) : o.funciones) || {};
-        if (FUNCIONES[nombre]) return { data: await FUNCIONES[nombre](datos || {}) };
-        throw conError(sinServidor(QUE_HACE[nombre] || "hacer esto", nombre), "functions/failed-precondition");
+        const otro = otroNombre(nombre), f = FUNCIONES[nombre] || (otro && FUNCIONES[otro]);
+        if (f) return { data: await f(datos || {}) };
+        throw conError(sinServidor(QUE_HACE[nombre] || (otro && QUE_HACE[otro]) || "hacer esto", nombre), "functions/failed-precondition");
       };
     }
 

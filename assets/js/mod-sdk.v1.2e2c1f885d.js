@@ -1,4 +1,4 @@
-/* GamificaPro · mod-sdk v1 — GENERADO por scripts/build-sdk.mjs (npm run build:sdk) desde sdk/semanas.js, sdk/llamar.js, sdk/papel.js, sdk/alistarse.js, sdk/premios.js, sdk/asistencia.js, sdk/votacion.js, sdk/retos.js, sdk/equipo.js, sdk/buzon.js, sdk/economia.js.
+/* GamificaPro · mod-sdk v1 — GENERADO por scripts/build-sdk.mjs (npm run build:sdk) desde sdk/semanas.js, sdk/llamar.js, sdk/papel.js, sdk/alistarse.js, sdk/premios.js, sdk/asistencia.js, sdk/votacion.js, sdk/retos.js, sdk/equipo.js, sdk/buzon.js, sdk/economia.js, sdk/sitio.js.
  * No se edita a mano ni en las webs: se cambian las piezas en GamificaPro y se genera otro paquete (otra huella).
  * Sin claves, sin textos y sin colores de ningún mod. Deja window.GP_SDK (o module.exports en Node):
  *   GP_SDK.semanas                         la receta de las semanas (la de window.SGSEMANAS)
@@ -6,6 +6,7 @@
  *   GP_SDK.errores                         { codigo, delServidor, sinDesplegar, es, CODIGOS }
  *   GP_SDK.papel(llamar)                   → { miPapel(uid), olvidar() };  GP_SDK.papelDe(respuesta, mod) → { vitalicio, mando }
  *   GP_SDK.<pieza>.crear({ fs, llamar, sesion })   las piezas con ctx: alistarse, premios, asistencia, votacion, retos, equipo, buzon, economia
+ *   GP_SDK.sitio(vieja, proyecto)          → { coleccion, nueva, id(), datos(), mod }: dónde van los datos de ese grupo
  */
 (function (raiz) {
 function pieza(cuerpo) { var module = { exports: {} }; cuerpo.call({}, module, module.exports); return module.exports; }
@@ -312,13 +313,16 @@ var alistarse = pieza(function (module, exports) {
  *                      coincidiera, el servidor rechazaría la reserva (le pasó a «Olga Órbita» el 13-sep en STARGATE).
  *   · `plano(alias)`   para comparar alias a ojo: sin mayúsculas, sin tildes y sin espacios de más («Haló» = «halo»).
  *   · `COLECCION`      dónde viven las reservas: `stargate_alias/{grupo}__{clave}` (la de siempre, para los dos mods, hasta que
- *                      la migración en caliente la pase a `mod_alias`).
+ *                      la migración en caliente la pase a `mod_alias`). 7-oct · un grupo de la versión definitiva (§1d del plan)
+ *                      las tiene en `mod_alias`, con su `mod`: lo decide `ctx.sitio` (abajo).
  *   · `fichaNueva(uid, grupo, alias, extra)`  la ficha a cero de GamificaPro + los campos del mod (`extra`: la piel).
  *   · `crear(ctx)` → { ref, ocupado, reservar, alistar, cambiarAlias }, con `ctx = { fs, llamar, sesion }`:
  *       - `fs`      las funciones de Firestore de la web (las de verdad, las del emulador o las del simulador): db, doc, getDoc,
  *                   getDocs, setDoc, updateDoc, collection, query, where, writeBatch;
  *       - `llamar`  el de GP_SDK.llamador;
- *       - `sesion`  () → promesa de { uid, correo, nombre, anonimo } o null (la sesión de la web).
+ *       - `sesion`  () → promesa de { uid, correo, nombre, anonimo } o null (la sesión de la web);
+ *       - `sitio`   (opcional, 7-oct) (vieja, grupo) → el `GP_SDK.sitio(vieja, datos del grupo)` de ese grupo (o una promesa de
+ *                   él): dónde va la reserva de ESE grupo. Sin él, la colección de siempre, exactamente como antes.
  *
  * Los textos de los errores son de la web (cada mod habla con su voz): van en `textos`, con unos por defecto neutros. Lo que se
  * puede hacer lo deciden las reglas; esto solo lo prepara bien y lo cuenta con palabras.
@@ -370,6 +374,16 @@ var alistarse = pieza(function (module, exports) {
     var sesion = ctx.sesion || function () { return Promise.resolve(null); };
 
     function ref(grupo, alias) { return fs.doc(db, COLECCION, grupo + "__" + clave(alias)); }
+    /**
+     * 7-oct · LA RESERVA DE ESTE GRUPO (§1d de docs/PLAN_CENTRALIZAR.md): → promesa de { ref, datos(d) }. Con `ctx.sitio`, donde
+     * diga `sitio` para el grupo (en `mod_alias`, con su `mod`, si es de la definitiva); sin él, `ref` y los datos tal cual.
+     */
+    function reserva(grupo, alias) {
+      if (!ctx.sitio) return Promise.resolve({ ref: ref(grupo, alias), datos: function (d) { return d; } });
+      return Promise.resolve(ctx.sitio(COLECCION, grupo)).then(function (s) {
+        return { ref: fs.doc(db, s.coleccion, s.id(grupo + "__" + clave(alias))), datos: s.datos };
+      });
+    }
 
     /**
      * ¿Lo lleva otra persona del grupo? → el alias con el que lo lleva (para decirlo), o null.
@@ -380,10 +394,11 @@ var alistarse = pieza(function (module, exports) {
      */
     function ocupado(grupo, alias, excepto) {
       var e = excepto || {};
-      var reserva = (e.uid || !e.ficha)
-        ? fs.getDoc(ref(grupo, alias)).then(function (r) { return r && r.exists() && r.data().uid !== e.uid ? String(r.data().alias || alias) : null; }, function () { return null; })
+      var suya = (e.uid || !e.ficha)
+        ? reserva(grupo, alias).then(function (x) { return fs.getDoc(x.ref); })
+          .then(function (r) { return r && r.exists() && r.data().uid !== e.uid ? String(r.data().alias || alias) : null; }, function () { return null; })
         : Promise.resolve(null);
-      return reserva.then(function (deOtro) {
+      return suya.then(function (deOtro) {
         if (deOtro) return deOtro;
         return fs.getDocs(fs.query(fs.collection(db, "student_profiles"), fs.where("projectId", "==", grupo))).then(function (r) {
           var otro = r.docs.filter(function (d) {
@@ -396,13 +411,15 @@ var alistarse = pieza(function (module, exports) {
 
     /** Reserva el alias para `uid` DENTRO del lote que escribe la ficha. Si ya es suyo, nada; si es de otro, para con palabras. */
     function reservar(lote, grupo, uid, alias, textos) {
-      return fs.getDoc(ref(grupo, alias)).catch(function () { return null; }).then(function (r) {
-        if (r && r.exists()) {
-          if (r.data().uid === uid) return false;
-          throw new Error(texto(textos, "ocupado", alias));
-        }
-        lote.set(ref(grupo, alias), { projectId: grupo, uid: uid, alias: String(alias), creado: Date.now() });
-        return true;
+      return reserva(grupo, alias).then(function (x) {
+        return fs.getDoc(x.ref).catch(function () { return null; }).then(function (r) {
+          if (r && r.exists()) {
+            if (r.data().uid === uid) return false;
+            throw new Error(texto(textos, "ocupado", alias));
+          }
+          lote.set(x.ref, x.datos({ projectId: grupo, uid: uid, alias: String(alias), creado: Date.now() }));
+          return true;
+        });
       });
     }
 
@@ -493,7 +510,7 @@ var alistarse = pieza(function (module, exports) {
         var cambios = Object.assign({}, extra || {}, { displayName: nuevo });
         return reservar(lote, grupo, uid, nuevo, textos).then(function () {
           if (clave(viejo) === clave(nuevo)) return null;
-          return fs.getDoc(ref(grupo, viejo)).catch(function () { return null; }).then(function (rv) {
+          return reserva(grupo, viejo).then(function (x) { return fs.getDoc(x.ref); }).catch(function () { return null; }).then(function (rv) {
             if (rv && rv.exists() && rv.data().uid === uid) lote.delete(rv.ref);
           });
         }).then(function () {
@@ -509,7 +526,7 @@ var alistarse = pieza(function (module, exports) {
       });
     }
 
-    return { ref: ref, ocupado: ocupado, reservar: reservar, alistar: alistar, cambiarAlias: cambiarAlias };
+    return { ref: ref, reserva: reserva, ocupado: ocupado, reservar: reservar, alistar: alistar, cambiarAlias: cambiarAlias };
   }
 
   return { COLECCION: COLECCION, plano: plano, clave: clave, fichaNueva: fichaNueva, TEXTOS: TEXTOS, crear: crear };
@@ -714,16 +731,33 @@ var asistencia = pieza(function (module, exports) {
  *   🔴 Se ESCUCHA (onSnapshot), no se pregunta cada X segundos: con 200 estudiantes, preguntar cada diez segundos son 1.200
  *      lecturas por minuto. `vigilar` devuelve la función para dejar de escuchar.
  *
- * Puro: `ms(t)` (Timestamp, Date, cadena o número → milisegundos; 0 si no hay), `fin(sesion)`, `COLECCIONES`.
+ * Puro: `ms(t)` (Timestamp, Date, cadena o número → milisegundos; 0 si no hay), `fin(sesion)`, `COLECCIONES`, `CAMPO_CLASE`,
+ * `marcas(porUid, prefijo)` y `reparto(o)` (abajo, «el histórico»).
  * Con `crear(ctx)` (ctx = { fs, llamar, sesion }): `abierta(grupo, elegir)`, `vigilar(grupo, alCambiar, elegir)`,
- * `abrir(grupo, o)`, `cerrar(id)`, `fichajes(sesionId)` (en orden de llegada), `yaFiche(sesionId, uid)` y
- * `fichar(grupo, fichaId, { tz })`. Cuánto se paga, a quién va la llamada (`restrictedFactionId`) y el regalo son de cada web.
+ * `abrir(grupo, o)`, `cerrar(id)`, `fichajes(sesionId)` (en orden de llegada), `yaFiche(sesionId, uid)`,
+ * `fichar(grupo, fichaId, { tz })` e `historial(grupo)`. Cuánto se paga, a quién va la llamada (`restrictedFactionId`) y el
+ * regalo son de cada web.
+ *
+ * EL HISTÓRICO DE UN GRUPO (7-oct, la deuda del §6 del plan: salió de DPG, web-camino → motor.js · asistenciaGrupo y
+ * motor/asistencia.js, y da lo mismo, probado). Mi gente → Asistencia cuenta TODO fichaje de cada llamada, entre por donde
+ * entre (la clase en directo, el enlace del chat, la diapositiva de la sesión): todos los escribe el servidor (`modFichar`) en
+ * `attendance_records`. Y reparte cada llamada a UNA clase del curso del mod:
+ *   1. la que lleva escrita (`modClase`, CAMPO_CLASE: la pone `abrir(grupo, { clase })` cuando quien abre sabe qué clase da);
+ *   2. si no, la que dicen quienes ficharon en ella desde la clase en directo (`enClase`; gana la más votada de su semana);
+ *   3. si tampoco, por el día: en una semana con varias clases, el primer día con llamada es la primera clase de la semana, el
+ *      siguiente la segunda (las ya repartidas no se repiten; si se acaban, la última). El mismo día, la misma clase.
+ * Lo de la clase en directo cuenta además. Quien ficha por dos puertas en la misma clase cuenta UNA vez.
+ * Sin piel: cómo se llaman las clases y su semana (`clases`), el calendario (`dia`, `semanaDe`) y dónde vive la marca de la
+ * clase en directo (la web la lee y la pasa; `marcas(porUid, prefijo)` la saca de un mapa de fichas con el prefijo del mod)
+ * los da quien llama.
  */
 (function (raiz, fabrica) {
   if (typeof module === "object" && module.exports) module.exports = fabrica();
   else raiz.GPASISTENCIA = fabrica();
 })(typeof self !== "undefined" ? self : this, function () {
   var COLECCIONES = { llamadas: "attendance_sessions", fichajes: "attendance_records" };
+  /** El campo de la llamada con la clase que se da (lo escribe `abrir` con `o.clase`; el servidor no lo lee). */
+  var CAMPO_CLASE = "modClase";
 
   /** Firestore devuelve Timestamp; de una exportación puede llegar cadena o número. */
   function ms(t) {
@@ -776,8 +810,8 @@ var asistencia = pieza(function (module, exports) {
     }
     /**
      * Abrir la llamada. o = { minutos (30 si no), xp, creditos (lo que paga: va en la sesión), nombre (quien la toca; si no, el
-     * de la cuenta), extra: { restrictedFactionId, stargateRegalo… } (lo del mod), textos: { sinSesion } }
-     * → { id, hasta (ms), minutos }.
+     * de la cuenta), clase (la clase que se da, para el histórico: va en `modClase`), extra: { restrictedFactionId,
+     * stargateRegalo… } (lo del mod), textos: { sinSesion } } → { id, hasta (ms), minutos }.
      */
     function abrir(grupo, o) {
       o = o || {};
@@ -789,6 +823,7 @@ var asistencia = pieza(function (module, exports) {
           startTime: ahora, endTime: hasta, active: true,
           pointsReward: Math.max(0, Number(o.xp) || 0), coinsReward: Math.max(0, Number(o.creditos) || 0), autoReward: true,
         }, o.extra || {});
+        if (o.clase != null && String(o.clase) !== "") datos[CAMPO_CLASE] = String(o.clase);
         return fs.addDoc(fs.collection(db, COLECCIONES.llamadas), datos).then(function (ref) {
           return { id: ref.id, hasta: hasta.getTime(), minutos: minutos };
         });
@@ -824,10 +859,110 @@ var asistencia = pieza(function (module, exports) {
       return ctx.llamar("modFichar", datos);
     }
 
-    return { abierta: abierta, vigilar: vigilar, abrir: abrir, cerrar: cerrar, fichajes: fichajes, yaFiche: yaFiche, fichar: fichar };
+    /**
+     * El histórico de un grupo: todas sus llamadas y todos sus fichajes (dos lecturas, sin escuchar; los fichajes los dejan leer
+     * las reglas a su equipo docente). → { llamadas: [{ id, inicio (ms), clase (lo escrito en `modClase`, o null) }],
+     * fichajes: [{ sessionId, userId }] }, lo que pide `reparto`.
+     */
+    function historial(grupo) {
+      var g = String(grupo);
+      return Promise.all([
+        fs.getDocs(fs.query(fs.collection(db, COLECCIONES.llamadas), fs.where("projectId", "==", g))),
+        fs.getDocs(fs.query(fs.collection(db, COLECCIONES.fichajes), fs.where("projectId", "==", g))),
+      ]).then(function (r) {
+        return {
+          llamadas: r[0].docs.map(function (d) {
+            var x = d.data() || {};
+            return { id: d.id, inicio: ms(x.startTime), clase: typeof x[CAMPO_CLASE] === "string" ? x[CAMPO_CLASE] : null };
+          }),
+          fichajes: r[1].docs.map(function (d) { var x = d.data() || {}; return { sessionId: String(x.sessionId || ""), userId: String(x.userId || "") }; }),
+        };
+      });
+    }
+
+    return { abierta: abierta, vigilar: vigilar, abrir: abrir, cerrar: cerrar, fichajes: fichajes, yaFiche: yaFiche, fichar: fichar,
+      historial: historial };
   }
 
-  return { COLECCIONES: COLECCIONES, ms: ms, fin: fin, crear: crear };
+  /**
+   * Las marcas de la clase en directo, del mapa de cada ficha: { uid: { "<prefijo><clase>": algo } } → { uid: { clase: true } }
+   * (solo las que valen: lo demás de la ficha, fuera). El prefijo es del mod (DPG: «fich:», en su ficha de la clase).
+   */
+  function marcas(porUid, prefijo) {
+    var p = String(prefijo || ""), o = {};
+    if (!p) return o;
+    Object.keys(porUid || {}).forEach(function (u) {
+      var r = porUid[u] || {};
+      Object.keys(r).forEach(function (k) {
+        if (k.indexOf(p) === 0 && k.length > p.length && r[k]) (o[u] = o[u] || {})[k.slice(p.length)] = true;
+      });
+    });
+    return o;
+  }
+
+  /**
+   * Reparte cada llamada a su clase y dice quién vino a cada clase (ver arriba, «el histórico»).
+   *   o = { clases: [{ id, sem }] (en su orden), llamadas: [{ id, inicio (ms), clase? }], fichajes: [{ sessionId, userId }],
+   *         enClase: { uid: { clase: true } } (la clase en directo: `marcas`), dia(ms) → «AAAA-MM-DD», semanaDe(dia) → n | null }
+   *   → { porUid: { uid: { clase: true } }, deLlamada: { llamada: clase } }
+   * Una llamada sin clase escrita y fuera del curso (semanaDe → null) no es de ninguna.
+   */
+  function reparto(o) {
+    o = o || {};
+    var clases = o.clases || [], llamadas = o.llamadas || [], fichajes = o.fichajes || [], ec = o.enClase || {};
+    var existe = {}, porSem = {};
+    clases.forEach(function (c) { existe[c.id] = true; if (c.sem != null) (porSem[c.sem] = porSem[c.sem] || []).push(c.id); });
+    var quienes = {};   // llamada → [uid] que ficharon en ella
+    fichajes.forEach(function (f) { if (f && f.sessionId && f.userId) (quienes[f.sessionId] = quienes[f.sessionId] || []).push(f.userId); });
+
+    // las llamadas, por semana y por día (en orden)
+    var semanas = {};
+    llamadas.slice().sort(function (a, b) { return (a.inicio || 0) - (b.inicio || 0); }).forEach(function (l) {
+      if (!l || !l.id) return;
+      var d = o.dia ? o.dia(l.inicio) : "", s = d && o.semanaDe ? o.semanaDe(d) : null;
+      var marcada = l.clase && existe[l.clase] ? l.clase : null;
+      if (s == null && !marcada) return;   // fuera del curso y sin clase escrita: no es de ninguna
+      var w = semanas[s] || (semanas[s] = { dias: [], porDia: {} });
+      if (!w.porDia[d]) { w.porDia[d] = []; w.dias.push(d); }
+      w.porDia[d].push({ id: l.id, marcada: marcada });
+    });
+
+    var deLlamada = {};
+    Object.keys(semanas).forEach(function (s) {
+      var w = semanas[s], cands = porSem[s] || [], usadas = {}, delDia = {};
+      // 1 · lo escrito y 2 · lo que dicen los votos de la clase en directo
+      w.dias.forEach(function (d) {
+        var ls = w.porDia[d], m = ls.filter(function (l) { return l.marcada; })[0];
+        if (m) { delDia[d] = m.marcada; usadas[m.marcada] = true; return; }
+        var votos = {};
+        ls.forEach(function (l) {
+          (quienes[l.id] || []).forEach(function (u) {
+            var r = ec[u] || {};
+            cands.forEach(function (c) { if (r[c]) votos[c] = (votos[c] || 0) + 1; });
+          });
+        });
+        var mejor = cands.filter(function (c) { return votos[c]; }).sort(function (a, b) { return votos[b] - votos[a] || cands.indexOf(a) - cands.indexOf(b); })[0];
+        if (mejor) { delDia[d] = mejor; usadas[mejor] = true; }
+      });
+      // 3 · por el día: la siguiente clase de la semana que no se haya llevado otro día (y, si se acaban, la última)
+      w.dias.forEach(function (d) {
+        if (delDia[d] || !cands.length) return;
+        var libre = cands.filter(function (c) { return !usadas[c]; })[0] || cands[cands.length - 1];
+        delDia[d] = libre; usadas[libre] = true;
+      });
+      w.dias.forEach(function (d) {
+        w.porDia[d].forEach(function (l) { var c = l.marcada || delDia[d]; if (c) deLlamada[l.id] = c; });
+      });
+    });
+
+    var porUid = {};
+    var poner = function (u, c) { if (u && c && existe[c]) (porUid[u] = porUid[u] || {})[c] = true; };
+    fichajes.forEach(function (f) { if (f) poner(f.userId, deLlamada[f.sessionId]); });
+    Object.keys(ec).forEach(function (u) { Object.keys(ec[u] || {}).forEach(function (c) { if (ec[u][c]) poner(u, c); }); });
+    return { porUid: porUid, deLlamada: deLlamada };
+  }
+
+  return { COLECCIONES: COLECCIONES, CAMPO_CLASE: CAMPO_CLASE, ms: ms, fin: fin, marcas: marcas, reparto: reparto, crear: crear };
 });
 // ─── fin de la pieza «asistencia» ───
 });
@@ -976,7 +1111,10 @@ var retos = pieza(function (module, exports) {
  *   · LOS AVISOS al estudiante (`notifications`, la bandeja de GamificaPro: la crea cualquiera con sesión; la lee y la marca su
  *     destinatario): el porqué de validar o anular. Cada mod marca los suyos con su campo (`campo`: «stargate», «ceniza»…).
  *
- * Con `crear(ctx)` (ctx = { fs, llamar, sesion }). Los textos y los títulos son de cada web.
+ * Con `crear(ctx)` (ctx = { fs, llamar, sesion, sitio? }). Los textos y los títulos son de cada web.
+ * 7-oct · `ctx.sitio` (opcional): (vieja, grupo) → el `GP_SDK.sitio(vieja, datos del grupo)` de ese grupo (o una promesa de él).
+ * Con él, las reflexiones y los comentarios de un grupo de la versión definitiva (§1d de docs/PLAN_CENTRALIZAR.md) van a
+ * `mod_reflexiones` y `mod_comentarios`, con su `mod`; los de siempre, donde siempre. Sin él, exactamente como antes.
  */
 (function (raiz, fabrica) {
   if (typeof module === "object" && module.exports) module.exports = fabrica();
@@ -1011,6 +1149,11 @@ var retos = pieza(function (module, exports) {
       return ctx.llamar(n, d);
     }
     function porId(d) { return Object.assign({ id: d.id }, d.data()); }
+    /** 7-oct · dónde va `vieja` en este grupo → promesa de { col, id(x), datos(d) } (sin `ctx.sitio` o sin grupo, la de siempre). */
+    function en(vieja, grupo) {
+      if (!ctx.sitio || grupo == null) return Promise.resolve({ col: vieja, id: String, datos: function (d) { return d; } });
+      return Promise.resolve(ctx.sitio(vieja, grupo)).then(function (s) { return { col: s.coleccion, id: s.id, datos: s.datos }; });
+    }
 
     // ---------------------------------------------------------------- registrar, anular, otorgar
     /** El documento de un reto por su id corto (`stargateId`). */
@@ -1030,7 +1173,7 @@ var retos = pieza(function (module, exports) {
     }
     /** Deshacer un reto (su dueño o su docente): el servidor devuelve lo que dio y quita la entrega. */
     function anular(grupo, fichaId, retoId, motivo) {
-      return llamar("stargateAnularReto", { projectId: grupo, studentProfileId: fichaId, retoId: retoId, motivo: String(motivo || "").slice(0, TOPES.motivo) });
+      return llamar("modAnularReto", { projectId: grupo, studentProfileId: fichaId, retoId: retoId, motivo: String(motivo || "").slice(0, TOPES.motivo) });
     }
     /** Validarlo a mano (el docente lo da por bueno): paga y marca el servidor, en una transacción. */
     function otorgar(grupo, fichaId, retoId) {
@@ -1078,54 +1221,63 @@ var retos = pieza(function (module, exports) {
         if (!yo || !yo.uid) throw new Error(texto(textos, "sinSesionReflexion"));
         var t = String(txt || "").trim().slice(0, TOPES.reflexion);
         if (!t) throw new Error(texto(textos, "reflexionVacia"));
-        var ref = fs.doc(db, REFLEX, idReflexion(grupo, reto, fichaId)), creado = Date.now();
-        return fs.getDoc(ref).then(function (a) { if (a.exists()) creado = a.data().creado || creado; }, function () {}).then(function () {
-          var d = { projectId: grupo, reto: reto, fichaId: fichaId, uid: yo.uid, texto: t, creado: creado, editado: Date.now() };
-          var e = String(enlace || "").trim().slice(0, TOPES.enlace);
-          if (e) d.enlace = e;
-          return fs.setDoc(ref, d).then(function () { return ref.id; });
+        return en(REFLEX, grupo).then(function (S) {
+          var ref = fs.doc(db, S.col, S.id(idReflexion(grupo, reto, fichaId))), creado = Date.now();
+          return fs.getDoc(ref).then(function (a) { if (a.exists()) creado = a.data().creado || creado; }, function () {}).then(function () {
+            var d = { projectId: grupo, reto: reto, fichaId: fichaId, uid: yo.uid, texto: t, creado: creado, editado: Date.now() };
+            var e = String(enlace || "").trim().slice(0, TOPES.enlace);
+            if (e) d.enlace = e;
+            return fs.setDoc(ref, S.datos(d)).then(function () { return ref.id; });
+          });
         });
       });
     }
     /** El enlace de una reflexión que ya existe, al día. Si no hay reflexión (o falla), nada. */
     function enlaceDeReflexion(grupo, reto, fichaId, enlace) {
-      var ref = fs.doc(db, REFLEX, idReflexion(grupo, reto, fichaId));
-      return fs.getDoc(ref).then(function (a) {
-        if (!a.exists()) return;
-        return fs.setDoc(ref, Object.assign({}, a.data(), { enlace: String(enlace || "").trim().slice(0, TOPES.enlace), editado: Date.now() }));
+      return en(REFLEX, grupo).then(function (S) {
+        var ref = fs.doc(db, S.col, S.id(idReflexion(grupo, reto, fichaId)));
+        return fs.getDoc(ref).then(function (a) {
+          if (!a.exists()) return;
+          return fs.setDoc(ref, Object.assign({}, a.data(), { enlace: String(enlace || "").trim().slice(0, TOPES.enlace), editado: Date.now() }));
+        });
       }).catch(function () {});
     }
     function deGrupo(col, grupo, reto) {
-      return reto ? fs.query(fs.collection(db, col), fs.where("projectId", "==", grupo), fs.where("reto", "==", reto))
-                  : fs.query(fs.collection(db, col), fs.where("projectId", "==", grupo));
+      return en(col, grupo).then(function (S) {
+        return reto ? fs.query(fs.collection(db, S.col), fs.where("projectId", "==", grupo), fs.where("reto", "==", reto))
+                    : fs.query(fs.collection(db, S.col), fs.where("projectId", "==", grupo));
+      });
     }
     /** Todas las de un reto del grupo (o todas las del grupo), la más nueva arriba. */
     function reflexionesDe(grupo, reto) {
-      return fs.getDocs(deGrupo(REFLEX, grupo, reto)).then(function (r) {
+      return deGrupo(REFLEX, grupo, reto).then(fs.getDocs).then(function (r) {
         return r.docs.map(porId).sort(function (a, b) { return (b.creado || 0) - (a.creado || 0); });
       });
     }
     function misReflexiones(grupo) {
       return Promise.resolve(sesion()).then(function (yo) {
         if (!yo || !yo.uid) return [];
-        return fs.getDocs(fs.query(fs.collection(db, REFLEX), fs.where("projectId", "==", grupo), fs.where("uid", "==", yo.uid)))
-          .then(function (r) { return r.docs.map(porId); });
+        return en(REFLEX, grupo).then(function (S) {
+          return fs.getDocs(fs.query(fs.collection(db, S.col), fs.where("projectId", "==", grupo), fs.where("uid", "==", yo.uid)));
+        }).then(function (r) { return r.docs.map(porId); });
       });
     }
     /** Quitar una reflexión: primero sus comentarios (no se quedan colgando de nada), luego ella. */
     function borrarReflexion(grupo, reto, fichaId) {
       var id = idReflexion(grupo, reto, fichaId);
-      return fs.getDocs(fs.query(fs.collection(db, COMENT), fs.where("projectId", "==", grupo), fs.where("reflexion", "==", id)))
-        .then(function (r) {
-          return r.docs.reduce(function (p, d) { return p.then(function () { return fs.deleteDoc(d.ref).catch(function () {}); }); }, Promise.resolve());
-        }, function () {})
-        .then(function () { return fs.deleteDoc(fs.doc(db, REFLEX, id)); });
+      return Promise.all([en(REFLEX, grupo), en(COMENT, grupo)]).then(function (SS) {
+        return fs.getDocs(fs.query(fs.collection(db, SS[1].col), fs.where("projectId", "==", grupo), fs.where("reflexion", "==", SS[0].id(id))))
+          .then(function (r) {
+            return r.docs.reduce(function (p, d) { return p.then(function () { return fs.deleteDoc(d.ref).catch(function () {}); }); }, Promise.resolve());
+          }, function () {})
+          .then(function () { return fs.deleteDoc(fs.doc(db, SS[0].col, SS[0].id(id))); });
+      });
     }
 
     // ---------------------------------------------------------------- los comentarios
     /** Los comentarios de un reto del grupo (o todos), del más viejo al más nuevo: una conversación se lee así. */
     function comentariosDe(grupo, reto) {
-      return fs.getDocs(deGrupo(COMENT, grupo, reto)).then(function (r) {
+      return deGrupo(COMENT, grupo, reto).then(fs.getDocs).then(function (r) {
         return r.docs.map(porId).sort(function (a, b) { return (a.creado || 0) - (b.creado || 0); });
       });
     }
@@ -1134,11 +1286,15 @@ var retos = pieza(function (module, exports) {
         if (!yo || !yo.uid) throw new Error(texto(textos, "sinSesionComentario"));
         var t = String(txt || "").trim().slice(0, TOPES.comentario);
         if (!t) throw new Error(texto(textos, "comentarioVacio"));
-        return fs.addDoc(fs.collection(db, COMENT), { projectId: grupo, reflexion: reflexionId, reto: reto, fichaId: fichaId, uid: yo.uid, texto: t, creado: Date.now() })
-          .then(function (r) { return r.id; });
+        return en(COMENT, grupo).then(function (S) {
+          return fs.addDoc(fs.collection(db, S.col), S.datos({ projectId: grupo, reflexion: reflexionId, reto: reto, fichaId: fichaId, uid: yo.uid, texto: t, creado: Date.now() }));
+        }).then(function (r) { return r.id; });
       });
     }
-    function borrarComentario(id) { return fs.deleteDoc(fs.doc(db, COMENT, String(id || ""))); }
+    /** Quitar un comentario por su id. `grupo` (7-oct): el suyo, para buscarlo en su sitio; sin él, en la de siempre. */
+    function borrarComentario(id, grupo) {
+      return en(COMENT, grupo).then(function (S) { return fs.deleteDoc(fs.doc(db, S.col, String(id || ""))); });
+    }
 
     return { idMision: idMision, registrar: registrar, anular: anular, otorgar: otorgar,
              avisar: avisar, misAvisos: misAvisos, vigilarAvisos: vigilarAvisos, avisoLeido: avisoLeido,
@@ -1215,23 +1371,23 @@ var equipo = pieza(function (module, exports) {
     // ---------------------------------------------------------------- el equipo de un grupo (el servidor)
     /** Añadir a alguien o cambiarle el rol (`persona` = { correo, nombre, rol }). Devuelve la persona como quedó. */
     function anadirDocente(grupo, persona) {
-      return llamar("stargateEquipo", { projectId: grupo, persona: persona || {} }).then(function (r) { return (r && r.persona) || persona; });
+      return llamar("modEquipo", { projectId: grupo, persona: persona || {} }).then(function (r) { return (r && r.persona) || persona; });
     }
     function quitarDocente(grupo, correo) {
-      return llamar("stargateEquipo", { projectId: grupo, persona: { correo: minus(correo) }, quitar: true });
+      return llamar("modEquipo", { projectId: grupo, persona: { correo: minus(correo) }, quitar: true });
     }
     /** Referente en varios grupos de una vez: dice en cuáles ha podido y en cuáles no. */
     function referenteEnTodos(persona, grupos) {
-      return llamar("stargateEquipo", { projectIds: grupos, persona: Object.assign({}, persona, { rol: "referente" }) })
+      return llamar("modEquipo", { projectIds: grupos, persona: Object.assign({}, persona, { rol: "referente" }) })
         .then(function (r) { return { hechos: (r && r.hechos) || [], fallos: (r && r.fallos) || [] }; });
     }
     /** Quien entra ocupa el sitio de quien sale (papel, alumnado, familia). Si sale el dueño, `ceder: true`. */
     function cambiarDocente(grupo, sale, entra, ceder) {
-      return llamar("stargateCambiarDocente", { projectId: grupo, sale: minus(sale), entra: entra || {}, ceder: ceder === true });
+      return llamar("modCambiarDocente", { projectId: grupo, sale: minus(sale), entra: entra || {}, ceder: ceder === true });
     }
     /** Congelar, descongelar, dar de baja o mover (`extra` = { destino }) a un estudiante: solo el referente. */
     function alumno(grupo, fichaId, accion, extra) {
-      return llamar("stargateAlumno", Object.assign({ projectId: grupo, fichaId: fichaId, accion: accion }, extra || {}));
+      return llamar("modAlumno", Object.assign({ projectId: grupo, fichaId: fichaId, accion: accion }, extra || {}));
     }
     /** Un código nuevo para alistarse, de la receta de la web (`generar()`). */
     function nuevoCodigo(grupo, generar) {
@@ -1459,10 +1615,10 @@ var economia = pieza(function (module, exports) {
     }
     /** Sortear ya (`ticketId`: el documento de la participación). */
     function sortear(grupo, ticketId) { return llamar("modSortear", { projectId: grupo, ticketId: ticketId }); }
-    function sorteosPendientes(grupo) { return llamar("stargateSorteosPendientes", { projectId: grupo }); }
+    function sorteosPendientes(grupo) { return llamar("modSorteosPendientes", { projectId: grupo }); }
     /** Una acción de ofertas (ACCIONES_OFERTA) con sus datos. */
     function oferta(grupo, accion, datos) {
-      return llamar("stargateOferta", Object.assign({ projectId: grupo, accion: accion }, datos || {}));
+      return llamar("modOferta", Object.assign({ projectId: grupo, accion: accion }, datos || {}));
     }
     return { resolverVale: resolverVale, sortear: sortear, sorteosPendientes: sorteosPendientes, oferta: oferta };
   }
@@ -1471,10 +1627,98 @@ var economia = pieza(function (module, exports) {
 });
 // ─── fin de la pieza «economia» ───
 });
+var sitio = pieza(function (module, exports) {
+// ─── GP_SDK pieza «sitio» (sdk/sitio.js), tal cual ───
+'use strict';
+/**
+ * GAMIFICAPRO · ¿DÓNDE VAN LOS DATOS DE ESTE GRUPO? (7-oct-2026) — pieza del SDK v1 (paso V4 del §1d de
+ * docs/PLAN_CENTRALIZAR.md: «cada grupo nuevo nace en la versión definitiva»).
+ *
+ * Un grupo de la versión definitiva (`modVersion` ≥ 2 en su proyecto, que solo pone el servidor) tiene lo suyo en las
+ * colecciones `mod_*`; los de siempre, en las de siempre (`stargate_*`, `ceniza_*`). El servidor lo decide en
+ * functions/modColeccion.js (`faseDe`) y las reglas lo exigen (firestore.rules → «los grupos de la versión definitiva»). La web
+ * lo decide AQUÍ, con el MISMO mapa y las mismas novedades: el paquete los trae de functions/mods/colecciones.js y
+ * functions/mods/versiones.js (scripts/build-sdk.mjs → datosDelSitio), y tests/sdk/sitio.test.ts compara esta decisión con la
+ * del servidor caso a caso. Así cada web pasa `sitio(…)` donde antes escribía el nombre de la colección.
+ *
+ *   var sitio = GP_SDK.sitio;                       // (en Node: require('sdk/sitio.js').crear(datos))
+ *   var s = sitio('stargate_alias', proyecto);      // proyecto: los datos de projects/{grupo} (o null: lo suelto)
+ *   s.coleccion        'stargate_alias' o 'mod_alias'
+ *   s.nueva            true si es la mod_*
+ *   s.id(idViejo)      el id del documento (lo suelto en mod_* lleva delante su mod; lo de un grupo, el mismo)
+ *   s.datos(d)         lo que se escribe: en mod_*, con el `mod` del grupo (si no lo traía); en la vieja, tal cual (el mismo objeto)
+ *   s.mod              el `mod` que llevan los datos en mod_* (null en la vieja)
+ *   sitio.modDe(proyecto)              el mod del grupo (la detección del servidor: modWebDe) o null
+ *   sitio.version(proyecto)            su versión (1 sin marca o si no es de un mod)
+ *   sitio.tiene(proyecto, novedad)     ¿tiene esa novedad? (modVersionTiene); una novedad que no existe, error
+ *
+ * Las subcolecciones (jugadores, eventos, r) cuelgan del documento que da `s`, con sus ids de siempre y sin `mod`.
+ * Sin Firebase, sin textos y sin nombres de mod escritos: todo sale de los datos del paquete.
+ */
+(function (raiz, fabrica) {
+  if (typeof module === "object" && module.exports) module.exports = fabrica();
+  else raiz.GPSITIO = fabrica();
+})(typeof self !== "undefined" ? self : this, function () {
+  var propio = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+
+  function crear(datos) {
+    var mapa = (datos && datos.mapa) || {}, novedades = (datos && datos.novedades) || {}, mods = (datos && datos.mods) || [];
+    var todas = [];
+    Object.keys(novedades).forEach(function (k) { todas = todas.concat(novedades[k]); });
+
+    function conVersion(p, mod) { return !!(p[mod] && p[mod].version); }
+    /** El mod del grupo: los que se reconocen por su bloque, primero; los demás, por `mod` y su bloque (como modWebDe). */
+    function modDe(p) {
+      if (!p) return null;
+      for (var i = 0; i < mods.length; i++) if (mods[i].reconocer === 'bloque' && conVersion(p, mods[i].mod)) return mods[i].mod;
+      var m = p.mod;
+      for (var j = 0; j < mods.length; j++) {
+        if (typeof m === 'string' && mods[j].mod === m && mods[j].reconocer !== 'bloque' && conVersion(p, m)) return m;
+      }
+      return null;
+    }
+    function versionDe(p) {
+      var v = p ? p.modVersion : undefined;
+      return typeof v === 'number' && isFinite(v) && Math.floor(v) === v && v >= 1 ? v : 1;
+    }
+    function version(p) { return modDe(p) ? versionDe(p) : 1; }
+    function tiene(p, novedad) {
+      if (todas.indexOf(novedad) < 0) throw new Error('«' + novedad + '» no es una novedad de ninguna versión.');
+      var v = version(p);
+      return Object.keys(novedades).some(function (k) { return Number(k) <= v && novedades[k].indexOf(novedad) >= 0; });
+    }
+
+    function sitio(vieja, proyecto) {
+      if (!propio(mapa, vieja)) throw new Error('«' + vieja + '» no está en el mapa de colecciones.');
+      var e = mapa[vieja], grupo = proyecto || null;
+      var nueva = e.fase === 'nueva' || !!(grupo && e.porGrupo && tiene(grupo, 'coleccionesMod'));
+      var mod = nueva ? ((grupo && modDe(grupo)) || e.mod) : null;
+      return {
+        vieja: vieja, coleccion: nueva ? e.nueva : vieja, nueva: nueva, mod: mod,
+        id: function (id) { return nueva && e.ids === 'suelto' ? e.mod + '__' + id : String(id); },
+        datos: function (d) {
+          if (!nueva) return d;
+          var x = {};
+          for (var k in d) if (propio(d, k)) x[k] = d[k];
+          if (!(typeof x.mod === 'string' && x.mod)) x.mod = mod;
+          return x;
+        },
+      };
+    }
+    sitio.modDe = modDe;
+    sitio.version = version;
+    sitio.tiene = tiene;
+    return sitio;
+  }
+
+  return { crear: crear };
+});
+// ─── fin de la pieza «sitio» ───
+});
 
 var SDK = {
   version: "v1",
-  piezas: ["semanas","llamar","papel","alistarse","premios","asistencia","votacion","retos","equipo","buzon","economia"],
+  piezas: ["semanas","llamar","papel","alistarse","premios","asistencia","votacion","retos","equipo","buzon","economia","sitio"],
   semanas: semanas,
   llamador: llamar.llamador,
   errores: { codigo: llamar.codigo, delServidor: llamar.delServidor, sinDesplegar: llamar.sinDesplegar, es: llamar.es, CODIGOS: llamar.CODIGOS },
@@ -1487,7 +1731,8 @@ var SDK = {
   retos: retos,
   equipo: equipo,
   buzon: buzon,
-  economia: economia
+  economia: economia,
+  sitio: sitio.crear({"mapa":{"stargate_alias":{"nueva":"mod_alias","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_anulaciones":{"nueva":"mod_anulaciones","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_asistencia":{"nueva":"mod_asistencia","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_batallas":{"nueva":"mod_batallas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_buzon":{"nueva":"mod_buzon","mod":"stargate","ids":"azar","porGrupo":false,"fase":"vieja"},"stargate_comentarios":{"nueva":"mod_comentarios","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_congelados":{"nueva":"mod_congelados","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_directo":{"nueva":"mod_directo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_envivo":{"nueva":"mod_envivo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_formacion":{"nueva":"mod_formacion","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_invitaciones":{"nueva":"mod_invitaciones","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_profes":{"nueva":"mod_profes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_referentes":{"nueva":"mod_referentes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_reflexiones":{"nueva":"mod_reflexiones","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_respuestas":{"nueva":"mod_respuestas","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_rutas":{"nueva":"mod_rutas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_tratos":{"nueva":"mod_tratos","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_zoco":{"nueva":"mod_zoco","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_asedio":{"nueva":"mod_asedio","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_asedio_ataques":{"nueva":"mod_asedio_ataques","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_galeria":{"nueva":"mod_galeria","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_fama":{"nueva":"mod_fama","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_clase":{"nueva":"mod_clase","mod":"ceniza","ids":"grupo","porGrupo":true,"fase":"vieja"},"ceniza_formacion":{"nueva":"mod_formacion","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_invitaciones":{"nueva":"mod_invitaciones","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_referentes":{"nueva":"mod_referentes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_juegos":{"nueva":"mod_juegos","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_mesa":{"nueva":"mod_mesa","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_respuestas":{"nueva":"mod_repaso","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardia_partidas":{"nueva":"mod_retaguardia_partidas","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardias":{"nueva":"mod_retaguardias","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_publico":{"nueva":"mod_publico","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_publico_opiniones":{"nueva":"mod_publico_opiniones","mod":"ceniza","ids":"azar","porGrupo":false,"fase":"vieja"}},"novedades":{"2":["coleccionesMod","economiaSoloServidor","ticketMotor","medianocheUnica","bancoMotor","retaguardiaMotor"]},"mods":[{"mod":"stargate","reconocer":"bloque"},{"mod":"ceniza","reconocer":null}]})
 };
 if (typeof module === "object" && module.exports) module.exports = SDK;
 else raiz.GP_SDK = SDK;

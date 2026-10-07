@@ -4121,7 +4121,7 @@ if os.path.exists(_TARJETAS_GP):
 # nombre: un paquete nuevo en GamificaPro no cambia esta web hasta que se cambie esta línea y se publique. De él sale también
 # motor/semanas.js, la receta TAL CUAL (la cargan las páginas y las pruebas). Desde un worktree de GamificaPro:
 # GAMIFICAPRO_DIR=<ruta> python3 _build_site.py
-SDK_FIJADO = "mod-sdk.v1.029ee56755.js"
+SDK_FIJADO = "mod-sdk.v1.2e2c1f885d.js"
 def _traer_sdk():
     import re as _re_sdk
     _js = os.path.join(HERE, "assets", "js"); _dst = os.path.join(_js, SDK_FIJADO)
@@ -4147,7 +4147,7 @@ _traer_sdk()
 # 7-oct · Y EL SIMULADOR COMÚN (GamificaPro sdk/sim, fase 5): el Firebase de mentira de la consola de ensayo llega en su propio
 # paquete, dist-sdk/mod-sim.v1.<huella>.js, fijado aquí y copiado al lado del envoltorio (assets/js/sim/firebase_sim.js, que lo
 # importa por su nombre). Nunca se carga en producción.
-SIM_FIJADO = "mod-sim.v1.ac1eaafa34.js"
+SIM_FIJADO = "mod-sim.v1.3855e2af74.js"
 def _traer_sim(carpeta):
     _dst = os.path.join(carpeta, SIM_FIJADO)
     for _gp in [os.environ.get("GAMIFICAPRO_DIR"), "/Users/nor/Claude/vibewebs/gamificapro"]:

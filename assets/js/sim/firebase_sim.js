@@ -16,7 +16,7 @@
  * todas las fechas las semanas enteras (de lunes a lunes) que hayan pasado: el ensayo siempre está en su semana 15. Lo tocado se
  * guarda con su corrimiento: cambia de semana, empieza de cero.
  */
-import "./mod-sim.v1.ac1eaafa34.js";
+import "./mod-sim.v1.3855e2af74.js";
 const { crearSimulador, semanasEnteras, SEMANA } = globalThis.GP_SIM;
 
 const CLAVE = "sgEnsayo.db";
