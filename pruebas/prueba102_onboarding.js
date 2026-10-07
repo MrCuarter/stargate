@@ -28,10 +28,12 @@ TOUR.replace(/\{p:'([a-z]+\.html)',sel:'([^']*)'([^}]*)\}/g, function (_, pag, s
 });
 c(pasos.length >= 14, "la visita guiada tiene sus paradas", pasos.length);
 
-/** ¿La consola pinta este selector? Se busca la clase o el id tal cual en el guion que lo escribe. */
+/** ¿La consola pinta este selector? Se busca la clase o el id tal cual en el guion que lo escribe (o, 7-oct, en la propia
+ *  página: «Ayuda ▾» de la barra de arriba la escribe el build en consola.html). */
 function estaEnLaConsola(sel) {
   return sel.replace(/^[.#]/, "").split(/[.#\[:]/)[0].split(" ").filter(Boolean).every(function (k) {
-    return CONSOLA.indexOf(k) >= 0 || TOUR.indexOf('"' + k + '"') >= 0 || L("assets/js/stargate.js").indexOf(k) >= 0;
+    return CONSOLA.indexOf(k) >= 0 || TOUR.indexOf('"' + k + '"') >= 0 || L("assets/js/stargate.js").indexOf(k) >= 0
+      || L("consola.html").indexOf('id="' + k + '"') >= 0;
   });
 }
 const perdidos = [];
@@ -54,8 +56,9 @@ c(pos("Las secciones de tu grupo") === 3 && pos("Tu panel de control") === 4,
 c(pos("Los retos de este tema") > 0 && pos("Los retos de este tema") === pos("Los tickets de salida") - 1,
   "🔴 la visita habla de los retos, justo antes de los tickets de salida");
 const primeraGuia = doc.findIndex(x => x.pag === "guia.html");
-c(primeraGuia > 0 && doc[primeraGuia - 1].t === "Ahora nos vamos a la Guía" && /guia\.html/.test(doc[primeraGuia - 1].sel),
-  "🔴 antes de saltar a la Guía, un paso que lo avisa y señala su enlace de arriba");
+// (7-oct · la Guía ya no es un enlace suelto de arriba: está en «Ayuda ▾ → Guías», y el paso señala «Ayuda ▾» y lo dice)
+c(primeraGuia > 0 && doc[primeraGuia - 1].t === "Ahora nos vamos a la Guía" && doc[primeraGuia - 1].sel === "#nav-ayuda .gpm-boton" && /Ayuda ▾ → Guías/.test(DICE),
+  "🔴 antes de saltar a la Guía, un paso que lo avisa y señala dónde está, arriba (Ayuda ▾ → Guías)");
 c(/común a todos los grupos/.test(DICE) && /la base del proyecto/.test(DICE), "   y dice que la Guía es común a todos los grupos, la base del proyecto");
 c(pos("Ahora nos vamos a la Guía") === pos("Los tickets de salida") + 1, "   y va justo después del ticket");
 c(!/Ajustes/.test(DICE) && /lápiz de tu avatar/.test(DICE), "🔴 ya no manda a «Ajustes» (se quitó): el comandante y el nombre, en el lápiz del avatar");
