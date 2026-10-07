@@ -1455,18 +1455,18 @@ const idPremioHuevo = (perId, huevoId) => window.SG.PAQUETE.idPremioHuevo(perId,
  *     lee su equipo docente. Un premio de «todos» está en todos los grupos que lleva quien lo guarda.
  *   · Se guarda cada premio suyo, al tocarlo. Nada de un «Guardar» para toda la lista que se olvida.
  */
-const PRIV = (perId) => doc(db, "projects", perId, "privado", "stargate");
-function azar(n, abc) {
-  const A = abc || "abcdefghijkmnpqrstuvwxyz23456789", r = new Uint32Array(n);
-  crypto.getRandomValues(r);
-  return Array.from(r, x => A[x % A.length]).join("");
-}
-async function huellaPremio(id, codigo) {
-  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(id) + ":" + String(codigo)));
-  return Array.from(new Uint8Array(b), x => x.toString(16).padStart(2, "0")).join("");
-}
+/*
+ * 7-oct · LA FONTANERÍA ES DEL SDK DE GAMIFICAPRO (GP_SDK.premios, paso 5): el azar de verdad, la huella del código (la que
+ * comprueba el servidor), el catálogo privado, guardar y quitar en un lote, leer la recompensa y la ficha a la vez, reclamar
+ * (con el motivo del «no») y abrir en serie. Aquí queda lo de STARGATE: qué es cada premio (motor/paquete.js), a qué grupos
+ * va, los textos y cómo se enseña lo que ha tocado.
+ */
+const PREMIOS = SDK.premios.crear(CTX);
+const CATALOGO_PREMIOS = "premiosEnlace";
+const azar = (n, abc) => SDK.premios.azar(n, abc);
+const huellaPremio = (id, codigo) => SDK.premios.huella(id, codigo);
 function premioNuevo(datos) {
-  return Object.assign({ id: azar(10), codigo: azar(18, "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"),
+  return Object.assign({ id: azar(10), codigo: azar(18, SDK.premios.ABC_CODIGO),
     tipo: "recompensa", nombre: "", premio: "sobre", heroe: "", cantidad: 0, sorteo: "", grupos: "todos",
     desde: 0, hasta: 0, limite: 0, porEscuadron: 0, activo: true, creado: Date.now() }, datos || {});
 }
@@ -1474,11 +1474,8 @@ function premioNuevo(datos) {
 async function premiosEnlaceDe(perIds) {
   const porId = {};
   await Promise.all((perIds || []).map(async per => {
-    let m = {};
-    try { const d = await getDoc(PRIV(per)); m = (d.exists() && d.data().premiosEnlace) || {}; } catch (e) { return; }
-    Object.keys(m).forEach(id => {
-      const x = m[id]; if (!x || !x.id) return;
-      const ya = porId[id];
+    (await PREMIOS.catalogo(per, CATALOGO_PREMIOS)).forEach(x => {
+      const id = x.id, ya = porId[id];
       if (!ya || Number(x.actualizado || 0) > Number(ya.actualizado || 0)) porId[id] = Object.assign({}, x, { en: ya ? ya.en : [] });
       porId[id].en.push(per);
     });
@@ -1497,7 +1494,7 @@ async function guardarPremioEnlace(item, gestionados) {
   item = Object.assign({}, item, { actualizado: Date.now() });
   const antes = item.en || [];
   delete item.en;
-  const destinos = destinosDe(item, gestionados), hash = await huellaPremio(item.id, item.codigo);
+  const destinos = destinosDe(item, gestionados);
   const saltados = [], en = [];
   for (const per of destinos) {
     // el cofre del sobre, del héroe, de las cápsulas: los de la tienda de ESE grupo (mismo sorteo, mismas cartas)
@@ -1508,22 +1505,17 @@ async function guardarPremioEnlace(item, gestionados) {
     conCofre.forEach(r => { if (/^(sobre_|capsula_)/.test(r.stargateTipo || "") && r.inStore !== false) cofres[r.stargateTipo] = r; });
     if (/^(sobre_|capsula_)/.test(item.premio) && !cofres[item.premio]) { saltados.push({ per, motivo: "no tiene ese premio en su tienda" }); continue; }
     if (item.premio === "participaciones" && !premios.some(r => r.id === item.sorteo)) { saltados.push({ per, motivo: "ese sorteo no es de este grupo" }); continue; }
-    const lote = writeBatch(db);
-    lote.set(doc(db, "rewards", idPremioHuevo(per, item.id)),
-      Object.assign(window.SG.PAQUETE.premioDeHuevo(per, item, sobre, heroe, cofres), { claimLinkHash: hash, stargateBorrado: false }), { merge: true });
-    lote.set(PRIV(per), { premiosEnlace: { [item.id]: item } }, { merge: true });
-    await lote.commit();
+    // (la recompensa, con la huella del código y sin él, y su entrada en lo privado: en la misma escritura)
+    await PREMIOS.guardar(per, { rid: idPremioHuevo(per, item.id), item, campo: CATALOGO_PREMIOS,
+      recompensa: window.SG.PAQUETE.premioDeHuevo(per, item, sobre, heroe, cofres) });
     en.push(per);
   }
   for (const per of antes.filter(g => en.indexOf(g) < 0 && gestionados.indexOf(g) >= 0)) await quitarDeGrupo(per, item.id);
   return { en, saltados };
 }
 async function quitarDeGrupo(per, id) {
-  const lote = writeBatch(db);
   // cerrado y marcado (borrar la recompensa solo lo puede el dueño principal): quien lo reclamó lo conserva
-  lote.set(doc(db, "rewards", idPremioHuevo(per, id)), { claimLinkEnabled: false, stargateBorrado: true }, { merge: true });
-  lote.update(PRIV(per), { ["premiosEnlace." + id]: deleteField() });
-  await lote.commit();
+  await PREMIOS.quitar(per, idPremioHuevo(per, id), CATALOGO_PREMIOS, id);
 }
 async function borrarPremioEnlace(item, gestionados) {
   for (const per of (item.en || []).filter(g => gestionados.indexOf(g) >= 0)) await quitarDeGrupo(per, item.id);
@@ -1565,32 +1557,19 @@ async function guardarHuevos(perId, lista) {
  * `estado`: abierto · pronto · cerrado · pausado · agotado · borrado. Quien decide de verdad es el
  * servidor al reclamar; esto solo lo cuenta antes.
  */
-function estadoDePremio(R, ahora = Date.now()) {
-  if (!R || R.stargateBorrado) return "borrado";
-  if (R.claimLinkEnabled === false) return "pausado";
-  const desde = Number(R.claimLinkStartsAt) || 0, hasta = Number(R.claimLinkEndsAt) || 0;
-  if (desde && ahora < desde) return "pronto";
-  if (hasta && ahora > hasta) return "cerrado";
-  const tope = Number(R.claimLinkMaxTotal) || 0;
-  if (tope && (Number(R.claimLinkTotalClaimed) || 0) >= tope) return "agotado";
-  return "abierto";
-}
+const estadoDePremio = (R, ahora = Date.now()) => SDK.premios.estado(R, ahora);
 async function estadoHuevo(perId, huevoId, fichaId) {
   const rid = idPremioHuevo(perId, huevoId);
-  const [r, f] = await Promise.all([getDoc(doc(db, "rewards", rid)),
-                                    fichaId ? getDoc(doc(db, "student_profiles", fichaId)) : Promise.resolve(null)]);
-  const R = r.exists() ? r.data() : null;
+  const { R, F, mio: yaEra, sinAbrir } = await PREMIOS.leer(perId, rid, fichaId);
   const H = (R && R.stargateHuevo) || {};
-  const F = f && f.exists() ? f.data() : {};
   const inv = Array.isArray(F.inventory) ? F.inventory : [];
-  const yaEra = ((F.linkedRewardClaims || {})[rid] || 0) >= 1;
   // el héroe del enlace: cuántas copias tiene ya (la burbuja «×2» y la oferta de NEBULA)
   const heroeId = H.premio === "heroe_fijo" && H.heroe ? perId + "__heroe_" + H.heroe : "";
   return { R, H, yaEra, estado: estadoDePremio(R), desde: Number(R && R.claimLinkStartsAt) || 0,
            hasta: Number(R && R.claimLinkEndsAt) || 0, tope: Number(R && R.claimLinkMaxTotal) || 0,
            reclamados: Number(R && R.claimLinkTotalClaimed) || 0,
            // reclamado pero sin abrir: se fue a mitad de elegir, o no se pudo abrir en su momento
-           sinAbrir: yaEra && inv.indexOf(rid) >= 0,
+           sinAbrir,
            copias: heroeId ? inv.filter(x => x === heroeId).length : 0 };
 }
 /** «el lunes 15 de septiembre a las 10:00», en la hora de quien lo lee. */
@@ -1625,16 +1604,17 @@ async function reclamarHuevo(perId, huevoId, fichaId, codigo) {
 
   let reclamo;
   try {
-    // (17-sep · con su código: el servidor comprueba la huella antes de dar nada)
-    reclamo = await llamar("claimLinkedReward", { rewardId: rid, modo: "item", codigo: String(codigo || "") });
+    // (17-sep · con su código: el servidor comprueba la huella antes de dar nada; el «no», con su motivo, del SDK)
+    const r = await PREMIOS.reclamar(rid, codigo);
+    if (r.ya) return { yaEra: true, premio: H.premio };
+    reclamo = r.respuesta;
   } catch (e) {
     const m = String((e && e.message) || "");
-    if (/SOLD_OUT|resource-exhausted/i.test(m + " " + (e && e.code)))
+    if (e && e.motivo === "agotado")
       throw new Error("Llegaste tarde: este ya lo encontraron " + (R.claimLinkMaxTotal || "todas las") + " personas que podían.");
-    if (/límite de reclamos/i.test(m)) return { yaEra: true, premio: H.premio };
     // la ventana, dicha por el servidor (si el reloj de este equipo no coincide con el suyo)
-    if (/aún no está abierto/i.test(m)) throw new Error("Todavía no se puede: se abre " + cuandoEs(R.claimLinkStartsAt) + ".");
-    if (/ya se ha cerrado/i.test(m)) throw new Error("Se cerró " + cuandoEs(R.claimLinkEndsAt) + ". Llegaste tarde a este.");
+    if (e && e.motivo === "pronto") throw new Error("Todavía no se puede: se abre " + cuandoEs(R.claimLinkStartsAt) + ".");
+    if (e && e.motivo === "cerrado") throw new Error("Se cerró " + cuandoEs(R.claimLinkEndsAt) + ". Llegaste tarde a este.");
     throw new Error(m.replace(/^Lo siento, /, "") || "No he podido reclamarlo.");
   }
   /**
@@ -1665,17 +1645,11 @@ async function abrirHuevo(perId, huevoId, fichaId, R_) {
   const rid = idPremioHuevo(perId, huevoId);
   const R = R_ || (await getDoc(doc(db, "rewards", rid))).data() || {};
   const H = R.stargateHuevo || {};
-  // Y se abre en el momento: es un regalo, no un paquete que haya que ir a buscar al álbum.
-  const usos = Math.max(1, Number(R.maxUses || 1)), sacadas = [];
-  let abiertos = 0;
-  for (let i = 0; i < usos; i++) {
-    try {
-      const c = await llamar("consumeItem", { projectId: perId, rewardId: rid, studentProfileId: fichaId });
-      abiertos++;
-      const b = c && (c.botin || c.obtenido);
-      if (b) sacadas.push(b);
-    } catch (e) { break; }   // lo que no se abra queda en el inventario y se abre desde el álbum
-  }
+  // Y se abre en el momento: es un regalo, no un paquete que haya que ir a buscar al álbum. En serie (a la vez se pisarían);
+  // lo que no se abra queda en el inventario y se abre desde el álbum.
+  const usos = Math.max(1, Number(R.maxUses || 1));
+  const { abiertos, resultados } = await PREMIOS.abrir(perId, rid, fichaId, usos);
+  const sacadas = botines(resultados);
   let detalle = null;
   // 14-sep · los sobres nuevos se enseñan como el sobre; las cápsulas, como el héroe
   if (H.premio === "sobre" || /^sobre_/.test(H.premio || "")) detalle = { tipo: "sobre", cartas: sacadas.map(cartaDeBotin) };
@@ -1701,16 +1675,12 @@ async function resolverHeroeRepetido(perId, huevoId, fichaId, opcion) {
   if (opcion === "quedar") return abrirHuevo(perId, huevoId, fichaId);
   const r = await llamar("stargateHeroeRepetido", { projectId: perId, rewardId: rid, opcion: opcion });
   if (opcion === "creditos") return { ok: true, premio: "bolsa", detalle: { tipo: "bolsa", creditos: Number(r.creditos || 40) } };
-  const sacadas = [];
-  for (let i = 0; i < Math.max(1, Number(r.usos || 3)); i++) {
-    try {
-      const c = await llamar("consumeItem", { projectId: perId, rewardId: r.rewardId, studentProfileId: fichaId });
-      const b = c && (c.botin || c.obtenido); if (b) sacadas.push(b);
-    } catch (e) { break; }
-  }
+  const sacadas = botines((await PREMIOS.abrir(perId, r.rewardId, fichaId, Number(r.usos || 3))).resultados);
   return { ok: true, premio: "sobre", detalle: { tipo: "sobre", cartas: sacadas.map(cartaDeBotin), sinAbrir: !sacadas.length } };
 }
 
+/** Lo que ha salido de cada `consumeItem` (el botín, o lo obtenido), sin los que no dan nada. */
+const botines = (resultados) => (resultados || []).map(c => c && (c.botin || c.obtenido)).filter(Boolean);
 /** Lo que devuelve un cofre, dicho como lo espera la pantalla del escondite: {clave, nombre, rareza}. */
 function cartaDeBotin(b) {
   // `consumeItem` devuelve el botín como el ID de la recompensa, en cadena («grupo__cromo_P1_bran»)
