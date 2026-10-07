@@ -193,7 +193,10 @@ if (fs.existsSync(PUERTA)) {
   // (17-sep · la sesión de DPG1 la abrió también a sus grupos, «ceniza», con la misma exigencia: `esModWeb` de comun.js)
   const COMUN = fs.existsSync(path.join(path.dirname(PUERTA), "comun.js")) ? fs.readFileSync(path.join(path.dirname(PUERTA), "comun.js"), "utf8") : "";
   c(/\(p\.data\(\)\.stargate \|\| \{\}\)\.version/.test(PC) ||
-    (/!esModWeb\(p\.data\(\)\)/.test(PC) && /projectData\.stargate && projectData\.stargate\.version\) return 'stargate'/.test(COMUN)
+    ((/!esModWeb\(p\.data\(\)\)/.test(PC) ||
+      // (7-oct · fase 6: la puerta va como parámetro de servirTablero, que sirve también a tableroMod)
+      (/!puerta\(p\.data\(\)\)/.test(PC) && /servirTablero\('tableroStargate', esModWeb,/.test(PC)))
+      && /projectData\.stargate && projectData\.stargate\.version\) return 'stargate'/.test(COMUN)
       && /projectData\.ceniza && projectData\.ceniza\.version\) return 'ceniza'/.test(COMUN)),
     "🔴 y solo contesta a grupos de STARGATE: si no, dejaría leer sin sesión cualquier proyecto de la plataforma");
 } else {
