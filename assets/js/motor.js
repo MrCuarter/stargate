@@ -347,41 +347,16 @@ async function sembrarPER(per, alAvanzar) {
  * si un estudiante escoge un alias en uso, el sistema lo rechaza, PUNTO». Sin mayúsculas ni tildes:
  * «halo» y «Haló» son el mismo. Lo usan los dos sitios donde se pone un alias: el alistamiento y la
  * corrección de la ficha desde el puesto de mando. `excepto` es quien lo pide (su propia ficha no cuenta).
+ *
+ * 7-oct · DEL SDK DE GAMIFICAPRO (GP_SDK.alistarse, paso 4): LA CLAVE DE LA RESERVA (la MISMA cuenta que hacen las reglas,
+ * `aliasClave` en firestore.rules: `lower()` solo baja la A-Z —la «Ó» de «Olga Órbita», 13-sep— y las tildes se quitan en
+ * mayúscula y en minúscula), la reserva DENTRO del lote que escribe la ficha (las reglas no dejan una sin la otra) y quién lo
+ * lleva: su reserva y, si es de antes del registro de alias, su ficha. Aquí quedan los textos de STARGATE.
  */
-const aliasPlano = t => String(t || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ");
-/**
- * LA CLAVE DE LA RESERVA: la MISMA cuenta que hacen las reglas de Firestore (`aliasClave` en
- * firestore.rules de GamificaPro). Si no coincidiera letra por letra, el servidor rechazaría la
- * reserva. Las reglas son quienes lo hacen cumplir: el alias reservado no se puede repetir.
- */
-// 🔴 13-sep · `lower()` de las reglas SOLO baja la A-Z (la «Ó» de «Olga Órbita» se quedaba en
-// mayúscula y la clave no coincidía: esa alumna no podía alistarse). Así que aquí se baja también
-// solo la A-Z, y las tildes se quitan en mayúscula y en minúscula, igual que en las reglas.
-const aliasClave = a => String(a || "").replace(/[A-Z]+/g, m => m.toLowerCase()).trim()
-  .replace(/[áàäâãÁÀÄÂÃ]/g, "a").replace(/[éèëêÉÈËÊ]/g, "e").replace(/[íìïîÍÌÏÎ]/g, "i")
-  .replace(/[óòöôõÓÒÖÔÕ]/g, "o").replace(/[úùüûÚÙÜÛ]/g, "u").replace(/[ñÑ]/g, "n").replace(/[çÇ]/g, "c")
-  .replace(/\//g, "-").replace(/ +/g, " ");
-const refAlias = (perId, alias) => doc(db, "stargate_alias", perId + "__" + aliasClave(alias));
-/**
- * Reserva el alias para `uid` DENTRO del lote que escribe la ficha (las reglas lo exigen así). Si ya
- * es suyo (vuelve a alistarse, o se corrige la ficha a lo mismo) no hace falta escribirlo; si es de
- * otro, se para con palabras.
- */
-async function reservarAlias(lote, perId, uid, alias) {
-  const r = await getDoc(refAlias(perId, alias)).catch(() => null);
-  if (r && r.exists()) {
-    if (r.data().uid === uid) return;
-    throw new Error("«" + alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa el dado para que te sugiera uno).");
-  }
-  lote.set(refAlias(perId, alias), { projectId: perId, uid: uid, alias: String(alias), creado: Date.now() });
-}
-async function aliasOcupado(perId, alias, excepto) {
-  const e = excepto || {};
-  const r = await getDocs(query(collection(db, "student_profiles"), where("projectId", "==", perId)));
-  const otro = r.docs.find(d => d.id !== e.ficha && (!e.uid || d.data().userId !== e.uid)
-                                && aliasPlano(d.data().displayName) === aliasPlano(alias));
-  return otro ? String(otro.data().displayName || alias) : null;
-}
+const aliasEnUso = (alias) => "«" + alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa el dado para que te sugiera uno).";
+const TEXTOS_ALIAS = { sinSesion: "Entra con tu cuenta antes de alistarte", ocupado: aliasEnUso, sinFicha: "Esa ficha ya no está" };
+const refAlias = (perId, alias) => ALISTARSE.ref(perId, alias);
+const aliasOcupado = (perId, alias, excepto) => ALISTARSE.ocupado(perId, alias, excepto);
 
 /**
  * ALISTARSE. Abre la ficha del recluta y le da su insignia de Reclutamiento.
@@ -411,8 +386,7 @@ const pasarAFantasma = (perId) => llamar("stargateFantasma", { projectId: perId 
 
 async function alistar(perId, datos, alAvanzar) {
   const yo = await sesion();
-  if (!yo) throw new Error("Entra con tu cuenta antes de alistarte");
-  const avisa = t => { if (alAvanzar) alAvanzar(t); };
+  if (!yo) throw new Error(TEXTOS_ALIAS.sinSesion);
   const p = await getDoc(doc(db, "projects", perId));
   if (!p.exists()) throw new Error("No existe el grupo «" + perId + "»");
   const proy = p.data();
@@ -428,62 +402,39 @@ async function alistar(perId, datos, alAvanzar) {
    * «Halo» veía la Nave del primero —su experiencia, sus héroes— sin que nadie se enterara. Lo
    * destapó el laboratorio. La Nave ya empareja por la ficha; y aquí se pide otro alias, porque en
    * el ranking dos «Halo» tampoco se distinguen. Sin mayúsculas ni tildes: «halo» y «Haló» son el mismo.
+   *
+   * 7-oct · lo hace el SDK de GamificaPro (GP_SDK.alistarse): mira si el alias está libre, escribe la ficha A CERO y la
+   * reserva de su alias en el MISMO lote, lo privado aparte y la insignia de Reclutamiento por el servidor. Lo de STARGATE va
+   * aquí: el escuadrón, el Comandante, el avatar, el modo fantasma, los textos y los pasos que se enseñan.
    */
-  if (await aliasOcupado(perId, datos.alias, { uid: yo.uid }))
-    throw new Error("«" + datos.alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa el dado para que te sugiera uno).");
-
-  avisa("Abriendo tu ficha…");
-  const ficha = doc(collection(db, "student_profiles"));
-  // 🔴 la ficha y la reserva de su alias van JUNTAS: las reglas no dejan una sin la otra
-  const datosFicha = {
-    userId: yo.uid, projectId: perId, displayName: datos.alias,
-    totalPoints: 0, coins: 0, inventory: [], earnedBadges: [],
-    completedMissionIds: [], completedCampaignIds: [], currentPhase: 1, role: "student",
-    hubCustomization: {}, createdAt: Date.now(),
-    squadId: escuadron ? escuadron.id : null, factionId: escuadron ? escuadron.id : null,
-    stargateProfe: datos.comandante || "", stargateAvatar: datos.avatar || null,
-    stargateBio: datos.bio || "",
-    // 5-oct · del equipo docente → nace fantasma (ver esDelEquipoDe)
-    ...(esDelEquipoDe(proy, yo) ? { fantasma: true } : {})
-  };
-  const lote = writeBatch(db);
-  await reservarAlias(lote, perId, yo.uid, datos.alias);
-  lote.set(ficha, datosFicha);
-  try { await lote.commit(); }
-  catch (e) {
-    if (!/permission|insufficient/i.test(String(e && (e.code || e.message)))) throw e;
-    // dos personas pulsando a la vez con el mismo alias: el servidor deja pasar a una sola
-    if (await aliasOcupado(perId, datos.alias, { uid: yo.uid }))
-      throw new Error("«" + datos.alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa el dado para que te sugiera uno).");
-    // 🔴 servidor con las reglas de ANTES del registro de alias (el despliegue de la web y el de las
-    // reglas no son el mismo segundo): ahí la reserva no existe y la ficha va sola, como siempre.
-    // Con las reglas nuevas esto no pasa nunca: una ficha sin su reserva la rechazan.
-    await setDoc(ficha, datosFicha);
-  }
-
-  // 🔴 El nombre y el correo NO van en la ficha: van a `privado/datos`, que solo leen el propio
-  // alumno y su equipo docente. La ficha la lee cualquiera con sesión —la necesitan el ranking y el
-  // salón de la fama—, y ahí dentro un nombre real es un nombre real a la vista de todos.
-  avisa("Guardando tus datos…");
-  await setDoc(doc(db, "student_profiles", ficha.id, "privado", "datos"), {
-    firstName: datos.nombre || "", lastName: datos.apellidos || "",
-    email: datos.correo || yo.correo, bitacora: datos.bitacora || "", bio: datos.bio || "",
-    // 5-oct-2026 · lo que firmó al alistarse (la casilla de la política de privacidad): versión y momento. Va aquí, en lo
-    // privado, que el alumno ya puede escribir: sin reglas nuevas que desplegar
-    ...(datos.consentimiento && datos.consentimiento.v ? { consentimiento: { v: String(datos.consentimiento.v), t: Number(datos.consentimiento.t) || Date.now() } } : {})
+  const PASOS = { ficha: "Abriendo tu ficha…", privado: "Guardando tus datos…", alta: "Entregando tu insignia…" };
+  await ALISTARSE.alistar(perId, {
+    alias: datos.alias, textos: TEXTOS_ALIAS,
+    unaVez: false,                 // (quien ya tiene ficha en el grupo no llega aquí: lo mira la pantalla)
+    alAvanzar: (paso) => { if (alAvanzar && PASOS[paso]) alAvanzar(PASOS[paso]); },
+    ficha: {
+      hubCustomization: {},
+      squadId: escuadron ? escuadron.id : null, factionId: escuadron ? escuadron.id : null,
+      stargateProfe: datos.comandante || "", stargateAvatar: datos.avatar || null,
+      stargateBio: datos.bio || "",
+      // 5-oct · del equipo docente → nace fantasma (ver esDelEquipoDe)
+      ...(esDelEquipoDe(proy, yo) ? { fantasma: true } : {})
+    },
+    // 🔴 El nombre y el correo NO van en la ficha: van a `privado/datos`, que solo leen el propio
+    // alumno y su equipo docente. La ficha la lee cualquiera con sesión —la necesitan el ranking y el
+    // salón de la fama—, y ahí dentro un nombre real es un nombre real a la vista de todos.
+    privadoObligatorio: true,
+    privado: (y) => ({
+      firstName: datos.nombre || "", lastName: datos.apellidos || "",
+      email: datos.correo || y.correo, bitacora: datos.bitacora || "", bio: datos.bio || "",
+      // 5-oct-2026 · lo que firmó al alistarse (la casilla de la política de privacidad): versión y momento. Va aquí, en lo
+      // privado, que el alumno ya puede escribir: sin reglas nuevas que desplegar
+      ...(datos.consentimiento && datos.consentimiento.v ? { consentimiento: { v: String(datos.consentimiento.v), t: Number(datos.consentimiento.t) || Date.now() } } : {})
+    }),
+    // Que falle la insignia (H1) no deja a nadie sin alistar: la ficha ya existe y el profesorado puede otorgar el reto a
+    // mano. Mejor dentro sin insignia que fuera con un error.
+    misionAlta: "H1",
   });
-
-  avisa("Entregando tu insignia…");
-  try {
-    const r = await getDocs(query(collection(db, "missions"),
-      where("projectId", "==", perId), where("stargateId", "==", "H1")));
-    if (!r.empty) await llamar("completeMission",
-      { projectId: perId, missionId: r.docs[0].id, studentProfileId: ficha.id });
-  } catch (e) {
-    // Que falle la insignia no puede dejar a nadie sin alistar: la ficha ya existe y el profesorado
-    // puede otorgar el reto a mano. Mejor dentro sin insignia que fuera con un error.
-    console.warn("[STARGATE] la insignia de reclutamiento no ha entrado:", e && e.message);
-  }
   return escuadron;
 }
 
@@ -785,6 +736,16 @@ async function miPapel() {
   return SDK.papelDe(await papel.miPapel(yo.uid), "stargate");
 }
 
+/**
+ * 7-oct · LOS PASOS 4-11 DEL SDK DE GAMIFICAPRO (su docs/PLAN_CENTRALIZAR.md, fase 5): cada pieza recibe las funciones de esta
+ * centralita —las de Firestore, `llamar` y la sesión— y no importa Firebase ni lleva piel. En motor_sim.js (la consola de
+ * ensayo) son las del Firebase de mentira; en el laboratorio, las del emulador. Los textos, los campos y las colecciones de
+ * STARGATE se los pone cada función de aquí. Se demuestra que da lo mismo en la batería 136.
+ */
+const CTX = { fs: { db, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, writeBatch, onSnapshot, deleteField },
+              llamar, sesion };
+const ALISTARSE = SDK.alistarse.crear(CTX);
+
 // El catálogo (retos, insignias, niveles, tienda) sale de Datos.gs y se congela en la construcción.
 // Se pide aquí y no se incrusta en cada página: son 25 KB que solo necesitan las pantallas del motor
 // nuevo, y el navegador lo cachea una vez para todas.
@@ -1007,23 +968,8 @@ async function darDeBaja(perId, fichaId) {
  * a nombre del alumno y se libera el viejo, todo en el mismo lote que la ficha.
  */
 async function cambiarAlias(perId, fichaId, nuevo, extra) {
-  const f = await getDoc(doc(db, "student_profiles", fichaId));
-  if (!f.exists()) throw new Error("Esa ficha ya no está");
-  const uid = f.data().userId, viejo = f.data().displayName;
-  const lote = writeBatch(db);
-  await reservarAlias(lote, perId, uid, nuevo);
-  if (aliasClave(viejo) !== aliasClave(nuevo)) {
-    const rv = await getDoc(refAlias(perId, viejo)).catch(() => null);
-    if (rv && rv.exists() && rv.data().uid === uid) lote.delete(rv.ref);
-  }
-  const cambios = Object.assign({}, extra || {}, { displayName: nuevo });
-  lote.update(doc(db, "student_profiles", fichaId), cambios);
-  try { await lote.commit(); }
-  catch (e) {
-    if (!/permission|insufficient/i.test(String(e && (e.code || e.message)))) throw e;
-    if (await aliasOcupado(perId, nuevo, { ficha: fichaId })) throw new Error("«" + nuevo + "» ya lo lleva otro recluta del grupo.");
-    await updateDoc(doc(db, "student_profiles", fichaId), cambios);   // reglas de antes del registro (ver alistar)
-  }
+  // (7-oct · GP_SDK.alistarse: el nuevo, reservado a nombre de su dueño; el viejo, libre; y la ficha, en el mismo lote)
+  await ALISTARSE.cambiarAlias(perId, fichaId, nuevo, extra, TEXTOS_ALIAS);
 }
 
 /** Cambiar el código de acceso del grupo. Se usa cuando se ha corrido más de la cuenta. */
