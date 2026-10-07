@@ -677,8 +677,8 @@ async function cambiarComandante(perId, fichaId, aNombre) {
  */
 async function resolverVale(valeId, aprobar, mensaje) {
   // 5-oct · lo decide el servidor de GamificaPro (`modVale`): una sola vez, devolviendo lo pagado al denegar y con el
-  // suceso en el libro. Antes, tres escrituras desde este navegador y sin rastro.
-  return llamar("modVale", { voucherId: String(valeId), decision: aprobar ? "aprobar" : "rechazar", mensaje: mensaje || "" });
+  // suceso en el libro. Antes, tres escrituras desde este navegador y sin rastro. (7-oct · la petición, de GP_SDK.economia)
+  return ECONOMIA.resolverVale(valeId, aprobar, mensaje);
 }
 
 /**
@@ -751,6 +751,8 @@ const RETOS = SDK.retos.crear(CTX);
  */
 const EQUIPO = SDK.equipo.crear(CTX, { referentes: "stargate_referentes", invitaciones: "stargate_invitaciones" });
 const TEXTOS_EQUIPO = { sinSesion: "Entra con tu cuenta.", sinSesionCanje: "Entra con tu cuenta de Google.", correoMalo: "Ese correo no parece un correo." };
+/* Vales, sorteos y ofertas (GP_SDK.economia, paso 11): solo peticiones al servidor. */
+const ECONOMIA = SDK.economia.crear(CTX);
 const TEXTOS_RETOS = {
   sinDestino: "No sé a quién mandárselo",
   sinSesionReflexion: "Entra con tu cuenta para guardar tu reflexión.", reflexionVacia: "La reflexión está vacía.",
@@ -1886,11 +1888,16 @@ async function ofertaEnGrupos(docs, accion, datos) {
   for (const g of docs) { try { await oferta(g.per, accion, Object.assign({ ofertaId: g.docId }, datos || {})); } catch (e) { fallos.push({ per: g.per, motivo: e.message }); } }
   return { fallos };
 }
-const sortear = (perId, ticketDoc) => llamar("stargateSortear", { projectId: perId, ticketId: ticketDoc });
+/*
+ * 7-oct · VALES, SORTEOS Y OFERTAS, del SDK de GamificaPro (GP_SDK.economia, paso 11): lo que mueve créditos lo decide el
+ * servidor; aquí solo se pide. Sortear va por `modSortear`, el sorteo del motor: el mismo `sortearAhora` que `stargateSortear`
+ * (en un grupo de STARGATE, con el mod «stargate» de siempre) y el mismo candado (solo el referente).
+ */
+const sortear = (perId, ticketDoc) => ECONOMIA.sortear(perId, ticketDoc);
 // 14-sep · los sorteos que ya han pasado su fecha se resuelven solos al entrar cualquiera del grupo
-const sorteosPendientes = (perId) => llamar("stargateSorteosPendientes", { projectId: perId });
+const sorteosPendientes = (perId) => ECONOMIA.sorteosPendientes(perId);
 // 14-sep · las ofertas de la semana: la automática (la pide la Nave al entrar), comprar, y lo del referente
-const oferta = (perId, accion, datos) => llamar("stargateOferta", Object.assign({ projectId: perId, accion: accion }, datos || {}));
+const oferta = (perId, accion, datos) => ECONOMIA.oferta(perId, accion, datos);
 
 /** Quién ha fichado en una llamada, para verlo en directo desde el puesto de mando. */
 /**

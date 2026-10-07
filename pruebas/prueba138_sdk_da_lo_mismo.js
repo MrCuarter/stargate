@@ -60,6 +60,15 @@ function normalizar(t) {
 }
 /** El JSON con las claves en orden (a Firestore le da igual en qué orden se escriben los campos de un documento). */
 const canon = (v) => JSON.stringify(v, (k, x) => (x && typeof x === "object" && !Array.isArray(x) ? Object.keys(x).sort().reduce((o, c) => (o[c] = x[c], o), {}) : x));
+/**
+ * LAS FUNCIONES DEL SERVIDOR QUE CAMBIAN DE NOMBRE, a propósito: en la traza de antes se llaman como ahora (y se comprueba que
+ * estaban), y lo demás de ese paso —los datos que se mandan— tiene que dar lo mismo.
+ */
+const RENOMBRES = {
+  // paso 11 · sortear, por el sorteo del motor (functions/stargateSorteo.js: el mismo sortearAhora, con el mod «stargate» de
+  // siempre y el mismo candado, solo el referente; no mira la pieza «sorteo», que todos los grupos de STARGATE tienen)
+  "→ stargateSortear": "→ modSortear",
+};
 function correr(motor, opc) {
   const r = spawnSync(process.execPath, [path.join(__dirname, "sdk_guion.mjs"), motor].concat(opc), { cwd: R, encoding: "utf8", maxBuffer: 64 << 20, env: Object.assign({}, process.env, { TZ: "Europe/Madrid" }) });
   try { return normalizar(JSON.parse(r.stdout)); } catch (e) { return [["💥 no ha salido la traza", (r.stderr || "").slice(0, 2000)]]; }
@@ -73,7 +82,10 @@ if (!viejo) {
   const fn = path.join(R, "assets/js/motor.js");
   for (const [nombre, opc] of [["el docente de ensayo", []], ["con el buzón abierto", ["--buzon"]], ["un recluta (Tritón)", ["--yo=prueba_triton"]]]) {
     console.log("\n  · " + nombre);
-    const a = correr(fv, opc), b = correr(fn, opc);
+    const a0 = correr(fv, opc), b = correr(fn, opc);
+    const a = a0.map((x) => (RENOMBRES[x[0]] ? [RENOMBRES[x[0]], x[1]] : x));
+    Object.keys(RENOMBRES).forEach((k) => c(a0.some((x) => x[0] === k) && b.some((x) => x[0] === RENOMBRES[k]) && !b.some((x) => x[0] === k),
+      "   a propósito · " + k.slice(2) + " pasa a ser " + RENOMBRES[k].slice(2) + ", con los mismos datos"));
     c(a.length > 150 && !a.some((x) => /^💥/.test(x[0])), "   el guion corre entero con el motor de antes (" + a.length + " pasos)", a.filter((x) => /^💥/.test(x[0])));
     c(!b.some((x) => /^💥/.test(x[0])), "   y con el de ahora", b.filter((x) => /^💥/.test(x[0])));
     const pasos = (t) => t.map((x) => x[0]);
