@@ -192,12 +192,18 @@ if (fs.existsSync(PUERTA)) {
   });
   // (17-sep · la sesión de DPG1 la abrió también a sus grupos, «ceniza», con la misma exigencia: `esModWeb` de comun.js)
   const COMUN = fs.existsSync(path.join(path.dirname(PUERTA), "comun.js")) ? fs.readFileSync(path.join(path.dirname(PUERTA), "comun.js"), "utf8") : "";
+  const leerGP = (f) => fs.existsSync(path.join(path.dirname(PUERTA), f)) ? fs.readFileSync(path.join(path.dirname(PUERTA), f), "utf8") : "";
+  const MODS_GP = leerGP("mods/index.js"), MOD_SG = leerGP("mods/stargate.js");
   c(/\(p\.data\(\)\.stargate \|\| \{\}\)\.version/.test(PC) ||
     ((/!esModWeb\(p\.data\(\)\)/.test(PC) ||
       // (7-oct · fase 6: la puerta va como parámetro de servirTablero, que sirve también a tableroMod)
       (/!puerta\(p\.data\(\)\)/.test(PC) && /servirTablero\('tableroStargate', esModWeb,/.test(PC)))
-      && /projectData\.stargate && projectData\.stargate\.version\) return 'stargate'/.test(COMUN)
-      && /projectData\.ceniza && projectData\.ceniza\.version\) return 'ceniza'/.test(COMUN)),
+      && ((/projectData\.stargate && projectData\.stargate\.version\) return 'stargate'/.test(COMUN)
+        && /projectData\.ceniza && projectData\.ceniza\.version\) return 'ceniza'/.test(COMUN))
+        // (7-oct · §4c de GamificaPro: la detección sale de la lista MODS —un mod, por su bloque con `version`— y STARGATE
+        // va primero, reconocido solo por su bloque)
+        || (/for \(const mod of Object\.keys\(MODS\)\)/.test(COMUN) && /const conVersion = \(projectData, mod\) => !!\(projectData\[mod\] && projectData\[mod\]\.version\);/.test(COMUN)
+          && /export const MODS = \{ stargate: STARGATE, ceniza: CENIZA_MOD \};/.test(MODS_GP) && /reconocer: RECONOCER/.test(MOD_SG)))),
     "🔴 y solo contesta a grupos de STARGATE: si no, dejaría leer sin sesión cualquier proyecto de la plataforma");
 } else {
   console.log("   (no encuentro gamificapro/functions/stargate.js: me salto la puerta pública)");

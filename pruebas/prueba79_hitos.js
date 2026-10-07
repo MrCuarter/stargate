@@ -49,7 +49,7 @@ const N = leer("assets/js/recluta.js"), F = leer("assets/js/fuente.js"), M = lee
       "🔴 y la misma semana: el servidor no paga premios antes de que NEBULA los presente", JSON.stringify(c9 && c9.semanas) + " · " + JSON.stringify(S.CAPITULO));
   }
   const GPZ = fs.existsSync(path.join(GP, "stargateZoco.js")) ? fs.readFileSync(path.join(GP, "stargateZoco.js"), "utf8") : "";
-  c(/tipoPieza\(id\) && !esDeABordo\(id\)/.test(GPZ) && /El Contramaestre no se cambia/.test(GPZ), "🔴 el Zoco del servidor rechaza al Contramaestre");
+  c(/tipoPieza\(id\) && !esDeABordo\(id(, heroes)?\)/.test(GPZ) && /El Contramaestre no se cambia/.test(GPZ), "🔴 el Zoco del servidor rechaza al Contramaestre");
   const GPI = fs.existsSync(path.join(GP, "index.js")) ? fs.readFileSync(path.join(GP, "index.js"), "utf8") : "";
   c(/projectData\?\.stargate && !\(p\.stargateHitos \|\| \{\}\)\.compra\) updates\['stargateHitos\.compra'\] = ahora/.test(GPI) && /stargateHitos \} from '\.\/stargateHitos\.js'/.test(GPI),
     "   la tienda apunta «primera compra» (solo en STARGATE) y la función se exporta");
