@@ -58,7 +58,8 @@ const ENLACES = `[].slice.call(document.querySelectorAll('a[href]'))
 const BOTONES_MUDOS = `[].slice.call(document.querySelectorAll('button:not([disabled])'))
   .filter(function(b){
     if (b.onclick || b.type==='submit' || b.form) return false;
-    if (b.className && /tour-start|drop-btn|tab|acc|x\\b/.test(b.className)) return false;
+    // (7-oct · gpm-boton: el de «Ayuda ▾», que escucha sdk/menu.js con addEventListener, como drop-btn el de «Grupos»)
+    if (b.className && /tour-start|drop-btn|gpm-boton|tab|acc|x\\b/.test(b.className)) return false;
     if (b.dataset && Object.keys(b.dataset).length) return false;
     if (b.closest('[data-listo]')) return false;
     return true;

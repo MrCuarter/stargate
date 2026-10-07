@@ -8084,3 +8084,41 @@ body.embed .bz-nueva h2,body.embed .bz-lista h2{font-size:1.05rem}
 /* · Sesión, «¿Qué semana quieres ver?»: todas las semanas del mismo alto, y su tema en dos líneas. */
 .dif-grid{grid-auto-rows:1fr;align-items:stretch}
 .dif-s>span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+
+/* ════════ 7-oct · «AYUDA ▾»: el menú desplegable del motor (GamificaPro sdk/menu.js → assets/js/menu.js), con la piel de la barra ════════
+   La pieza pone lo que hace (abrir con el ratón o el dedo, el teclado, la lista encima); aquí, cómo se ve: el botón, como un
+   enlace más de la barra, y la lista, como la de «Grupos» de antes. Nada por debajo de 13 px. */
+.nav{--gpm-fondo:rgba(10,15,24,.98);--gpm-tinta:var(--ink);--gpm-borde:var(--line);--gpm-radio:12px;--gpm-sombra:0 18px 44px rgba(0,0,0,.55);
+  --gpm-ancho:270px;--gpm-separa:8px;--gpm-capa:30;--gpm-resalte:rgba(55,224,236,.1);--gpm-foco:var(--teal);--gpm-actual:var(--teal)}
+.nav .gpm-boton{color:var(--mut);font-size:.82rem;padding:6px 9px;border-radius:8px}
+.nav .gpm-flecha{font-size:1.05em}
+.nav .gpm-boton:hover,.nav .gpm.gpm-abierto .gpm-boton{color:var(--teal);background:rgba(55,224,236,.08)}
+.nav .gpm.gpm-activo .gpm-boton{color:var(--teal);background:rgba(55,224,236,.12)}
+.nav .gpm-boton:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.nav .gpm-lista>[role=menuitem]{font-size:.92rem;line-height:1.3;color:var(--ink);padding:9px 12px}
+.nav .gpm-lista>[aria-current=page]{box-shadow:inset 3px 0 0 var(--teal)}
+.nav .gpm-sub{color:var(--mut);opacity:1;font-size:.8rem;margin-top:2px}
+/* En la Nave, «Ayuda ▾» va pegada a tu identidad, a la derecha (no en medio de la barra). */
+.nav .gpm~.nb-id{margin-left:0}
+/* En el móvil (390 px), «Ayuda ▾» tiene que verse sin deslizar la barra: la marca «Comandante»/«Recluta» de al lado del logo
+   se esconde (lo que hay en la barra ya dice dónde estás; en la Nave, además, tu cara, xp y créditos). */
+@media (max-width:480px){.nav:has(.gpm) .brand .modo{display:none}}
+
+/* ════════ 7-oct · LAS GUÍAS (guias.html): la rápida o la completa, dos tarjetas iguales con su personaje ════════ */
+.gs-hero{padding:46px 22px 28px}
+.gs-hero h1{font-size:clamp(2.1rem,5vw,3.2rem)}
+.gs{padding:26px 0 48px}
+.gs-rejilla{--gpt-min:300px;--gpt-hueco:18px;max-width:900px;margin:0 auto}
+a.gs-tarjeta{padding:0;overflow:hidden;text-decoration:none;color:var(--ink);transition:transform .2s,border-color .2s,box-shadow .2s}
+a.gs-tarjeta:hover,a.gs-tarjeta:focus-visible{border-color:var(--teal);transform:translateY(-3px);outline:none;
+  box-shadow:0 18px 44px rgba(0,0,0,.45),0 0 22px rgba(55,224,236,.18)}
+.gs-foto{display:flex;justify-content:center;align-items:flex-end;height:250px;padding-top:12px;border-bottom:1px solid var(--line);
+  background:radial-gradient(70% 90% at 50% 100%,rgba(55,224,236,.22),transparent 70%),linear-gradient(180deg,#0b1626,#0d1b2c)}
+.gs-foto img{height:100%;width:auto;max-width:100%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))}
+.gs-texto{flex:1;display:flex;flex-direction:column;gap:6px;padding:18px 20px 20px}
+.gs-texto .kicker{letter-spacing:.2em}
+.gs-t{font-family:'Unbounded',sans-serif;font-size:1.35rem;line-height:1.15}
+.gs-que{color:var(--mut);font-size:1rem;line-height:1.45;margin-bottom:12px}
+.gs-btn{align-self:flex-start}
+@media (max-width:620px){.gs-hero{padding:30px 16px 18px}.gs{padding:18px 0 36px}.gs-foto{height:190px}.gs-t{font-size:1.2rem}.gs-btn{align-self:stretch;text-align:center}}
+@media (prefers-reduced-motion:reduce){a.gs-tarjeta{transition:none}a.gs-tarjeta:hover{transform:none}}

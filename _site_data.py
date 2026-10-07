@@ -346,7 +346,7 @@ ACADEMIA = {
        {"h": "Tu panel (Mi nave)", "pj": "capitan:senala", "video": "tu-panel",
         "p": "Todo lo tuyo está en <b>Mi nave</b>, en el menú de arriba.",
         "pasos": ["<b>La portada</b> (Puente): la semana de tu grupo y «Empezar la clase».", "<b>Estudiantes</b> (Reclutas): quién está, sus retos y lo que espera tu visto bueno.",
-                  "<b>Retos</b> y <b>Calendario</b>: qué toca cada semana.", "¿Te pierdes? <b>En claro</b>, en el menú, lo cuenta todo sin la historia."]},
+                  "<b>Retos</b> y <b>Calendario</b>: qué toca cada semana.", "¿Te pierdes? <b>En claro</b> (arriba, en <b>Ayuda ▾ → Guías</b>) lo cuenta todo sin la historia."]},
      ],
      "hitos": [
        {"id": "panel-ensayo", "tipo": "auto", "comprobar": "ens:puente", "titulo": "Date una vuelta por tu panel de ensayo",
@@ -463,7 +463,7 @@ ACADEMIA = {
        {"p": "¿Cuándo se abre la tienda (Mercado)?", "o": ["En la semana {{SEM_MERCADO}}", "El primer día", "Al final del curso"], "ok": 0, "porque": "Desde la semana {{SEM_MERCADO}} gastan sus créditos."},
        {"p": "Encuentras un error en la web. ¿Qué pasa?", "o": ["Se arregla solo en menos de una hora", "Hay que esperar al curso que viene", "Lo arreglas tú"], "ok": 0, "porque": "Escribe al buzón: los errores de la web se arreglan en la hora."},
        {"p": "¿Cuándo marcas «Me está bloqueando la clase»?", "o": ["Solo si algo te impide dar la sesión en ese momento", "Siempre", "Nunca"], "ok": 0, "porque": "Para una duda, sin marcar."},
-       {"p": "¿Dónde está todo explicado sin la historia?", "o": ["En «En claro», en el menú", "En los vídeos", "En el foro"], "ok": 0, "porque": "En claro: lo esencial, para entenderlo en dos minutos."},
+       {"p": "¿Dónde está todo explicado sin la historia?", "o": ["En «En claro» (Ayuda ▾ → Guías)", "En los vídeos", "En el foro"], "ok": 0, "porque": "En claro: lo esencial, para entenderlo en dos minutos."},
      ]},
     {"id": "ludo", "planeta": "Ludo", "titulo": "Tus estudiantes", "tema": "Qué ven, y cómo validar o quitar un reto", "min": 4,
      "bg": "assets/img/fondos/p6_ludo_llegada.webp", "suelo": "assets/img/fondos/p6_ludo.webp",

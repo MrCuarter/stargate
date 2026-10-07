@@ -18,11 +18,13 @@ const c = (cond, txt, dato) => { if (cond) ok++; else fallos.push(txt); console.
 const B = L("_build_site.py"), MOT = L("assets/js/motor.js"), CJS = L("assets/js/consola.js"), AJS = L("assets/js/academia.js");
 const CON = L("consola.html"), ACA = L("academia.html"), GUIA = L("guia.html"), GRUPO = fs.readFileSync(path.join(R, "..", "academia", "academia_grupo.cjs"), "utf8");
 
-// ── 1 · En el menú de arriba, para todo el profesorado
-c(/NAV = \[\("consola\.html","Mi nave","cons"\),\("gestion\.html","Gestionar grupos","gest","referente"\),\("academia\.html","Academia","acad"\),\("guia\.html","Guía","guia"\),\s*(#[^\n]*\n\s*)?\("en-claro\.html","En claro","claro"\)\]/.test(B),
-  "🔴 «Academia» en el menú del profesorado, entre «Gestionar grupos» y «Guía» (y, desde el 4-oct, «En claro» al final)");
-c(/<a class="lnk" href="academia\.html">Academia<\/a>/.test(CON) && /<a class="lnk" href="academia\.html">Academia<\/a>/.test(GUIA), "   visible en las páginas del profesorado (sin «solo»: para todos)");
-c(/<a class="lnk active" href="academia\.html">Academia<\/a>/.test(ACA), "   y encendida en la propia Academia");
+// ── 1 · En el menú de arriba, para todo el profesorado (7-oct: dentro de «Ayuda ▾», la primera; el desplegable es
+//        GamificaPro sdk/menu.js, y la batería 136 comprueba el menú entero)
+const OPC = h => (h.match(/<div class="gpm-lista"[^>]*>([\s\S]*?)<\/div><\/div>/) || ["", ""])[1];
+c(/AYUDA_DOCENTE = \[\s*dict\(href="academia\.html", texto="Academia", clave="acad"/.test(B) && /NAV = \[\("consola\.html","Mi nave","cons"\),\("gestion\.html","Gestionar grupos","gest","referente"\)\]/.test(B),
+  "🔴 «Academia» en el menú del profesorado: después de «Gestionar grupos», la primera de «Ayuda ▾»");
+c(/<a role="menuitem" tabindex="-1" href="academia\.html">Academia</.test(OPC(CON)) && /<a role="menuitem" tabindex="-1" href="academia\.html">Academia</.test(OPC(GUIA)), "   visible en las páginas del profesorado (sin «solo»: para todos)");
+c(/<a role="menuitem" tabindex="-1" href="academia\.html" aria-current="page">Academia</.test(OPC(ACA)) && /class="gpm gpm-derecha gpm-activo"/.test(ACA), "   y encendida en la propia Academia");
 
 // ── 2 · Su grupo, fuera de las listas de clase
 c(/async function misPERs\(correo, opc\)/.test(MOT) && /\.filter\(x => !x\.stargate\.academia \|\| !!\(opc && opc\.academia\)\)/.test(MOT),
