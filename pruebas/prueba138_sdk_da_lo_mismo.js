@@ -10,7 +10,8 @@
  *   tanda (el del commit BASE, del historial de git) y con el de ahora, cada uno en su proceso, contra la consola de ensayo y con
  *   el reloj parado y el azar sembrado. Se comparan, paso a paso: lo que devuelve cada función (o su error), cada llamada al
  *   servidor con sus datos, lo que se avisa y, al final, cada documento tocado. Tres pasadas: como el docente de ensayo, con el
- *   buzón abierto (en el ensayo no se guarda, a propósito) y como un recluta.
+ *   buzón abierto (en el ensayo no se guarda, a propósito) y como un recluta. Y otras tres con la centralita de ahora contra
+ *   el Firebase de mentira de antes y contra el común de GamificaPro (sdk/sim): el ensayo, igual.
  *
  * Las diferencias a propósito están en DIFERENCIAS, con lo que se espera de cada una: cualquier otra, falla.
  */
@@ -105,6 +106,19 @@ if (!viejo) {
       else c(false, "🔴 da lo mismo · " + x[0], { antes: x[1], ahora: y[1] });
     });
     c(mismos > 0, "🔴 " + mismos + " de " + a.length + " pasos, idénticos (lo que devuelve, lo que llama al servidor y lo que escribe)");
+  }
+  // y el ensayo: el Firebase de mentira de antes (assets/js/sim/firebase_sim.js del commit BASE) y el común de GamificaPro
+  // (el envoltorio de ahora sobre mod-sim.v1.<huella>.js), con la centralita de ahora, dan lo mismo
+  let simViejo = "";
+  try { simViejo = execFileSync("git", ["show", BASE + ":assets/js/sim/firebase_sim.js"], { cwd: R, encoding: "utf8", maxBuffer: 16 << 20 }); } catch (e) { /* sin historial */ }
+  if (simViejo && /GP_SIM/.test(fs.readFileSync(path.join(R, "assets/js/sim/firebase_sim.js"), "utf8"))) {
+    console.log("\n  · el ensayo de antes y el simulador común de GamificaPro");
+    const fsv = path.join(tmp, "firebase_sim_antes.js"); fs.writeFileSync(fsv, simViejo);
+    for (const opc of [[], ["--buzon"], ["--yo=prueba_triton"]]) {
+      const a = correr(fn, opc.concat(["--sim=" + fsv])), b = correr(fn, opc);
+      const dist = a.map((x, i) => [x[0], canon(x[1]) === canon((b[i] || [])[1]) && x[0] === (b[i] || [])[0]]).filter((x) => !x[1]).map((x) => x[0]);
+      c(a.length > 150 && a.length === b.length && !dist.length, "🔴 " + (opc[0] || "el docente") + ": " + a.length + " pasos, idénticos con los dos", dist.slice(0, 5));
+    }
   }
   fs.rmSync(tmp, { recursive: true, force: true });
 }

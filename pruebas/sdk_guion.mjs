@@ -3,7 +3,7 @@
  * azar sembrado, y escribe en la salida lo que ha pasado paso a paso. La batería lo lanza dos veces, en procesos aparte: con el
  * motor.js de ANTES de los pasos 4-11 del SDK de GamificaPro (del historial de git) y con el de ahora, y compara las dos trazas.
  *
- *   node pruebas/sdk_guion.mjs <motor.js> [--yo=<uid>] [--buzon]
+ *   node pruebas/sdk_guion.mjs <motor.js> [--yo=<uid>] [--buzon] [--sim=<firebase_sim.js>]
  *
  * Firestore y Auth son los del ensayo (assets/js/sim/firebase_sim.js, el de este repo, con la Nave Escuela y un segundo grupo);
  * las funciones del servidor, un mostrador que apunta cada llamada y contesta lo que dice `RESPUESTAS` (o el error que se le
@@ -95,7 +95,9 @@ globalThis.__SG_SERVIDOR = async (nombre, datos) => {
 
 // ── la centralita, con los imports del ensayo (como motor_simulador() de _build_site.py) y el mostrador
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sg-guion-"));
-const sim = L("assets/js/sim/firebase_sim.js");
+// (--sim=<fichero>: otro Firebase de mentira; la batería lo usa para comparar el ensayo de antes con el común de GamificaPro)
+const SIM_OTRO = (OPC.find((x) => x.startsWith("--sim=")) || "").slice(6);
+const sim = SIM_OTRO ? fs.readFileSync(SIM_OTRO, "utf8") : L("assets/js/sim/firebase_sim.js");
 fs.mkdirSync(path.join(tmp, "js", "sim"), { recursive: true });
 // (el buzón no se guarda en el ensayo, a propósito; aquí se abre con una marca para poder comparar lo que escribe)
 const simAbierto = sim.replace(/^const NO_SE_GUARDA = \[/m, "const NO_SE_GUARDA = globalThis.__SG_BUZON_ABIERTO ? [] : [");

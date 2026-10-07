@@ -80,6 +80,10 @@ c(/"sim:consola"\) return "ensayo\.html"/.test(L("assets/js/academia.js")) && /"
 // ── 5 · El Firebase de mentira, EJECUTADO con sus datos
 (async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sg-ensayo-"));
+  // 7-oct · el envoltorio importa el simulador común de GamificaPro (su paquete, al lado): se copia junto a la copia (sin
+  // package.json en la carpeta temporal, Node lo carga como CommonJS y deja GP_SIM en el global)
+  const PAQ = (FSIM.match(/^import "\.\/(mod-sim\.v1\.[0-9a-f]{10}\.js)";$/m) || [])[1];
+  if (PAQ) fs.copyFileSync(path.join(R, "assets/js/sim", PAQ), path.join(tmp, PAQ));
   const cargar = async (semilla, n) => {
     const f = path.join(tmp, "fs" + n + ".mjs"); fs.writeFileSync(f, FSIM);
     const guardado = {};
