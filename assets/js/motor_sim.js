@@ -976,52 +976,35 @@ async function cambiarAlias(perId, fichaId, nuevo, extra) {
  * trabaja desde el servidor: aquí solo se escribe y se lee. Las reglas: `stargate_buzon`.
  */
 const BUZON = "stargate_buzon";
+/*
+ * 7-oct · DEL SDK DE GAMIFICAPRO (GP_SDK.buzon, paso 10): escribir (las capturas, solo de nuestro almacén y hasta tres; la duda
+ * del recluta con su alias y nunca urgente), lo mío, todo, contestar sin reescribir el hilo y «ya lo he leído». Aquí, la
+ * colección y los textos de STARGATE.
+ */
+const BUZON_SDK = SDK.buzon.crear(CTX, BUZON);
+const TEXTOS_BUZON = { sinSesion: "Entra con tu cuenta para escribir al Mando.", sinMensaje: "Ese mensaje ya no existe.", estudiante: "Recluta" };
 async function buzonEnviar(m) {
-  const yo = await sesion();
-  if (!yo) throw new Error("Entra con tu cuenta para escribir al Mando.");
-  const ahora = Date.now();
-  const d = {
-    // 28-sep · la duda de un RECLUTA (la que NEBULA no sabe): va con su alias, nunca urgente (reglas: tipo 'recluta')
-    uid: yo.uid, correo: yo.correo, nombre: m.tipo === "recluta" ? String((m.contexto || {}).alias || "Recluta") : (yo.nombre || yo.correo),
-    projectId: m.projectId || "", grupo: m.grupo || "",
-    tipo: m.tipo, urgente: m.tipo === "recluta" ? false : !!m.urgente, texto: String(m.texto || "").trim().slice(0, 2000), contexto: m.contexto || {},
-    estado: "nuevo", respuestas: [], creado: ahora, actualizado: ahora, visto: true, autoayuda: m.autoayuda || []
-  };
+  // 28-sep · la duda de un RECLUTA (la que NEBULA no sabe): va con su alias, nunca urgente (reglas: tipo 'recluta')
   // 1-oct · las capturas (hasta tres direcciones de nuestro almacén), como las traía «Pregunta a NEBULA» de la Academia
-  const adj = (m.adjuntos || []).map(String).filter(u => /^https:\/\/firebasestorage\.googleapis\.com\//.test(u) && u.length <= 1024).slice(0, 3);
-  if (adj.length) d.adjuntos = adj;
-  const ref = await addDoc(collection(db, BUZON), d);
-  return ref.id;
+  return BUZON_SDK.enviar(m, TEXTOS_BUZON);
 }
 /** Lo mío, lo último arriba (sin índices compuestos: se ordena aquí). */
 async function buzonMios() {
-  const yo = await sesion();
-  if (!yo) return [];
-  const r = await getDocs(query(collection(db, BUZON), where("uid", "==", yo.uid)));
-  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.actualizado || 0) - (a.actualizado || 0));
+  return BUZON_SDK.mios();
 }
 /** Todo (solo el Mando: las reglas no dejan a nadie más). */
 async function buzonTodos() {
-  const r = await getDocs(collection(db, BUZON));
-  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.actualizado || 0) - (a.actualizado || 0));
+  return BUZON_SDK.todos();
 }
 /**
  * Contestar en un hilo. El docente añade una respuesta suya (y el mensaje vuelve a «nuevo»: el Mando
  * lo verá); el Mando responde como «mando» y le pone el estado que toque. Nada de lo anterior se toca.
  */
 async function buzonResponder(id, texto, opciones) {
-  const o = opciones || {}, ref = doc(db, BUZON, id);
-  const d = await getDoc(ref);
-  if (!d.exists()) throw new Error("Ese mensaje ya no existe.");
-  const t = String(texto || "").trim().slice(0, 2000);
-  const cambios = { actualizado: Date.now() };
-  if (t) cambios.respuestas = (d.data().respuestas || []).concat([{ de: o.comoMando ? "mando" : "docente", texto: t, fecha: Date.now() }]);
-  if (o.comoMando) { cambios.estado = o.estado || d.data().estado; if (t) cambios.visto = false; }
-  else cambios.estado = o.estado === "resuelto" ? "resuelto" : "nuevo";
-  await updateDoc(ref, cambios);
+  await BUZON_SDK.responder(id, texto, opciones, TEXTOS_BUZON);
 }
 /** «Ya lo he leído»: se apaga el aviso de respuesta nueva. */
-async function buzonVisto(id) { try { await updateDoc(doc(db, BUZON, id), { visto: true }); } catch (e) {} }
+async function buzonVisto(id) { await BUZON_SDK.visto(id); }
 // 1-oct · «¿Te ha resuelto la duda?»: las dos frases con las que el docente valora una respuesta del Mando, en el aviso de
 // respuestas (aviso-buzon.js) y en el hilo del buzón (buzon.js). Viajan como una respuesta suya más (las reglas ya lo dejan) y
 // la guardia las cuenta LEYENDO ESTA LÍNEA (mando/buzon.cjs → utilidad): un dato, un sitio. No la cambies de forma.
