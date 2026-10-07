@@ -101,7 +101,7 @@ const SECS = global(SESH, "SG_SECCIONES_SESION") || [];
 c(SECS.some(x => x[0] === "embarque"), "   y se puede quitar desde «Configurar diapositivas» como cualquier otra sección");
 
 // ── 11 · el nombre del docente, el suyo (el servidor lo cambia en todos sus grupos)
-c(/cambiarMiNombre/.test(MOT) && /llamar\("stargateMiNombre"/.test(MOT), "🔴 nombre: el motor lo pide al servidor (stargateMiNombre)");
+c(/cambiarMiNombre/.test(MOT) && /llamar\("modMiNombre"/.test(MOT), "🔴 nombre: el motor lo pide al servidor (modMiNombre, el nombre del motor de stargateMiNombre)");
 c(/id="doc-nom"/.test(CONS) && /id="doc-nom-g"/.test(CONS) && /function cablearNombre\(/.test(CONS), "   se cambia en el lápiz del avatar, junto al retrato");
 const FN = "/Users/nor/Claude/vibewebs/gamificapro/functions/stargateEquipo.js";
 if (fs.existsSync(FN)) {

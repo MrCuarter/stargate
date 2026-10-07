@@ -87,8 +87,8 @@ Promise.all(casos.map(([t]) => SX.comprobar("S7", t))).then(rs => {
   // 18-sep · el cerrojo de verdad: la palabra la comprueba el SERVIDOR (functions/stargateSecreto.js) y deja la
   // marca en la ficha; sin ella, completeMission no registra S7. Antes bastaba con llamarlo a mano.
   const MOT = leer("assets/js/motor.js");
-  c(/async function traerPalabra\(perId, reto, texto\)/.test(MOT) && /llamar\("stargateSecreto"/.test(MOT) && /traerPalabra,/.test(MOT),
-    "🔴 el motor le lleva la palabra al servidor (stargateSecreto), que es quien decide");
+  c(/async function traerPalabra\(perId, reto, texto\)/.test(MOT) && /llamar\("modSecreto"/.test(MOT) && /traerPalabra,/.test(MOT),
+    "🔴 el motor le lleva la palabra al servidor (modSecreto, el nombre del motor de stargateSecreto), que es quien decide");
   c(/M_\.traerPalabra\(per, id, escrita\.value\)/.test(NAVE), "   la Nave no registra el reto hasta que el servidor dice que sí");
   c(/MOTOR\.traerPalabra\(g\.id, RETO, texto\)/.test(VAL) && /function alServidor\(g, texto, malo\)/.test(VAL),
     "   y validar.html tampoco, venga la llave del enigma o escrita a mano");

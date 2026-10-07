@@ -740,7 +740,7 @@
               // 14-sep · una OFERTA de la semana se compra por su puerta (una por persona) y se abre igual
               if (cuerpo.accion === "canje")
                 return (/^oferta/.test(cuerpo.tipo || "")
-                  ? M.llamar("stargateOferta", { projectId: cuerpo.per, accion: "comprar", ofertaId: cuerpo.recompensa })
+                  ? M.llamar("modOferta", { projectId: cuerpo.per, accion: "comprar", ofertaId: cuerpo.recompensa })
                   : M.llamar("purchaseReward", { projectId: cuerpo.per, rewardId: cuerpo.recompensa,
                   studentProfileId: ficha.id }))
                   .then(function () {

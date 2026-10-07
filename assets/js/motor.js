@@ -856,7 +856,7 @@ async function cerrarLlamada(sesionId) {
  * Devuelve true si la palabra vale (o si ya estaba traída); lanza si no.
  */
 async function traerPalabra(perId, reto, texto) {
-  const r = await llamar("stargateSecreto", { projectId: perId, reto: reto, texto: String(texto || "") });
+  const r = await llamar("modSecreto", { projectId: perId, reto: reto, texto: String(texto || "") });
   return !!(r && r.ok);
 }
 
@@ -934,7 +934,7 @@ const alumno = (perId, fichaId, accion, extra) => EQUIPO.alumno(perId, fichaId, 
  */
 async function moverRecluta(perId, fichaId, destino) {
   try { return await alumno(perId, fichaId, "mover", { destino }); }
-  catch (e) { if (sinDesplegar(e) || /accion|qué hacer/i.test(String(e && e.message))) throw new Error("Falta desplegar en el servidor la versión nueva de «stargateAlumno» (con «mover»): el comando está en el traspaso."); throw e; }
+  catch (e) { if (sinDesplegar(e) || /accion|qué hacer/i.test(String(e && e.message))) throw new Error("Falta desplegar en el servidor la versión nueva de «modAlumno» (con «mover»): el comando está en el traspaso."); throw e; }
 }
 // ¿la función aún no está en el servidor? (un 404 del propio Firebase, no un «no» nuestro). 7-oct · POR CÓDIGO, del SDK de
 // GamificaPro (GP_SDK.errores): antes, por palabras (sin tildes ni «recluta» ni «grupo»), y un «no» del servidor sin tildes
@@ -1166,12 +1166,12 @@ async function miPapeleta(perId, id, fichaId) {
  * el estudiante (empezar, responder, actuar, rendirse) y se devuelve lo que contesta. Ni una respuesta viaja antes de
  * tiempo, y el reloj del rival lo lleva él: cerrar la pestaña no lo para.
  */
-const batalla = (accion, datos) => llamar("stargateBatalla", Object.assign({ accion }, datos || {}));
+const batalla = (accion, datos) => llamar("modBatalla", Object.assign({ accion }, datos || {}));
 
 async function hitos(perId) {
   let tz = "";
   try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
-  try { return await llamar("stargateHitos", { projectId: perId, tz }); }
+  try { return await llamar("modLogros", { projectId: perId, tz }); }
   catch (e) { if (/not-found|NOT_FOUND|internal/i.test(String(e && (e.code || e.message)))) return null; throw e; }
 }
 
@@ -2191,7 +2191,7 @@ async function ponerAvatarDocente(clave) {
  */
 async function cambiarMiNombre(nombre) {
   const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
-  return llamar("stargateMiNombre", { nombre: String(nombre || "").trim() });
+  return llamar("modMiNombre", { nombre: String(nombre || "").trim() });
 }
 
 /** Solo el Mando: TODOS los grupos de STARGATE (con su equipo, si se deja leer) y cuántos alistados tiene cada uno. */

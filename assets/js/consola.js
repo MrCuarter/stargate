@@ -635,7 +635,7 @@
         }).catch(function (e) {
           b.disabled = false; b.textContent = "Guardar en todos tus grupos";
           m.textContent = /not[- ]found|NOT_FOUND|internal/i.test(String((e && (e.code || e.message)) || ""))
-            ? "Falta desplegar «stargateMiNombre» en el servidor." : "No se ha podido guardar: " + ((e && e.message) || e);
+            ? "Falta desplegar «modMiNombre» en el servidor." : "No se ha podido guardar: " + ((e && e.message) || e);
         });
       };
     }
@@ -1657,7 +1657,7 @@
       } catch (e) {
         cong.disabled = false;
         avisoFicha(/not-found|internal/.test(String(e && e.code)) && !/[áéíóú]/.test(String(e && e.message))
-          ? "Falta desplegar en el servidor la función «stargateAlumno» (el comando está en el traspaso)." : e.message);
+          ? "Falta desplegar en el servidor la función «modAlumno» (el comando está en el traspaso)." : e.message);
       }
     };
     var mov = m.querySelector("#c-mover-b");
@@ -3429,7 +3429,7 @@
         } catch (e) {
           b.disabled = false;
           aviso(/not-found|internal/.test(String(e && e.code)) && !/[áéíóú]/.test(String(e && e.message))
-            ? "Falta desplegar en el servidor «stargateEquipo» con la opción de quitar." : e.message);
+            ? "Falta desplegar en el servidor «modEquipo» con la opción de quitar." : e.message);
         }
       };
     });
@@ -3782,7 +3782,7 @@
       return MOTOR.oferta(PER, accion, datos).then(function () { return tras(texto); }).catch(function (e) {
         if (alFallar) try { alFallar(); } catch (x) {}
         aviso(/not-found|internal/.test(String(e && e.code)) && !/[áéíóú]/.test(String(e && e.message))
-          ? "Falta desplegar en el servidor la función «stargateOferta» (el comando está en el traspaso)." : e.message);
+          ? "Falta desplegar en el servidor la función «modOferta» (el comando está en el traspaso)." : e.message);
       });
     };
     $("#of-auto").onchange = function () { var cb = $("#of-auto"), antes = !cb.checked;

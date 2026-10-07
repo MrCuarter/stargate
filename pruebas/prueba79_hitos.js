@@ -81,7 +81,7 @@ const N = leer("assets/js/recluta.js"), F = leer("assets/js/fuente.js"), M = lee
   c(/yaALaVenta\(premios, semana\)/.test(txtO), "   y solo con lo que ya está a la venta esa semana (nada del Hangar antes de su capítulo)");
 
   // 4 · el motor y la puerta de las escrituras
-  c(/async function hitos\(perId\)/.test(M) && /llamar\("stargateHitos", \{ projectId: perId, tz \}\)/.test(M) && /borrarReflexion, idReflexion, hitos,/.test(M),
+  c(/async function hitos\(perId\)/.test(M) && /llamar\("modLogros", \{ projectId: perId, tz \}\)/.test(M) && /borrarReflexion, idReflexion, hitos,/.test(M),
     "el motor pregunta al servidor con la zona horaria de quien pregunta");
   c(/cuerpo\.accion === "hitos"/.test(F) && /M\.llamar\("consumeItem"/.test(F.slice(F.indexOf('cuerpo.accion === "hitos"'), F.indexOf('cuerpo.accion === "hitos"') + 1500)),
     "   y si una cubierta trae un sobre o una cápsula, se abre ahí mismo");

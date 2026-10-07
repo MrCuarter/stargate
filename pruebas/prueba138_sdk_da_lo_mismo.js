@@ -43,6 +43,11 @@ const DIFERENCIAS = {
     espera: (a, b) => a.error === "Esa ficha ya no está" && b.error === "No existe esa ficha" && b.code === "functions/not-found" },
   "anadirDocente: sin red (en un grupo que no existe: el camino viejo no llega a escribir)": { porque: "sin red, se dice (antes iba al camino viejo, que escribe desde el navegador lo que las reglas ya no le dejan)",
     espera: (a, b) => a.error === "No existe ese grupo." && b.error === "unavailable" && b.code === "functions/unavailable" },
+  // 8-oct · el aviso de «falta desplegar» dice el nombre que la web llama ahora (el del motor); el texto, igual
+  "moverRecluta: sin desplegar": { porque: "el aviso nombra la función que se llama ahora (modAlumno, la misma que stargateAlumno)",
+    espera: (a, b) => a.code === b.code && a.error === b.error.replace("«modAlumno»", "«stargateAlumno»") && /«modAlumno»/.test(b.error) },
+  "moverRecluta: un servidor viejo": { porque: "el aviso nombra la función que se llama ahora (modAlumno, la misma que stargateAlumno)",
+    espera: (a, b) => a.code === b.code && a.error === b.error.replace("«modAlumno»", "«stargateAlumno»") && /«modAlumno»/.test(b.error) },
   "anularReto: el servidor dice que no (sin tildes)": { porque: "se ve el «no» del servidor, no el del camino viejo del navegador",
     espera: (a, b) => a.error === "Ese reto no existe en este grupo: ZZ" && b.error === "No existe el reto" && b.code === "functions/not-found" },
 };
@@ -70,9 +75,10 @@ const RENOMBRES = {
   // siempre y el mismo candado, solo el referente; no mira la pieza «sorteo», que todos los grupos de STARGATE tienen)
   "→ stargateSortear": "→ modSortear",
   // 8-oct · y el nombre del motor de lo demás que tiene (GamificaPro functions/mods/nombres.js, la MISMA función en el servidor):
-  // lo que va por el SDK (equipo, alumnado, anular, sorteos pendientes, oferta; cambiarDocente no lo llama ninguna pantalla de aquí)
+  // lo que va por el SDK (equipo, alumnado, anular, sorteos pendientes, oferta; cambiarDocente no lo llama ninguna pantalla de aquí) y las llamadas a mano de motor.js
   "→ stargateEquipo": "→ modEquipo", "→ stargateAlumno": "→ modAlumno",
   "→ stargateAnularReto": "→ modAnularReto", "→ stargateSorteosPendientes": "→ modSorteosPendientes", "→ stargateOferta": "→ modOferta",
+  "→ stargateSecreto": "→ modSecreto", "→ stargateHitos": "→ modLogros", "→ stargateBatalla": "→ modBatalla", "→ stargateMiNombre": "→ modMiNombre",
 };
 function correr(motor, opc) {
   const r = spawnSync(process.execPath, [path.join(__dirname, "sdk_guion.mjs"), motor].concat(opc), { cwd: R, encoding: "utf8", maxBuffer: 64 << 20, env: Object.assign({}, process.env, { TZ: "Europe/Madrid" }) });
