@@ -4030,7 +4030,7 @@ if os.path.exists(_TARJETAS_GP):
 # nombre: un paquete nuevo en GamificaPro no cambia esta web hasta que se cambie esta línea y se publique. De él sale también
 # motor/semanas.js, la receta TAL CUAL (la cargan las páginas y las pruebas). Desde un worktree de GamificaPro:
 # GAMIFICAPRO_DIR=<ruta> python3 _build_site.py
-SDK_FIJADO = "mod-sdk.v1.953e604ce6.js"
+SDK_FIJADO = "mod-sdk.v1.029ee56755.js"
 def _traer_sdk():
     import re as _re_sdk
     _js = os.path.join(HERE, "assets", "js"); _dst = os.path.join(_js, SDK_FIJADO)
