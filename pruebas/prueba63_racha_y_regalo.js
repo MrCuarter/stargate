@@ -15,6 +15,9 @@ const raiz = f => fs.readFileSync(path.join(__dirname, "..", f), "utf8");
 console.log("\n▶ 63 · Racha de asistencia y regalo");
 
 const motor = raiz("assets/js/motor.js");
+// 7-oct · el motor ficha por el SDK de GamificaPro (GP_SDK.asistencia, paso 6): ASISTENCIA.fichar → llamar("modFichar")
+const FICHA_POR_SDK = (m) => /ASISTENCIA\.fichar\(perId, fichaId, \{ tz: tz \}\)/.test(m) && /ctx\.llamar\("modFichar", datos\)/.test(require("./sdk_pieza.js").pieza("asistencia"));
+
 
 // ---------------------------------------------------------------- a) la cuenta de la racha
 // 1ª seguida +0 · 2ª +5 · 3ª +10 … y a partir de la 6ª se queda en +25.
@@ -31,7 +34,7 @@ igual(bonus(40), 25, "🔴 y de ahí no pasa: sin tope, quien no falta nunca aca
 const SERVIDOR = require("fs").readFileSync("/Users/nor/Claude/vibewebs/gamificapro/functions/stargate.js", "utf8");
 c(/Math\.min\(25, Math\.max\(0, \(racha - 1\) \* 5\)\)/.test(SERVIDOR), "y es la cuenta que hay en el servidor");
 // 5-oct · se la pide al fichar (`modFichar`), que llama a la misma cuenta (`extrasDeLaLlamada`, en stargate.js)
-c(/llamar\("modFichar"/.test(motor) && /export async function extrasDeLaLlamada/.test(SERVIDOR), "🔴 y el navegador la PIDE al servidor: ya no se la paga a sí mismo");
+c((/llamar\("modFichar"/.test(motor) || FICHA_POR_SDK(motor)) && /export async function extrasDeLaLlamada/.test(SERVIDOR), "🔴 y el navegador la PIDE al servidor: ya no se la paga a sí mismo");
 c(!/deltaCoins: extra,\s*source: "teacher_resource_adjustment"/.test(motor),
   "   y no queda ni rastro del pago desde el navegador, que el servidor rechazaba en silencio");
 

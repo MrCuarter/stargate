@@ -19,6 +19,9 @@ function c(cierto, nombre, detalle) { if (cierto) { ok++; return; } fallos.push(
 const leer = f => fs.readFileSync(path.join(RAIZ, f), "utf8");
 const K = leer("assets/js/consola.js"), M = leer("assets/js/motor.js"), H = leer("assets/js/huevo.js"), SG = leer("assets/js/stargate.js"),
       CSS = leer("assets/css/stargate.css"), PAQ = leer("motor/paquete.js"), SEM = leer("motor/sembrar_prueba.js");
+// 7-oct · la fontanería de los premios por enlace es del SDK de GamificaPro (GP_SDK.premios, paso 5), en el paquete fijado
+const PZ = require("./sdk_pieza.js").pieza("premios");
+const delSDK = /const PREMIOS = SDK\.premios\.crear\(CTX\);/.test(M);
 
 // 1 · se guarda solo, y lo que se ve es lo del servidor
 c(!/id="hv-save"/.test(K) && !/function cablearHuevos/.test(K), "🔴 no hay un «Guardar» para toda la lista que se pueda olvidar");
@@ -32,11 +35,13 @@ c(/Este premio ya lo " \+ \(n === 1 \? "ha reclamado 1 persona"/.test(K) && /si:
   "🔴 cambiar el premio de uno ya reclamado avisa y crea uno nuevo (quien lo reclamó no podría el nuevo)");
 
 // 2 · el código secreto
-c(/function azar\(n, abc\)/.test(M) && /crypto\.getRandomValues/.test(M) && /id: azar\(10\)/.test(M) && /codigo: azar\(18,/.test(M),
+c((/function azar\(n, abc\)/.test(M) && /crypto\.getRandomValues/.test(M) || delSDK && /const azar = \(n, abc\) => SDK\.premios\.azar\(n, abc\);/.test(M) && /function azar\(n, abc\)/.test(PZ) && /\.getRandomValues\(r\)/.test(PZ))
+  && /id: azar\(10\)/.test(M) && /codigo: azar\(18,/.test(M),
   "🔴 identificador y código al azar (no «p1, p2…»)");
-c(/crypto\.subtle\.digest\("SHA-256"/.test(M) && /claimLinkHash: hash/.test(M), "🔴 en la recompensa (que lee cualquiera) solo va la HUELLA del código");
+c(/crypto\.subtle\.digest\("SHA-256"/.test(M) && /claimLinkHash: hash/.test(M) || delSDK && /PREMIOS\.guardar\(per, \{ rid: idPremioHuevo\(per, item\.id\), item,/.test(M)
+  && /subtle\.digest\("SHA-256", datos\)/.test(PZ) && /\{ claimLinkHash: h, stargateBorrado: false \}/.test(PZ) && !/codigo/.test(PZ.slice(PZ.indexOf("function guardar"), PZ.indexOf("function quitar")).replace(/item\.codigo/g, "")), "🔴 en la recompensa (que lee cualquiera) solo va la HUELLA del código");
 c(/"&c=" \+ encodeURIComponent\(item\.codigo/.test(M), "   y el código viaja en el enlace");
-c(/llamar\("claimLinkedReward", \{ rewardId: rid, modo: "item", codigo: String\(codigo \|\| ""\) \}\)/.test(M) && /MOTOR\.reclamarHuevo\(PER, HUEVO, FICHA, CODIGO\)/.test(H),
+c((/llamar\("claimLinkedReward", \{ rewardId: rid, modo: "item", codigo: String\(codigo \|\| ""\) \}\)/.test(M) || delSDK && /PREMIOS\.reclamar\(rid, codigo\)/.test(M) && /llamar\("claimLinkedReward", \{ rewardId: rid, modo: "item", codigo: String\(codigo \|\| ""\) \}\)/.test(PZ)) && /MOTOR\.reclamarHuevo\(PER, HUEVO, FICHA, CODIGO\)/.test(H),
   "   la página lo manda al reclamar");
 const CL = fs.existsSync(path.join(GP, "functions/claimLinks.js")) ? fs.readFileSync(path.join(GP, "functions/claimLinks.js"), "utf8") : "";
 c(/export function motivoPorCodigo\(premio, codigo\)/.test(CL) && /createHash\('sha256'\)\.update\(id \+ ':' \+ String\(codigo/.test(CL) && /const porCodigo = motivoPorCodigo\(premio, codigo\);/.test(CL),
@@ -46,10 +51,12 @@ const DEP = fs.existsSync(path.join(RAIZ, "..", "desplegar_stargate.sh")) ? fs.r
 c(/claimLinkedReward/.test(DEP), "   y el script de despliegue la sube");
 
 // 3 · varios grupos
-c(/const PRIV = \(perId\) => doc\(db, "projects", perId, "privado", "stargate"\)/.test(M) && /premiosEnlace: \{ \[item\.id\]: item \}/.test(M),
+c(/const PRIV = \(perId\) => doc\(db, "projects", perId, "privado", "stargate"\)/.test(M) && /premiosEnlace: \{ \[item\.id\]: item \}/.test(M) ||
+  delSDK && /const CATALOGO_PREMIOS = "premiosEnlace";/.test(M) && /var PRIVADO = "stargate";/.test(PZ) && /fs\.doc\(db, "projects", grupo, "privado", PRIVADO\)/.test(PZ) && /entrada\[item\.id\] = item; cat\[o\.campo\] = entrada;/.test(PZ),
   "🔴 el catálogo vive en la parte PRIVADA de cada grupo (ahí están los códigos; el alumnado no la lee)");
 c(/function destinosDe\(item, gestionados\)/.test(M) && /item\.grupos === "todos" \? gestionados\.slice\(\)/.test(M), "🔴 «todos» son todos los grupos que lleva quien guarda; si no, los marcados");
-c(/async function quitarDeGrupo\(per, id\)/.test(M) && /claimLinkEnabled: false, stargateBorrado: true/.test(M) && /deleteField\(\)/.test(M),
+c(/async function quitarDeGrupo\(per, id\)/.test(M) && (/claimLinkEnabled: false, stargateBorrado: true/.test(M) && /deleteField\(\)/.test(M) ||
+  /PREMIOS\.quitar\(per, idPremioHuevo\(per, id\), CATALOGO_PREMIOS, id\)/.test(M) && /\{ claimLinkEnabled: false, stargateBorrado: true \}/.test(PZ) && /fs\.deleteField\(\)/.test(PZ)),
   "   y de los grupos que se desmarcan se quita (cerrado; quien lo reclamó lo conserva)");
 c(/saltados\.push\(\{ per, motivo: "no tiene ese premio en su tienda" \}\)/.test(M), "   si un grupo no tiene esa cápsula en su tienda, se dice (no da en silencio un sobre normal)");
 c(/¿Para qué grupos\?/.test(K) && /varios\.png alt> Todos tus grupos, también los que crees después/.test(K), "🔴 cada premio dice a qué grupos afecta, con «Todos»");

@@ -5,8 +5,8 @@
  * _build_site.py → SDK_FIJADO. Con alumnado dentro, solo entra lo que da EXACTAMENTE lo mismo:
  *   · el paquete es el fijado, con su huella, y va antes del motor en cada página que lo carga;
  *   · motor/semanas.js ES la pieza «semanas» del paquete (tal cual) y cuenta igual que el GP_SDK.semanas del motor;
- *   · `llamar` es GP_SDK.llamador (mismo data, mismo error con marcas) y `sinDesplegar` sigue por palabras (cambiarlo, en
- *     Navidad); `miPapel` está en el motor, pero nadie lo usa aún.
+ *   · `llamar` es GP_SDK.llamador (mismo data, mismo error con marcas) y `sinDesplegar` va por código desde los pasos
+ *     4-11 (7-oct; antes, por palabras: batería 138); `miPapel` está en el motor, pero nadie lo usa aún.
  */
 const fs = require("fs"), path = require("path"), vm = require("vm"), crypto = require("crypto");
 const R = path.join(__dirname, "..");
@@ -59,8 +59,10 @@ c(/SDK\.semanas\.semanaDelCurso\(S\.inicio, S\.pausas\)/.test(MOT) && !/window\.
 console.log("\n  · Paso 2 · llamar");
 c(/const llamar = SDK\.llamador\(nombre => httpsCallable\(fns, nombre\)\);/.test(MOT), "🔴 llamar es GP_SDK.llamador");
 c((MOT.match(/httpsCallable\(/g) || []).length === 1, "   una sola puerta a las funciones");
-c(/const sinDesplegar = e => \/not-found\|internal\/\.test\(String\(e && e\.code\)\) && !\/\[áéíóúñ\]\|recluta\|grupo\/i\.test\(String\(e && e\.message\)\);/.test(MOT),
-  "🔴 sinDesplegar sigue por palabras, como hoy (por código cambia lo que se ve: en Navidad)");
+// 7-oct · con los pasos 4-11, «sin desplegar» pasa a ir POR CÓDIGO (lo mide la batería 138: un «no» del servidor sin tildes ya
+// no manda al camino viejo del navegador; se ve tal cual)
+c(/const sinDesplegar = e => SDK\.errores\.sinDesplegar\(e\);/.test(MOT) && !/\[áéíóúñ\]\|recluta\|grupo/.test(MOT),
+  "🔴 sinDesplegar va POR CÓDIGO (GP_SDK.errores), ya no por palabras");
 // llamar devuelve data y relanza el MISMO error (code y message de siempre), con marcas
 const llamar = SDK.llamador((n) => (d) => n === "bien" ? Promise.resolve({ data: { ok: true, d } }) : Promise.reject(Object.assign(new Error("Ese recluta no existe"), { code: "functions/not-found" })));
 llamar("bien", { x: 1 }).then((r) => c(JSON.stringify(r) === '{"ok":true,"d":{"x":1}}', "   devuelve `data`, como antes", r))

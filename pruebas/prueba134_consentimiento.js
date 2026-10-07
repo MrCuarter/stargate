@@ -32,7 +32,7 @@ c(/consentimiento: \{ v: CONS\.v \|\| "", t: Date\.now\(\) \}/.test(ALI), "   se
 c(/target="_blank" rel="noopener">política de privacidad<\/a>/.test(ALI), "   el enlace a la política abre en otra pestaña (no se pierde lo escrito)");
 c(!/Solo pedimos tu nombre y tu correo/.test(ALI), "   fuera el «Solo pedimos tu nombre y tu correo» (ya no es verdad)");
 const alta = MOT.match(/async function alistar\([\s\S]*?\n\}/)[0];
-c(/"privado", "datos"\), \{[\s\S]*?consentimiento: \{ v: String\(datos\.consentimiento\.v\)/.test(alta), "🔴 motor.js lo guarda en privado/datos (lo privado del recluta: las reglas de hoy ya lo dejan escribir)");
+c(/("privado", "datos"\), \{|privado: \(y\) => \(\{)[\s\S]*?consentimiento: \{ v: String\(datos\.consentimiento\.v\)/.test(alta), "🔴 motor.js lo guarda en privado/datos (lo privado del recluta: las reglas de hoy ya lo dejan escribir)");
 c(!/const datosFicha = \{[^}]*consentimiento/.test(alta), "   y NO en la ficha pública (la lee cualquiera con sesión)");
 c(/consentimiento/.test(L("assets/js/motor_sim.js")), "   la consola de ensayo (motor_sim.js) va igual");
 c(/esDelEquipoDe/.test(ALI), "   convive con el modo fantasma (el aviso del equipo docente sigue ahí)");

@@ -51,7 +51,9 @@ c(/precargarVotaciones/.test(S), "   pidiéndolas antes de pintar, como las refl
 c(/vt-lista/.test(S) && /vt-lista/.test(CSS), "   con el resultado en barras y la ganadora destacada");
 
 // 5 · el motor de la web y el del servidor
-c(/const votar = \(perId, id, opcionId, tipo\)/.test(M) && /llamar\("castVote"/.test(M), "🔴 el voto lo cuenta el SERVIDOR (castVote), no el navegador");
+c(/const votar = \(perId, id, opcionId, tipo\)/.test(M) && (/llamar\("castVote"/.test(M) ||
+  // (7-oct · por el SDK de GamificaPro: GP_SDK.votacion, paso 7)
+  /=> VOTACION\.votar\(perId, id, opcionId, tipo\)/.test(M) && /ctx\.llamar\("castVote", \{ projectId: grupo, eventId: id, optionId: opcion, voteType: tipo \|\| "free" \}\)/.test(require("./sdk_pieza.js").pieza("votacion"))), "🔴 el voto lo cuenta el SERVIDOR (castVote), no el navegador");
 c(/votaciones, crearVotacion, cerrarVotacion, borrarVotacion, votar, miPapeleta,/.test(M), "   y el motor de la web los exporta");
 c(!/coins\s*[-+]=|updateDoc\([^)]*coins/.test(M.split("crearVotacion")[1] || ""), "🔴 el navegador no toca los créditos del voto extra");
 const voting = fs.existsSync(path.join(GP, "functions/voting.js")) ? fs.readFileSync(path.join(GP, "functions/voting.js"), "utf8") : "";

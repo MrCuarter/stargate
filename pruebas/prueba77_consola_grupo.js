@@ -57,7 +57,9 @@ c(/MOTOR\.pasarEscuadron\(PER, d\.nombre, sel\.value, dS\.correo\); \}\s*\n\s*aw
 c(/data-asumir-ir/.test(Q) && /name="e-para" value="sustituye"/.test(Q) && /value="apoya"/.test(Q) && /value="nuevo"/.test(Q) && /MOTOR\.apoyarEscuadron/.test(Q) && /MOTOR\.escuadronNuevo/.test(Q),
   "🔴 sustituciones: pasar/dar escuadrón en la tarjeta y, al añadir, «¿Para qué entra?» (sustituye, apoya, escuadrón nuevo, coordina)");
 c(/También en/.test(Q) && /x\.equipo = eq\.map/.test(M), "   y en qué otros de tus grupos está");
-c(/async function quitarDocente\(perId, correo\)[\s\S]{0,200}quitar: true/.test(M), "el motor quita por el servidor (stargateEquipo con quitar)");
+c(/async function quitarDocente\(perId, correo\)[\s\S]{0,200}quitar: true/.test(M) ||
+  // (7-oct · por el SDK de GamificaPro: GP_SDK.equipo, paso 9)
+  /async function quitarDocente\(perId, correo\) \{\n  return EQUIPO\.quitarDocente\(perId, correo\);/.test(M) && /llamar\("stargateEquipo", \{ projectId: grupo, persona: \{ correo: minus\(correo\) \}, quitar: true \}\)/.test(require("./sdk_pieza.js").pieza("equipo")), "el motor quita por el servidor (stargateEquipo con quitar)");
 const SRV = "/Users/nor/Claude/vibewebs/gamificapro/functions/stargateEquipo.js";
 if (fs.existsSync(SRV)) {
   const S = fs.readFileSync(SRV, "utf8");

@@ -347,41 +347,16 @@ async function sembrarPER(per, alAvanzar) {
  * si un estudiante escoge un alias en uso, el sistema lo rechaza, PUNTO». Sin mayúsculas ni tildes:
  * «halo» y «Haló» son el mismo. Lo usan los dos sitios donde se pone un alias: el alistamiento y la
  * corrección de la ficha desde el puesto de mando. `excepto` es quien lo pide (su propia ficha no cuenta).
+ *
+ * 7-oct · DEL SDK DE GAMIFICAPRO (GP_SDK.alistarse, paso 4): LA CLAVE DE LA RESERVA (la MISMA cuenta que hacen las reglas,
+ * `aliasClave` en firestore.rules: `lower()` solo baja la A-Z —la «Ó» de «Olga Órbita», 13-sep— y las tildes se quitan en
+ * mayúscula y en minúscula), la reserva DENTRO del lote que escribe la ficha (las reglas no dejan una sin la otra) y quién lo
+ * lleva: su reserva y, si es de antes del registro de alias, su ficha. Aquí quedan los textos de STARGATE.
  */
-const aliasPlano = t => String(t || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ");
-/**
- * LA CLAVE DE LA RESERVA: la MISMA cuenta que hacen las reglas de Firestore (`aliasClave` en
- * firestore.rules de GamificaPro). Si no coincidiera letra por letra, el servidor rechazaría la
- * reserva. Las reglas son quienes lo hacen cumplir: el alias reservado no se puede repetir.
- */
-// 🔴 13-sep · `lower()` de las reglas SOLO baja la A-Z (la «Ó» de «Olga Órbita» se quedaba en
-// mayúscula y la clave no coincidía: esa alumna no podía alistarse). Así que aquí se baja también
-// solo la A-Z, y las tildes se quitan en mayúscula y en minúscula, igual que en las reglas.
-const aliasClave = a => String(a || "").replace(/[A-Z]+/g, m => m.toLowerCase()).trim()
-  .replace(/[áàäâãÁÀÄÂÃ]/g, "a").replace(/[éèëêÉÈËÊ]/g, "e").replace(/[íìïîÍÌÏÎ]/g, "i")
-  .replace(/[óòöôõÓÒÖÔÕ]/g, "o").replace(/[úùüûÚÙÜÛ]/g, "u").replace(/[ñÑ]/g, "n").replace(/[çÇ]/g, "c")
-  .replace(/\//g, "-").replace(/ +/g, " ");
-const refAlias = (perId, alias) => doc(db, "stargate_alias", perId + "__" + aliasClave(alias));
-/**
- * Reserva el alias para `uid` DENTRO del lote que escribe la ficha (las reglas lo exigen así). Si ya
- * es suyo (vuelve a alistarse, o se corrige la ficha a lo mismo) no hace falta escribirlo; si es de
- * otro, se para con palabras.
- */
-async function reservarAlias(lote, perId, uid, alias) {
-  const r = await getDoc(refAlias(perId, alias)).catch(() => null);
-  if (r && r.exists()) {
-    if (r.data().uid === uid) return;
-    throw new Error("«" + alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa el dado para que te sugiera uno).");
-  }
-  lote.set(refAlias(perId, alias), { projectId: perId, uid: uid, alias: String(alias), creado: Date.now() });
-}
-async function aliasOcupado(perId, alias, excepto) {
-  const e = excepto || {};
-  const r = await getDocs(query(collection(db, "student_profiles"), where("projectId", "==", perId)));
-  const otro = r.docs.find(d => d.id !== e.ficha && (!e.uid || d.data().userId !== e.uid)
-                                && aliasPlano(d.data().displayName) === aliasPlano(alias));
-  return otro ? String(otro.data().displayName || alias) : null;
-}
+const aliasEnUso = (alias) => "«" + alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa el dado para que te sugiera uno).";
+const TEXTOS_ALIAS = { sinSesion: "Entra con tu cuenta antes de alistarte", ocupado: aliasEnUso, sinFicha: "Esa ficha ya no está" };
+const refAlias = (perId, alias) => ALISTARSE.ref(perId, alias);
+const aliasOcupado = (perId, alias, excepto) => ALISTARSE.ocupado(perId, alias, excepto);
 
 /**
  * ALISTARSE. Abre la ficha del recluta y le da su insignia de Reclutamiento.
@@ -411,8 +386,7 @@ const pasarAFantasma = (perId) => llamar("stargateFantasma", { projectId: perId 
 
 async function alistar(perId, datos, alAvanzar) {
   const yo = await sesion();
-  if (!yo) throw new Error("Entra con tu cuenta antes de alistarte");
-  const avisa = t => { if (alAvanzar) alAvanzar(t); };
+  if (!yo) throw new Error(TEXTOS_ALIAS.sinSesion);
   const p = await getDoc(doc(db, "projects", perId));
   if (!p.exists()) throw new Error("No existe el grupo «" + perId + "»");
   const proy = p.data();
@@ -428,62 +402,39 @@ async function alistar(perId, datos, alAvanzar) {
    * «Halo» veía la Nave del primero —su experiencia, sus héroes— sin que nadie se enterara. Lo
    * destapó el laboratorio. La Nave ya empareja por la ficha; y aquí se pide otro alias, porque en
    * el ranking dos «Halo» tampoco se distinguen. Sin mayúsculas ni tildes: «halo» y «Haló» son el mismo.
+   *
+   * 7-oct · lo hace el SDK de GamificaPro (GP_SDK.alistarse): mira si el alias está libre, escribe la ficha A CERO y la
+   * reserva de su alias en el MISMO lote, lo privado aparte y la insignia de Reclutamiento por el servidor. Lo de STARGATE va
+   * aquí: el escuadrón, el Comandante, el avatar, el modo fantasma, los textos y los pasos que se enseñan.
    */
-  if (await aliasOcupado(perId, datos.alias, { uid: yo.uid }))
-    throw new Error("«" + datos.alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa el dado para que te sugiera uno).");
-
-  avisa("Abriendo tu ficha…");
-  const ficha = doc(collection(db, "student_profiles"));
-  // 🔴 la ficha y la reserva de su alias van JUNTAS: las reglas no dejan una sin la otra
-  const datosFicha = {
-    userId: yo.uid, projectId: perId, displayName: datos.alias,
-    totalPoints: 0, coins: 0, inventory: [], earnedBadges: [],
-    completedMissionIds: [], completedCampaignIds: [], currentPhase: 1, role: "student",
-    hubCustomization: {}, createdAt: Date.now(),
-    squadId: escuadron ? escuadron.id : null, factionId: escuadron ? escuadron.id : null,
-    stargateProfe: datos.comandante || "", stargateAvatar: datos.avatar || null,
-    stargateBio: datos.bio || "",
-    // 5-oct · del equipo docente → nace fantasma (ver esDelEquipoDe)
-    ...(esDelEquipoDe(proy, yo) ? { fantasma: true } : {})
-  };
-  const lote = writeBatch(db);
-  await reservarAlias(lote, perId, yo.uid, datos.alias);
-  lote.set(ficha, datosFicha);
-  try { await lote.commit(); }
-  catch (e) {
-    if (!/permission|insufficient/i.test(String(e && (e.code || e.message)))) throw e;
-    // dos personas pulsando a la vez con el mismo alias: el servidor deja pasar a una sola
-    if (await aliasOcupado(perId, datos.alias, { uid: yo.uid }))
-      throw new Error("«" + datos.alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa el dado para que te sugiera uno).");
-    // 🔴 servidor con las reglas de ANTES del registro de alias (el despliegue de la web y el de las
-    // reglas no son el mismo segundo): ahí la reserva no existe y la ficha va sola, como siempre.
-    // Con las reglas nuevas esto no pasa nunca: una ficha sin su reserva la rechazan.
-    await setDoc(ficha, datosFicha);
-  }
-
-  // 🔴 El nombre y el correo NO van en la ficha: van a `privado/datos`, que solo leen el propio
-  // alumno y su equipo docente. La ficha la lee cualquiera con sesión —la necesitan el ranking y el
-  // salón de la fama—, y ahí dentro un nombre real es un nombre real a la vista de todos.
-  avisa("Guardando tus datos…");
-  await setDoc(doc(db, "student_profiles", ficha.id, "privado", "datos"), {
-    firstName: datos.nombre || "", lastName: datos.apellidos || "",
-    email: datos.correo || yo.correo, bitacora: datos.bitacora || "", bio: datos.bio || "",
-    // 5-oct-2026 · lo que firmó al alistarse (la casilla de la política de privacidad): versión y momento. Va aquí, en lo
-    // privado, que el alumno ya puede escribir: sin reglas nuevas que desplegar
-    ...(datos.consentimiento && datos.consentimiento.v ? { consentimiento: { v: String(datos.consentimiento.v), t: Number(datos.consentimiento.t) || Date.now() } } : {})
+  const PASOS = { ficha: "Abriendo tu ficha…", privado: "Guardando tus datos…", alta: "Entregando tu insignia…" };
+  await ALISTARSE.alistar(perId, {
+    alias: datos.alias, textos: TEXTOS_ALIAS,
+    unaVez: false,                 // (quien ya tiene ficha en el grupo no llega aquí: lo mira la pantalla)
+    alAvanzar: (paso) => { if (alAvanzar && PASOS[paso]) alAvanzar(PASOS[paso]); },
+    ficha: {
+      hubCustomization: {},
+      squadId: escuadron ? escuadron.id : null, factionId: escuadron ? escuadron.id : null,
+      stargateProfe: datos.comandante || "", stargateAvatar: datos.avatar || null,
+      stargateBio: datos.bio || "",
+      // 5-oct · del equipo docente → nace fantasma (ver esDelEquipoDe)
+      ...(esDelEquipoDe(proy, yo) ? { fantasma: true } : {})
+    },
+    // 🔴 El nombre y el correo NO van en la ficha: van a `privado/datos`, que solo leen el propio
+    // alumno y su equipo docente. La ficha la lee cualquiera con sesión —la necesitan el ranking y el
+    // salón de la fama—, y ahí dentro un nombre real es un nombre real a la vista de todos.
+    privadoObligatorio: true,
+    privado: (y) => ({
+      firstName: datos.nombre || "", lastName: datos.apellidos || "",
+      email: datos.correo || y.correo, bitacora: datos.bitacora || "", bio: datos.bio || "",
+      // 5-oct-2026 · lo que firmó al alistarse (la casilla de la política de privacidad): versión y momento. Va aquí, en lo
+      // privado, que el alumno ya puede escribir: sin reglas nuevas que desplegar
+      ...(datos.consentimiento && datos.consentimiento.v ? { consentimiento: { v: String(datos.consentimiento.v), t: Number(datos.consentimiento.t) || Date.now() } } : {})
+    }),
+    // Que falle la insignia (H1) no deja a nadie sin alistar: la ficha ya existe y el profesorado puede otorgar el reto a
+    // mano. Mejor dentro sin insignia que fuera con un error.
+    misionAlta: "H1",
   });
-
-  avisa("Entregando tu insignia…");
-  try {
-    const r = await getDocs(query(collection(db, "missions"),
-      where("projectId", "==", perId), where("stargateId", "==", "H1")));
-    if (!r.empty) await llamar("completeMission",
-      { projectId: perId, missionId: r.docs[0].id, studentProfileId: ficha.id });
-  } catch (e) {
-    // Que falle la insignia no puede dejar a nadie sin alistar: la ficha ya existe y el profesorado
-    // puede otorgar el reto a mano. Mejor dentro sin insignia que fuera con un error.
-    console.warn("[STARGATE] la insignia de reclutamiento no ha entrado:", e && e.message);
-  }
   return escuadron;
 }
 
@@ -526,8 +477,8 @@ const AJUSTE_DOCENTE = "teacher_resource_adjustment";
 async function otorgarReto(perId, fichaId, retoId) {
   // 5-oct · lo hace el servidor de GamificaPro (`modOtorgarReto`): paga, marca, sella, pone la insignia y lo apunta como
   // validado a mano (no gasta hueco del tope) en UNA transacción. Antes eran dos pasos: si fallaba el segundo, el reto
-  // quedaba pagado y sin marcar, y se podía volver a pagar.
-  return llamar("modOtorgarReto", { projectId: perId, studentProfileId: fichaId, retoId: retoId });
+  // quedaba pagado y sin marcar, y se podía volver a pagar. (7-oct · la petición, de GP_SDK.retos)
+  return RETOS.otorgar(perId, fichaId, retoId);
 }
 
 /**
@@ -552,14 +503,15 @@ async function anularReto(perId, fichaId, retoId, motivo) {
    * anula un docente, para que la consola se lo diga.
    */
   try {
-    return await llamar("stargateAnularReto", { projectId: perId, studentProfileId: fichaId, retoId: retoId,
-                                                motivo: motivo || "" });
+    // (7-oct · la petición, de GP_SDK.retos: el porqué, cortado a 200 como lo corta el servidor)
+    return await RETOS.anular(perId, fichaId, retoId, motivo);
   } catch (e) {
     // 🔴 PLAN B mientras la función no esté desplegada en producción: el camino viejo, que para un
     // DOCENTE funciona (a un alumno el servidor se lo seguirá negando, como hasta hoy). Sin esto,
     // subir la web antes que la función le rompería al profesorado su «quitar reto».
-    const falta = /not-found|unimplemented|internal|does not exist/i.test(String((e && (e.code || "")) + " " + (e && e.message)));
-    if (!falta) throw e;
+    // (7-oct · «sin desplegar» POR CÓDIGO, del SDK: un «no» con texto del servidor, aunque no lleve tildes —«No existe el
+    // reto»—, ya no se toma por función sin desplegar ni manda al camino viejo)
+    if (!SDK.errores.sinDesplegar(e)) throw e;
     return anularRetoViejo(perId, fichaId, retoId, motivo);
   }
 }
@@ -572,8 +524,8 @@ async function anularReto(perId, fichaId, retoId, motivo) {
  * marca como leída solo su destinatario). Con `stargate` dentro, para que la Nave distinga los suyos de los del motor.
  */
 async function avisarRecluta(perId, userId, { reto = "", accion = "", texto = "", de = "", titulo = "", regalo = null } = {}) {
-  if (!userId) throw new Error("No sé a quién mandárselo");
-  const t = String(texto || "").trim().slice(0, 400);
+  if (!userId) throw new Error(TEXTOS_RETOS.sinDestino);
+  const t = String(texto || "").trim().slice(0, SDK.retos.TOPES.aviso);
   const tit = titulo || (accion === "anulado" ? "Tu Comandante ha anulado el reto " + reto
                                               : accion === "validado" ? "Tu Comandante ha validado el reto " + reto
                                               : accion === "regalo" ? "Un regalo de tu Comandante" : "Mensaje de tu Comandante");
@@ -589,11 +541,8 @@ async function avisarRecluta(perId, userId, { reto = "", accion = "", texto = ""
     piezas: (regalo.piezas || []).slice(0, 10).map(p => ({ clave: String(p.clave || ""), tipo: String(p.tipo || ""),
       nombre: String(p.nombre || "").slice(0, 80), rareza: String(p.rareza || "") }))
   };
-  const r = await addDoc(collection(db, "notifications"), {
-    userId, projectId: perId, type: accion === "validado" ? "mission_validated" : "internal_message",
-    title: tit, message: t, read: false, createdAt: Date.now(), stargate: sg
-  });
-  return r.id;
+  // (7-oct · lo escribe GP_SDK.retos: la bandeja de GamificaPro, con la marca de STARGATE en su campo)
+  return RETOS.avisar(perId, userId, { accion, titulo: tit, texto: t, campo: "stargate", marca: sg }, TEXTOS_RETOS);
 }
 /**
  * 🔴 20-sep · LA CREDENCIAL DE LA SESIÓN, para lo poco que vive FUERA de Firestore: el lector del ticket de
@@ -608,13 +557,9 @@ async function credencial() {
 /** La Nave, a la escucha de los mensajes sin leer de su Comandante en este grupo (en directo, como la llamada a filas). */
 function vigilarMensajes(perId, alCambiar) {
   const u = auth.currentUser;
-  if (!u) { alCambiar([]); return function () {}; }
-  return onSnapshot(query(collection(db, "notifications"), where("userId", "==", u.uid), where("projectId", "==", perId)),
-    r => alCambiar(r.docs.map(d => ({ id: d.id, ...d.data() }))
-      .filter(x => x.stargate && !x.read).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))),
-    () => alCambiar([]));
+  return RETOS.vigilarAvisos(perId, "stargate", alCambiar, u && u.uid);
 }
-async function mensajeLeido(id) { await updateDoc(doc(db, "notifications", id), { read: true }); }
+async function mensajeLeido(id) { await RETOS.avisoLeido(id); }
 
 async function anularRetoViejo(perId, fichaId, retoId, motivo) {
   const [mi, ficha] = await Promise.all([
@@ -732,8 +677,8 @@ async function cambiarComandante(perId, fichaId, aNombre) {
  */
 async function resolverVale(valeId, aprobar, mensaje) {
   // 5-oct · lo decide el servidor de GamificaPro (`modVale`): una sola vez, devolviendo lo pagado al denegar y con el
-  // suceso en el libro. Antes, tres escrituras desde este navegador y sin rastro.
-  return llamar("modVale", { voucherId: String(valeId), decision: aprobar ? "aprobar" : "rechazar", mensaje: mensaje || "" });
+  // suceso en el libro. Antes, tres escrituras desde este navegador y sin rastro. (7-oct · la petición, de GP_SDK.economia)
+  return ECONOMIA.resolverVale(valeId, aprobar, mensaje);
 }
 
 /**
@@ -768,9 +713,9 @@ function conIdsDeDocumento(per, x) {
 
 /**
  * Las funciones del servidor (GP_SDK.llamador): devuelve `data`, y si falla, el MISMO error de Firebase (code y message de
- * siempre) con marcas por código (`codigo`, `delServidor`, `sinDesplegar`). 🔴 `sinDesplegar` de aquí abajo (por palabras) NO
- * se cambia todavía por el del SDK: da otra respuesta cuando el servidor dice «no» sin tildes ni «recluta» (p. ej. «No existe
- * el reto»), y eso cambia lo que se ve. Va en la pausa de Navidad (GamificaPro, tests/sdk/llamar.test.ts lo documenta).
+ * siempre) con marcas por código (`codigo`, `delServidor`, `sinDesplegar`). 7-oct · y desde los pasos 4-11, los caminos «mientras
+ * no esté desplegado» de esta centralita miran el del SDK, POR CÓDIGO (`sinDesplegar`, más abajo): un «no» del servidor sin
+ * tildes («No existe el reto») ya no se toma por función sin desplegar (batería 138).
  */
 const llamar = SDK.llamador(nombre => httpsCallable(fns, nombre));
 /**
@@ -784,6 +729,35 @@ async function miPapel() {
   if (!yo) return { vitalicio: false, mando: false };
   return SDK.papelDe(await papel.miPapel(yo.uid), "stargate");
 }
+
+/**
+ * 7-oct · LOS PASOS 4-11 DEL SDK DE GAMIFICAPRO (su docs/PLAN_CENTRALIZAR.md, fase 5): cada pieza recibe las funciones de esta
+ * centralita —las de Firestore, `llamar` y la sesión— y no importa Firebase ni lleva piel. En motor_sim.js (la consola de
+ * ensayo) son las del Firebase de mentira; en el laboratorio, las del emulador. Los textos, los campos y las colecciones de
+ * STARGATE se los pone cada función de aquí. Se demuestra que da lo mismo en la batería 138.
+ */
+const CTX = { fs: { db, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, writeBatch, onSnapshot, deleteField },
+              llamar, sesion };
+const ALISTARSE = SDK.alistarse.crear(CTX);
+/*
+ * Los retos (GP_SDK.retos, paso 8): otorgar (`modOtorgarReto`) y anular (`stargateAnularReto`) por el servidor, el aviso al
+ * recluta en la bandeja de GamificaPro (`notifications`, con la marca `stargate`), las reflexiones y los comentarios.
+ */
+const RETOS = SDK.retos.crear(CTX);
+/*
+ * El equipo docente (GP_SDK.equipo, paso 9): añadir, quitar y referente en todos por el servidor (`stargateEquipo`), lo del
+ * alumnado (`stargateAlumno`), el código para alistarse y los referentes de STARGATE con sus invitaciones (stargate_referentes,
+ * stargate_invitaciones). Quién es vitalicio, el enlace de la invitación y lo que recuerda el navegador, aquí.
+ */
+const EQUIPO = SDK.equipo.crear(CTX, { referentes: "stargate_referentes", invitaciones: "stargate_invitaciones" });
+const TEXTOS_EQUIPO = { sinSesion: "Entra con tu cuenta.", sinSesionCanje: "Entra con tu cuenta de Google.", correoMalo: "Ese correo no parece un correo." };
+/* Vales, sorteos y ofertas (GP_SDK.economia, paso 11): solo peticiones al servidor. */
+const ECONOMIA = SDK.economia.crear(CTX);
+const TEXTOS_RETOS = {
+  sinDestino: "No sé a quién mandárselo",
+  sinSesionReflexion: "Entra con tu cuenta para guardar tu reflexión.", reflexionVacia: "La reflexión está vacía.",
+  sinSesionComentario: "Entra con tu cuenta para comentar.", comentarioVacio: "El comentario está vacío.",
+};
 
 // El catálogo (retos, insignias, niveles, tienda) sale de Datos.gs y se congela en la construcción.
 // Se pide aquí y no se incrusta en cada página: son 25 KB que solo necesitan las pantallas del motor
@@ -811,6 +785,13 @@ if (!window.SG_CATALOGO) {
  * la sesión, en el servidor, e ignora lo que le manden. Un alumno no decide cuánto cobra.
  */
 const LLAMADA = "attendance_sessions", FICHAJES = "attendance_records";
+/*
+ * 7-oct · LA LLAMADA ES DEL SDK DE GAMIFICAPRO (GP_SDK.asistencia, paso 6): la abierta (activa, sin caducar y la que acaba más
+ * tarde; con `elegir`, la de mi escuadrón o la mía), escucharla, abrirla (lo que paga va EN LA SESIÓN), cerrarla, quién ha
+ * fichado (en orden de llegada) y fichar por el servidor (`modFichar`). Aquí queda lo de STARGATE: lo que paga (15 xp y 30
+ * créditos), para qué escuadrón es, el regalo y cómo se abre.
+ */
+const ASISTENCIA = SDK.asistencia.crear(CTX);
 
 /**
  * La llamada abierta de un grupo, si la hay. Devuelve null si no hay ninguna o ya ha caducado.
@@ -821,22 +802,8 @@ const LLAMADA = "attendance_sessions", FICHAJES = "attendance_records";
  * otro. Una función (la de mi escuadrón) o 'mia' (la que abrió quien mira).
  */
 async function llamadaAbierta(perId, elegir) {
-  const r = await getDocs(query(collection(db, LLAMADA),
-    where("projectId", "==", perId), where("active", "==", true)));
-  const ahora = Date.now();
-  const vivas = r.docs
-    .map(d => ({ id: d.id, ...d.data() }))
-    .filter(x => fin(x) > ahora)
-    .sort((a, b) => fin(b) - fin(a));
-  let f = typeof elegir === "function" ? elegir : null;
-  if (elegir === "mia") { const yo = await sesion(); f = x => !!yo && x.teacherId === yo.uid; }
-  return (f ? vivas.filter(f) : vivas)[0] || null;
+  return ASISTENCIA.abierta(perId, elegir);
 }
-const fin = x => {
-  const t = x && x.endTime;
-  if (!t) return 0;
-  return t.toDate ? t.toDate().getTime() : new Date(t).getTime();
-};
 
 /**
  * Abrir la llamada. La abre un docente para SU escuadrón y nadie más.
@@ -859,25 +826,22 @@ async function abrirLlamada(perId, minutos, opciones) {
   const nombre = o.comandante || (mio && mio.nombre) || yo.nombre || yo.correo;
   const faccion = (proy.factions || []).filter(f => f.teacherName === nombre)[0] || null;
 
-  const ahora = new Date();
-  const hasta = new Date(ahora.getTime() + Math.max(1, Number(minutos) || 60) * 60000);
-  const ref = await addDoc(collection(db, LLAMADA), Object.assign({
-    projectId: perId, teacherId: yo.uid, teacherDisplayName: nombre,
-    startTime: ahora, endTime: hasta, active: true,
-    pointsReward: o.xp == null ? 15 : Number(o.xp),
-    coinsReward: o.creditos == null ? 30 : Number(o.creditos),
-    autoReward: true,
-    // 🔴 El regalo se guarda EN LA SESIÓN, no se decide al fichar. Así todo el mundo recibe lo
-    // mismo —lo eligió el docente al abrirla— y quien llega tarde no se lleva algo distinto.
-    stargateRegalo: String(o.regalo || "")
-  }, faccion ? { restrictedFactionId: faccion.id } : {}));
-  return { id: ref.id, hasta: hasta.getTime(), escuadron: faccion ? faccion.name : null,
-           comandante: nombre, minutos: Math.max(1, Number(minutos) || 60) };
+  const r = await ASISTENCIA.abrir(perId, {
+    minutos: Math.max(1, Number(minutos) || 60), nombre: nombre,
+    xp: o.xp == null ? 15 : Number(o.xp), creditos: o.creditos == null ? 30 : Number(o.creditos),
+    textos: { sinSesion: "Entra con tu cuenta para tocar llamada a filas" },
+    extra: Object.assign({
+      // 🔴 El regalo se guarda EN LA SESIÓN, no se decide al fichar. Así todo el mundo recibe lo
+      // mismo —lo eligió el docente al abrirla— y quien llega tarde no se lleva algo distinto.
+      stargateRegalo: String(o.regalo || "")
+    }, faccion ? { restrictedFactionId: faccion.id } : {})
+  });
+  return { id: r.id, hasta: r.hasta, escuadron: faccion ? faccion.name : null, comandante: nombre, minutos: r.minutos };
 }
 
 /** Cerrarla antes de tiempo. */
 async function cerrarLlamada(sesionId) {
-  await updateDoc(doc(db, LLAMADA, sesionId), { active: false, endTime: new Date() });
+  await ASISTENCIA.cerrar(sesionId);
 }
 
 /**
@@ -910,21 +874,15 @@ async function ficharLlamada(perId, fichaId) {
    */
   let tz = "Europe/Madrid";
   try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || tz; } catch (e) { /* la de Madrid */ }
-  const r = await llamar("modFichar", { projectId: perId, studentProfileId: fichaId, tz: tz });
+  const r = await ASISTENCIA.fichar(perId, fichaId, { tz: tz });
   if (r.repetido) return { ok: true, repetido: true };
   let regalo = null;
   try {
     if (r.regalo && r.regalo.rewardId) {
-      regalo = [];
-      for (let i = 0; i < Number(r.regalo.usos || 1); i++) {
-        try {
-          const c = await llamar("consumeItem", { projectId: perId, rewardId: r.regalo.rewardId, studentProfileId: fichaId });
-          const b = c && (c.botin || c.obtenido);
-          // la pantalla de la Nave espera {clave, nombre, rareza}; el servidor devuelve el id de la
-          // carta en cadena. Sin traducirlo, la celebración pedía «undefined_carta.png».
-          if (b) regalo.push(cartaDeBotin(b));
-        } catch (e) { break; }   // lo que no se abra se queda en el inventario, para abrirlo en el álbum
-      }
+      // en serie (GP_SDK.premios.abrir); lo que no se abra se queda en el inventario, para abrirlo en el álbum. La pantalla de
+      // la Nave espera {clave, nombre, rareza}; el servidor devuelve el id de la carta en cadena (sin traducirlo, la
+      // celebración pedía «undefined_carta.png»)
+      regalo = botines((await PREMIOS.abrir(perId, r.regalo.rewardId, fichaId, Number(r.regalo.usos || 1))).resultados).map(cartaDeBotin);
     }
   } catch (e) { /* el fichaje ya está hecho y pagado: abrir el regalo nunca puede tumbarlo */ }
 
@@ -948,16 +906,8 @@ function fechaDe(t) {
  * pestaña deja conexiones vivas de por vida.
  */
 function vigilarLlamada(perId, alCambiar, elegir) {
-  return onSnapshot(query(collection(db, LLAMADA),
-    where("projectId", "==", perId), where("active", "==", true)),
-    r => {
-      const ahora = Date.now();
-      const vivas = r.docs.map(d => ({ id: d.id, ...d.data() }))
-        .filter(x => fin(x) > ahora).sort((a, b) => fin(b) - fin(a));
-      // (15-sep · `elegir`: la de mi escuadrón o la mía, no «la más reciente del grupo»)
-      alCambiar((typeof elegir === "function" ? vivas.filter(elegir) : vivas)[0] || null, vivas);
-    },
-    () => alCambiar(null, []));
+  // (15-sep · `elegir`: la de mi escuadrón o la mía, no «la más reciente del grupo»)
+  return ASISTENCIA.vigilar(perId, alCambiar, elegir);
 }
 
 /**
@@ -976,7 +926,7 @@ function vigilarLlamada(perId, alCambiar, elegir) {
  * solo para el referente. Norberto: «el referente tiene poder de eliminar o congelar (puede acceder,
  * pero no puede hacer nada, bloqueado)».
  */
-const alumno = (perId, fichaId, accion, extra) => llamar("stargateAlumno", Object.assign({ projectId: perId, fichaId, accion }, extra || {}));
+const alumno = (perId, fichaId, accion, extra) => EQUIPO.alumno(perId, fichaId, accion, extra);
 /**
  * 19-sep · CAMBIAR A UN RECLUTA DE GRUPO, con todo lo suyo (Norberto eligió «todo»: xp, créditos, insignias, cromos y
  * héroes). Lo hace el servidor (stargateAlumno, acción «mover»): traduce los identificadores de un grupo al otro
@@ -986,8 +936,10 @@ async function moverRecluta(perId, fichaId, destino) {
   try { return await alumno(perId, fichaId, "mover", { destino }); }
   catch (e) { if (sinDesplegar(e) || /accion|qué hacer/i.test(String(e && e.message))) throw new Error("Falta desplegar en el servidor la versión nueva de «stargateAlumno» (con «mover»): el comando está en el traspaso."); throw e; }
 }
-// ¿la función aún no está en el servidor? (un 404 del propio Firebase, no un «no» nuestro, que va en español)
-const sinDesplegar = e => /not-found|internal/.test(String(e && e.code)) && !/[áéíóúñ]|recluta|grupo/i.test(String(e && e.message));
+// ¿la función aún no está en el servidor? (un 404 del propio Firebase, no un «no» nuestro). 7-oct · POR CÓDIGO, del SDK de
+// GamificaPro (GP_SDK.errores): antes, por palabras (sin tildes ni «recluta» ni «grupo»), y un «no» del servidor sin tildes
+// —«No existe esa ficha»— pasaba por función sin desplegar y mandaba al camino viejo del navegador.
+const sinDesplegar = e => SDK.errores.sinDesplegar(e);
 async function darDeBaja(perId, fichaId) {
   // 🔴 Antes lo hacía el navegador, y las reglas solo dejan borrar fichas al DUEÑO del grupo: un
   // referente que no lo fuera se daba con «permiso denegado». Ahora, el servidor; si aún no está
@@ -1007,23 +959,8 @@ async function darDeBaja(perId, fichaId) {
  * a nombre del alumno y se libera el viejo, todo en el mismo lote que la ficha.
  */
 async function cambiarAlias(perId, fichaId, nuevo, extra) {
-  const f = await getDoc(doc(db, "student_profiles", fichaId));
-  if (!f.exists()) throw new Error("Esa ficha ya no está");
-  const uid = f.data().userId, viejo = f.data().displayName;
-  const lote = writeBatch(db);
-  await reservarAlias(lote, perId, uid, nuevo);
-  if (aliasClave(viejo) !== aliasClave(nuevo)) {
-    const rv = await getDoc(refAlias(perId, viejo)).catch(() => null);
-    if (rv && rv.exists() && rv.data().uid === uid) lote.delete(rv.ref);
-  }
-  const cambios = Object.assign({}, extra || {}, { displayName: nuevo });
-  lote.update(doc(db, "student_profiles", fichaId), cambios);
-  try { await lote.commit(); }
-  catch (e) {
-    if (!/permission|insufficient/i.test(String(e && (e.code || e.message)))) throw e;
-    if (await aliasOcupado(perId, nuevo, { ficha: fichaId })) throw new Error("«" + nuevo + "» ya lo lleva otro recluta del grupo.");
-    await updateDoc(doc(db, "student_profiles", fichaId), cambios);   // reglas de antes del registro (ver alistar)
-  }
+  // (7-oct · GP_SDK.alistarse: el nuevo, reservado a nombre de su dueño; el viejo, libre; y la ficha, en el mismo lote)
+  await ALISTARSE.cambiarAlias(perId, fichaId, nuevo, extra, TEXTOS_ALIAS);
 }
 
 /** Cambiar el código de acceso del grupo. Se usa cuando se ha corrido más de la cuenta. */
@@ -1036,52 +973,35 @@ async function cambiarAlias(perId, fichaId, nuevo, extra) {
  * trabaja desde el servidor: aquí solo se escribe y se lee. Las reglas: `stargate_buzon`.
  */
 const BUZON = "stargate_buzon";
+/*
+ * 7-oct · DEL SDK DE GAMIFICAPRO (GP_SDK.buzon, paso 10): escribir (las capturas, solo de nuestro almacén y hasta tres; la duda
+ * del recluta con su alias y nunca urgente), lo mío, todo, contestar sin reescribir el hilo y «ya lo he leído». Aquí, la
+ * colección y los textos de STARGATE.
+ */
+const BUZON_SDK = SDK.buzon.crear(CTX, BUZON);
+const TEXTOS_BUZON = { sinSesion: "Entra con tu cuenta para escribir al Mando.", sinMensaje: "Ese mensaje ya no existe.", estudiante: "Recluta" };
 async function buzonEnviar(m) {
-  const yo = await sesion();
-  if (!yo) throw new Error("Entra con tu cuenta para escribir al Mando.");
-  const ahora = Date.now();
-  const d = {
-    // 28-sep · la duda de un RECLUTA (la que NEBULA no sabe): va con su alias, nunca urgente (reglas: tipo 'recluta')
-    uid: yo.uid, correo: yo.correo, nombre: m.tipo === "recluta" ? String((m.contexto || {}).alias || "Recluta") : (yo.nombre || yo.correo),
-    projectId: m.projectId || "", grupo: m.grupo || "",
-    tipo: m.tipo, urgente: m.tipo === "recluta" ? false : !!m.urgente, texto: String(m.texto || "").trim().slice(0, 2000), contexto: m.contexto || {},
-    estado: "nuevo", respuestas: [], creado: ahora, actualizado: ahora, visto: true, autoayuda: m.autoayuda || []
-  };
+  // 28-sep · la duda de un RECLUTA (la que NEBULA no sabe): va con su alias, nunca urgente (reglas: tipo 'recluta')
   // 1-oct · las capturas (hasta tres direcciones de nuestro almacén), como las traía «Pregunta a NEBULA» de la Academia
-  const adj = (m.adjuntos || []).map(String).filter(u => /^https:\/\/firebasestorage\.googleapis\.com\//.test(u) && u.length <= 1024).slice(0, 3);
-  if (adj.length) d.adjuntos = adj;
-  const ref = await addDoc(collection(db, BUZON), d);
-  return ref.id;
+  return BUZON_SDK.enviar(m, TEXTOS_BUZON);
 }
 /** Lo mío, lo último arriba (sin índices compuestos: se ordena aquí). */
 async function buzonMios() {
-  const yo = await sesion();
-  if (!yo) return [];
-  const r = await getDocs(query(collection(db, BUZON), where("uid", "==", yo.uid)));
-  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.actualizado || 0) - (a.actualizado || 0));
+  return BUZON_SDK.mios();
 }
 /** Todo (solo el Mando: las reglas no dejan a nadie más). */
 async function buzonTodos() {
-  const r = await getDocs(collection(db, BUZON));
-  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.actualizado || 0) - (a.actualizado || 0));
+  return BUZON_SDK.todos();
 }
 /**
  * Contestar en un hilo. El docente añade una respuesta suya (y el mensaje vuelve a «nuevo»: el Mando
  * lo verá); el Mando responde como «mando» y le pone el estado que toque. Nada de lo anterior se toca.
  */
 async function buzonResponder(id, texto, opciones) {
-  const o = opciones || {}, ref = doc(db, BUZON, id);
-  const d = await getDoc(ref);
-  if (!d.exists()) throw new Error("Ese mensaje ya no existe.");
-  const t = String(texto || "").trim().slice(0, 2000);
-  const cambios = { actualizado: Date.now() };
-  if (t) cambios.respuestas = (d.data().respuestas || []).concat([{ de: o.comoMando ? "mando" : "docente", texto: t, fecha: Date.now() }]);
-  if (o.comoMando) { cambios.estado = o.estado || d.data().estado; if (t) cambios.visto = false; }
-  else cambios.estado = o.estado === "resuelto" ? "resuelto" : "nuevo";
-  await updateDoc(ref, cambios);
+  await BUZON_SDK.responder(id, texto, opciones, TEXTOS_BUZON);
 }
 /** «Ya lo he leído»: se apaga el aviso de respuesta nueva. */
-async function buzonVisto(id) { try { await updateDoc(doc(db, BUZON, id), { visto: true }); } catch (e) {} }
+async function buzonVisto(id) { await BUZON_SDK.visto(id); }
 // 1-oct · «¿Te ha resuelto la duda?»: las dos frases con las que el docente valora una respuesta del Mando, en el aviso de
 // respuestas (aviso-buzon.js) y en el hilo del buzón (buzon.js). Viajan como una respuesta suya más (las reglas ya lo dejan) y
 // la guardia las cuenta LEYENDO ESTA LÍNEA (mando/buzon.cjs → utilidad): un dato, un sitio. No la cambies de forma.
@@ -1097,73 +1017,39 @@ const BUZON_VALORA = {"si": "✓ Me ha resuelto la duda.", "mas": "Necesito algo
  * comentarios (`stargate_comentarios`), cortos: los quita su autor, el dueño de la reflexión o el profesorado. Las
  * reglas viven en GamificaPro (firestore.rules); qué retos la llevan, en `_site_data.py → REFLEXION_RETOS`.
  */
-const REFLEX = "stargate_reflexiones", COMENT = "stargate_comentarios";
-const TOPE_REFLEXION = 2000, TOPE_COMENTARIO = 400;
-function idReflexion(perId, reto, fichaId) { return perId + "__" + reto + "__" + fichaId; }
+/*
+ * 7-oct · DEL SDK DE GAMIFICAPRO (GP_SDK.retos, paso 8): guardar (conservando cuándo se creó), el enlace al día, leer, las
+ * mías, borrar con sus comentarios, y los comentarios. Aquí, los textos de STARGATE.
+ */
+const idReflexion = SDK.retos.idReflexion;
 async function guardarReflexion(perId, reto, fichaId, texto, enlace) {
-  const yo = await sesion();
-  if (!yo) throw new Error("Entra con tu cuenta para guardar tu reflexión.");
-  const t = String(texto || "").trim().slice(0, TOPE_REFLEXION);
-  if (!t) throw new Error("La reflexión está vacía.");
-  const ref = doc(db, REFLEX, idReflexion(perId, reto, fichaId));
-  let creado = Date.now();
-  try { const a = await getDoc(ref); if (a.exists()) creado = a.data().creado || creado; } catch (e) {}
-  const d = { projectId: perId, reto: reto, fichaId: fichaId, uid: yo.uid, texto: t, creado: creado, editado: Date.now() };
-  const e = String(enlace || "").trim().slice(0, 500);
-  if (e) d.enlace = e;
-  await setDoc(ref, d);
-  return ref.id;
+  return RETOS.guardarReflexion(perId, reto, fichaId, texto, enlace, TEXTOS_RETOS);
 }
 /** El enlace de una reflexión que ya existe, al día (se cambió desde «Cambiar enlace»). Si no hay reflexión, nada. */
 async function enlaceDeReflexion(perId, reto, fichaId, enlace) {
-  const ref = doc(db, REFLEX, idReflexion(perId, reto, fichaId));
-  try {
-    const a = await getDoc(ref);
-    if (!a.exists()) return;
-    await setDoc(ref, Object.assign({}, a.data(), { enlace: String(enlace || "").trim().slice(0, 500), editado: Date.now() }));
-  } catch (e) {}
+  await RETOS.enlaceDeReflexion(perId, reto, fichaId, enlace);
 }
 /** Todas las de un reto del grupo (o todas las del grupo), las más nuevas arriba (sin índices: se ordena aquí). */
 async function reflexionesDe(perId, reto) {
-  const q = reto ? query(collection(db, REFLEX), where("projectId", "==", perId), where("reto", "==", reto))
-                 : query(collection(db, REFLEX), where("projectId", "==", perId));
-  const r = await getDocs(q);
-  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.creado || 0) - (a.creado || 0));
+  return RETOS.reflexionesDe(perId, reto);
 }
 async function misReflexiones(perId) {
-  const yo = await sesion();
-  if (!yo) return [];
-  const r = await getDocs(query(collection(db, REFLEX), where("projectId", "==", perId), where("uid", "==", yo.uid)));
-  return r.docs.map(d => ({ id: d.id, ...d.data() }));
+  return RETOS.misReflexiones(perId);
 }
 /** Los comentarios de un reto del grupo, del más viejo al más nuevo (una conversación se lee así). */
 async function comentariosDe(perId, reto) {
-  const q = reto ? query(collection(db, COMENT), where("projectId", "==", perId), where("reto", "==", reto))
-                 : query(collection(db, COMENT), where("projectId", "==", perId));
-  const r = await getDocs(q);
-  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.creado || 0) - (b.creado || 0));
+  return RETOS.comentariosDe(perId, reto);
 }
 async function comentar(perId, reflexionId, reto, fichaId, texto) {
-  const yo = await sesion();
-  if (!yo) throw new Error("Entra con tu cuenta para comentar.");
-  const t = String(texto || "").trim().slice(0, TOPE_COMENTARIO);
-  if (!t) throw new Error("El comentario está vacío.");
-  const ref = await addDoc(collection(db, COMENT), { projectId: perId, reflexion: reflexionId, reto: reto,
-    fichaId: fichaId, uid: yo.uid, texto: t, creado: Date.now() });
-  return ref.id;
+  return RETOS.comentar(perId, reflexionId, reto, fichaId, texto, TEXTOS_RETOS);
 }
-async function borrarComentario(id) { await deleteDoc(doc(db, COMENT, id)); }
+async function borrarComentario(id) { await RETOS.borrarComentario(id); }
 /**
  * Quitar una reflexión: primero sus comentarios (si no, se quedarían colgando de nada) y luego ella. Lo hace su dueño
  * (al deshacer el reto) o el profesorado (para moderar). Un comentario que no se pueda quitar no para lo demás.
  */
 async function borrarReflexion(perId, reto, fichaId) {
-  const id = idReflexion(perId, reto, fichaId);
-  try {
-    const r = await getDocs(query(collection(db, COMENT), where("projectId", "==", perId), where("reflexion", "==", id)));
-    for (const d of r.docs) { try { await deleteDoc(d.ref); } catch (e) {} }
-  } catch (e) {}
-  await deleteDoc(doc(db, REFLEX, id));
+  await RETOS.borrarReflexion(perId, reto, fichaId);
 }
 
 /**
@@ -1186,22 +1072,20 @@ async function borrarReflexion(perId, reto, fichaId) {
  * `votesPerPerson`, `costPerVote`, `maxPaidVotesPerPerson`, `eligibleFactionId`) y tres campos nuestros: la semana en que
  * se lanzó, la semana en que se resuelve y quién la puso.
  */
-const refVotaciones = (perId) => collection(db, "projects", perId, "voting_events");
+/*
+ * 7-oct · DEL SDK DE GAMIFICAPRO (GP_SDK.votacion, paso 7): las opciones (el id de cada una es su posición, «o1», «o2»…), crear,
+ * cerrar, borrar, la lista, escuchar las activas, votar por el servidor (`castVote`) y la papeleta. Aquí quedan los campos de
+ * STARGATE (la semana, en directo o en diferido, quién la puso, el voto extra) y los textos.
+ */
+const VOTACION = SDK.votacion.crear(CTX);
 async function votaciones(perId) {
-  const r = await getDocs(refVotaciones(perId));
-  return r.docs.map(d => ({ id: d.id, ...d.data() }))
-    .sort((a, b) => Number(b.creado || 0) - Number(a.creado || 0));
+  return VOTACION.lista(perId);
 }
 /** Crear una votación. `opciones` son textos; el id de cada una es su posición, que no cambia nunca. */
 async function crearVotacion(perId, v) {
-  const yo = await sesion();
-  const opciones = (v.opciones || []).map(String).map(s => s.trim()).filter(Boolean)
-    .map((titulo, i) => ({ id: "o" + (i + 1), title: titulo, totalFreeVotes: 0, totalCoinsInvested: 0 }));
-  if (opciones.length < 2) throw new Error("Una votación necesita al menos dos opciones.");
-  const doc_ = doc(refVotaciones(perId));
-  await setDoc(doc_, {
+  return VOTACION.nueva(perId, {
     title: String(v.pregunta || "").trim(), description: "",
-    options: opciones, isActive: true,
+    options: SDK.votacion.opciones(v.opciones), isActive: true,
     votesPerPerson: 1,
     costPerVote: Math.max(0, Math.floor(Number(v.extra) || 0)),
     maxPaidVotesPerPerson: Math.max(0, Math.floor(Number(v.maxExtra) || 0)),
@@ -1212,16 +1096,14 @@ async function crearVotacion(perId, v) {
     // cuando entra, y se cierra sola a su hora)
     stargateModo: v.modo === "diferido" ? "diferido" : "directo",
     stargateCierra: v.modo === "diferido" ? Date.now() + Math.max(1, Math.min(14, Number(v.dias) || 3)) * 864e5 : null,
-    creado: Date.now(), stargateSemana: Number(v.semana) || null,
+    stargateSemana: Number(v.semana) || null,
     stargateResuelve: Number(v.resuelve) || null, stargateProfe: String(v.profe || ""),
-    creadoPor: yo ? yo.uid : null,
   });
-  return doc_.id;
 }
-const cerrarVotacion = (perId, id) => updateDoc(doc(db, "projects", perId, "voting_events", id), { isActive: false, cerrada: Date.now() });
-const borrarVotacion = (perId, id) => deleteDoc(doc(db, "projects", perId, "voting_events", id));
+const cerrarVotacion = (perId, id) => VOTACION.cerrar(perId, id, { cerrada: Date.now() });
+const borrarVotacion = (perId, id) => VOTACION.borrar(perId, id);
 /** Votar: gratis o pagando el voto extra. Lo cobra y lo cuenta el servidor. */
-const votar = (perId, id, opcionId, tipo) => llamar("castVote", { projectId: perId, eventId: id, optionId: opcionId, voteType: tipo || "free" });
+const votar = (perId, id, opcionId, tipo) => VOTACION.votar(perId, id, opcionId, tipo);
 
 /**
  * 🔴 17-sep · LO EN VIVO. Norberto, en la prueba humana: «cuando inicio una votación, al estudiante no le aparece nada para
@@ -1238,9 +1120,7 @@ const votar = (perId, id, opcionId, tipo) => llamar("castVote", { projectId: per
  *   cambiar mientras está abierta), con su alias. Las reglas comprueban que la ficha es suya y la pregunta, abierta.
  */
 function vigilarVotaciones(perId, alCambiar) {
-  return onSnapshot(query(refVotaciones(perId), where("isActive", "==", true)),
-    r => alCambiar(r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => Number(b.creado || 0) - Number(a.creado || 0))),
-    () => alCambiar([]));
+  return VOTACION.vigilar(perId, alCambiar);
 }
 const ENVIVO = "stargate_envivo", RESPUESTAS = "stargate_respuestas";
 function vigilarEnVivo(perId, alCambiar) {
@@ -1278,9 +1158,7 @@ async function miRespuesta(perId, preguntaId, fichaId) {
 }
 /** Lo que ya ha votado esta persona en esa votación (papeleta por ficha). */
 async function miPapeleta(perId, id, fichaId) {
-  if (!fichaId) return {};
-  const d = await getDoc(doc(db, "projects", perId, "voting_events", id, "votes", fichaId));
-  return d.exists() ? (d.data().byOption || {}) : {};
+  return VOTACION.miPapeleta(perId, id, fichaId);
 }
 
 /**
@@ -1317,11 +1195,11 @@ async function anadirDocente(perId, persona) {
   // 🔴 15-sep · lo hace el SERVIDOR (`stargateEquipo`, solo para el referente): las reglas ya no dejan
   // que un codocente toque `coTeacherEmails` ni la lista de roles (antes, cualquiera podía hacerse
   // referente desde el navegador). Mientras la función no esté desplegada, el camino de antes.
+  // (7-oct · la petición, de GP_SDK.equipo; «sin desplegar», por código)
   try {
-    const r = await llamar("stargateEquipo", { projectId: perId, persona: persona || {} });
-    return r.persona || persona;
+    return await EQUIPO.anadirDocente(perId, persona);
   } catch (e) {
-    if (!/not-found|internal|unavailable/.test(String(e && e.code || "")) || /[áéíóú]/.test(String(e && e.message || ""))) throw e;
+    if (!sinDesplegar(e)) throw e;
   }
   const correo = String(persona && persona.correo || "").toLowerCase().trim();
   if (!correo || correo.indexOf("@") < 0) throw new Error("Hace falta un correo válido.");
@@ -1353,8 +1231,7 @@ async function anadirDocente(perId, persona) {
  * referente, ni a quien aún tenga alumnado a su nombre (la consola lo pasa antes a otro docente).
  */
 async function quitarDocente(perId, correo) {
-  const r = await llamar("stargateEquipo", { projectId: perId, persona: { correo: String(correo || "").toLowerCase() }, quitar: true });
-  return r;
+  return EQUIPO.quitarDocente(perId, correo);
 }
 
 /**
@@ -1372,10 +1249,9 @@ async function quitarDocente(perId, correo) {
 async function referenteEnTodos(persona, perIds) {
   // (15-sep · de una vez, en el servidor; y si aún no está desplegado, grupo a grupo como antes)
   try {
-    const r = await llamar("stargateEquipo", { projectIds: perIds, persona: Object.assign({}, persona, { rol: "referente" }) });
-    return { hechos: r.hechos || [], fallos: r.fallos || [] };
+    return await EQUIPO.referenteEnTodos(persona, perIds);
   } catch (e) {
-    if (!/not-found|internal|unavailable/.test(String(e && e.code || "")) || /[áéíóú]/.test(String(e && e.message || ""))) throw e;
+    if (!sinDesplegar(e)) throw e;
   }
   const hechos = [], fallos = [];
   for (const id of perIds) {
@@ -1504,18 +1380,18 @@ const idPremioHuevo = (perId, huevoId) => window.SG.PAQUETE.idPremioHuevo(perId,
  *     lee su equipo docente. Un premio de «todos» está en todos los grupos que lleva quien lo guarda.
  *   · Se guarda cada premio suyo, al tocarlo. Nada de un «Guardar» para toda la lista que se olvida.
  */
-const PRIV = (perId) => doc(db, "projects", perId, "privado", "stargate");
-function azar(n, abc) {
-  const A = abc || "abcdefghijkmnpqrstuvwxyz23456789", r = new Uint32Array(n);
-  crypto.getRandomValues(r);
-  return Array.from(r, x => A[x % A.length]).join("");
-}
-async function huellaPremio(id, codigo) {
-  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(id) + ":" + String(codigo)));
-  return Array.from(new Uint8Array(b), x => x.toString(16).padStart(2, "0")).join("");
-}
+/*
+ * 7-oct · LA FONTANERÍA ES DEL SDK DE GAMIFICAPRO (GP_SDK.premios, paso 5): el azar de verdad, la huella del código (la que
+ * comprueba el servidor), el catálogo privado, guardar y quitar en un lote, leer la recompensa y la ficha a la vez, reclamar
+ * (con el motivo del «no») y abrir en serie. Aquí queda lo de STARGATE: qué es cada premio (motor/paquete.js), a qué grupos
+ * va, los textos y cómo se enseña lo que ha tocado.
+ */
+const PREMIOS = SDK.premios.crear(CTX);
+const CATALOGO_PREMIOS = "premiosEnlace";
+const azar = (n, abc) => SDK.premios.azar(n, abc);
+const huellaPremio = (id, codigo) => SDK.premios.huella(id, codigo);
 function premioNuevo(datos) {
-  return Object.assign({ id: azar(10), codigo: azar(18, "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"),
+  return Object.assign({ id: azar(10), codigo: azar(18, SDK.premios.ABC_CODIGO),
     tipo: "recompensa", nombre: "", premio: "sobre", heroe: "", cantidad: 0, sorteo: "", grupos: "todos",
     desde: 0, hasta: 0, limite: 0, porEscuadron: 0, activo: true, creado: Date.now() }, datos || {});
 }
@@ -1523,11 +1399,8 @@ function premioNuevo(datos) {
 async function premiosEnlaceDe(perIds) {
   const porId = {};
   await Promise.all((perIds || []).map(async per => {
-    let m = {};
-    try { const d = await getDoc(PRIV(per)); m = (d.exists() && d.data().premiosEnlace) || {}; } catch (e) { return; }
-    Object.keys(m).forEach(id => {
-      const x = m[id]; if (!x || !x.id) return;
-      const ya = porId[id];
+    (await PREMIOS.catalogo(per, CATALOGO_PREMIOS)).forEach(x => {
+      const id = x.id, ya = porId[id];
       if (!ya || Number(x.actualizado || 0) > Number(ya.actualizado || 0)) porId[id] = Object.assign({}, x, { en: ya ? ya.en : [] });
       porId[id].en.push(per);
     });
@@ -1546,7 +1419,7 @@ async function guardarPremioEnlace(item, gestionados) {
   item = Object.assign({}, item, { actualizado: Date.now() });
   const antes = item.en || [];
   delete item.en;
-  const destinos = destinosDe(item, gestionados), hash = await huellaPremio(item.id, item.codigo);
+  const destinos = destinosDe(item, gestionados);
   const saltados = [], en = [];
   for (const per of destinos) {
     // el cofre del sobre, del héroe, de las cápsulas: los de la tienda de ESE grupo (mismo sorteo, mismas cartas)
@@ -1557,22 +1430,17 @@ async function guardarPremioEnlace(item, gestionados) {
     conCofre.forEach(r => { if (/^(sobre_|capsula_)/.test(r.stargateTipo || "") && r.inStore !== false) cofres[r.stargateTipo] = r; });
     if (/^(sobre_|capsula_)/.test(item.premio) && !cofres[item.premio]) { saltados.push({ per, motivo: "no tiene ese premio en su tienda" }); continue; }
     if (item.premio === "participaciones" && !premios.some(r => r.id === item.sorteo)) { saltados.push({ per, motivo: "ese sorteo no es de este grupo" }); continue; }
-    const lote = writeBatch(db);
-    lote.set(doc(db, "rewards", idPremioHuevo(per, item.id)),
-      Object.assign(window.SG.PAQUETE.premioDeHuevo(per, item, sobre, heroe, cofres), { claimLinkHash: hash, stargateBorrado: false }), { merge: true });
-    lote.set(PRIV(per), { premiosEnlace: { [item.id]: item } }, { merge: true });
-    await lote.commit();
+    // (la recompensa, con la huella del código y sin él, y su entrada en lo privado: en la misma escritura)
+    await PREMIOS.guardar(per, { rid: idPremioHuevo(per, item.id), item, campo: CATALOGO_PREMIOS,
+      recompensa: window.SG.PAQUETE.premioDeHuevo(per, item, sobre, heroe, cofres) });
     en.push(per);
   }
   for (const per of antes.filter(g => en.indexOf(g) < 0 && gestionados.indexOf(g) >= 0)) await quitarDeGrupo(per, item.id);
   return { en, saltados };
 }
 async function quitarDeGrupo(per, id) {
-  const lote = writeBatch(db);
   // cerrado y marcado (borrar la recompensa solo lo puede el dueño principal): quien lo reclamó lo conserva
-  lote.set(doc(db, "rewards", idPremioHuevo(per, id)), { claimLinkEnabled: false, stargateBorrado: true }, { merge: true });
-  lote.update(PRIV(per), { ["premiosEnlace." + id]: deleteField() });
-  await lote.commit();
+  await PREMIOS.quitar(per, idPremioHuevo(per, id), CATALOGO_PREMIOS, id);
 }
 async function borrarPremioEnlace(item, gestionados) {
   for (const per of (item.en || []).filter(g => gestionados.indexOf(g) >= 0)) await quitarDeGrupo(per, item.id);
@@ -1614,32 +1482,19 @@ async function guardarHuevos(perId, lista) {
  * `estado`: abierto · pronto · cerrado · pausado · agotado · borrado. Quien decide de verdad es el
  * servidor al reclamar; esto solo lo cuenta antes.
  */
-function estadoDePremio(R, ahora = Date.now()) {
-  if (!R || R.stargateBorrado) return "borrado";
-  if (R.claimLinkEnabled === false) return "pausado";
-  const desde = Number(R.claimLinkStartsAt) || 0, hasta = Number(R.claimLinkEndsAt) || 0;
-  if (desde && ahora < desde) return "pronto";
-  if (hasta && ahora > hasta) return "cerrado";
-  const tope = Number(R.claimLinkMaxTotal) || 0;
-  if (tope && (Number(R.claimLinkTotalClaimed) || 0) >= tope) return "agotado";
-  return "abierto";
-}
+const estadoDePremio = (R, ahora = Date.now()) => SDK.premios.estado(R, ahora);
 async function estadoHuevo(perId, huevoId, fichaId) {
   const rid = idPremioHuevo(perId, huevoId);
-  const [r, f] = await Promise.all([getDoc(doc(db, "rewards", rid)),
-                                    fichaId ? getDoc(doc(db, "student_profiles", fichaId)) : Promise.resolve(null)]);
-  const R = r.exists() ? r.data() : null;
+  const { R, F, mio: yaEra, sinAbrir } = await PREMIOS.leer(perId, rid, fichaId);
   const H = (R && R.stargateHuevo) || {};
-  const F = f && f.exists() ? f.data() : {};
   const inv = Array.isArray(F.inventory) ? F.inventory : [];
-  const yaEra = ((F.linkedRewardClaims || {})[rid] || 0) >= 1;
   // el héroe del enlace: cuántas copias tiene ya (la burbuja «×2» y la oferta de NEBULA)
   const heroeId = H.premio === "heroe_fijo" && H.heroe ? perId + "__heroe_" + H.heroe : "";
   return { R, H, yaEra, estado: estadoDePremio(R), desde: Number(R && R.claimLinkStartsAt) || 0,
            hasta: Number(R && R.claimLinkEndsAt) || 0, tope: Number(R && R.claimLinkMaxTotal) || 0,
            reclamados: Number(R && R.claimLinkTotalClaimed) || 0,
            // reclamado pero sin abrir: se fue a mitad de elegir, o no se pudo abrir en su momento
-           sinAbrir: yaEra && inv.indexOf(rid) >= 0,
+           sinAbrir,
            copias: heroeId ? inv.filter(x => x === heroeId).length : 0 };
 }
 /** «el lunes 15 de septiembre a las 10:00», en la hora de quien lo lee. */
@@ -1674,16 +1529,17 @@ async function reclamarHuevo(perId, huevoId, fichaId, codigo) {
 
   let reclamo;
   try {
-    // (17-sep · con su código: el servidor comprueba la huella antes de dar nada)
-    reclamo = await llamar("claimLinkedReward", { rewardId: rid, modo: "item", codigo: String(codigo || "") });
+    // (17-sep · con su código: el servidor comprueba la huella antes de dar nada; el «no», con su motivo, del SDK)
+    const r = await PREMIOS.reclamar(rid, codigo);
+    if (r.ya) return { yaEra: true, premio: H.premio };
+    reclamo = r.respuesta;
   } catch (e) {
     const m = String((e && e.message) || "");
-    if (/SOLD_OUT|resource-exhausted/i.test(m + " " + (e && e.code)))
+    if (e && e.motivo === "agotado")
       throw new Error("Llegaste tarde: este ya lo encontraron " + (R.claimLinkMaxTotal || "todas las") + " personas que podían.");
-    if (/límite de reclamos/i.test(m)) return { yaEra: true, premio: H.premio };
     // la ventana, dicha por el servidor (si el reloj de este equipo no coincide con el suyo)
-    if (/aún no está abierto/i.test(m)) throw new Error("Todavía no se puede: se abre " + cuandoEs(R.claimLinkStartsAt) + ".");
-    if (/ya se ha cerrado/i.test(m)) throw new Error("Se cerró " + cuandoEs(R.claimLinkEndsAt) + ". Llegaste tarde a este.");
+    if (e && e.motivo === "pronto") throw new Error("Todavía no se puede: se abre " + cuandoEs(R.claimLinkStartsAt) + ".");
+    if (e && e.motivo === "cerrado") throw new Error("Se cerró " + cuandoEs(R.claimLinkEndsAt) + ". Llegaste tarde a este.");
     throw new Error(m.replace(/^Lo siento, /, "") || "No he podido reclamarlo.");
   }
   /**
@@ -1714,17 +1570,11 @@ async function abrirHuevo(perId, huevoId, fichaId, R_) {
   const rid = idPremioHuevo(perId, huevoId);
   const R = R_ || (await getDoc(doc(db, "rewards", rid))).data() || {};
   const H = R.stargateHuevo || {};
-  // Y se abre en el momento: es un regalo, no un paquete que haya que ir a buscar al álbum.
-  const usos = Math.max(1, Number(R.maxUses || 1)), sacadas = [];
-  let abiertos = 0;
-  for (let i = 0; i < usos; i++) {
-    try {
-      const c = await llamar("consumeItem", { projectId: perId, rewardId: rid, studentProfileId: fichaId });
-      abiertos++;
-      const b = c && (c.botin || c.obtenido);
-      if (b) sacadas.push(b);
-    } catch (e) { break; }   // lo que no se abra queda en el inventario y se abre desde el álbum
-  }
+  // Y se abre en el momento: es un regalo, no un paquete que haya que ir a buscar al álbum. En serie (a la vez se pisarían);
+  // lo que no se abra queda en el inventario y se abre desde el álbum.
+  const usos = Math.max(1, Number(R.maxUses || 1));
+  const { abiertos, resultados } = await PREMIOS.abrir(perId, rid, fichaId, usos);
+  const sacadas = botines(resultados);
   let detalle = null;
   // 14-sep · los sobres nuevos se enseñan como el sobre; las cápsulas, como el héroe
   if (H.premio === "sobre" || /^sobre_/.test(H.premio || "")) detalle = { tipo: "sobre", cartas: sacadas.map(cartaDeBotin) };
@@ -1750,16 +1600,12 @@ async function resolverHeroeRepetido(perId, huevoId, fichaId, opcion) {
   if (opcion === "quedar") return abrirHuevo(perId, huevoId, fichaId);
   const r = await llamar("stargateHeroeRepetido", { projectId: perId, rewardId: rid, opcion: opcion });
   if (opcion === "creditos") return { ok: true, premio: "bolsa", detalle: { tipo: "bolsa", creditos: Number(r.creditos || 40) } };
-  const sacadas = [];
-  for (let i = 0; i < Math.max(1, Number(r.usos || 3)); i++) {
-    try {
-      const c = await llamar("consumeItem", { projectId: perId, rewardId: r.rewardId, studentProfileId: fichaId });
-      const b = c && (c.botin || c.obtenido); if (b) sacadas.push(b);
-    } catch (e) { break; }
-  }
+  const sacadas = botines((await PREMIOS.abrir(perId, r.rewardId, fichaId, Number(r.usos || 3))).resultados);
   return { ok: true, premio: "sobre", detalle: { tipo: "sobre", cartas: sacadas.map(cartaDeBotin), sinAbrir: !sacadas.length } };
 }
 
+/** Lo que ha salido de cada `consumeItem` (el botín, o lo obtenido), sin los que no dan nada. */
+const botines = (resultados) => (resultados || []).map(c => c && (c.botin || c.obtenido)).filter(Boolean);
 /** Lo que devuelve un cofre, dicho como lo espera la pantalla del escondite: {clave, nombre, rareza}. */
 function cartaDeBotin(b) {
   // `consumeItem` devuelve el botín como el ID de la recompensa, en cadena («grupo__cromo_P1_bran»)
@@ -1772,9 +1618,8 @@ function cartaDeBotin(b) {
 }
 
 async function nuevoCodigo(perId) {
-  const c = window.SG.PAQUETE.codigoNuevo();
-  await updateDoc(doc(db, "projects", perId), { joinCode: c });
-  return c;
+  // (7-oct · GP_SDK.equipo; la receta del código, la de STARGATE)
+  return EQUIPO.nuevoCodigo(perId, window.SG.PAQUETE.codigoNuevo);
 }
 
 /**
@@ -2043,11 +1888,16 @@ async function ofertaEnGrupos(docs, accion, datos) {
   for (const g of docs) { try { await oferta(g.per, accion, Object.assign({ ofertaId: g.docId }, datos || {})); } catch (e) { fallos.push({ per: g.per, motivo: e.message }); } }
   return { fallos };
 }
-const sortear = (perId, ticketDoc) => llamar("stargateSortear", { projectId: perId, ticketId: ticketDoc });
+/*
+ * 7-oct · VALES, SORTEOS Y OFERTAS, del SDK de GamificaPro (GP_SDK.economia, paso 11): lo que mueve créditos lo decide el
+ * servidor; aquí solo se pide. Sortear va por `modSortear`, el sorteo del motor: el mismo `sortearAhora` que `stargateSortear`
+ * (en un grupo de STARGATE, con el mod «stargate» de siempre) y el mismo candado (solo el referente).
+ */
+const sortear = (perId, ticketDoc) => ECONOMIA.sortear(perId, ticketDoc);
 // 14-sep · los sorteos que ya han pasado su fecha se resuelven solos al entrar cualquiera del grupo
-const sorteosPendientes = (perId) => llamar("stargateSorteosPendientes", { projectId: perId });
+const sorteosPendientes = (perId) => ECONOMIA.sorteosPendientes(perId);
 // 14-sep · las ofertas de la semana: la automática (la pide la Nave al entrar), comprar, y lo del referente
-const oferta = (perId, accion, datos) => llamar("stargateOferta", Object.assign({ projectId: perId, accion: accion }, datos || {}));
+const oferta = (perId, accion, datos) => ECONOMIA.oferta(perId, accion, datos);
 
 /** Quién ha fichado en una llamada, para verlo en directo desde el puesto de mando. */
 /**
@@ -2056,16 +1906,11 @@ const oferta = (perId, accion, datos) => llamar("stargateOferta", Object.assign(
  * (Dos igualdades y una de ellas es su uid: es lo que dejan leer las reglas, y no hace falta índice nuevo.)
  */
 async function yaFiche(sesionId, uid) {
-  if (!sesionId || !uid) return false;
-  const r = await getDocs(query(collection(db, FICHAJES), where("sessionId", "==", sesionId), where("userId", "==", uid)));
-  return !r.empty;
+  return ASISTENCIA.yaFiche(sesionId, uid);
 }
 
 async function fichajesDe(sesionId) {
-  const r = await getDocs(query(collection(db, FICHAJES), where("sessionId", "==", sesionId)));
-  return r.docs.map(d => ({ id: d.id, ...d.data() }))
-    .sort((a, b) => (a.registeredAt?.toDate ? a.registeredAt.toDate() : new Date(a.registeredAt))
-                  - (b.registeredAt?.toDate ? b.registeredAt.toDate() : new Date(b.registeredAt)));
+  return ASISTENCIA.fichajes(sesionId);
 }
 
 /**
@@ -2077,53 +1922,31 @@ async function fichajesDe(sesionId) {
  * Referente = puede crear grupos y ve lo de referente. Los vitalicios lo son siempre.
  */
 async function referenteGlobal(correo) {
-  correo = String(correo || "").toLowerCase();
-  if (REFERENTES_VITALICIOS.indexOf(correo) >= 0) return true;
-  try { const d = await getDoc(doc(db, "stargate_referentes", correo)); return d.exists() && d.data().activo === true; }
-  catch (e) { return false; }
-}
-function aleatorio(n) {
-  const a = new Uint8Array(n), L = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  crypto.getRandomValues(a); return Array.prototype.map.call(a, x => L[x % L.length]).join("");
+  return EQUIPO.referenteGlobal(correo, (c) => REFERENTES_VITALICIOS.indexOf(c) >= 0);
 }
 async function crearInvitacion(nombre) {
-  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta.");
-  const t = aleatorio(24), ahora = Date.now();
-  await setDoc(doc(db, "stargate_invitaciones", t), { nombre: String(nombre || "").trim().slice(0, 80), rol: "referente",
-    creado: ahora, caduca: ahora + 14 * 864e5, por: yo.correo, usadoPor: null, usadoCorreo: null, usadoEn: null });
-  return { token: t, enlace: location.origin + "/invitacion.html?t=" + t, caduca: ahora + 14 * 864e5 };
+  return EQUIPO.crearInvitacion(nombre, (t) => location.origin + "/invitacion.html?t=" + t, TEXTOS_EQUIPO);
 }
 async function leerInvitacion(t) {
-  const d = await getDoc(doc(db, "stargate_invitaciones", String(t || ""))); return d.exists() ? { id: d.id, ...d.data() } : null;
+  return EQUIPO.leerInvitacion(t);
 }
 async function canjearInvitacion(t) {
-  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta de Google.");
-  const inv = await leerInvitacion(t);
-  if (!inv) return { error: "no-existe" };
-  if (inv.usadoPor) return inv.usadoPor === yo.uid ? { ok: true, ya: true, nombre: inv.nombre } : { error: "usada" };
-  if (Number(inv.caduca) < Date.now()) return { error: "caducada" };
-  const b = writeBatch(db), ahora = Date.now();
-  b.set(doc(db, "stargate_referentes", yo.correo), { correo: yo.correo, nombre: yo.nombre || inv.nombre || yo.correo, activo: true,
-    desde: ahora, por: "invitacion", invitacion: t, actualizado: ahora });
-  b.update(doc(db, "stargate_invitaciones", t), { usadoPor: yo.uid, usadoCorreo: yo.correo, usadoEn: ahora });
-  await b.commit();
-  try { localStorage.setItem("sgEsReferente", "1"); localStorage.setItem("sgEsDocente", "1"); document.dispatchEvent(new CustomEvent("sg:rol")); } catch (e) {}
-  anotarConexion().catch(() => {});
-  return { ok: true, nombre: inv.nombre };
+  const r = await EQUIPO.canjearInvitacion(t, TEXTOS_EQUIPO);
+  if (r.ok && !r.ya) {
+    try { localStorage.setItem("sgEsReferente", "1"); localStorage.setItem("sgEsDocente", "1"); document.dispatchEvent(new CustomEvent("sg:rol")); } catch (e) {}
+    anotarConexion().catch(() => {});
+  }
+  return r;
 }
 /** Solo el Mando: la lista de invitaciones, la de referentes, poner o quitar uno, y las conexiones. */
 async function invitaciones() {
-  return (await getDocs(collection(db, "stargate_invitaciones"))).docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.creado || 0) - (a.creado || 0));
+  return EQUIPO.invitaciones();
 }
 async function referentes() {
-  return (await getDocs(collection(db, "stargate_referentes"))).docs.map(d => ({ id: d.id, ...d.data() }));
+  return EQUIPO.referentes();
 }
 async function ponerReferente(correo, activo, nombre) {
-  const yo = await sesion(); correo = String(correo || "").trim().toLowerCase();
-  if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(correo)) throw new Error("Ese correo no parece un correo.");
-  const ref = doc(db, "stargate_referentes", correo), d = await getDoc(ref), x = d.exists() ? d.data() : {};
-  await setDoc(ref, { correo, nombre: String(nombre || x.nombre || correo), activo: !!activo, desde: x.desde || Date.now(),
-    por: (yo && yo.correo) || "", actualizado: Date.now() });
+  await EQUIPO.ponerReferente(correo, activo, nombre, TEXTOS_EQUIPO);
 }
 async function profes() {
   return (await getDocs(collection(db, "stargate_profes"))).docs.map(d => ({ id: d.id, ...d.data() }));

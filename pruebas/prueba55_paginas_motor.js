@@ -17,6 +17,8 @@ console.log("\n▶ 55 · Las páginas del motor nuevo");
 
 const MOTOR = js("motor.js"), ALTA = js("alistarse.js"), CONSOLA = js("consola.js"), VALIDAR = js("validar.js");
 const CREAR = js("crear.js");
+// 7-oct · lo que el motor hace por el SDK de GamificaPro (fase 5, pasos 4-11) vive en el paquete fijado: cada pieza, tal cual
+const SDK_ALTA = require("./sdk_pieza.js").pieza("alistarse");
 
 // ---------------------------------------------------------------- a) una sola puerta a Firebase
 // 🔴 Si cada página hablara con Firebase por su cuenta, un fallo de conexión habría que arreglarlo
@@ -33,7 +35,7 @@ c(/from "https:\/\/www\.gstatic\.com\/firebasejs\//.test(MOTOR), "y motor.js la 
 // El fallo más repetido del sistema viejo: teclear un correo distinto al de la sesión y acabar con
 // dos fichas, o con ninguna. Ya no hay dónde teclearlo.
 c(ALTA.indexOf('id="a-correo"') < 0, "🔴 en el alistamiento NO hay campo para escribir el correo");
-c(/email: datos\.correo \|\| yo\.correo/.test(MOTOR), "   el que se guarda es el de la sesión de Google");
+c(/email: datos\.correo \|\| y(o)?\.correo/.test(MOTOR), "   el que se guarda es el de la sesión de Google");
 c(/YO\.correo/.test(ALTA), "   y se le enseña con cuál está entrando, para que no se equivoque de cuenta");
 c(/No soy yo/.test(ALTA), "   con salida por si se equivocó");
 
@@ -45,7 +47,9 @@ const fichaPublica = alistar.slice(alistar.indexOf("await setDoc(ficha"), alista
 ["firstName", "lastName", "datos.nombre", "datos.apellidos", "datos.correo"].forEach(function (k) {
   c(fichaPublica.indexOf(k) < 0, "🔴 «" + k + "» NO se escribe en la ficha pública");
 });
-c(/"student_profiles", ficha\.id, "privado", "datos"/.test(alistar),
+c(/"student_profiles", ficha\.id, "privado", "datos"/.test(alistar) ||
+  // (7-oct · el SDK lo escribe: lo que va a lo privado, aparte de la ficha)
+  (/privado: \(y\) => \(\{/.test(alistar) && /ALISTARSE\.alistar\(/.test(alistar) && /fs\.doc\(db, "student_profiles", fichaRef\.id, "privado", "datos"\)/.test(SDK_ALTA)),
   "🔴 el nombre y el correo van a la subcolección privada, que tiene su propia regla");
 c(/firstName: datos\.nombre/.test(alistar) && /lastName: datos\.apellidos/.test(alistar),
   "   nombre y apellidos POR SEPARADO: partirlos a máquina en español no se puede");
@@ -54,9 +58,13 @@ c(/bitacora: datos\.bitacora/.test(alistar), "y el cuaderno de bitácora se guar
 // ---------------------------------------------------------------- d) la ficha nace a cero
 // La regla de Firestore lo exige (`naceEnCero`) y con razón: sin eso, cualquiera se creaba un
 // segundo perfil con 999.999 de experiencia, porque al CREAR no se miraba la economía.
-c(/totalPoints: 0, coins: 0/.test(alistar), "🔴 la ficha nace con 0 xp y 0 créditos");
-c(/completedMissionIds: \[\]/.test(alistar), "   y sin ningún reto hecho");
-c(/completeMission/.test(alistar),
+// (7-oct · la ficha a cero la arma el SDK —fichaNueva— y lo de STARGATE va encima, sin economía)
+const fichaSDK = SDK_ALTA.slice(SDK_ALTA.indexOf("function fichaNueva"), SDK_ALTA.indexOf("function denegado"));
+const aCero = (t) => /totalPoints: 0, coins: 0/.test(t);
+c(aCero(alistar) || (aCero(fichaSDK) && /ALISTARSE\.alistar\(/.test(alistar) && !/totalPoints|coins|completedMissionIds|inventory/.test(alistar.slice(0, alistar.indexOf("\n}\n")).replace(/\/\/.*$/gm, ""))),
+  "🔴 la ficha nace con 0 xp y 0 créditos");
+c(/completedMissionIds: \[\]/.test(alistar) || /completedMissionIds: \[\]/.test(fichaSDK), "   y sin ningún reto hecho");
+c((/completeMission/.test(alistar)) || (/misionAlta: "H1"/.test(alistar) && /ctx\.llamar\("completeMission"/.test(SDK_ALTA)),
   "🔴 los 100 xp del alistamiento los da el SERVIDOR completando H1, no el navegador");
 
 // ---------------------------------------------------------------- e) la experiencia solo la mueve el servidor
@@ -65,7 +73,7 @@ const CONSOLA_LIMPIA = sinComentarios(CONSOLA), MOTOR_LIMPIO = sinComentarios(MO
   c(CONSOLA_LIMPIA.indexOf(campo) < 0, "🔴 la consola NO escribe «" + campo + "» a mano");
 });
 c(/llamar\("applyXpDelta"/.test(MOTOR_LIMPIO), "anular un reto descuenta por applyXpDelta (con su asiento)");
-c(/llamar\("completeMission"/.test(MOTOR_LIMPIO), "y otorgarlo, por completeMission");
+c(/llamar\("completeMission"/.test(MOTOR_LIMPIO) || (/misionAlta: "H1"/.test(MOTOR_LIMPIO) && /ctx\.llamar\("completeMission"/.test(SDK_ALTA)), "y otorgarlo, por completeMission");
 const anular = MOTOR_LIMPIO.slice(MOTOR_LIMPIO.indexOf("async function anularReto"), MOTOR_LIMPIO.indexOf("async function traspasar"));
 c(anular.indexOf("applyXpDelta") >= 0 && anular.indexOf("completedMissionIds") >= 0,
   "🔴 anular quita el reto Y descuenta: dejar solo una de las dos deja a alguien con xp de la nada");

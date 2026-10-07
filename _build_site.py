@@ -4121,7 +4121,7 @@ if os.path.exists(_TARJETAS_GP):
 # nombre: un paquete nuevo en GamificaPro no cambia esta web hasta que se cambie esta línea y se publique. De él sale también
 # motor/semanas.js, la receta TAL CUAL (la cargan las páginas y las pruebas). Desde un worktree de GamificaPro:
 # GAMIFICAPRO_DIR=<ruta> python3 _build_site.py
-SDK_FIJADO = "mod-sdk.v1.953e604ce6.js"
+SDK_FIJADO = "mod-sdk.v1.029ee56755.js"
 def _traer_sdk():
     import re as _re_sdk
     _js = os.path.join(HERE, "assets", "js"); _dst = os.path.join(_js, SDK_FIJADO)
@@ -4144,6 +4144,24 @@ def _traer_sdk():
     if open(_sem, encoding="utf-8").read() != _m.group(1):
         open(_sem, "w", encoding="utf-8").write(_m.group(1)); print("escrito: motor/semanas.js  (la pieza «semanas» de " + SDK_FIJADO + ")")
 _traer_sdk()
+# 7-oct · Y EL SIMULADOR COMÚN (GamificaPro sdk/sim, fase 5): el Firebase de mentira de la consola de ensayo llega en su propio
+# paquete, dist-sdk/mod-sim.v1.<huella>.js, fijado aquí y copiado al lado del envoltorio (assets/js/sim/firebase_sim.js, que lo
+# importa por su nombre). Nunca se carga en producción.
+SIM_FIJADO = "mod-sim.v1.ac1eaafa34.js"
+def _traer_sim(carpeta):
+    _dst = os.path.join(carpeta, SIM_FIJADO)
+    for _gp in [os.environ.get("GAMIFICAPRO_DIR"), "/Users/nor/Claude/vibewebs/gamificapro"]:
+        _src = os.path.join(_gp, "dist-sdk", SIM_FIJADO) if _gp else None
+        if _src and os.path.exists(_src):
+            _c = open(_src, "rb").read()
+            if not os.path.exists(_dst) or open(_dst, "rb").read() != _c:
+                open(_dst, "wb").write(_c); print("copiado: assets/js/sim/" + SIM_FIJADO + "  (de GamificaPro dist-sdk)")
+            break
+    assert os.path.exists(_dst), "falta assets/js/sim/" + SIM_FIJADO + " (GamificaPro dist-sdk; desde un worktree, GAMIFICAPRO_DIR=<ruta>)"
+    assert hashlib.sha256(open(_dst, "rb").read()).hexdigest()[:10] == SIM_FIJADO[:-3].rsplit(".", 1)[1], "assets/js/sim/" + SIM_FIJADO + ": la huella no cuadra"
+    for _f in os.listdir(carpeta):
+        if _f.startswith("mod-sim.") and _f.endswith(".js") and _f != SIM_FIJADO:
+            os.remove(os.path.join(carpeta, _f)); print("quitado: assets/js/sim/" + _f + "  (paquete del simulador que ya no se usa)")
 # ================= v3 · LA NAVE DEL RECLUTA (web del alumnado por PER) =================
 RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -5551,7 +5569,9 @@ def motor_simulador():
     enciende «Crear grupo» en el menú) y lo borra al salir. El docente de ensayo no puede tocarle esas marcas a la cuenta de
     verdad de quien ensaya."""
     import re as _re_s
+    _traer_sim(os.path.join(HERE, "assets", "js", "sim"))
     sim = open(os.path.join(HERE, "assets", "js", "sim", "firebase_sim.js"), "rb").read()
+    assert ('import "./' + SIM_FIJADO + '";').encode() in sim, "sim/firebase_sim.js no importa " + SIM_FIJADO
     huella = hashlib.sha1(sim + open(os.path.join(HERE, "assets", "sim", "escuela.json"), "rb").read()).hexdigest()[:10]
     src = open(os.path.join(HERE, "assets", "js", "motor.js"), encoding="utf-8").read()
     patron = r'from "https://www\.gstatic\.com/firebasejs/[\d.]+/firebase-(?:app|auth|firestore|functions)\.js"'

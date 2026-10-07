@@ -24,11 +24,13 @@ c(/hoy0\.setDate\(hoy0\.getDate\(\) - \(\(hoy0\.getDay\(\) \+ 6\) % 7\)\)/.test(
 c(/function deLaSemana\(ficha\)/.test(VALIDAR) && /Esta semana ya has registrado/.test(VALIDAR), "   y el «Validar» de los Geniallys");
 // 5-oct · lo apunta el servidor al otorgar (`modOtorgarReto`, functions/modRetos.js de GamificaPro)
 const RETOS_GP = require("fs").existsSync("/Users/nor/Claude/vibewebs/gamificapro/functions/modRetos.js") ? require("fs").readFileSync("/Users/nor/Claude/vibewebs/gamificapro/functions/modRetos.js", "utf8") : "";
-c(/llamar\("modOtorgarReto"/.test(MOTOR) && /stargate: \{ apuntaOtorgado: 'stargateOtorgados' \}/.test(RETOS_GP), "🔴 lo que valida el docente a mano queda apuntado (no le quita hueco al recluta)");
+c((/llamar\("modOtorgarReto"/.test(MOTOR) || /return RETOS\.otorgar\(perId, fichaId, retoId\);/.test(MOTOR) && /llamar\("modOtorgarReto", \{ projectId: grupo, studentProfileId: fichaId, retoId: retoId \}\)/.test(require("./sdk_pieza.js").pieza("retos"))) && /stargate: \{ apuntaOtorgado: 'stargateOtorgados' \}/.test(RETOS_GP), "🔴 lo que valida el docente a mano queda apuntado (no le quita hueco al recluta)");
 c(/Number\(window\.SG_TOPE_SEMANA\)\?'Como mucho, <b>'/.test(NAVE) && /Sin tope: a tu ritmo\./.test(NAVE), "   la bienvenida lo dice: sin tope, a su ritmo (y si vuelve un tope, lo dice)");
 
 // ── 2 · la votación, en directo en la Nave
-c(/function vigilarVotaciones\(perId, alCambiar\)/.test(MOTOR) && /where\("isActive", "==", true\)/.test(MOTOR), "🔴 motor · las votaciones activas se ESCUCHAN (antes se miraban una vez)");
+c(/function vigilarVotaciones\(perId, alCambiar\)/.test(MOTOR) && (/where\("isActive", "==", true\)/.test(MOTOR) ||
+  // (7-oct · por el SDK de GamificaPro: GP_SDK.votacion, paso 7)
+  /return VOTACION\.vigilar\(perId, alCambiar\);/.test(MOTOR) && /fs\.onSnapshot\(fs\.query\(col\(grupo\), fs\.where\("isActive", "==", true\)\)/.test(require("./sdk_pieza.js").pieza("votacion"))), "🔴 motor · las votaciones activas se ESCUCHAN (antes se miraban una vez)");
 c(/function vigilarVotacion\(\)/.test(NAVE) && /vigilarVotacion\(\); vigilarEnVivo\(\);/.test(NAVE), "   la Nave las escucha desde que entra");
 c(/stargateModo: v\.modo === "diferido" \? "diferido" : "directo"/.test(MOTOR) && /name="au-vt-modo" value="diferido"/.test(AULA), "🔴 aula · votación en directo o en diferido (con sus días)");
 c(/stargateCierra && ahora>Number\(v\.stargateCierra\)/.test(NAVE), "   la de diferido se cierra sola a su hora");

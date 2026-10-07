@@ -58,9 +58,13 @@ c(/resp\.texto \|\| "desde la consola"/.test(RETO), "   y el porqué también qu
 c(/le ha llegado tu mensaje a su Nave/.test(RETO) && /el mensaje no se ha podido enviar/.test(RETO), "   y la ficha dice si le ha llegado");
 
 // 4 · el motor y la Nave
-c(/async function avisarRecluta\(perId, userId/.test(M) && /collection\(db, "notifications"\)/.test(M) && /const sg = \{ reto:/.test(M) && /stargate: sg/.test(M),
+// (7-oct · desde el paso 8 del SDK de GamificaPro, lo escribe GP_SDK.retos con la marca de STARGATE en su campo)
+const RT = require("./sdk_pieza.js").pieza("retos");
+c(/async function avisarRecluta\(perId, userId/.test(M) && /const sg = \{ reto:/.test(M) && (/collection\(db, "notifications"\)/.test(M) && /stargate: sg/.test(M) ||
+  /RETOS\.avisar\(perId, userId, \{ accion, titulo: tit, texto: t, campo: "stargate", marca: sg \}/.test(M) && /fs\.addDoc\(fs\.collection\(db, "notifications"\), d\)/.test(RT) && /if \(x\.campo\) d\[x\.campo\] = x\.marca/.test(RT)),
   "🔴 el mensaje va a la bandeja de GamificaPro (notifications), marcado como de STARGATE");
-c(/function vigilarMensajes\(perId, alCambiar\)/.test(M) && /\.filter\(x => x\.stargate && !x\.read\)/.test(M) && /onSnapshot/.test(M.split("function vigilarMensajes")[1] || ""),
+c(/function vigilarMensajes\(perId, alCambiar\)/.test(M) && (/\.filter\(x => x\.stargate && !x\.read\)/.test(M) && /onSnapshot/.test(M.split("function vigilarMensajes")[1] || "") ||
+  /RETOS\.vigilarAvisos\(perId, "stargate", alCambiar, u && u\.uid\)/.test(M) && /\(!campo \|\| x\[campo\]\) && !x\.read/.test(RT) && /fs\.onSnapshot\(consultaAvisos\(grupo, uid\)/.test(RT)),
   "   la Nave lo escucha en directo, solo los suyos sin leer");
 c(/avisarRecluta, vigilarMensajes, mensajeLeido/.test(M), "   y el motor lo exporta");
 c(/function avisoMensajes\(\)/.test(N) && /avisoCongelado\(\)\+avisoMensajes\(\)/.test(N), "🔴 la Nave lo enseña arriba, junto a los avisos importantes");

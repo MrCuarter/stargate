@@ -39,8 +39,9 @@ c(/SGSEMANAS\.iso\(d\)/.test(L("assets/js/fuente.js")) && /SGSEMANAS\.fecha\(f\[
 
 // ── 4 · La consola de ensayo (se EJECUTA la cuenta de semanas)
 const FSIM = L("assets/js/sim/firebase_sim.js");
-const lunesSrc = (FSIM.match(/const lunesDe = (\(ms\) => \{[^\n]*\});/) || [])[1];
-const lunesDe = new Function("return " + lunesSrc)();
+// 7-oct · lunesDe vive ya en el simulador común de GamificaPro (el paquete que importa el envoltorio)
+const PAQ = (FSIM.match(/^import "\.\/(mod-sim\.v1\.[0-9a-f]{10}\.js)";$/m) || [])[1];
+const lunesDe = (() => { const c = {}; new Function("self", "module", L("assets/js/sim/" + PAQ))(c, undefined); return c.GP_SIM.lunesDe; })();
 const corre = (hoy, gen) => Math.floor(Math.round((lunesDe(Date.parse(hoy)) - lunesDe(Date.parse(gen))) / 864e5) / 7);
 const GEN = "2026-09-30T04:00:00+02:00";
 c(corre("2026-10-04T23:30:00+02:00", GEN) === 0 && corre("2026-10-05T00:10:00+02:00", GEN) === 1 && corre("2026-10-06T12:00:00+02:00", GEN) === 1 && corre("2026-10-26T00:30:00+01:00", GEN) === 4,

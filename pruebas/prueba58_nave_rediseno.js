@@ -12,6 +12,9 @@ const js = f => fs.readFileSync(path.join(__dirname, "..", "assets", "js", f), "
 console.log("\n▶ 58 · La Nave rediseñada");
 
 const NAVE = js("recluta.js"), TABLERO = js("tablero.js"), MOTOR = js("motor.js");
+// 7-oct · el motor ficha por el SDK de GamificaPro (GP_SDK.asistencia, paso 6): ASISTENCIA.fichar → llamar("modFichar")
+const FICHA_POR_SDK = (m) => /ASISTENCIA\.fichar\(perId, fichaId, \{ tz: tz \}\)/.test(m) && /ctx\.llamar\("modFichar", datos\)/.test(require("./sdk_pieza.js").pieza("asistencia"));
+
 const AULA = js("aula.js"), LLAMADA = js("llamada.js"), CSS = fs.readFileSync(
   path.join(__dirname, "..", "assets", "css", "stargate.css"), "utf8");
 
@@ -113,7 +116,7 @@ c(/attendance_sessions/.test(MOTOR) && /attendance_records/.test(MOTOR),
   "🔴 la llamada usa la asistencia que GamificaPro YA tenía: no se ha inventado un sistema paralelo");
 // 5-oct · desde la fase 4 de GamificaPro, el registro y el cobro los hace el servidor (`modFichar`, functions/modAsistencia.js)
 const ASIS = require("fs").existsSync("/Users/nor/Claude/vibewebs/gamificapro/functions/modAsistencia.js") ? require("fs").readFileSync("/Users/nor/Claude/vibewebs/gamificapro/functions/modAsistencia.js", "utf8") : "";
-c(/llamar\("modFichar"/.test(MOTOR) && /source: 'attendance_session_auto_reward'/.test(ASIS),
+c((/llamar\("modFichar"/.test(MOTOR) || FICHA_POR_SDK(MOTOR)) && /source: 'attendance_session_auto_reward'/.test(ASIS),
   "   y paga por la fuente que el servidor verifica (lo hace el servidor: modFichar)");
 c(/xp_attendance_\$\{projectId\}_\$\{s\.id\}_\$\{uid\}/.test(ASIS), "   con clave de idempotencia: fichar dos veces no cobra dos veces");
 c(/restrictedFactionId/.test(MOTOR), "🔴 y se restringe al escuadrón de quien la toca, no a todo el grupo");
