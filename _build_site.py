@@ -3806,7 +3806,7 @@ def _nucleo_reto(txt):
     t = _u.normalize("NFD", m.group(1).lower())
     return "".join(c for c in t if _u.category(c) != "Mn").strip()
 
-def _sem_de_reto(catalogo):
+def _sem_de_reto(catalogo, semanas=None):
     idx = {}
     for r in catalogo:
         rid = r["id"] if isinstance(r, dict) else r[0]
@@ -3814,13 +3814,36 @@ def _sem_de_reto(catalogo):
         k = _nucleo_reto(tit if "«" in str(tit) else "«" + str(tit) + "»")
         if k and k not in idx: idx[k] = rid
     fuera = {}
-    for s in CRONO:
+    for s in (semanas if semanas is not None else CRONO):
         for txt in (s.get("lanza") or []):
             rid = idx.get(_nucleo_reto(txt))
             if rid and rid not in fuera: fuera[rid] = s["sem"]
     return fuera
 
-SEM_RETO_JSON = json.dumps({"REGULAR": _sem_de_reto(RETOS_REGULAR), "PUA": _sem_de_reto(RETOS_PUA)}, ensure_ascii=False)
+"""
+🔴 8-oct · EN PUA, CADA RETO EN LA SEMANA DE SU TEMA. Norberto: «En PUA, bloqueamos retos también: cada semana, todos los
+retos del tema correspondiente» y «¿Por qué se bloquea? ¿Qué más da que sea PUA de 8 semanas o normal de 15? Salvo las
+fechas y las peculiaridades, el resto IGUAL». Hasta hoy `SG_SEM_RETO.PUA` salía del calendario de REGULAR (el `lanza` de
+sus 15 semanas), y la Nave de un PUA cerraba B5…B8 hasta la 9…14 de un curso de 8: no se abrían nunca. Ahora sale de la
+MISMA regla sobre el calendario que ve un PUA: el de `calendario.js → semanasPua` (una semana por tema, y la del repaso, con
+su versión `pua`, en la del último). El tema N se explica en la semana N, y con él se lanzan todos sus retos.
+Es el mismo dato que el servidor (GamificaPro, `semanaDelReto.porTipo.PUA` de functions/mods/stargate.js): la batería 140
+y tests/functions/mod-semana-reto.test.ts lo comparan.
+"""
+def _semanas_pua():
+    """Lo de `semanasPua` (assets/js/calendario.js), en Python: las semanas del PUA, con su `lanza` juntado por tema."""
+    ultimo = max([_tema_n(s["tema"]) for s in CRONO] + [0])
+    por_tema = {}
+    for s in CRONO:
+        t = _tema_n(s["tema"])
+        if not t:
+            if not ultimo: continue
+            t, s = ultimo, dict(s, **(s.get("pua") or {}))
+        por_tema.setdefault(t, []).append(s)
+    return [{"sem": i + 1, "tema_n": t, "lanza": [x for s in por_tema[t] for x in (s.get("lanza") or [])]}
+            for i, t in enumerate(sorted(por_tema))]
+
+SEM_RETO_JSON = json.dumps({"REGULAR": _sem_de_reto(RETOS_REGULAR), "PUA": _sem_de_reto(RETOS_PUA, _semanas_pua())}, ensure_ascii=False)
 # 24-sep · aquí, y no junto a `_presenta`: los retos de la presentación necesitan `_AYUDA_NAVE` y `_sem_de_reto`
 _PRESENTA_JSON = json.dumps(_presenta(), ensure_ascii=False)
 # 24-sep · las capturas de la presentación (assets/img/pres/guia) se piden con su huella: sin ella, el CDN guarda la vieja

@@ -19,7 +19,7 @@ const ENTRAR = leer("assets/js/entrar.js");
 // ── 1 · los retos, por semanas
 const sr = (leer("recluta.html").match(/window\.SG_SEM_RETO=(\{.*?\}\});/) || [])[1];
 let mapa = {}; try { mapa = JSON.parse(sr).REGULAR; } catch (e) {}
-c(/def _sem_de_reto\(catalogo\)/.test(BUILD) && /SEM_RETO_JSON/.test(BUILD), "🔴 la semana de cada reto sale del calendario de la sesión (un dato, un sitio)");
+c(/def _sem_de_reto\(catalogo(, semanas=None)?\)/.test(BUILD) && /SEM_RETO_JSON/.test(BUILD), "🔴 la semana de cada reto sale del calendario de la sesión (un dato, un sitio)");
 // 23-sep · los 20 retos: el relámpago (L) se hace en la clase del tema y el principal (B) se lanza en la de cierre
 c(mapa.L0 === 1 && mapa.L1 === 2 && mapa.B1 === 2, "🔴 tema 1: la hoja de ruta (L0) la semana 1; el relámpago (L1) y el principal (B1), la 2",
   JSON.stringify({ L0: mapa.L0, L1: mapa.L1, B1: mapa.B1 }));

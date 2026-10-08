@@ -1138,8 +1138,12 @@
   /**
    * 🔴 18-sep · EL RETO QUE AÚN NO SE HA EXPLICADO. Norberto: «organiza el despliegue de los retos… si un reto no se ha
    * explicado en clase, al estudiante le aparece sombreado con el mensaje (próxima semana)». La semana sale del mismo
-   * calendario que usa la sesión proyectable (`lanza` de cada semana → SG_SEM_RETO): un dato, un sitio. En PUA no hay
-   * calendario de lanzamientos, así que allí no se cierra nada. Si el referente abrió el capítulo antes, tampoco.
+   * calendario que usa la sesión proyectable (`lanza` de cada semana → SG_SEM_RETO): un dato, un sitio. Si el referente
+   * abrió el capítulo antes, tampoco.
+   * 🔴 8-oct · EN PUA, IGUAL, CON SUS FECHAS. Norberto: «¿Qué más da que sea PUA de 8 semanas o normal de 15? Salvo las
+   * fechas y las peculiaridades, el resto IGUAL». `SG_SEM_RETO.PUA` traía los números de REGULAR (B5…B8, de la 9 a la 14 en
+   * un curso de 8: no se abrían nunca); ahora el build lo saca del calendario del PUA (`_semanas_pua`, como `semanasPua`):
+   * cada reto, en la semana de su tema. Es el mismo dato que cierra el servidor (`semanaDelReto` de GamificaPro).
    */
   function semanaDeLanzamiento(id){
     var m=(window.SG_SEM_RETO||{})[esPUA()?'PUA':'REGULAR']||{};
