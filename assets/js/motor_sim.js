@@ -275,6 +275,24 @@ async function misPERs(correo, opc) {
     ]);
     x.reclutas = c ? Math.max(0, c.data().count - f) : null;   // sin dato es mejor que un cero que parece verdad
     x.cola = v ? v.data().count : 0;
+    /**
+     * 🔴 8-oct · «RECLUTAS A TU CARGO». Norberto: «a mi cargo son SOLO los escuadrones donde figuro como docente (además
+     * de referente). No debes contar la clase fantasma ni los profesores de la academia». Ser referente de un grupo no
+     * pone a nadie a tu cargo: cuentan las fichas de los escuadrones que llevas (`teacherName`, tu nombre aquí) o
+     * compartes (tu correo en `assignedTeacherEmails`), menos los fantasmas. La DEMO (alumnado que no existe), la Nave Escuela y la Academia
+     * (profesorado aprendiendo) no son clase: `deVerdad` las aparta de la suma.
+     */
+    x.misComandantes = x.factions.filter(fa => (x.miNombre && fa.teacherName === x.miNombre) ||
+      (fa.assignedTeacherEmails || []).map(e => String(e).toLowerCase()).indexOf(correo) >= 0)
+      .map(fa => fa.teacherName).filter(Boolean);
+    x.deVerdad = !(Number(x.stargate.demoSemana) > 0) && !x.stargate.escuela && !x.stargate.academia;
+    // (por `stargateProfe`, la llave de cada ficha con su Comandante: la misma que usa la pestaña Reclutas)
+    const porEsc = await Promise.all(x.misComandantes.map(com => Promise.all([
+      getCountFromServer(query(collection(db, "student_profiles"), where("projectId", "==", x.id), where("stargateProfe", "==", com))),
+      getCountFromServer(query(collection(db, "student_profiles"), where("projectId", "==", x.id), where("stargateProfe", "==", com),
+                               where("fantasma", "==", true))),
+    ]).then(([t, fa]) => Math.max(0, t.data().count - fa.data().count)).catch(() => null)));
+    x.aMiCargo = porEsc.some(n => n == null) ? null : porEsc.reduce((a, n) => a + n, 0);
   }));
 
   try { if (mios.length) localStorage.setItem("sgEsDocente", "1"); } catch (e) {}
