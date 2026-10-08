@@ -32,8 +32,9 @@ c(win.SG.firmaComandante("Hola.\n— Tu Comandante", "Ana") === "Hola.\n— Coma
   && win.SG.firmaComandante("x — Tu Comandante", "") === "x — Tu Comandante", "🔴 la firma de los mensajes, en un sitio: «— Tu Comandante» (o el «— Capitán» viejo) pasa a su nombre");
 // 🔴 23-sep · la ficha del docente se borraba en cada sesión nueva (setDoc sin merge): avatar, foros y modo
 { const MO = fs.readFileSync(path.join(R, "assets/js/motor.js"), "utf8"), an = MO.slice(MO.indexOf("async function anotarConexion"), MO.indexOf("async function anotarConexion") + 1200);
-  const sets = MO.match(/setDoc\(doc\(db, "stargate_profes"[^;]*;|setDoc\(ref, \{ uid: yo\.uid[^;]*;/g) || [];
-  c(/\}, \{ merge: true \}\);\s*\}/.test(an) && sets.length >= 4 && sets.every(x => /merge: true/.test(x)),
+  // (8-oct, tanda 2b · la ficha va por su sitio: fichaDocenteRef y fichaDocenteDatos, en mod_profes)
+  const sets = MO.match(/setDoc\(doc\(db, "stargate_profes"[^;]*;|setDoc\(fichaDocenteRef\([^;]*;|setDoc\(ref, (?:fichaDocenteDatos\()?\{ uid: yo\.uid[^;]*;/g) || [];
+  c(/\}\)?, \{ merge: true \}\);\s*\}/.test(an) && sets.length >= 4 && sets.every(x => /merge: true/.test(x)),
     "🔴 NINGUNA escritura de la ficha del docente la reescribe entera: entrar ya no borra su comandante, sus foros ni su modo", sets.length); }
 c(win.SG.rotulo({ nombre: "<b>x</b>" }).indexOf("<b>x") < 0, "   y el nombre se escapa (lo escribe cada docente)");
 // 23-sep · los comandantes, en alta: retrato/ (la cara, 480), recorte_hd/ (sin fondo, 800) y cuerpo/ (tres poses)

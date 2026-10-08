@@ -4114,7 +4114,7 @@ GB.copiar_pieza(HERE, "tarjetas.js", os.path.join(HERE, "assets", "js", "tarjeta
 # nombre: un paquete nuevo en GamificaPro no cambia esta web hasta que se cambie esta línea y se publique. De él sale también
 # motor/semanas.js, la receta TAL CUAL (la cargan las páginas y las pruebas). Desde un worktree de GamificaPro:
 # GAMIFICAPRO_DIR=<ruta> python3 _build_site.py
-SDK_FIJADO = "mod-sdk.v1.71cde90942.js"
+SDK_FIJADO = "mod-sdk.v1.d2e181a3b8.js"
 def _traer_sdk():
     GB.traer_sdk(HERE, SDK_FIJADO, os.path.join(HERE, "assets", "js"), sacar={"semanas": os.path.join(HERE, "motor", "semanas.js")})
 _traer_sdk()

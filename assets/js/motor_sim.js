@@ -819,11 +819,21 @@ const ALISTARSE = SDK.alistarse.crear(CTX);
  */
 const RETOS = SDK.retos.crear(CTX);
 /*
- * El equipo docente (GP_SDK.equipo, paso 9): añadir, quitar y referente en todos por el servidor (`stargateEquipo`), lo del
- * alumnado (`stargateAlumno`), el código para alistarse y los referentes de STARGATE con sus invitaciones (stargate_referentes,
- * stargate_invitaciones). Quién es vitalicio, el enlace de la invitación y lo que recuerda el navegador, aquí.
+ * 8-oct (tanda 2b de «adelantar lo de Navidad», GamificaPro PLAN_CENTRALIZAR) · LO SUELTO DE STARGATE, EN SU SITIO: las fichas del
+ * profesorado, los referentes y sus invitaciones están ya enteros en `mod_profes`, `mod_referentes` y `mod_invitaciones` (el mapa de
+ * GamificaPro: `pasadaPara` con su mod en una suelta), con su id `stargate__…` y su `mod`: `SDK.sitio(vieja, null)` lo dice. Lo
+ * leído vuelve como lo daban las viejas (`leer`, `idViejo`); lo de antes sigue en ellas hasta contraer, solo para leer.
  */
-const EQUIPO = SDK.equipo.crear(CTX, { referentes: "stargate_referentes", invitaciones: "stargate_invitaciones" });
+const PROFES = SDK.sitio("stargate_profes", null);
+const fichaDocenteRef = (uid) => doc(db, PROFES.coleccion, PROFES.id(uid));
+// (se escribe siempre con `merge`: en mod_profes, con su `mod` y quitando lo del espejo si era una copia, como el servidor)
+const fichaDocenteDatos = (d) => PROFES.fusion(d, deleteField);
+/*
+ * El equipo docente (GP_SDK.equipo, paso 9): añadir, quitar y referente en todos por el servidor (`stargateEquipo`), lo del
+ * alumnado (`stargateAlumno`), el código para alistarse y los referentes de STARGATE con sus invitaciones (8-oct, tanda 2b: por
+ * su sitio, en mod_referentes y mod_invitaciones). Quién es vitalicio, el enlace de la invitación y lo que recuerda el navegador, aquí.
+ */
+const EQUIPO = SDK.equipo.crear(CTX, { referentes: SDK.sitio("stargate_referentes", null), invitaciones: SDK.sitio("stargate_invitaciones", null) });
 const TEXTOS_EQUIPO = { sinSesion: "Entra con tu cuenta.", sinSesionCanje: "Entra con tu cuenta de Google.", correoMalo: "Ese correo no parece un correo." };
 /* Vales, sorteos y ofertas (GP_SDK.economia, paso 11): solo peticiones al servidor. */
 const ECONOMIA = SDK.economia.crear(CTX);
@@ -2057,28 +2067,30 @@ async function ponerReferente(correo, activo, nombre) {
   await EQUIPO.ponerReferente(correo, activo, nombre, TEXTOS_EQUIPO);
 }
 async function profes() {
-  return (await getDocs(collection(db, "stargate_profes"))).docs.map(d => ({ id: d.id, ...d.data() }));
+  // 8-oct (tanda 2b) · en mod_profes, solo las de STARGATE (lo que deja leer la regla), cada una como la daba la vieja
+  const q = PROFES.nueva ? query(collection(db, PROFES.coleccion), where("mod", "==", PROFES.mod)) : collection(db, PROFES.coleccion);
+  return (await getDocs(q)).docs.map(d => ({ id: PROFES.idViejo(d.id), ...PROFES.leer(d.data()) }));
 }
 async function anotarConexion() {
   const yo = await sesion(); if (!yo) return;
   const k = "sgConexion:" + yo.uid;
   try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, "1"); } catch (e) {}
-  const ref = doc(db, "stargate_profes", yo.uid), d = await getDoc(ref), x = d.exists() ? d.data() : {}, ahora = Date.now();
+  const ref = fichaDocenteRef(yo.uid), d = await getDoc(ref), x = d.exists() ? d.data() : {}, ahora = Date.now();
   // 🔴 23-sep · CON `merge`. Sin él, cada sesión nueva REESCRIBÍA la ficha entera y se llevaba lo que el docente había
   // guardado en ella: su comandante (`avatar`), sus mensajes del foro (`foros`) y su modo (`modo`). Así salía el
   // Capitán en «El mensaje» de Norberto aunque hubiera elegido comandante.
-  await setDoc(ref, { uid: yo.uid, correo: yo.correo, nombre: yo.nombre || x.nombre || "", foto: yo.foto || x.foto || "",
-    primera: x.primera || ahora, ultima: ahora, n: (x.n || 0) + 1, ultimas: (x.ultimas || []).concat(ahora).slice(-20) }, { merge: true });
+  await setDoc(ref, fichaDocenteDatos({ uid: yo.uid, correo: yo.correo, nombre: yo.nombre || x.nombre || "", foto: yo.foto || x.foto || "",
+    primera: x.primera || ahora, ultima: ahora, n: (x.n || 0) + 1, ultimas: (x.ultimas || []).concat(ahora).slice(-20) }), { merge: true });
 }
 /**
  * 18-sep · EL PANEL DEL DOCENTE. Norberto: «que los docentes también puedan coger avatares… un panel del docente con sus
  * grupos, su avatar, sus datos, algunas estadísticas». El avatar es una clave de assets/img/avatares/comandantes/ (c1…),
- * guardada en su propia ficha de conexión (stargate_profes/{uid}), que solo lee él y el Mando.
+ * guardada en su propia ficha de conexión (stargate_profes/{uid}; 8-oct, tanda 2b: en mod_profes), que solo lee él y el Mando.
  */
 async function miFichaDocente() {
   const yo = await sesion(); if (!yo) return null;
-  const d = await getDoc(doc(db, "stargate_profes", yo.uid));
-  return Object.assign({ uid: yo.uid, correo: yo.correo, nombre: yo.nombre || "", foto: yo.foto || "" }, d.exists() ? d.data() : {});
+  const d = await getDoc(fichaDocenteRef(yo.uid));
+  return Object.assign({ uid: yo.uid, correo: yo.correo, nombre: yo.nombre || "", foto: yo.foto || "" }, d.exists() ? PROFES.leer(d.data()) : {});
 }
 /**
  * 🔴 23-sep · TU COMANDANTE EN TU GRUPO. El rótulo de «El mensaje», la orden de la semana y la tarjeta de «Quiénes somos»
@@ -2215,7 +2227,7 @@ async function guardarNotas(perId, texto) {
 async function ponerModoDocente(modo) {
   const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
   if (modo !== "piloto" && modo !== "manual") throw new Error("Ese modo no existe");
-  await setDoc(doc(db, "stargate_profes", yo.uid), { uid: yo.uid, correo: yo.correo, modo: modo }, { merge: true });
+  await setDoc(fichaDocenteRef(yo.uid), fichaDocenteDatos({ uid: yo.uid, correo: yo.correo, modo: modo }), { merge: true });
 }
 /**
  * 🔴 20-sep · QUÉ SE PROYECTA DEL TICKET Y QUÉ NO. Norberto: «utiliza un botón de ocultar (no saldrá en la sesión en
@@ -2279,17 +2291,17 @@ async function marcarTicket(perId, id, estado) {
 async function guardarForo(sem, texto) {
   const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
   const k = String(Number(sem) || 0); if (k === "0") throw new Error("No sé de qué semana es ese mensaje");
-  const d = await getDoc(doc(db, "stargate_profes", yo.uid));
+  const d = await getDoc(fichaDocenteRef(yo.uid));
   const foros = Object.assign({}, (d.exists() ? d.data() : {}).foros || {});
   const t = String(texto || "").trim().slice(0, 4000);
   if (t) foros[k] = t; else delete foros[k];
-  await setDoc(doc(db, "stargate_profes", yo.uid), { uid: yo.uid, correo: yo.correo, foros: foros }, { merge: true });
+  await setDoc(fichaDocenteRef(yo.uid), fichaDocenteDatos({ uid: yo.uid, correo: yo.correo, foros: foros }), { merge: true });
   return foros;
 }
 async function ponerAvatarDocente(clave) {
   const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
   if (!/^[a-z0-9_-]{1,40}$/.test(String(clave || ""))) throw new Error("Ese avatar no existe");
-  await setDoc(doc(db, "stargate_profes", yo.uid), { uid: yo.uid, correo: yo.correo, avatar: clave }, { merge: true });
+  await setDoc(fichaDocenteRef(yo.uid), fichaDocenteDatos({ uid: yo.uid, correo: yo.correo, avatar: clave }), { merge: true });
 }
 
 /**
@@ -2419,7 +2431,7 @@ window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, leerPER, tablero
                     votaciones, crearVotacion, cerrarVotacion, borrarVotacion, votar, miPapeleta,
                     vigilarVotaciones, vigilarEnVivo, publicarEnVivo, lanzarPregunta, cerrarPregunta, responderPregunta, vigilarRespuestas, quitarRespuesta, miRespuesta,
                     referenteGlobal, crearInvitacion, leerInvitacion, canjearInvitacion, invitaciones, referentes, ponerReferente,
-                    profes, anotarConexion, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
+                    profes, anotarConexion, fichaDocenteRef, fichaDocenteDatos, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
                     directoYo, directoCanal, pasarEscuadron, escuadronNuevo, apoyarEscuadron,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

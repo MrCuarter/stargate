@@ -8,8 +8,8 @@
  * cuándo lo decide sesion.js (GUIAS). Lo que se señala puede vivir dentro de un marco de la misma web (el juego en
  * directo, las Herramientas, el Asedio): el aro se dibuja fuera, en la sesión, sumando la posición del marco.
  *
- * Cuántas veces ha usado cada cosa este docente: en su ficha de docente (stargate_profes/{uid}.guia), para que no le
- * vuelva a salir al cambiar de ordenador, y una copia en el navegador por si no hay red.
+ * Cuántas veces ha usado cada cosa este docente: en su ficha de docente (stargate_profes/{uid}.guia; 8-oct, tanda 2b: en su
+ * sitio, MOTOR.fichaDocenteRef), para que no le vuelva a salir al cambiar de ordenador, y una copia en el navegador por si no hay red.
  */
 (function(){
   var SG = window.SG = window.SG || {};
@@ -23,9 +23,9 @@
   function motor(){ return window.SG && window.SG.MOTOR; }
   async function cargar(u){
     yo = u || null; cuenta = leerLocal();
-    var M = motor(); if(!yo || !M || !M.getDoc) return;
+    var M = motor(); if(!yo || !M || !M.getDoc || !M.fichaDocenteRef) return;
     try{
-      var s = await M.getDoc(M.doc(M.db, 'stargate_profes', yo.uid)), g = s.exists() ? (s.data().guia || {}) : {};
+      var s = await M.getDoc(M.fichaDocenteRef(yo.uid)), g = s.exists() ? (s.data().guia || {}) : {};
       Object.keys(g).forEach(function(k){ cuenta[k] = Math.max(Number(cuenta[k]) || 0, Number(g[k]) || 0); });
       guardarLocal();
     }catch(e){ /* sin red: la copia del navegador */ }
@@ -33,9 +33,9 @@
   function veces(k){ return Number(cuenta[k]) || 0; }
   function anotar(k){
     cuenta[k] = Math.min(9, veces(k) + 1); guardarLocal();
-    var M = motor(); if(!yo || !M || !M.setDoc) return;
+    var M = motor(); if(!yo || !M || !M.setDoc || !M.fichaDocenteRef) return;
     var g = {}; g[k] = cuenta[k];
-    M.setDoc(M.doc(M.db, 'stargate_profes', yo.uid), { uid: yo.uid, correo: yo.correo, guia: g }, { merge: true }).catch(function(){});
+    M.setDoc(M.fichaDocenteRef(yo.uid), M.fichaDocenteDatos({ uid: yo.uid, correo: yo.correo, guia: g }), { merge: true }).catch(function(){});
   }
 
   // ── encontrar lo que se señala (también dentro de un marco de la misma web)

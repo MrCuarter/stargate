@@ -823,7 +823,7 @@
     var terminar = function () {
       try { localStorage.setItem("sgBienvenida:" + (YO && YO.correo), "1"); localStorage.removeItem("sgBienvenidaPaso"); } catch (e) {}
       if (FICHA) { FICHA.guia = Object.assign({}, FICHA.guia || {}, { bienvenida: 1 }); }
-      if (FICHA && FICHA.uid && MOTOR.setDoc) MOTOR.setDoc(MOTOR.doc(MOTOR.db, "stargate_profes", FICHA.uid), { uid: FICHA.uid, correo: String(FICHA.correo || (YO && YO.correo) || "").toLowerCase(), guia: { bienvenida: 1 } }, { merge: true }).catch(function () {});
+      if (FICHA && FICHA.uid && MOTOR.setDoc && MOTOR.fichaDocenteRef) MOTOR.setDoc(MOTOR.fichaDocenteRef(FICHA.uid), MOTOR.fichaDocenteDatos({ uid: FICHA.uid, correo: String(FICHA.correo || (YO && YO.correo) || "").toLowerCase(), guia: { bienvenida: 1 } }), { merge: true }).catch(function () {});
       capa.remove(); pintar();
     };
     var PASOS = [

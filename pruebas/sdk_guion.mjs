@@ -68,6 +68,16 @@ for (const k of Object.keys(D)) {
   D["stargate_" + m[1] + "/" + m[2]] = viejo;
   D["mod_" + m[1] + "/" + m[2]] = Object.assign({}, viejo, { mod: "stargate", espejoDe: "stargate_" + m[1] + "/" + m[2], espejoHora: 1 });
 }
+// 8-oct (tanda 2b) · y las fichas del profesorado, los referentes y las invitaciones, enteros en mod_* con su id `stargate__…`
+const SUELTAS = /^(?:stargate_(profes|referentes|invitaciones)\/(.+)|mod_(profes|referentes|invitaciones)\/stargate__(.+))$/;
+for (const k of Object.keys(D)) {
+  const m = k.match(SUELTAS);
+  if (!m) continue;
+  const col = m[1] || m[3], id = m[2] || m[4];
+  const viejo = Object.assign({}, D[k]); delete viejo.mod; delete viejo.espejoDe; delete viejo.espejoHora;
+  D["stargate_" + col + "/" + id] = viejo;
+  D["mod_" + col + "/stargate__" + id] = Object.assign({}, viejo, { mod: "stargate", espejoDe: "stargate_" + col + "/" + id, espejoHora: 1 });
+}
 globalThis.__SG_BUZON_ABIERTO = OPC.indexOf("--buzon") >= 0;
 // 8-oct · --ensayo: las funciones del servidor son las que SIMULA la consola de ensayo (modFormacion, modClase…), no el mostrador; y
 // el guion es el de la Academia y lo en vivo (batería 143), que antes se escribían desde el navegador y ahora van por el servidor
@@ -139,7 +149,8 @@ let src = fs.readFileSync(MOTOR_FICHERO, "utf8");
 // viejas; el de ahora, en mod_* (lo que pone el motor, su `mod`, se quita para comparar)
 const EN_MOD = /"mod_directo"/.test(src);
 const SITIO = { envivo: EN_MOD ? "mod_envivo" : "stargate_envivo", directo: EN_MOD ? "mod_directo" : "stargate_directo" };
-const sinMod = (d) => { if (!d || typeof d !== "object" || Array.isArray(d)) return d; const x = Object.assign({}, d); delete x.mod; return x; };
+// (8-oct, tanda 2b · y sin lo del espejo: lo que se escribe encima de una copia con `merge` lo conserva)
+const sinMod = (d) => { if (!d || typeof d !== "object" || Array.isArray(d)) return d; const x = Object.assign({}, d); delete x.mod; delete x.espejoDe; delete x.espejoHora; return x; };
 src = src.replace(/from "https:\/\/www\.gstatic\.com\/firebasejs\/[\d.]+\/firebase-(?:app|auth|firestore)\.js"/g, 'from "./sim/firebase_sim.mjs?h=guion"')
          .replace(/from "https:\/\/www\.gstatic\.com\/firebasejs\/[\d.]+\/firebase-functions\.js"/, 'from "./mostrador.mjs"');
 fs.writeFileSync(path.join(tmp, "js", "motor.mjs"), src);
@@ -378,9 +389,12 @@ try {
     await paso("canjearInvitacion", () => M.canjearInvitacion(inv.id));
     await paso("canjearInvitacion: otra vez", () => M.canjearInvitacion(inv.id));
     await paso("canjearInvitacion: no existe", () => M.canjearInvitacion("nada"));
-    await M.setDoc(M.doc(M.db, "stargate_invitaciones", "vieja"), { nombre: "V", caduca: T0 - 1, usadoPor: null });
+    // (8-oct, tanda 2b · en las dos, como el espejo: el motor de antes la lee de la vieja; el de ahora, de mod_invitaciones)
+    const invEnLasDos = async (id, d) => { await M.setDoc(M.doc(M.db, "stargate_invitaciones", id), d);
+      await M.setDoc(M.doc(M.db, "mod_invitaciones", "stargate__" + id), Object.assign({}, d, { mod: "stargate", espejoDe: "stargate_invitaciones/" + id, espejoHora: 1 })); };
+    await invEnLasDos("vieja", { nombre: "V", caduca: T0 - 1, usadoPor: null });
     await paso("canjearInvitacion: caducada", () => M.canjearInvitacion("vieja"));
-    await M.setDoc(M.doc(M.db, "stargate_invitaciones", "usada"), { nombre: "U", caduca: T0 + 1e9, usadoPor: "otro" });
+    await invEnLasDos("usada", { nombre: "U", caduca: T0 + 1e9, usadoPor: "otro" });
     await paso("canjearInvitacion: usada", () => M.canjearInvitacion("usada"));
     await paso("ponerReferente", () => M.ponerReferente(" Ref@Ensayo.invalid ", true, "Ref"));
     await paso("ponerReferente: otra vez, sin nombre", () => M.ponerReferente("ref@ensayo.invalid", false));
@@ -435,7 +449,9 @@ const tocado = (JSON.parse(guardado["sgEnsayo.db"] || "{}").c) || {};
 // siempre y sin el `mod`, para comparar documento a documento con lo que escribía el de antes
 // (8-oct, tanda 2 · también el alias, las reflexiones, los comentarios, el Zoco y los tratos; lo que el de ahora BORRA en los dos sitios
 // —hasta contraer—, una vez: el de antes lo borraba en uno)
-const comoSiempre = (k) => k.replace(/^mod_(envivo|respuestas|directo|alias|reflexiones|comentarios|zoco|tratos)\//, "stargate_$1/");
+// (8-oct, tanda 2b · y lo suelto: `mod_profes/stargate__<uid>` es `stargate_profes/<uid>`)
+const comoSiempre = (k) => k.replace(/^mod_(envivo|respuestas|directo|alias|reflexiones|comentarios|zoco|tratos)\//, "stargate_$1/")
+  .replace(/^mod_(profes|referentes|invitaciones)\/stargate__/, "stargate_$1/");
 const yaApuntado = {};
 Object.keys(tocado).map((k) => [comoSiempre(k), k]).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] < b[1] ? -1 : 1))
   .forEach(([nombre, k]) => {

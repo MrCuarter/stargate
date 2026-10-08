@@ -1383,6 +1383,10 @@ var equipo = pieza(function (module, exports) {
  *
  * Con `crear(ctx, colecciones)` (ctx = { fs, llamar, sesion }; colecciones = { referentes, invitaciones }, por defecto las de
  * STARGATE). Quién es vitalicio, el enlace de la invitación y lo que se recuerda en el navegador son de cada web.
+ * 8-oct (tanda 2b de «adelantar lo de Navidad») · cada colección, por su nombre (lo de siempre) o por su SITIO
+ * (`GP_SDK.sitio(vieja, null)`, sdk/sitio.js): si está en `mod_*`, el id lleva delante su mod, lo escrito lleva su `mod`, las listas
+ * piden solo las de su mod (`ctx.fs.query` y `where`), lo que se cambia quita lo del espejo (`ctx.fs.deleteField`) y lo leído
+ * vuelve como lo daba la vieja (su id de siempre, sin `mod` ni lo del espejo). Quien llama ve lo mismo.
  */
 (function (raiz, fabrica) {
   if (typeof module === "object" && module.exports) module.exports = fabrica();
@@ -1422,7 +1426,22 @@ var equipo = pieza(function (module, exports) {
       if (!ctx.llamar) return Promise.reject(new Error("GP_SDK.equipo: falta ctx.llamar"));
       return ctx.llamar(n, d);
     }
-    function porId(d) { return Object.assign({ id: d.id }, d.data()); }
+    /** Dónde está cada cosa: un nombre de colección es la de siempre, tal cual; un sitio, lo que diga. */
+    function lugar(c) {
+      if (c && typeof c === "object") return c;
+      var mismo = function (x) { return x; };
+      return { coleccion: c, nueva: false, mod: null, id: String, idViejo: String, datos: mismo, leer: mismo, cambio: mismo };
+    }
+    var R = lugar(C.referentes), I = lugar(C.invitaciones);
+    function ref(S, id) { return fs.doc(db, S.coleccion, S.id(id)); }
+    function porId(S) { return function (d) { return Object.assign({ id: S.idViejo(d.id) }, S.leer(d.data())); }; }
+    /** Toda la colección: en mod_*, solo lo de su mod (lo que dejan leer las reglas). */
+    function todas(S) {
+      var c = fs.collection(db, S.coleccion);
+      if (!S.nueva) return c;
+      if (!fs.query || !fs.where) throw new Error("GP_SDK.equipo: faltan ctx.fs.query y ctx.fs.where");
+      return fs.query(c, fs.where("mod", "==", S.mod));
+    }
 
     // ---------------------------------------------------------------- el equipo de un grupo (el servidor)
     /** Añadir a alguien o cambiarle el rol (`persona` = { correo, nombre, rol }). Devuelve la persona como quedó. */
@@ -1474,7 +1493,7 @@ var equipo = pieza(function (module, exports) {
     function referenteGlobal(correo, vitalicio) {
       correo = minus(correo);
       if (vitalicio && vitalicio(correo)) return Promise.resolve(true);
-      return Promise.resolve().then(function () { return fs.getDoc(fs.doc(db, C.referentes, correo)); })
+      return Promise.resolve().then(function () { return fs.getDoc(ref(R, correo)); })
         .then(function (d) { return d.exists() && d.data().activo === true; }, function () { return false; });
     }
     /** Solo el Mando. `enlace(token)`: la dirección de la página de canje, de la web. → { token, enlace, caduca } */
@@ -1482,13 +1501,13 @@ var equipo = pieza(function (module, exports) {
       return Promise.resolve(sesion()).then(function (yo) {
         if (!yo) throw new Error(texto(textos, "sinSesion"));
         var t = aleatorio(24), ahora = Date.now(), caduca = ahora + CADUCA;
-        return fs.setDoc(fs.doc(db, C.invitaciones, t), { nombre: String(nombre || "").trim().slice(0, 80), rol: "referente", creado: ahora, caduca: caduca,
-          por: yo.correo, usadoPor: null, usadoCorreo: null, usadoEn: null })
+        return fs.setDoc(ref(I, t), I.datos({ nombre: String(nombre || "").trim().slice(0, 80), rol: "referente", creado: ahora, caduca: caduca,
+          por: yo.correo, usadoPor: null, usadoCorreo: null, usadoEn: null }))
           .then(function () { return { token: t, enlace: enlace ? enlace(t) : "", caduca: caduca }; });
       });
     }
     function leerInvitacion(t) {
-      return fs.getDoc(fs.doc(db, C.invitaciones, String(t || ""))).then(function (d) { return d.exists() ? porId(d) : null; });
+      return fs.getDoc(ref(I, String(t || ""))).then(function (d) { return d.exists() ? porId(I)(d) : null; });
     }
     /**
      * Canjear: quien la abre con su cuenta queda como referente. → { ok, nombre } (recién canjeada), { ok, ya, nombre } (ya era
@@ -1502,32 +1521,33 @@ var equipo = pieza(function (module, exports) {
           if (inv.usadoPor) return inv.usadoPor === yo.uid ? { ok: true, ya: true, nombre: inv.nombre } : { error: "usada" };
           if (Number(inv.caduca) < Date.now()) return { error: "caducada" };
           var b = fs.writeBatch(db), ahora = Date.now();
-          b.set(fs.doc(db, C.referentes, yo.correo), { correo: yo.correo, nombre: yo.nombre || inv.nombre || yo.correo, activo: true, desde: ahora,
-            por: "invitacion", invitacion: t, actualizado: ahora });
-          b.update(fs.doc(db, C.invitaciones, t), { usadoPor: yo.uid, usadoCorreo: yo.correo, usadoEn: ahora });
+          b.set(ref(R, yo.correo), R.datos({ correo: yo.correo, nombre: yo.nombre || inv.nombre || yo.correo, activo: true, desde: ahora,
+            por: "invitacion", invitacion: t, actualizado: ahora }));
+          // (en mod_*, quitando lo del espejo si era una copia: ya es del motor)
+          b.update(ref(I, t), I.cambio({ usadoPor: yo.uid, usadoCorreo: yo.correo, usadoEn: ahora }, fs.deleteField));
           return b.commit().then(function () { return { ok: true, nombre: inv.nombre }; });
         });
       });
     }
     /** Solo el Mando: las invitaciones (la más nueva primero) y los referentes. */
     function invitaciones() {
-      return fs.getDocs(fs.collection(db, C.invitaciones)).then(function (r) {
-        return r.docs.map(porId).sort(function (a, b) { return (b.creado || 0) - (a.creado || 0); });
+      return fs.getDocs(todas(I)).then(function (r) {
+        return r.docs.map(porId(I)).sort(function (a, b) { return (b.creado || 0) - (a.creado || 0); });
       });
     }
     function referentes() {
-      return fs.getDocs(fs.collection(db, C.referentes)).then(function (r) { return r.docs.map(porId); });
+      return fs.getDocs(todas(R)).then(function (r) { return r.docs.map(porId(R)); });
     }
     /** Solo el Mando: poner o quitar (`activo`) a un referente por su correo. Conserva su `desde` y, si no se da otro, su nombre. */
     function ponerReferente(correo, activo, nombre, textos) {
       return Promise.resolve(sesion()).then(function (yo) {
         correo = String(correo || "").trim().toLowerCase();
         if (!esCorreo(correo)) throw new Error(texto(textos, "correoMalo"));
-        var ref = fs.doc(db, C.referentes, correo);
-        return fs.getDoc(ref).then(function (d) {
+        var r = ref(R, correo);
+        return fs.getDoc(r).then(function (d) {
           var x = d.exists() ? d.data() : {};
-          return fs.setDoc(ref, { correo: correo, nombre: String(nombre || x.nombre || correo), activo: !!activo, desde: x.desde || Date.now(),
-            por: (yo && yo.correo) || "", actualizado: Date.now() });
+          return fs.setDoc(r, R.datos({ correo: correo, nombre: String(nombre || x.nombre || correo), activo: !!activo, desde: x.desde || Date.now(),
+            por: (yo && yo.correo) || "", actualizado: Date.now() }));
         });
       });
     }
@@ -1722,11 +1742,16 @@ var sitio = pieza(function (module, exports) {
  *   s.coleccion        'stargate_alias' o 'mod_alias'
  *   s.nueva            true si es la mod_*
  *   s.id(idViejo)      el id del documento (lo suelto en mod_* lleva delante su mod; lo de un grupo, el mismo)
+ *   s.idViejo(id)      8-oct (tanda 2b) · al revés: el id de siempre de un documento leído (sin su mod delante)
  *   s.datos(d)         lo que se escribe: en mod_*, con el `mod` del grupo (si no lo traía); en la vieja, tal cual (el mismo objeto)
  *   s.mod              el `mod` que llevan los datos en mod_* (null en la vieja)
  *   s.leer(d)          8-oct · lo leído, como lo daba la vieja (en mod_*, sin `mod` ni lo del espejo)
+ *   s.cambio(d, borrar)  8-oct (tanda 2b) · lo que se cambia (`update`): en mod_*, quitando lo del espejo (`borrar` = deleteField de
+ *                      la web), como `c.cambio` del servidor: el documento ya es del motor y `migrar.mjs` no lo toma por una copia
+ *   s.fusion(d, borrar)  lo que se mezcla (`set(…, { merge: true })`): `datos` y `cambio` a la vez
  *   s.antes            8-oct · la vieja, si lo de este grupo pudo quedarse también allí (pasada para su mod, hasta contraer): lo
  *                      que se borra, se borra en las dos; null en lo demás
+ *   sitio(vieja, null) lo suelto (sin grupo): en mod_* si el mapa la ha pasado entera (8-oct, tanda 2b: `pasadaPara` con su mod)
  *   sitio.modDe(proyecto)              el mod del grupo (la detección del servidor: modWebDe) o null
  *   sitio.version(proyecto)            su versión (1 sin marca o si no es de un mod)
  *   sitio.tiene(proyecto, novedad)     ¿tiene esa novedad? (modVersionTiene); una novedad que no existe, error
@@ -1773,14 +1798,21 @@ var sitio = pieza(function (module, exports) {
       if (!propio(mapa, vieja)) throw new Error('«' + vieja + '» no está en el mapa de colecciones.');
       var e = mapa[vieja], grupo = proyecto || null;
       // 8-oct · o el mapa la ha pasado para el mod del grupo (`pasadaPara`), sea de la versión que sea (como faseDe)
-      var pasada = !!(grupo && e.porGrupo && e.pasadaPara && e.pasadaPara.indexOf(modDe(grupo)) >= 0);
+      // 8-oct (tanda 2b) · o es una suelta que el mapa ha pasado entera (`pasadaPara` con su propio mod: `pasadaEntera`), de su mod
+      var entera = !!(!e.porGrupo && e.pasadaPara && e.pasadaPara.indexOf(e.mod) >= 0);
+      var pasada = entera || !!(grupo && e.porGrupo && e.pasadaPara && e.pasadaPara.indexOf(modDe(grupo)) >= 0);
       var nueva = e.fase === 'nueva' || pasada || !!(grupo && e.porGrupo && tiene(grupo, 'coleccionesMod'));
-      var mod = nueva ? ((grupo && modDe(grupo)) || e.mod) : null;
+      var mod = nueva ? ((!entera && grupo && modDe(grupo)) || e.mod) : null;
       // 8-oct · lo de antes de pasar sigue también en la vieja (el espejo lo copió) hasta contraer: lo que se BORRA, en los dos
       var antes = pasada && e.fase !== 'nueva' ? vieja : null;
-      return {
+      var s = {
         vieja: vieja, coleccion: nueva ? e.nueva : vieja, nueva: nueva, mod: mod, antes: antes,
         id: function (id) { return nueva && e.ids === 'suelto' ? e.mod + '__' + id : String(id); },
+        // 8-oct (tanda 2b) · y al revés: el id de siempre de un documento leído (en mod_* y suelto, sin su mod delante)
+        idViejo: function (id) {
+          var p = e.mod + '__';
+          return nueva && e.ids === 'suelto' && String(id).indexOf(p) === 0 ? String(id).slice(p.length) : String(id);
+        },
         // en mod_*, con su `mod` y sin lo del espejo (`espejoDe`, `espejoHora`: lo que se reescribe a partir de una copia)
         datos: function (d) {
           if (!nueva) return d;
@@ -1789,6 +1821,16 @@ var sitio = pieza(function (module, exports) {
           if (!(typeof x.mod === 'string' && x.mod)) x.mod = mod;
           return x;
         },
+        // 8-oct (tanda 2b) · lo que se cambia o se mezcla encima de lo que pudo copiar el espejo: sin lo del espejo (como el servidor)
+        cambio: function (d, borrar) {
+          if (!nueva) return d;
+          if (typeof borrar !== 'function') throw new Error('sitio.cambio: falta borrar (deleteField de la web)');
+          var x = {};
+          for (var k in d) if (propio(d, k)) x[k] = d[k];
+          ESPEJO.forEach(function (c) { x[c] = borrar(); });
+          return x;
+        },
+        fusion: function (d, borrar) { return nueva ? s.cambio(s.datos(d), borrar) : d; },
         // 8-oct · lo leído, como lo daba la vieja: en mod_*, sin el `mod` y sin lo del espejo (como comoLaVieja del servidor)
         leer: function (d) {
           if (!nueva || !d) return d;
@@ -1797,6 +1839,7 @@ var sitio = pieza(function (module, exports) {
           return x;
         },
       };
+      return s;
     }
     sitio.modDe = modDe;
     sitio.version = version;
@@ -2078,7 +2121,7 @@ var SDK = {
   buzon: buzon,
   economia: economia,
   grupos: grupos,
-  sitio: sitio.crear({"mapa":{"stargate_alias":{"nueva":"mod_alias","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_anulaciones":{"nueva":"mod_anulaciones","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_asistencia":{"nueva":"mod_asistencia","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_batallas":{"nueva":"mod_batallas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_buzon":{"nueva":"mod_buzon","mod":"stargate","ids":"azar","porGrupo":false,"fase":"vieja"},"stargate_comentarios":{"nueva":"mod_comentarios","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_congelados":{"nueva":"mod_congelados","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_directo":{"nueva":"mod_directo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_envivo":{"nueva":"mod_envivo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_formacion":{"nueva":"mod_formacion","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_invitaciones":{"nueva":"mod_invitaciones","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_profes":{"nueva":"mod_profes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_referentes":{"nueva":"mod_referentes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_reflexiones":{"nueva":"mod_reflexiones","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_respuestas":{"nueva":"mod_respuestas","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_rutas":{"nueva":"mod_rutas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_tratos":{"nueva":"mod_tratos","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_zoco":{"nueva":"mod_zoco","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_asedio":{"nueva":"mod_asedio","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_asedio_ataques":{"nueva":"mod_asedio_ataques","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_galeria":{"nueva":"mod_galeria","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_fama":{"nueva":"mod_fama","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"nueva"},"ceniza_clase":{"nueva":"mod_clase","mod":"ceniza","ids":"grupo","porGrupo":true,"fase":"vieja"},"ceniza_formacion":{"nueva":"mod_formacion","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_invitaciones":{"nueva":"mod_invitaciones","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_referentes":{"nueva":"mod_referentes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_juegos":{"nueva":"mod_juegos","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_mesa":{"nueva":"mod_mesa","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_respuestas":{"nueva":"mod_repaso","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardia_partidas":{"nueva":"mod_retaguardia_partidas","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardias":{"nueva":"mod_retaguardias","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_publico":{"nueva":"mod_publico","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_publico_opiniones":{"nueva":"mod_publico_opiniones","mod":"ceniza","ids":"azar","porGrupo":false,"fase":"vieja"}},"novedades":{"2":["coleccionesMod","economiaSoloServidor","ticketMotor","medianocheUnica","bancoMotor","retaguardiaMotor"]},"mods":[{"mod":"stargate","reconocer":"bloque"},{"mod":"ceniza","reconocer":null}]})
+  sitio: sitio.crear({"mapa":{"stargate_alias":{"nueva":"mod_alias","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_anulaciones":{"nueva":"mod_anulaciones","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_asistencia":{"nueva":"mod_asistencia","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_batallas":{"nueva":"mod_batallas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_buzon":{"nueva":"mod_buzon","mod":"stargate","ids":"azar","porGrupo":false,"fase":"vieja"},"stargate_comentarios":{"nueva":"mod_comentarios","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_congelados":{"nueva":"mod_congelados","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_directo":{"nueva":"mod_directo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_envivo":{"nueva":"mod_envivo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_formacion":{"nueva":"mod_formacion","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_invitaciones":{"nueva":"mod_invitaciones","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_profes":{"nueva":"mod_profes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_referentes":{"nueva":"mod_referentes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_reflexiones":{"nueva":"mod_reflexiones","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_respuestas":{"nueva":"mod_respuestas","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_rutas":{"nueva":"mod_rutas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_tratos":{"nueva":"mod_tratos","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_zoco":{"nueva":"mod_zoco","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_asedio":{"nueva":"mod_asedio","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_asedio_ataques":{"nueva":"mod_asedio_ataques","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_galeria":{"nueva":"mod_galeria","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_fama":{"nueva":"mod_fama","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"nueva"},"ceniza_clase":{"nueva":"mod_clase","mod":"ceniza","ids":"grupo","porGrupo":true,"fase":"vieja"},"ceniza_formacion":{"nueva":"mod_formacion","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_invitaciones":{"nueva":"mod_invitaciones","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_referentes":{"nueva":"mod_referentes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_juegos":{"nueva":"mod_juegos","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_mesa":{"nueva":"mod_mesa","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_respuestas":{"nueva":"mod_repaso","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardia_partidas":{"nueva":"mod_retaguardia_partidas","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardias":{"nueva":"mod_retaguardias","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_publico":{"nueva":"mod_publico","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_publico_opiniones":{"nueva":"mod_publico_opiniones","mod":"ceniza","ids":"azar","porGrupo":false,"fase":"vieja"}},"novedades":{"2":["coleccionesMod","economiaSoloServidor","ticketMotor","medianocheUnica","bancoMotor","retaguardiaMotor"]},"mods":[{"mod":"stargate","reconocer":"bloque"},{"mod":"ceniza","reconocer":null}]})
 };
 if (typeof module === "object" && module.exports) module.exports = SDK;
 else raiz.GP_SDK = SDK;

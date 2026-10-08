@@ -3797,7 +3797,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await an.ir("invitacion.html?t=" + t);
       c("🔴 profes · Anita abre su invitación y queda como referente, con la cuenta con la que ha entrado",
         await an.hasta("/Bienvenida al puente/.test(document.body.innerText) && /anita@lab\.test/.test(document.body.innerText)", 25), (await an.texto()).slice(0, 200));
-      const reg = await leerDoc("stargate_referentes/anita@lab.test");
+      const reg = await leerDoc("mod_referentes/stargate__anita@lab.test");
       c("profes · y queda apuntada en el registro (activo, por invitación)", !!reg && reg.activo === true && reg.por === "invitacion" && reg.invitacion === t, JSON.stringify(reg));
       await an.foto(FOTOS + "/35-invitacion.png");
       await an.ir("crear.html");
@@ -3810,7 +3810,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await ma.ir("entrar.html"); await ma.entrarComo("maria35@lab.test", "María Prueba");
       await ma.ir("invitacion.html?t=" + t);
       c("🔴 profes · el mismo enlace ya no le sirve a otra cuenta", await ma.hasta("/ya se ha usado con otra cuenta/.test(document.body.innerText)", 25));
-      c("profes · y María no está en el registro", !(await leerDoc("stargate_referentes/maria35@lab.test")));
+      c("profes · y María no está en el registro", !(await leerDoc("mod_referentes/stargate__maria35@lab.test")));
       await ma.cerrar();
       // el Mando la ve, la añade a un grupo y le quita lo de referente
       const n2 = await nueva("El Mando administra");
@@ -3825,7 +3825,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await n2.js("document.querySelector('.pr-profe[data-correo=\"anita@lab.test\"] [data-quitar]').click(); 1"); await dormir(200);
       await n2.js("document.querySelector('.pr-profe[data-correo=\"anita@lab.test\"] [data-quitar]').click(); 1");
       c("profes · y le quita lo de referente (con confirmación)", await n2.hasta("/ya no es referente/.test((document.getElementById('pr-aviso')||{}).innerText||'')", 20));
-      c("profes · en el registro, activo: false (no se borra nada)", (await leerDoc("stargate_referentes/anita@lab.test")).activo === false);
+      c("profes · en el registro, activo: false (no se borra nada)", (await leerDoc("mod_referentes/stargate__anita@lab.test")).activo === false);
       await n2.cerrar();
       const an2 = await nueva("Anita, ya sin ser referente");
       await an2.ir("entrar.html"); await an2.entrarComo("anita@lab.test", "Anita Feridouni");
@@ -5094,12 +5094,12 @@ const REG = {};   // cifras que se apuntan para el informe
       await dormir(3000);
       await rp.js("window.__uid=''; window.SG.MOTOR.sesion().then(function(y){ window.__uid=(y&&y.uid)||'-'; }); 1"); await rp.hasta("!!window.__uid", 10);
       const uid = await rp.js("window.__uid");
-      const fichaD = (await leerDoc("stargate_profes/" + uid)) || {};
+      const fichaD = (await leerDoc("mod_profes/stargate__" + uid)) || {};
       c("🔴 el mensaje del foro que escribes es TUYO y vale en todos tus grupos (tu ficha, no el grupo)",
         hayEd && !!(fichaD.foros || {})["10"] && /esta semana jugamos/.test((fichaD.foros || {})["10"]), JSON.stringify(fichaD.foros || {}).slice(0, 120));
       c("   y la Nave lo enseña marcado como tuyo", await rp.hasta("/tuyo/i.test((document.querySelector('.ht-foro-cab')||{}).textContent||'')", 20));
       await rp.js("var b=document.getElementById('ht-foro-of'); if(b) b.click(); 1"); await dormir(2500);
-      c("   «Volver al oficial» lo quita", !((await leerDoc("stargate_profes/" + uid)) || {}).foros || !(((await leerDoc("stargate_profes/" + uid)) || {}).foros || {})["10"]);
+      c("   «Volver al oficial» lo quita", !((await leerDoc("mod_profes/stargate__" + uid)) || {}).foros || !(((await leerDoc("mod_profes/stargate__" + uid)) || {}).foros || {})["10"]);
       // el enlace del panel
       await rp.js("document.getElementById('pt-panel-ed').click(); document.getElementById('pt-panel-in').value='https://view.genially.com/lab-portada'; document.getElementById('pt-panel-ok').click(); 1");
       await dormir(3000);
@@ -5169,7 +5169,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await dn.js("document.querySelector('.modo-sel [data-modo=\"manual\"]').click(); 1"); await dormir(2500);
       c("🔴 mando manual · aparece todo (la rueda, Ajustes y las herramientas)", await dn.js("!document.body.classList.contains('modo-piloto') && getComputedStyle(document.querySelector('.gp-cfg')).display!=='none'"));
       await dn.js("window.__uid=''; window.SG.MOTOR.sesion().then(function(y){ window.__uid=(y&&y.uid)||'-'; }); 1"); await dn.hasta("!!window.__uid", 10);
-      const fd = await leerDoc("stargate_profes/" + await dn.js("window.__uid"));
+      const fd = await leerDoc("mod_profes/stargate__" + await dn.js("window.__uid"));
       c("   y se guarda en su ficha (le sigue a cualquier equipo)", !!fd && fd.modo === "manual", JSON.stringify(fd && fd.modo));
       await dn.ir("consola.html?per=" + P); await dn.hasta("!!document.querySelector('.pest[data-tab=\"huevos\"]')", 75);
       const tm = JSON.parse(await dn.js("JSON.stringify([].slice.call(document.querySelectorAll('.cn-secs .pest')).map(function(b){return b.getAttribute('data-tab')}))"));

@@ -23,10 +23,11 @@ const M = leer("assets/js/motor.js");
   .forEach(f => c(new RegExp("async function " + f + "\\(").test(M) && new RegExp("\\b" + f + ",").test(M), "motor.js: " + f));
 // (7-oct · desde el paso 9 del SDK de GamificaPro, las invitaciones las hace GP_SDK.equipo en las colecciones de STARGATE)
 const EQ = require("./sdk_pieza.js").pieza("equipo");
-const eqSDK = /const EQUIPO = SDK\.equipo\.crear\(CTX, \{ referentes: "stargate_referentes", invitaciones: "stargate_invitaciones" \}\);/.test(M);
+// (8-oct, tanda 2b · con el sitio de cada una: enteras en mod_referentes y mod_invitaciones)
+const eqSDK = /const EQUIPO = SDK\.equipo\.crear\(CTX, \{ referentes: (?:"stargate_referentes"|SDK\.sitio\("stargate_referentes", null\)), invitaciones: (?:"stargate_invitaciones"|SDK\.sitio\("stargate_invitaciones", null\)) \}\);/.test(M);
 c(/crypto\.getRandomValues/.test(M) && /aleatorio\(24\)/.test(M) || eqSDK && /crypto\.getRandomValues\(a\)/.test(EQ) && /var t = aleatorio\(24\)/.test(EQ), "🔴 la clave de la invitación es de 24 caracteres al azar del navegador (no se adivina)");
 c(/writeBatch\(db\)[\s\S]{0,400}stargate_referentes[\s\S]{0,400}stargate_invitaciones/.test(M.slice(M.indexOf("async function canjearInvitacion"))) ||
-  eqSDK && /var b = fs\.writeBatch\(db\)[\s\S]{0,200}b\.set\(fs\.doc\(db, C\.referentes, yo\.correo\)[\s\S]{0,300}b\.update\(fs\.doc\(db, C\.invitaciones, t\)[\s\S]{0,200}b\.commit\(\)/.test(EQ),
+  eqSDK && /var b = fs\.writeBatch\(db\)[\s\S]{0,200}b\.set\(ref\(R, yo\.correo\)[\s\S]{0,300}b\.update\(ref\(I, t\)[\s\S]{0,200}b\.commit\(\)/.test(EQ),
   "🔴 canjear = el registro de referente y la invitación marcada, en UNA escritura (así lo exigen las reglas)");
 c(/caduca: ahora \+ 14 \* 864e5/.test(M) || eqSDK && /var CADUCA = 14 \* 864e5;/.test(EQ), "la invitación caduca a los 14 días");
 c(/const refGlobal = mios\.some\(x => x\.soyReferente\) \|\| await referenteGlobal\(correo\)/.test(M), "el menú enciende «Crear grupo» también a quien está en el registro");
