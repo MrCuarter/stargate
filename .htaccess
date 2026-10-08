@@ -9,6 +9,17 @@ AddCharset UTF-8 .txt .html .css .js .json .csv
   </FilesMatch>
 </IfModule>
 
+# 8-oct · LAS PÁGINAS, SIEMPRE AL DÍA. El 8-oct las reglas nuevas subieron a las 13:33 y la web a las 16:05: quien seguía con
+# una página guardada o una pestaña recuperada en el móvil corría el código viejo (sin poder alistarse, sin ver lo en vivo).
+# Las páginas llegaban sin Cache-Control y el navegador se inventaba cuánto guardarlas. Ahora pregunta cada vez si han
+# cambiado (con la etiqueta de la página: si no, la respuesta es un «sigue igual» de unos bytes). Los .js y .css no hace
+# falta: cada página los pide con su ?v=<huella>, así que una página nueva ya trae los suyos.
+<IfModule mod_headers.c>
+  <FilesMatch "\.html?$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
 # 15-sep · LO QUE NO ES LA WEB, NO SE SIRVE. Hostinger publica el repositorio entero: el código fuente
 # (.py, .gs), las pruebas, las notas (.md) y el nombre de la carpeta de documentos reservados se podían
 # descargar. Nada de esto lo pide ninguna página al funcionar (el catálogo va en motor/catalogo.json y
