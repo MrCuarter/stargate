@@ -272,7 +272,7 @@
         return '<p>' + esc(b.x) + '</p>';
       }).join("") + '</div>' +
       // 23-sep · la firma, con el rótulo común (el mismo que en la diapositiva y en la orden del recluta)
-      '<footer class="fc-firma-r">' + window.SG.rotulo({ nombre: yoN, avatar: (FICHA && FICHA.avatar) || "", escuadron: emb.nombre || "",
+      '<footer class="fc-firma-r">' + window.SG.rotulo({ nombre: yoN, avatar: (FICHA && FICHA.avatar) || "", escuadron: emb.propio ? emb.nombre : "",
         emblema: emb.img || "", grupo: pAqui.nombre || "", clase: "carta", cita: miCita() }) + '</footer></article>';
   }
   function bloqueForo(sem, texto, propio, esc7) {
@@ -491,8 +491,10 @@
       ico("ojo") + ' Entrar como fantasma</a>';
   }
   function heroComandante() {
-    var V = vivos(), nombre = (YO && (YO.nombre || YO.displayName)) || "Comandante";
-    var total = V.reduce(function (a, p) { return a + (Number(p.reclutas) || 0); }, 0), mio = miNombreAqui();
+    // 8-oct · la DEMO y la Nave Escuela son robots, y la Academia es profesorado: no son grupos en los que das clase
+    var V = vivos().filter(function (p) { return p.deVerdad !== false; }), nombre = (YO && (YO.nombre || YO.displayName)) || "Comandante";
+    // 🔴 8-oct · a tu cargo, solo el alumnado de TUS escuadrones en grupos de clase de verdad (motor.js, `aMiCargo`)
+    var total = V.reduce(function (a, p) { return a + (Number(p.aMiCargo) || 0); }, 0), mio = miNombreAqui();
     var pAqui = PERS.filter(function (x) { return x.id === PER; })[0], emb = pAqui ? emblemaDe(pAqui) : { img: "", nombre: "" };
     return '<div class="card cn-ficha ancha">' +
       '<div class="cn-ficha-c">' +
@@ -502,13 +504,13 @@
         '<div class="cn-ficha-t"><div class="eyebrow teal">La Nave del Comandante</div><h3>' + esc(nombre) + '</h3>' +
           (miCita() ? '<p class="cn-cita">' + esc(miCita()) + '</p>' : '') +
           '<p class="small"><b>Comandante' + (soyRefAlguno() ? ' referente' : '') + '</b>' + (mio ? ' · en este grupo, «' + esc(mio) + '»' : '') +
-            (emb.nombre ? ' · escuadrón <b>' + esc(emb.nombre) + '</b>' + (emb.con && emb.con.length ? ' <span class="muted">(compartido con ' + esc(emb.con.join(" y ")) + ')</span>' : '') : '') + (YO && YO.correo ? ' · <span class="muted">' + esc(YO.correo) + '</span>' : '') + '</p>' +
-          '<p class="monedas"><span class="m xp" tabindex="0" data-tip="Los grupos de STARGATE en los que das clase ahora mismo. Los terminados no cuentan."><b>' + V.length + '</b> ' + (V.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span>' +
-            '<span class="m cred" tabindex="0" data-tip="Todo el alumnado de esos grupos, sumado."><b>' + total + '</b> ' + (total === 1 ? "recluta a tu cargo" : "reclutas a tu cargo") + '</span>' +
+            (emb.propio ? ' · escuadrón <b>' + esc(emb.nombre) + '</b>' + (emb.con && emb.con.length ? ' <span class="muted">(compartido con ' + esc(emb.con.join(" y ")) + ')</span>' : '') : '') + (YO && YO.correo ? ' · <span class="muted">' + esc(YO.correo) + '</span>' : '') + '</p>' +
+          '<p class="monedas"><span class="m xp" tabindex="0" data-tip="Los grupos de STARGATE en los que das clase ahora mismo. Los terminados, la DEMO y la Nave Escuela no cuentan."><b>' + V.length + '</b> ' + (V.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span>' +
+            '<span class="m cred" tabindex="0" data-tip="El alumnado de los escuadrones que llevas o compartes en esos grupos. Ser referente no suma; los fantasmas, tampoco."><b>' + total + '</b> ' + (total === 1 ? "recluta a tu cargo" : "reclutas a tu cargo") + '</span>' +
             // 28-sep · los grupos finalizados (y archivados), a un clic: se abren en tu Nave y se reabren para recuperación
             (PERS.some(function (x) { return x.estado === "pasado"; }) ? '<button type="button" class="m fin-b" id="cn-finalizados" data-tip="Los cursos que ya han terminado: ábrelos en tu Nave o reábrelos para la recuperación">' +
               ico("medalla") + ' <b>' + PERS.filter(function (x) { return x.estado === "pasado"; }).length + '</b> finalizados</button>' : '') +
-            (emb.img ? '<span class="m emb" tabindex="0" data-tip="' + esc(emb.nombre ? "Tu escuadrón en este grupo: " + emb.nombre : "Tu escuadrón en este grupo") + '" aria-label="' + esc(emb.nombre ? "Tu escuadrón en este grupo: " + emb.nombre : "Tu escuadrón en este grupo") + '"><img src="' + esc(emb.img) + '" alt="" loading="lazy"></span>' : '') + '</p>' +
+            (emb.img && emb.propio ? '<span class="m emb" tabindex="0" data-tip="' + esc(emb.nombre ? "Tu escuadrón en este grupo: " + emb.nombre : "Tu escuadrón en este grupo") + '" aria-label="' + esc(emb.nombre ? "Tu escuadrón en este grupo: " + emb.nombre : "Tu escuadrón en este grupo") + '"><img src="' + esc(emb.img) + '" alt="" loading="lazy"></span>' : '') + '</p>' +
         '</div>' +
         // 🔴 23-sep · sin «Ajustes» (Norberto: «vamos a simplificar»): el comandante se cambia en el lápiz de tu avatar y las
         // diapositivas, en «Configurar diapositivas» de la tira «Antes de empezar» (y en la rueda del banner del grupo)
@@ -654,7 +656,9 @@
       if (d.correo === yoC) return;
       if (d.nombre === propio.teacherName || (propio.assignedTeacherEmails || []).indexOf(d.correo) >= 0) con.push(d.nombre || d.correo);
     });
-    return { img: mio && mio.imageUrl ? mio.imageUrl : "", nombre: mio ? mio.name : "", con: con };
+    // 8-oct · `propio`: si no llevas ni compartes escuadrón (un referente sin escuadrón), el emblema es solo el del grupo
+    // y nada debe decir «tu escuadrón» (Norberto: «esto no es verdad, aunque sea referente»)
+    return { img: mio && mio.imageUrl ? mio.imageUrl : "", nombre: mio ? mio.name : "", con: con, propio: !!propio };
   }
   /** Los grupos que llevas: el que tengas abierto y los demás en marcha. */
   function gruposParaElegir() {
@@ -1017,8 +1021,11 @@
     var SEMS = window.SG_SEMANAS || [], tipo = t.tipo === "PUA" ? "PUA" : "REGULAR";
     var s = sem >= 1 ? (tipo === "PUA" ? SEMS.filter(function (x) { return x.tema_n === Math.min(sem, 8); })[0] : SEMS[Math.min(sem, SEMS.length) - 1]) : null;
     var estado = sem < 1 ? "Aún no ha empezado" : sem > total ? lineaEstado(pAqui, true) : "Semana " + sem + " de " + total;
-    var yoN = miNombreAqui(), mia = yoN ? t.reclutas.filter(function (r) { return r.profe === yoN; }) : [];
-    var N = (mia.length ? mia : t.reclutas).length;
+    // 🔴 8-oct · DOS DATOS, NO UNO. Norberto: «deben aparecer los reclutas en total y los que pertenecen a mi escuadrón».
+    // El del escuadrón, solo si llevas o compartes uno aquí (motor.js, `misComandantes`): ser referente no pone a nadie a
+    // tu cargo. Los fantasmas no están en `t.reclutas`.
+    var N = t.reclutas.length, coms = pAqui.misComandantes || [miComandanteAqui()];
+    var NE = t.reclutas.filter(function (r) { return coms.indexOf(r.profe) >= 0; }).length;
     var ini = ((DATOS.proyecto || {}).stargate || {}).inicio;
     var otros = gruposParaElegir().length > 1 && TAB !== "portada";
     // 🔴 20-sep · «usa imágenes para descansar, para no atosigar al cerebro con tanta información»: el planeta del tema
@@ -1029,8 +1036,8 @@
       (emb.img ? '<img class="gr-emb" src="' + esc(emb.img) + '" alt="">' : '') +
       '<div class="gr-t"><div class="eyebrow teal">' + esc(estado) + (s ? ' · ' + esc(s.tema) : '') + '</div>' +
         '<h2>' + esc(t.nombre) + (otros ? ' <button type="button" class="gr-cambiar" data-tab="portada" title="Cambiar de grupo">⇄</button>' : '') + '</h2>' +
-        '<p class="small muted">' + (emb.nombre ? 'Tu escuadrón <b>' + esc(emb.nombre) + '</b> · ' : '') +
-          (mia.length ? 'de tus ' + N + (N === 1 ? ' recluta' : ' reclutas') : 'del grupo · ' + N + (N === 1 ? ' recluta' : ' reclutas')) +
+        '<p class="small muted"><b>' + N + '</b>' + (N === 1 ? ' recluta' : ' reclutas') + ' en el grupo' +
+          (emb.propio ? ' · <b>' + NE + '</b> en tu escuadrón <b>' + esc(emb.nombre) + '</b>' : '') +
           (ini ? ' · ' + (sem < 1 ? 'empieza el ' : 'empezó el ') + esc(diaC(ini)) : '') + '</p></div>' +
       '<div class="gr-acc"><a class="gp-b principal" href="sesion.html?per=' + esc(PER) + '" target="_blank" rel="noopener">' +
         '<img class="pt-acc-i" src="assets/img/iconos/cohete.png" alt=""><span class="pt-acc-t"><b>Empezar la clase</b><em>proyecta la sesión de hoy</em></span></a>' +

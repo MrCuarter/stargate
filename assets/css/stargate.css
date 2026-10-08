@@ -1,7 +1,7 @@
 /* STARGATE — hoja de estilo del sitio (CCD) */
-@font-face{font-family:'Unbounded';src:url(../fonts/Unbounded.ttf) format('truetype');font-weight:200 900;font-display:swap}
-@font-face{font-family:'DMSans';src:url(../fonts/DMSans.ttf) format('truetype');font-weight:100 1000;font-display:swap}
-@font-face{font-family:'DMSans';src:url(../fonts/DMSans-Italic.ttf) format('truetype');font-weight:100 1000;font-style:italic;font-display:swap}
+@font-face{font-family:'Unbounded';src:url(../fonts/Unbounded.woff2) format('woff2'),url(../fonts/Unbounded.ttf) format('truetype');font-weight:200 900;font-display:swap}
+@font-face{font-family:'DMSans';src:url(../fonts/DMSans.woff2) format('woff2'),url(../fonts/DMSans.ttf) format('truetype');font-weight:100 1000;font-display:swap}
+@font-face{font-family:'DMSans';src:url(../fonts/DMSans-Italic.woff2) format('woff2'),url(../fonts/DMSans-Italic.ttf) format('truetype');font-weight:100 1000;font-style:italic;font-display:swap}
 :root{--bg:#080c14;--bg2:#0d1420;--panel:#101a28;--line:#1c2c40;--teal:#37e0ec;--teal2:#5ad0eb;--amber:#f5b043;--violet:#aa66cc;--ink:#e9f0f6;--mut:#9fb2c2}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}

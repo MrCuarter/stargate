@@ -1445,6 +1445,24 @@ var equipo = pieza(function (module, exports) {
     function alumno(grupo, fichaId, accion, extra) {
       return llamar("modAlumno", Object.assign({ projectId: grupo, fichaId: fichaId, accion: accion }, extra || {}));
     }
+    /**
+     * 8-oct · CAMBIAR DE COMANDANTE (functions/modComandante.js): el escuadrón va con él y queda asiento para la guardia.
+     *   cambiarComandante(grupo, comandante)            el estudiante, él mismo (la rueda dentada), si su mod lo deja
+     *   moverAComandante(grupo, fichas, comandante, { escuadronNuevo, simular })   el referente, a varios (con aviso a cada uno)
+     *   deshacerComandante(grupo, lote)                 el referente devuelve un lote
+     * → { ok, simulado, lote, movidos: [{ fichaId, alias, de, a }], iguales, noEstan, escuadron: { id, name, nuevo } }
+     */
+    function cambiarComandante(grupo, comandante) {
+      return llamar("modComandante", { projectId: grupo, comandante: String(comandante || "") });
+    }
+    function moverAComandante(grupo, fichas, comandante, opc) {
+      opc = opc || {};
+      return llamar("modComandante", Object.assign({ projectId: grupo, comandante: String(comandante || ""), fichas: fichas || [],
+        simular: opc.simular === true }, opc.escuadronNuevo ? { escuadronNuevo: opc.escuadronNuevo } : {}));
+    }
+    function deshacerComandante(grupo, lote) {
+      return llamar("modComandante", { projectId: grupo, deshacer: String(lote || "") });
+    }
     /** Un código nuevo para alistarse, de la receta de la web (`generar()`). */
     function nuevoCodigo(grupo, generar) {
       var c = generar();
@@ -1516,6 +1534,7 @@ var equipo = pieza(function (module, exports) {
 
     return { colecciones: C, anadirDocente: anadirDocente, quitarDocente: quitarDocente, referenteEnTodos: referenteEnTodos,
              cambiarDocente: cambiarDocente, alumno: alumno, nuevoCodigo: nuevoCodigo,
+             cambiarComandante: cambiarComandante, moverAComandante: moverAComandante, deshacerComandante: deshacerComandante,
              referenteGlobal: referenteGlobal, crearInvitacion: crearInvitacion, leerInvitacion: leerInvitacion,
              canjearInvitacion: canjearInvitacion, invitaciones: invitaciones, referentes: referentes, ponerReferente: ponerReferente };
   }
