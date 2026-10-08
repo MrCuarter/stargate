@@ -288,6 +288,14 @@
     "font:inherit;font-size:15px;font-weight:700;cursor:pointer}",
     ".nbc-form button:focus-visible{outline:2px solid var(--nbc-texto);outline-offset:2px}",
     ".nbc-info{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:12px;color:var(--nbc-apagado)}",
+    ".nbc-adj{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 0}",
+    ".nbc-adj[hidden]{display:none}",
+    ".nbc-adj label{display:inline-flex;align-items:center;min-height:36px;padding:6px 12px;border-radius:99px;border:1px solid var(--nbc-cian);color:var(--nbc-cian);font-size:14px;cursor:pointer}",
+    ".nbc-adj label:focus-within{outline:2px solid var(--nbc-texto);outline-offset:2px}",
+    ".nbc-adj span.nbc-pista{font-size:12px;color:var(--nbc-apagado)}",
+    ".nbc-mini{position:relative;width:56px;height:56px;border-radius:8px;overflow:hidden;border:1px solid var(--nbc-borde);flex:none}",
+    ".nbc-mini img{width:100%;height:100%;object-fit:cover;display:block}",
+    ".nbc-mini button{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;border:0;background:#0b131ecc;color:var(--nbc-texto);font-size:15px;line-height:1;cursor:pointer;padding:0}",
     ".nbc-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}",
     "@media (max-width:480px){.nbc-cab img{width:44px;height:44px}.nbc-b{max-width:94%}.nbc-form{flex-direction:column;align-items:stretch}",
     ".nbc-form button{width:100%}}"
@@ -400,16 +408,66 @@
         clase = c[0];
         [].forEach.call(clases.querySelectorAll("button"), function (x) { x.setAttribute("aria-pressed", String(x === b)); });
         campo.placeholder = c[2]; enviarB.textContent = c[3]; etiqueta.textContent = c[1] + " para " + (c[0] === "duda" ? "NEBULA" : "el Mando");
+        adjFila.hidden = c[0] === "duda";
         campo.focus();
       });
       clases.appendChild(b);
     });
+    /*
+     * 8-oct · UNA CAPTURA PARA EL MANDO (Norberto: «cuando se contacta con el mando o ayuda, debes incluir la opción de adjuntar
+     * captura de pantalla»). Con el problema y la idea, que van directos al Mando: hasta tres, comprimidas y subidas al enviar
+     * (GP_SDK.buzon, por el motor), a la misma carpeta que todas. La duda pasa antes por NEBULA: sin captura.
+     */
+    var MAX_ADJ = 3, ADJ = [];
+    var adjFila = el("div", "nbc-adj");
+    adjFila.hidden = true;
+    var adjLabel = el("label"), adjInput = el("input");
+    adjInput.type = "file"; adjInput.accept = "image/*"; adjInput.multiple = true; adjInput.className = "nbc-sr";
+    adjLabel.appendChild(adjInput); adjLabel.appendChild(document.createTextNode("Añadir una captura"));
+    var adjMinis = el("div", "nbc-adj");
+    adjMinis.style.margin = "0";
+    adjFila.appendChild(adjLabel); adjFila.appendChild(el("span", "nbc-pista", "o pégala con Ctrl+V: ayuda a ver qué ha pasado.")); adjFila.appendChild(adjMinis);
+    function pintarAdj() {
+      adjMinis.innerHTML = "";
+      ADJ.forEach(function (a, i) {
+        var m = el("span", "nbc-mini"), im = el("img"), x = el("button", null, "\u00d7");
+        im.src = a.ver; im.alt = "Captura " + (i + 1);
+        x.type = "button"; x.setAttribute("aria-label", "Quitar la captura " + (i + 1));
+        x.addEventListener("click", function () { ADJ.splice(i, 1); pintarAdj(); });
+        m.appendChild(im); m.appendChild(x); adjMinis.appendChild(m);
+      });
+    }
+    function anadirAdj(files) {
+      var fs = [].filter.call(files || [], function (f) { return /^image\//.test(f.type || ""); });
+      if (!fs.length) { if (files && files.length) estado.textContent = "Solo imágenes (una captura, una foto)."; return; }
+      if (ADJ.length + fs.length > MAX_ADJ) estado.textContent = "Como mucho " + MAX_ADJ + " capturas por mensaje.";
+      motor().then(function (M) {
+        if (!M || !M.buzonComprimir) { estado.textContent = "Ahora no puedo leer la captura. Prueba otra vez en un momento."; return; }
+        fs.slice(0, Math.max(0, MAX_ADJ - ADJ.length)).forEach(function (f) {
+          M.buzonComprimir(f).then(function (blob) { if (ADJ.length < MAX_ADJ) ADJ.push({ blob: blob, ver: URL.createObjectURL(blob) }); pintarAdj(); },
+            function () { estado.textContent = "Esa imagen no se ha podido leer."; });
+        });
+      });
+    }
+    adjInput.addEventListener("change", function () { anadirAdj(adjInput.files); adjInput.value = ""; });
+    campo.addEventListener("paste", function (e) {
+      if (clase === "duda") return;
+      var fs = [].filter.call((e.clipboardData && e.clipboardData.files) || [], function (f) { return /^image\//.test(f.type || ""); });
+      if (fs.length) { e.preventDefault(); anadirAdj(fs); }
+    });
+    function subirAdj() {
+      var urls = [];
+      return motor().then(function (M) {
+        if (!M || !M.buzonAdjuntar) throw new Error("sin motor");
+        return ADJ.reduce(function (p, a) { return p.then(function () { return M.buzonAdjuntar(a.blob).then(function (u) { urls.push(u); }); }); }, Promise.resolve());
+      }).then(function () { return urls; });
+    }
     var info = el("div", "nbc-info");
     var estado = el("span", null, "");
     estado.setAttribute("aria-live", "polite");
     var cuenta = el("span", null, "0/" + MAX);
     info.appendChild(estado); info.appendChild(cuenta);
-    pie.appendChild(clases); pie.appendChild(form); pie.appendChild(info);
+    pie.appendChild(clases); pie.appendChild(form); pie.appendChild(adjFila); pie.appendChild(info);
 
     caja.appendChild(cab); caja.appendChild(mias); caja.appendChild(log); caja.appendChild(pie);
     raiz.appendChild(caja);
@@ -525,19 +583,20 @@
     }
 
     // 28-sep · un problema o una idea: sin buscar en la batería, directo al Mando (se envía al pulsar, como la duda)
-    function alMando(q, cl) {
-      turnos.push({ r: "yo", t: q });
+    function alMando(q, cl, urls) {
+      turnos.push({ r: "yo", t: q + (urls && urls.length ? (urls.length === 1 ? " (con una captura)" : " (con " + urls.length + " capturas)") : "") });
       empujar({ r: "nebula", k: "texto", t: cl === "idea" ? "Anotada tu idea, recluta: se la paso al Mando. Las ideas se leen todas, y las buenas acaban en tu Nave."
         : "Recibido: se lo paso al Mando con tu alias. Te respondo aquí, en menos de una hora (" + HORARIO + ")." });
-      enviarDuda(q, [], function () { guardar(per, turnos); pintar(); }, cl);
+      enviarDuda(q, [], function () { guardar(per, turnos); pintar(); }, cl, urls);
     }
     // ── el buzón: enviar (solo al pulsar), la cola si falla, y «Tus dudas al Comandante»
-    function enviarDuda(q, ids, fin, cl) {
+    function enviarDuda(q, ids, fin, cl, urls) {
       q = String(q || "").trim();
       if (!q) { fin(false); return; }
       estado.textContent = "Enviando…";
       var carta = { projectId: per, tipo: "recluta", urgente: false, texto: q,
         contexto: { fichaId: o.fichaId || "", alias: o.alias || "", origen: "nebula", clase: cl || "duda", faq: (ids || []).slice(0, 3) } };
+      if (urls && urls.length) carta.adjuntos = urls.slice(0, 3);
       motor().then(function (M) {
         if (!M) throw new Error("sin motor");
         return M.buzonEnviar(carta);
@@ -620,6 +679,20 @@
       if (e && e.preventDefault) e.preventDefault();
       var q = campo.value.replace(/\s+/g, " ").trim();
       if (!q) { campo.focus(); return; }
+      if (clase !== "duda" && ADJ.length) {
+        // primero las capturas; si no suben, el texto se queda en el campo para reintentar
+        var cl = clase;
+        enviarB.disabled = true; estado.textContent = ADJ.length > 1 ? "Subiendo las capturas…" : "Subiendo la captura…";
+        subirAdj().then(function (urls) {
+          ADJ = []; pintarAdj(); enviarB.disabled = false;
+          campo.value = ""; cuenta.textContent = "0/" + MAX;
+          alMando(q.slice(0, MAX), cl, urls); campo.focus();
+        }, function () {
+          enviarB.disabled = false;
+          estado.textContent = "No he podido subir la captura. Prueba otra vez (o quítala y envíalo sin ella).";
+        });
+        return;
+      }
       campo.value = ""; cuenta.textContent = "0/" + MAX;
       if (clase === "duda") preguntar(q.slice(0, MAX));
       else alMando(q.slice(0, MAX), clase);

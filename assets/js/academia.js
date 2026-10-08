@@ -627,8 +627,8 @@
     return ADJ.reduce(function (p, a, i) {
       return p.then(function () {
         if (st && ADJ.length > 1) st.textContent = "Subiendo la captura " + (i + 1) + " de " + ADJ.length + "…";
-        if (DEMO || !M || !M.academiaAdjuntar) return new Promise(function (ok) { var r = new FileReader(); r.onload = function () { urls.push(r.result); ok(); }; r.readAsDataURL(a.blob); });
-        return M.academiaAdjuntar(G, a.blob).then(function (u) { urls.push(u); }, function () { throw new Error("no se ha podido subir la captura"); });
+        if (DEMO || !M || !M.buzonAdjuntar) return new Promise(function (ok) { var r = new FileReader(); r.onload = function () { urls.push(r.result); ok(); }; r.readAsDataURL(a.blob); });
+        return M.buzonAdjuntar(a.blob).then(function (u) { urls.push(u); }, function () { throw new Error("no se ha podido subir la captura"); });
       });
     }, Promise.resolve()).then(function () { return urls; });
   }

@@ -283,35 +283,23 @@
             + '<span>' + t[1] + '</span>' + t[2] + '</button>'; }).join("") + '</div>'
       + '<label class="bz-campo">Cuéntanoslo<textarea id="bz-texto" maxlength="2000" rows="6" placeholder="' + esc(tipo[3]) + '">' + esc(ST.texto) + '</textarea>'
       + '<span class="bz-cuenta" id="bz-cuenta">' + ST.texto.length + ' / 2000</span></label>'
-      + (puedeAcademia() ? '<div class="bz-adj" id="bz-adj"></div><p class="bz-adj-fila"><label class="btn min"><input type="file" accept="image/*" multiple id="bz-file" hidden><img class=ico src=assets/img/iconos/p/anadir.png alt> Añadir una captura</label>'
-          + ' <span class="small muted">o pégala con Ctrl+V en el texto: ayuda mucho a ver qué ha fallado.</span></p>' : '')
+      // 8-oct · la captura, para todos (antes, solo sobre la Academia). Norberto: «cuando se contacta con el mando o ayuda, debes
+      // incluir la opción de adjuntar captura de pantalla»
+      + '<div class="bz-adj" id="bz-adj"></div><p class="bz-adj-fila"><label class="btn min"><input type="file" accept="image/*" multiple id="bz-file" hidden><img class=ico src=assets/img/iconos/p/anadir.png alt> Añadir una captura</label>'
+          + ' <span class="small muted">o pégala con Ctrl+V en el texto: ayuda mucho a ver qué ha fallado.</span></p>'
       + (ST.tipo === "problema" && ST.ambito !== "academia" ? '<label class="bz-urg"><input type="checkbox" id="bz-urgente"' + (ST.urgente ? " checked" : "") + '> <img class=ico src=assets/img/iconos/p/aviso.png alt> Me está bloqueando la clase ahora mismo</label>' : '')
       + '<p class="bz-acciones"><button class="btn primary grande" id="bz-enviar" type="button"><img class=ico src=assets/img/iconos/p/envivo.png alt> ' + (aca ? "Enviar a NEBULA" : "Transmitir al Mando") + '</button></p>'
       + '<p class="small muted">Con tu mensaje viaja desde dónde escribes (la página, el grupo, la semana y tu navegador): así encontramos el fallo sin tener que preguntarte.</p>'
       + '</section><aside class="bz-sugiere" id="bz-sugiere" aria-live="polite"></aside></div>';
   }
-  // ── las capturas (las de la Academia, ahora en el mismo buzón): ≤ 1600 px, JPEG, tres por mensaje; se suben al enviar
+  // ── las capturas: ≤ 1600 px, JPEG, tres por mensaje (GP_SDK.buzon, por el motor); se suben al enviar, a la de la app (teacher_profiles/<uid>/buzon/)
   function anadirAdj(files) {
     var fs = Array.prototype.filter.call(files || [], function (f) { return /^image\//.test(f.type); });
     if (!fs.length) { if (files && files.length) aviso("Solo imágenes (una captura, una foto)."); return; }
     if (ADJ.length + fs.length > MAX_ADJ) aviso("Como mucho " + MAX_ADJ + " capturas por mensaje.");
     fs.slice(0, Math.max(0, MAX_ADJ - ADJ.length)).forEach(function (f) {
-      comprimir(f).then(function (blob) { if (ADJ.length < MAX_ADJ) ADJ.push({ blob: blob, ver: URL.createObjectURL(blob) }); pintarAdj(); },
+      MOTOR.buzonComprimir(f).then(function (blob) { if (ADJ.length < MAX_ADJ) ADJ.push({ blob: blob, ver: URL.createObjectURL(blob) }); pintarAdj(); },
         function () { aviso("Esa imagen no se ha podido leer."); });
-    });
-  }
-  function comprimir(f) {
-    return new Promise(function (ok, mal) {
-      var im = new Image(), u = URL.createObjectURL(f);
-      im.onload = function () {
-        var k = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), cv = document.createElement("canvas");
-        cv.width = Math.max(1, Math.round(im.naturalWidth * k)); cv.height = Math.max(1, Math.round(im.naturalHeight * k));
-        var cx = cv.getContext("2d"); cx.fillStyle = "#fff"; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(im, 0, 0, cv.width, cv.height);
-        URL.revokeObjectURL(u);
-        cv.toBlob(function (b) { if (b) ok(b); else mal(new Error("imagen")); }, "image/jpeg", 0.85);
-      };
-      im.onerror = function () { URL.revokeObjectURL(u); mal(new Error("imagen")); };
-      im.src = u;
     });
   }
   function pintarAdj() {
@@ -322,7 +310,7 @@
   function subirAdj() {
     var urls = [];
     return ADJ.reduce(function (p, a) {
-      return p.then(function () { return MOTOR.academiaAdjuntar(PER_ACADEMIA, a.blob).then(function (u) { urls.push(u); }, function () { throw new Error("no se ha podido subir la captura"); }); });
+      return p.then(function () { return MOTOR.buzonAdjuntar(a.blob).then(function (u) { urls.push(u); }, function () { throw new Error("no se ha podido subir la captura"); }); });
     }, Promise.resolve()).then(function () { return urls; });
   }
   function adjuntosHtml(adj) {
@@ -362,7 +350,6 @@
     });
     var fi = document.getElementById("bz-file"); if (fi) fi.onchange = function () { anadirAdj(fi.files); fi.value = ""; };
     txt.addEventListener("paste", function (e) {
-      if (!puedeAcademia()) return;
       var fs = Array.prototype.filter.call((e.clipboardData && e.clipboardData.files) || [], function (f) { return /^image\//.test(f.type); });
       if (fs.length) { e.preventDefault(); anadirAdj(fs); }
     });
