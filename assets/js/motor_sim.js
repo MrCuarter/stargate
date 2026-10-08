@@ -565,6 +565,18 @@ function vigilarMensajes(perId, alCambiar) {
   return RETOS.vigilarAvisos(perId, "stargate", alCambiar, u && u.uid);
 }
 async function mensajeLeido(id) { await RETOS.avisoLeido(id); }
+/**
+ * 7-oct · LOS MENSAJES DE NEBULA, EN LA CONSOLA. Norberto: «que no te hagas pasar por el docente, sino como NEBULA. Ese mensaje
+ * debe aparecer al profesor responsable y al estudiante». Los escribe el servidor de GamificaPro (functions/modMensajes.js): al
+ * recluta, con la marca `stargate` (lo ve en su Nave como los demás); a su Comandante, otro aparte, con `modSistema.para ==
+ * 'docente'` y sin la marca. Esto escucha los segundos, sin leer, de este grupo (lo mismo que `GP_SDK.retos.vigilarAvisosDelSistema`
+ * del paquete e76a4498c2; aquí, con el fijado, hasta que la web lo fije).
+ */
+function vigilarMensajesDelSistema(perId, alCambiar) {
+  const u = auth.currentUser;
+  const suyo = (x) => !!(x && x.modSistema && x.modSistema.voz && x.modSistema.para === "docente");
+  return RETOS.vigilarAvisos(perId, null, (l) => alCambiar(l.filter(suyo)), u && u.uid);
+}
 
 async function anularRetoViejo(perId, fichaId, retoId, motivo) {
   const [mi, ficha] = await Promise.all([
@@ -2306,7 +2318,7 @@ function directoCanal(perId, esDocente, yo, alMensaje) {
 window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
-                    guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, resolverVale,
+                    guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, vigilarMensajesDelSistema, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaResponder, academiaAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo, esDelEquipoDe, pasarAFantasma,

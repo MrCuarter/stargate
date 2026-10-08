@@ -1138,8 +1138,12 @@
   /**
    * 🔴 18-sep · EL RETO QUE AÚN NO SE HA EXPLICADO. Norberto: «organiza el despliegue de los retos… si un reto no se ha
    * explicado en clase, al estudiante le aparece sombreado con el mensaje (próxima semana)». La semana sale del mismo
-   * calendario que usa la sesión proyectable (`lanza` de cada semana → SG_SEM_RETO): un dato, un sitio. En PUA no hay
-   * calendario de lanzamientos, así que allí no se cierra nada. Si el referente abrió el capítulo antes, tampoco.
+   * calendario que usa la sesión proyectable (`lanza` de cada semana → SG_SEM_RETO): un dato, un sitio. Si el referente
+   * abrió el capítulo antes, tampoco.
+   * 🔴 8-oct · EN PUA, IGUAL, CON SUS FECHAS. Norberto: «¿Qué más da que sea PUA de 8 semanas o normal de 15? Salvo las
+   * fechas y las peculiaridades, el resto IGUAL». `SG_SEM_RETO.PUA` traía los números de REGULAR (B5…B8, de la 9 a la 14 en
+   * un curso de 8: no se abrían nunca); ahora el build lo saca del calendario del PUA (`_semanas_pua`, como `semanasPua`):
+   * cada reto, en la semana de su tema. Es el mismo dato que cierra el servidor (`semanaDelReto` de GamificaPro).
    */
   function semanaDeLanzamiento(id){
     var m=(window.SG_SEM_RETO||{})[esPUA()?'PUA':'REGULAR']||{};
@@ -2015,11 +2019,15 @@
     var RET=(window.SG_RETOS||{})[(st.d&&st.d.tipo)||'REGULAR']||[];
     return L.slice(0,3).map(function(x){
       var s=x.stargate||{}, anul=s.accion==='anulado', val=s.accion==='validado';
+      // 7-oct · los mensajes del sistema (GamificaPro, functions/modMensajes.js) los firma NEBULA, no tu Comandante. Norberto: «que
+      // no te hagas pasar por el docente, sino como NEBULA». Su marca es `modSistema.voz` (`GP_SDK.retos.remitente` en el paquete
+      // nuevo); los primeros del 7-oct solo traían `de: 'NEBULA'`.
+      var voz=(x.modSistema&&x.modSistema.voz)||(s.de==='NEBULA'?'NEBULA':'');
       var r=RET.filter(function(f){ return f[0]===s.reto; })[0];
       var cuando=x.createdAt?new Date(x.createdAt):null;
       return '<div class="card msg-cmd'+(anul?' anulado':val?' validado':'')+'" role="status">'
         +'<p class="mc-cab"><span class="mc-ico" aria-hidden="true">'+(anul?'↩':val?'<img class=ico src=assets/img/iconos/p/hecho.png alt>':'<img class=ico src=assets/img/iconos/p/envivo.png alt>')+'</span>'
-        +'<b>Mensaje de tu Comandante'+(s.de?' · '+esc(s.de):'')+'</b>'
+        +'<b>'+(voz?'Mensaje de '+esc(voz):'Mensaje de tu Comandante'+(s.de?' · '+esc(s.de):''))+'</b>'
         +(cuando?'<span class="mc-cuando">'+esc(cuando.toLocaleDateString('es-ES',{day:'numeric',month:'short'}))+', '+esc(cuando.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}))+'</span>':'')
         // (el «Entendido», en la misma línea: una fila entera para un botón era aire)
         +'<button type="button" class="btn min" data-msg-leido="'+esc(x.id)+'">Entendido</button></p>'

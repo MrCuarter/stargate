@@ -45,6 +45,7 @@
  *   GP.menu.cerrar(el?)     → cierra ese grupo, o todos
  *   GP.menu.marcado(o)      → el HTML de un grupo: { texto, id?, derecha?, opciones: [{ href | pulsa, texto, sub?, paginas? }] }
  *   GP.menu.pagina(href)    → «academia.html» de «/x/academia.html?y#z» («» → «index.html»)
+ *   GP.menu.poner(donde, o, opc?) → lo mete en la cabecera que pinta el JS y lo repone si la repinta (8-oct; ver abajo)
  */
 (function () {
   if (window.GP && window.GP.menu) return;   // (copiada en dos sitios de la misma página: una sola vez)
@@ -286,9 +287,39 @@
   document.addEventListener("scroll", reencajar, true);
   if (window.addEventListener) window.addEventListener("resize", reencajar);
 
+  /*
+   * 8-oct · PONERLO EN UNA CABECERA QUE PINTA EL JS (DPG: cada página escribe su <header> en #app y lo repinta entero al
+   * cambiar de vista). `poner(donde, o, opc)` mete el marcado de `o` (el de `marcado`) en el primer elemento que case con
+   * `donde` (al principio o, con `opc.al: "final"`, al final) y lo VUELVE A PONER cada vez que la página repinta (un
+   * MutationObserver sobre el documento; sin él, `colocar()` a mano). No repite: lo marca con `data-gpm-puesto` (`o.id` o
+   * «ayuda»). Sin cabecera que case, no pone nada. → { colocar(), quitar() }
+   */
+  function poner(donde, o, opc) {
+    o = o || {}; opc = opc || {};
+    var clave = String(o.id || "ayuda"), vigia = null;
+    function colocar() {
+      var el = null; try { el = document.querySelector(donde); } catch (e) { el = null; }
+      if (!el || el.querySelector('[data-gpm-puesto="' + clave + '"]')) return null;
+      var caja = document.createElement("div"); caja.innerHTML = marcado(o);
+      var g = caja.firstChild; g.setAttribute("data-gpm-puesto", clave);
+      if (opc.al === "final") el.appendChild(g); else el.insertBefore(g, el.firstChild);
+      montar(el);
+      return g;
+    }
+    function empezar() {
+      colocar();
+      if (typeof MutationObserver === "function" && !vigia) {
+        vigia = new MutationObserver(function () { colocar(); });
+        vigia.observe(document.body, { childList: true, subtree: true });
+      }
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", empezar); else empezar();
+    return { colocar: colocar, quitar: function () { if (vigia) vigia.disconnect(); vigia = null; } };
+  }
+
   window.GP = window.GP || {};
   window.GP.menu = {
-    montar: montar, marcado: marcado, pagina: pagina, CSS: CSS,
+    montar: montar, marcado: marcado, pagina: pagina, CSS: CSS, poner: poner,
     abrir: function (el) { if (el && el.gpm) abrir(el.gpm, "clic"); },
     cerrar: function (el) { cerrar(el && el.gpm ? el.gpm : null); }
   };
