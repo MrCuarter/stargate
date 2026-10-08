@@ -699,6 +699,29 @@ async function cambiarComandante(perId, fichaId, aNombre) {
 }
 
 /**
+ * 8-oct · LA RUEDA DENTADA DE LA NAVE: EL ESTUDIANTE SE CAMBIA ÉL MISMO DE COMANDANTE. Norberto: «un estudiante debería poder
+ * cambiar su alias, frase, escribir su bitácora, cambiar comandante, personaje… la rueda dentada es universal». No escribe la
+ * ficha (las reglas ya no le dejan tocar `stargateProfe` ni el escuadrón en un grupo de mod): lo hace el servidor del motor de
+ * GamificaPro, `modComandante` (GP_SDK.equipo.cambiarComandante), que lleva el escuadrón con el Comandante y deja asiento para
+ * la guardia. → { ok, movidos, escuadron… }. `cambiarComandante` (arriba) sigue siendo la del profesorado (consola).
+ */
+async function cambiarMiComandante(perId, comandante) {
+  return EQUIPO.cambiarComandante(perId, String(comandante || "").trim());
+}
+
+/**
+ * 8-oct · SU FRASE (la que escribió al alistarse: «Dos líneas sobre tu personaje», que ve la clase al pulsar su nombre en el
+ * tablero). Va a los dos sitios donde la dejó el alistamiento: `stargateBio` en la ficha (la lee el tablero público) y `bio`
+ * en lo privado (la lee el tablero del profesorado primero). Hasta 280 letras, como al alistarse; vacía, se quita.
+ */
+async function guardarFrase(fichaId, texto) {
+  const bio = String(texto || "").trim().slice(0, 280);
+  await updateDoc(doc(db, "student_profiles", fichaId), { stargateBio: bio });
+  await setDoc(doc(db, "student_profiles", fichaId, "privado", "datos"), { bio }, { merge: true });
+  return { ok: true, bio };
+}
+
+/**
  * Resolver un vale de la cola de nota.
  *
  * 🔴 Ojo a una diferencia con el sistema viejo, y es a mejor: aquí los créditos se cobran AL PEDIR
@@ -2351,7 +2374,7 @@ window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, leerPER, tablero
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaResponder, academiaAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo, esDelEquipoDe, pasarAFantasma,
-                    anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias,
+                    anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias, cambiarMiComandante, guardarFrase,
                     zocoDatos, zocoTratosGrupo, zocoAnunciosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
                     crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta, sorteosDeGrupos, sorteoEnGrupos, retirarSorteo, participacionesEn,
                     ofertasDeGrupos, crearOfertaEnGrupos, ofertaEnGrupos,

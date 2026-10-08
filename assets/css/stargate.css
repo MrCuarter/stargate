@@ -8151,3 +8151,72 @@ a.gs-tarjeta:hover,a.gs-tarjeta:focus-visible{border-color:var(--teal);transform
 .gs-btn{align-self:flex-start}
 @media (max-width:620px){.gs-hero{padding:30px 16px 18px}.gs{padding:18px 0 36px}.gs-foto{height:190px}.gs-t{font-size:1.2rem}.gs-btn{align-self:stretch;text-align:center}}
 @media (prefers-reduced-motion:reduce){a.gs-tarjeta{transition:none}a.gs-tarjeta:hover{transform:none}}
+
+/* ════════ 8-oct · LA RUEDA DENTADA: «⚙ Ajustes» al lado del nombre y su ventana (recluta.js → abrirAjustes) ════════
+   Norberto: «un estudiante debería poder cambiar su alias, frase, escribir su bitácora, cambiar comandante, personaje… Debe
+   ser un botón intuitivo, fácil. La rueda dentada es universal». La ventana es la pieza del motor de las tarjetas
+   (GamificaPro sdk/tarjetas.js: velo, ×, Esc, a pantalla entera en el móvil), la misma de «Leer más…» de los retos de la
+   semana; aquí, su piel. Vive en <body>: cerrada no se ve; abierta, encima de la Nave y por debajo de los avisos. */
+.nf-ajustes{display:inline-flex;align-items:center;gap:6px;vertical-align:middle;margin-left:6px;padding:5px 12px 5px 8px;
+  font:700 .85rem/1.2 'DMSans',system-ui,sans-serif;color:var(--ink);background:rgba(55,224,236,.08);border:1px solid #2c4a66;
+  border-radius:999px;cursor:pointer;transition:border-color .15s,background .15s}
+.nf-ajustes .ico{width:1.45em;height:1.45em;transition:transform .4s}
+.nf-ajustes:hover,.nf-ajustes:focus-visible{border-color:var(--teal);background:rgba(55,224,236,.16);outline:none}
+.nf-ajustes:hover .ico,.nf-ajustes:focus-visible .ico{transform:rotate(60deg)}
+@media (prefers-reduced-motion:reduce){.nf-ajustes .ico{transition:none}}
+.ajf-celda{--gpt-ancho:820px;--gpt-arriba:24px;--gpt-capa:60;--gpt-velo:rgba(4,8,14,.78);--gpt-cerrar-fondo:#101a28;
+  --gpt-cerrar-borde:#3a5578;--gpt-cerrar-tinta:var(--ink);--gpt-acento:var(--teal)}
+.ajf-celda>.ajf:not([open]){display:none}
+.ajf-celda>.ajf{background:#0d1622;border:1px solid #3a5578;border-radius:16px;color:var(--ink)}
+.ajf-celda>.ajf>summary{list-style:none;padding:20px 64px 6px 22px;outline:none}
+.ajf-celda>.ajf>summary::-webkit-details-marker{display:none}
+.ajf>summary h3{margin:4px 0 2px;font-size:1.3rem}
+.ajf>summary p{margin:0}
+.ajf-cuerpo{padding:10px 22px 22px}
+.ajf-nota{margin:0 0 14px;padding:10px 14px;border-radius:12px;background:rgba(245,176,67,.1);border:1px solid rgba(245,176,67,.4);font-size:.95rem}
+.ajf-nota.malo{background:rgba(255,90,90,.1);border-color:rgba(255,120,120,.45)}
+/* los cuatro apartados, dos y dos y del mismo alto (lo que va junto, igual); el Comandante, a todo el ancho debajo */
+.ajf-rejilla{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:12px;align-items:stretch}
+.ajf-ap{display:flex;flex-direction:column;gap:8px;min-width:0;padding:14px 16px;background:#101a28;border:1px solid #24304a;border-radius:13px}
+.ajf-cuerpo>.ajf-ap{margin-top:12px}
+.ajf-ap h4{margin:0;font-size:1.05rem;display:flex;align-items:center;gap:6px}
+.ajf-ap p{margin:0}
+.ajf-que{color:var(--mut);font-size:.95rem;line-height:1.45}
+.ajf-ahora{font-size:.98rem;overflow-wrap:anywhere}
+.ajf-form{display:flex;flex-direction:column;gap:6px;flex:1}
+.ajf-form label{font-size:.9rem;color:var(--mut)}
+.ajf-form label i{font-style:normal;opacity:.85}
+.ajf-form input,.ajf-form textarea{width:100%;box-sizing:border-box;font:inherit;font-size:1rem;color:var(--ink);background:#0a121c;
+  border:1px solid #2c4a66;border-radius:10px;padding:9px 11px}
+.ajf-form textarea{resize:vertical;min-height:4.6em}
+.ajf-form input:focus,.ajf-form textarea:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:transparent}
+.ajf-fila{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:auto}
+.ajf-form .ajf-fila{margin-top:0}
+.ajf-form .ajf-fila input{flex:1 1 160px;width:auto}
+.ajf-fila.fin{justify-content:flex-end}
+.ajf-msg{font-size:.92rem;min-height:1.3em;color:var(--teal2)}
+.ajf-msg.malo{color:#ff9a9a}
+.ajf-msg:empty{min-height:0}
+.ajf-pj{display:flex;align-items:center;gap:12px}
+.ajf-pj img.ajf-av{width:64px;height:64px;object-fit:cover;border-radius:50%;border:2px solid #2c4a66;flex:none;background:#0a121c}
+/* los Comandantes: tarjetas iguales en filas llenas, el suyo marcado */
+.ajf-cmds{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));grid-auto-rows:1fr;gap:10px}
+.ajf-cmd{display:flex;align-items:center;gap:10px;min-width:0;padding:10px 12px;text-align:left;font:inherit;color:var(--ink);
+  background:#0a121c;border:1px solid #24304a;border-radius:12px;cursor:pointer;transition:border-color .15s,background .15s}
+.ajf-cmd:hover:not(:disabled),.ajf-cmd:focus-visible{border-color:var(--teal);background:#0f1c2b;outline:none}
+.ajf-cmd.on{border-color:var(--teal);background:rgba(55,224,236,.08);cursor:default}
+.ajf-cmd:disabled:not(.on){opacity:.55;cursor:not-allowed}
+.ajf-emb{width:44px;height:44px;object-fit:contain;flex:none;border-radius:8px}
+.ajf-emb.vacio{background:#16243a}
+.ajf-cmd-t{flex:1;min-width:0;display:flex;flex-direction:column}
+.ajf-cmd-t b,.ajf-cmd-t small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;overflow-wrap:anywhere;line-height:1.3}
+.ajf-cmd-t small{color:var(--mut);font-size:.85rem}
+.ajf-cmd em{font-style:normal;font-size:.85rem;font-weight:700;color:var(--teal);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.ajf-cmd:not(.on) em{color:var(--mut)}
+@media (max-width:640px){
+  .ajf-celda>.ajf[open]{height:calc(100vh - 16px);height:calc(100dvh - 16px)}
+  .ajf-celda>.ajf>summary{padding:16px 58px 4px 16px}
+  .ajf-cuerpo{padding:8px 14px 18px}
+  .ajf-rejilla{grid-template-columns:minmax(0,1fr);grid-auto-rows:auto}
+}
+body.ajf-abierta{overflow:hidden}
