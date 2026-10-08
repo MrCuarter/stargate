@@ -79,6 +79,56 @@ function servidor(S) {
     for (const i of items) { n -= total ? Math.max(0, Number(i.probability) || 0) : 1; if (n <= 0) return i.rewardId; }
     return items.length ? items[items.length - 1].rewardId : null;
   }
+  /**
+   * 8-oct · EL JUEGO DEL FINAL, por el servidor (GamificaPro modClase, sala «directo» de STARGATE: partes { estado: 'documento' },
+   * respuestas de forma 'jugador', eventos { sub: 'eventos', alumno: ['sabotaje'] }, sinCongelar). Lo mismo que escribía directoCanal.
+   */
+  function directo(x, per, ahora) {
+    const sala = "stargate_directo/" + per, plano = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    const grupo = DATOS.get("projects/" + per);
+    if (!grupo) throw fallo("not-found", "Ese grupo no existe.");
+    const docente = (grupo.coTeacherEmails || []).map((c) => String(c).toLowerCase()).indexOf(String(YO.correo || "").toLowerCase()) >= 0 || grupo.ownerId === YO.uid;
+    const mia = (fichaId) => {
+      const f = typeof fichaId === "string" && fichaId && fichaId.indexOf("/") < 0 ? DATOS.get("student_profiles/" + fichaId) : null;
+      if (!f || f.userId !== YO.uid || f.projectId !== per) throw fallo("permission-denied", "Esa ficha no es tuya en este grupo.");
+      if (f.stargateCongelado != null) throw fallo("permission-denied", "Tu referente ha congelado tu cuenta: puedes mirar, pero no hacer nada.");
+      return f;
+    };
+    if (["poner", "abrir", "cerrar", "pregunta", "cerrarPregunta"].indexOf(x.accion) >= 0) {
+      if (!docente) throw fallo("permission-denied", "Esto es del equipo docente del grupo.");
+      if (x.accion !== "poner") throw fallo("invalid-argument", "Esta sala no tiene sesión que abrir o cerrar.");
+      if (x.parte !== "estado") throw fallo("invalid-argument", "Esa parte de la sala no existe.");
+      if (!plano(x.valor)) throw fallo("invalid-argument", "«estado» tiene que ser un mapa.");
+      hacerSet(refDoc(sala), { projectId: per, actualizado: ahora, estado: x.valor });
+    } else if (x.accion === "evento") {
+      const t = typeof x.t === "string" ? x.t : "";
+      if (!t || t.length > 40) throw fallo("invalid-argument", "Falta qué pasa.");
+      const datos = x.datos === undefined ? null : x.datos, id = idNuevo();
+      if (docente) escribir(sala + "/eventos/" + id, Object.assign({ t, datos, uid: YO.uid }, typeof x.fichaId === "string" ? { fichaId: x.fichaId } : {}, { creado: ahora }));
+      else {
+        if (t !== "sabotaje") throw fallo("permission-denied", "Eso solo lo puede mandar el equipo docente.");
+        mia(x.fichaId);
+        escribir(sala + "/eventos/" + id, { t, datos, uid: YO.uid, fichaId: x.fichaId, creado: ahora });
+      }
+      trasEscribir(); return { ok: true, id };
+    } else if (x.accion === "responder") {
+      const f = mia(x.fichaId), avatar = x.avatar == null ? "" : x.avatar;
+      if (typeof x.listo !== "boolean") throw fallo("invalid-argument", "Falta si está listo.");
+      if (typeof x.puntos !== "number" || !isFinite(x.puntos) || x.puntos < 0 || x.puntos > 100000) throw fallo("invalid-argument", "Esos puntos no valen.");
+      if (typeof avatar !== "string" || avatar.length > 300 || !/^[A-Za-z0-9_.\/:?=&%~+,;@!*#-]*$/.test(avatar)) throw fallo("invalid-argument", "Ese avatar no vale.");
+      if (x.stats != null && !plano(x.stats)) throw fallo("invalid-argument", "Las cifras tienen que ser un mapa.");
+      const antes = DATOS.get(sala + "/jugadores/" + x.fichaId);
+      if (antes && antes.uid !== YO.uid) throw fallo("permission-denied", "Esa respuesta no es tuya.");
+      escribir(sala + "/jugadores/" + x.fichaId, { projectId: per, fichaId: x.fichaId, uid: YO.uid, alias: String(f.displayName || ""), avatar, listo: x.listo, puntos: x.puntos,
+        stats: x.stats || {}, actualizado: ahora });
+    } else if (x.accion === "quitarRespuesta") {
+      const id = String(x.id || ""), antes = DATOS.get(sala + "/jugadores/" + id);
+      if (!id || id.indexOf("/") >= 0) throw fallo("invalid-argument", "Esa respuesta no es de este grupo.");
+      if (antes && antes.uid !== YO.uid && !docente) throw fallo("permission-denied", "Solo la suya, o el equipo docente.");
+      if (antes) escribir(sala + "/jugadores/" + id, null);
+    } else throw fallo("invalid-argument", "En el simulador no se puede «" + x.accion + "».");
+    trasEscribir(); return { ok: true };
+  }
   return {
     // 7-oct · la investigación del ticket (GamificaPro modConsentimiento / modOlvidarSeudonimo): en el ensayo nadie ha decidido
     // nada y no hay seudónimos que borrar (docs/INVESTIGACION_TICKET.md, §7.6)
@@ -166,10 +216,11 @@ function servidor(S) {
       trasEscribir(); return { ok: true };
     },
     // 8-oct · lo en vivo lo escribe el servidor (GamificaPro: modClase, sala «envivo» de STARGATE): lo mismo que escribía el
-    // navegador en stargate_envivo/{grupo} y stargate_respuestas/{grupo}__{pregunta}__{ficha}. El juego del final (sala «directo»)
-    // sigue escribiéndolo el navegador, y aquí no se simula por esta puerta.
+    // navegador en stargate_envivo/{grupo} y stargate_respuestas/{grupo}__{pregunta}__{ficha}. Y el juego del final (sala
+    // «directo»): stargate_directo/{grupo} (el estado, entero), jugadores/{ficha} y eventos, como lo escribía directoCanal.
     async modClase(x) {
       const per = String(x.projectId || ""), ruta = "stargate_envivo/" + per, ahora = Date.now();
+      if (x.sala === "directo") return directo(x, per, ahora);
       if (x.sala !== "envivo") throw fallo("failed-precondition", "En el simulador no se puede usar esa sala por el servidor.");
       if (x.accion === "poner") {
         if (x.parte !== "sesion" || !x.valor || typeof x.valor !== "object" || Array.isArray(x.valor)) throw fallo("invalid-argument", "Esa parte de la sala no existe.");

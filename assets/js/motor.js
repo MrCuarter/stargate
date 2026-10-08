@@ -2265,7 +2265,7 @@ async function directoYo(perId) {
 function directoCanal(perId, esDocente, yo, alMensaje) {
   const u = auth.currentUser, t0 = Date.now(), fuera = [];
   const sala = doc(db, "stargate_directo", perId);
-  let ultimo = 0, pendiente = null, reloj = null, miDoc = null;
+  let ultimo = 0, pendiente = null, reloj = null, miDoc = null, cola = Promise.resolve();
   // escribir como mucho una vez por segundo por documento (se guarda solo lo último)
   const tanda = (fn) => { pendiente = fn; if (reloj) return; const t = Math.max(0, 1000 - (Date.now() - ultimo));
     reloj = setTimeout(() => { reloj = null; ultimo = Date.now(); const f = pendiente; pendiente = null; f && f().catch(() => {}); }, t); };
@@ -2280,31 +2280,39 @@ function directoCanal(perId, esDocente, yo, alMensaje) {
       alMensaje({ t: "pts", id: j.fichaId, puntos: j.puntos || 0, stats: j.stats || {} }); });
   }, () => {}));
   const limpio = (o) => JSON.parse(JSON.stringify(o));
+  /**
+   * 8-oct · LO ESCRIBE EL SERVIDOR (GamificaPro: `modClase`, sala «directo» del mod; PLAN_CENTRALIZAR fase 6): los mismos documentos
+   * y campos que escribía este navegador. Leer (arriba) sigue siendo directo. El estado y lo del jugador (lo que se escribe «en
+   * tanda») van EN ORDEN, una llamada tras otra: antes las escrituras de Firestore salían en el orden en que se pedían, y con
+   * llamadas sueltas un estado viejo podría pisar a uno nuevo. Los sucesos son independientes, como cuando eran addDoc.
+   */
+  const alServidor = (datos) => llamar("modClase", Object.assign({ projectId: perId, sala: "directo" }, datos));
+  const enOrden = (f) => { const hecha = cola.catch(() => {}).then(f); cola = hecha; return hecha; };
   function enviar(m) {
     if (!u || !m || !m.t) return;
     if (esDocente) {
-      if (m.t === "estado") { const e = limpio(m); delete e.t; tanda(() => setDoc(sala, { projectId: perId, estado: e, actualizado: Date.now() })); return; }
-      addDoc(collection(db, "stargate_directo", perId, "eventos"), { t: m.t, datos: limpio(m), uid: u.uid, creado: Date.now() }).catch(() => {});
+      if (m.t === "estado") { const e = limpio(m); delete e.t; tanda(() => enOrden(() => alServidor({ accion: "poner", parte: "estado", valor: e }))); return; }
+      alServidor({ accion: "evento", t: m.t, datos: limpio(m) }).catch(() => {});
       return;
     }
     if (!yo) return;
     // 5-oct · EL MODO FANTASMA: juega en su móvil como todos, pero no escribe en la sala; la pantalla de la clase no lo ve
     // ni le cuenta en el podio, los equipos o los sabotajes
     if (yo.fantasma) return;
-    if (m.t === "sabotaje") { addDoc(collection(db, "stargate_directo", perId, "eventos"), { t: "sabotaje", datos: { id: yo.id }, uid: u.uid, fichaId: yo.id, creado: Date.now() }).catch(() => {}); return; }
-    miDoc = Object.assign({ projectId: perId, fichaId: yo.id, uid: u.uid, alias: yo.alias, avatar: String(yo.avatar || "").slice(0, 300), listo: false, puntos: 0, stats: {} }, miDoc || {});
+    if (m.t === "sabotaje") { alServidor({ accion: "evento", t: "sabotaje", datos: { id: yo.id }, fichaId: yo.id }).catch(() => {}); return; }
+    // (el alias, el grupo, el uid y la hora los pone el servidor, de la ficha: el mismo alias que exigían las reglas)
+    miDoc = Object.assign({ fichaId: yo.id, avatar: String(yo.avatar || "").slice(0, 300), listo: false, puntos: 0, stats: {} }, miDoc || {});
     if (m.t === "hola") miDoc.listo = m.listo !== false;
     if (m.t === "pts") { miDoc.puntos = Math.max(0, Math.min(100000, Math.round(Number(m.puntos) || 0))); miDoc.stats = limpio(m.stats || {}); }
-    miDoc.actualizado = Date.now();
     const d = Object.assign({}, miDoc);
-    tanda(() => setDoc(doc(db, "stargate_directo", perId, "jugadores", yo.id), d));
+    tanda(() => enOrden(() => alServidor({ accion: "responder", fichaId: d.fichaId, avatar: d.avatar, listo: d.listo, puntos: d.puntos, stats: d.stats })));
   }
   // al volver, lo mío (si ya estaba jugando): lo usa el móvil para retomar sin esperar a la pantalla
   async function mio() {
     if (!yo) return null;
     try { const s = await getDoc(doc(db, "stargate_directo", perId, "jugadores", yo.id)); if (!s.exists()) return null;
       const d = s.data(); if (Date.now() - (Number(d.actualizado) || 0) > 20 * 60 * 1000) return null;
-      if (!miDoc) miDoc = { projectId: perId, fichaId: yo.id, uid: u.uid, alias: yo.alias, avatar: String(yo.avatar || "").slice(0, 300), listo: d.listo === true, puntos: Number(d.puntos) || 0, stats: d.stats || {} };
+      if (!miDoc) miDoc = { fichaId: yo.id, avatar: String(yo.avatar || "").slice(0, 300), listo: d.listo === true, puntos: Number(d.puntos) || 0, stats: d.stats || {} };
       return d; } catch (e) { return null; }
   }
   return { enviar, mio, cerrar: () => fuera.forEach((f) => { try { f(); } catch (e) { /* nada */ } }) };
