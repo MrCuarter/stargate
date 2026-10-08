@@ -1578,11 +1578,18 @@ var buzon = pieza(function (module, exports) {
  *      escribió solo puede dejarlo «nuevo» (el Mando lo vuelve a ver) o «resuelto»; el Mando, el estado que toque, y si
  *      contesta, el aviso de respuesta nueva se enciende (`visto: false`).
  *   🔴 Las capturas, solo de nuestro almacén (firebasestorage.googleapis.com), hasta tres, como piden las reglas.
+ *   · 8-oct · y SUBIRLAS, para quien escriba (Norberto: «cuando se contacta con el mando o ayuda, debes incluir la opción de
+ *     adjuntar captura de pantalla»; «escribas desde donde escribas, debería ir al mismo sitio»): `comprimir(fichero)` (lado
+ *     mayor ≤ 1600 px, JPEG 0,85) y `adjuntar(blob)`, que la deja en `teacher_profiles/<uid>/buzon/<ms>.jpg`: LA MISMA carpeta
+ *     y el mismo formato que la app (src/lib/buzonCapturas.ts). storage.rules ya deja escribir ahí a su dueño, docente o
+ *     estudiante, sin reglas nuevas; y la guardia (`buzon.cjs capturas <id>`) baja las de nuestro Storage, vengan de donde vengan.
  *   · Sin índices compuestos: se ordena aquí, lo último tocado arriba.
  *
- * Puro: `TOPES`, `TEXTOS`, `adjuntos(lista)`. Con `crear(ctx, coleccion)` (ctx = { fs, sesion }; la colección, por defecto
- * `stargate_buzon`): `enviar(m, textos)`, `mios()`, `todos()`, `responder(id, texto, opciones, textos)` y `visto(id)`. Los textos
- * (y cómo se llama el estudiante sin alias) y las frases para valorar una respuesta son de cada web.
+ * Puro: `TOPES`, `TEXTOS`, `adjuntos(lista)`, `rutaCaptura(uid, ms)`; en el navegador, `comprimir(fichero)`. Con
+ * `crear(ctx, coleccion)` (ctx = { fs, sesion, subir }; la colección, por defecto `stargate_buzon`): `enviar(m, textos)`,
+ * `mios()`, `todos()`, `responder(id, texto, opciones, textos)`, `visto(id)` y `adjuntar(blob)` (con `ctx.subir(ruta, blob)` →
+ * su dirección, que pone la web con su Storage). Los textos (y cómo se llama el estudiante sin alias) y las frases para valorar
+ * una respuesta son de cada web.
  * 8-oct (tanda 2c de «adelantar lo de Navidad») · la colección, por su nombre (lo de siempre) o por su SITIO
  * (`GP_SDK.sitio("stargate_buzon", null)`, sdk/sitio.js): si está en `mod_*` (el mapa la ha pasado entera), lo escrito lleva su
  * `mod`, lo que se cambia quita lo del espejo (`ctx.fs.deleteField`) y lo leído vuelve como lo daba la vieja (sin `mod` ni lo del
@@ -1604,6 +1611,29 @@ var buzon = pieza(function (module, exports) {
   function adjuntos(lista) {
     return (lista || []).map(String).filter(function (u) { return /^https:\/\/firebasestorage\.googleapis\.com\//.test(u) && u.length <= TOPES.enlace; })
       .slice(0, TOPES.adjuntos);
+  }
+
+  /** Dónde va una captura: la carpeta de quien la sube, como en la app (lo que deja storage.rules a su dueño). */
+  function rutaCaptura(uid, ms) {
+    var u = String(uid || "");
+    if (!/^[A-Za-z0-9]{1,128}$/.test(u)) throw new Error("No sé dónde guardar la captura.");
+    return "teacher_profiles/" + u + "/buzon/" + Math.floor(Number(ms) || 0) + ".jpg";
+  }
+  /** En el navegador: una imagen → JPEG con el lado mayor ≤ 1600 px y fondo blanco (una captura de móvil, de ~3 MB a ~250 KB). */
+  function comprimir(f) {
+    return new Promise(function (ok, mal) {
+      if (!f || !/^image\//.test(f.type || "")) { mal(new Error("Solo imágenes (una captura, una foto).")); return; }
+      var im = new Image(), u = URL.createObjectURL(f);
+      im.onload = function () {
+        var k = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), cv = document.createElement("canvas");
+        cv.width = Math.max(1, Math.round(im.naturalWidth * k)); cv.height = Math.max(1, Math.round(im.naturalHeight * k));
+        var cx = cv.getContext("2d"); cx.fillStyle = "#fff"; cx.fillRect(0, 0, cv.width, cv.height); cx.drawImage(im, 0, 0, cv.width, cv.height);
+        URL.revokeObjectURL(u);
+        cv.toBlob(function (b) { if (b) ok(b); else mal(new Error("Esa imagen no se ha podido leer.")); }, "image/jpeg", 0.85);
+      };
+      im.onerror = function () { URL.revokeObjectURL(u); mal(new Error("Esa imagen no se ha podido leer.")); };
+      im.src = u;
+    });
   }
 
   function requiere(ctx, nombres) {
@@ -1679,10 +1709,22 @@ var buzon = pieza(function (module, exports) {
       return Promise.resolve().then(function () { return fs.updateDoc(fs.doc(db, B, id), cambio({ visto: true })); }).then(function () {}, function () {});
     }
 
-    return { coleccion: B, enviar: enviar, mios: mios, todos: todos, responder: responder, visto: visto };
+    /** Subir una captura (ya comprimida) → su dirección, para `enviar({ adjuntos })`. Desde cualquier página y cualquier mod. */
+    var ultimoMs = 0;
+    function adjuntar(blob) {
+      return Promise.resolve(sesion()).then(function (yo) {
+        if (!yo) throw new Error(texto(null, "sinSesion"));
+        if (!ctx.subir) throw new Error("GP_SDK.buzon: falta ctx.subir (el Storage de la web)");
+        var ms = Math.max(Date.now(), ultimoMs + 1);   // dos en el mismo milisegundo, con nombres distintos
+        ultimoMs = ms;
+        return ctx.subir(rutaCaptura(yo.uid, ms), blob);
+      });
+    }
+
+    return { coleccion: B, enviar: enviar, mios: mios, todos: todos, responder: responder, visto: visto, adjuntar: adjuntar };
   }
 
-  return { COLECCION: COLECCION, TOPES: TOPES, TEXTOS: TEXTOS, adjuntos: adjuntos, crear: crear };
+  return { COLECCION: COLECCION, TOPES: TOPES, TEXTOS: TEXTOS, adjuntos: adjuntos, rutaCaptura: rutaCaptura, comprimir: comprimir, crear: crear };
 });
 // ─── fin de la pieza «buzon» ───
 });

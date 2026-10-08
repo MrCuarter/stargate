@@ -34,7 +34,11 @@ c(/projectId == 'academia-cero'/.test(REGLAS) && /exists\(\/databases\/\$\(datab
 const BZS = require("./sdk_pieza.js").pieza("buzon");   // (7-oct · el buzón es de GP_SDK.buzon, paso 10)
 c((/d\.adjuntos = adj/.test(MOT) && /firebasestorage\\\.googleapis\\\.com/.test(MOT)) ||
   (/return BUZON_SDK\.enviar\(m, TEXTOS_BUZON\);/.test(MOT) && /if \(adj\.length\) d\.adjuntos = adj;/.test(BZS) && /firebasestorage\\\.googleapis\\\.com/.test(BZS)), "las capturas viajan con el mensaje (solo de nuestro almacén)");
-c(/Añadir una captura/.test(BZ) && /function subirAdj\(\)/.test(BZ) && /function comprimir\(f\)/.test(BZ), "   el buzón tiene el «Añadir una captura» que tenía la Academia (pegar con Ctrl+V incluido)");
+c(/Añadir una captura/.test(BZ) && /function subirAdj\(\)/.test(BZ) && /MOTOR\.buzonComprimir\(f\)/.test(BZ) && /MOTOR\.buzonAdjuntar\(a\.blob\)/.test(BZ) && !/puedeAcademia\(\) \? '<div class=\"bz-adj\"/.test(BZ), "   el buzón tiene el «Añadir una captura» que tenía la Academia (pegar con Ctrl+V incluido); 8-oct · para TODOS los ámbitos, por la vía común (GP_SDK.buzon)");
+// 8-oct · el recluta también (Norberto: «escribas desde donde escribas, debería ir al mismo sitio»): problema e idea, al Mando con capturas
+const NBC = L("assets/js/nebula-chat.js");
+c(/M\.buzonComprimir\(f\)/.test(NBC) && /M\.buzonAdjuntar\(a\.blob\)/.test(NBC) && /if \(urls && urls\.length\) carta\.adjuntos = urls\.slice\(0, 3\);/.test(NBC) && /adjFila\.hidden = c\[0\] === "duda";/.test(NBC),
+  "🔴 el recluta adjunta capturas al problema o la idea que manda al Mando, por la misma vía (misma carpeta, mismo buzón)");
 
 console.log("  La Academia abre el mismo buzón");
 c(/buzon\.html\?desde=academia&embed=1/.test(AJS) && /acd-flota-if/.test(AJS), "la píldora «Pregunta a NEBULA» abre el buzón incrustado, con «La Academia» marcada");

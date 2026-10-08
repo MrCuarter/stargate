@@ -810,8 +810,15 @@ function proyectoDe(perId) {
   return PROYECTOS.get(id);
 }
 const sitioDe = async (vieja, perId) => SDK.sitio(vieja, await proyectoDe(perId));
+/** Una imagen (ya comprimida, JPEG) a Storage → su dirección. Storage se carga aquí y solo aquí, al primer adjunto. */
+async function subirImagen(ruta, blob) {
+  const S = await Promise.reject(new Error("En la consola de ensayo no se suben archivos."));
+  const r = S.ref(S.getStorage(app), ruta);
+  await S.uploadBytes(r, blob, { contentType: "image/jpeg" });
+  return S.getDownloadURL(r);
+}
 const CTX = { fs: { db, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, writeBatch, onSnapshot, deleteField },
-              llamar, sesion, sitio: sitioDe };
+              llamar, sesion, sitio: sitioDe, subir: subirImagen };
 const ALISTARSE = SDK.alistarse.crear(CTX);
 /*
  * Los retos (GP_SDK.retos, paso 8): otorgar (`modOtorgarReto`) y anular (`stargateAnularReto`) por el servidor, el aviso al
@@ -1096,6 +1103,14 @@ async function buzonResponder(id, texto, opciones) {
 }
 /** «Ya lo he leído»: se apaga el aviso de respuesta nueva. */
 async function buzonVisto(id) { await BUZON_SDK.visto(id); }
+/*
+ * 8-oct · LAS CAPTURAS, PARA TODOS (Norberto: «cuando se contacta con el mando o ayuda, debes incluir la opción de adjuntar
+ * captura de pantalla»; «escribas desde donde escribas, debería ir al mismo sitio»). Hasta hoy solo las tenía quien escribía
+ * sobre la Academia, y a otra carpeta. Del SDK (GP_SDK.buzon), lo mismo para todos: comprimir en el navegador y subir a
+ * teacher_profiles/<uid>/buzon/, la carpeta de la app; el docente, la Academia y el recluta.
+ */
+function buzonComprimir(fichero) { return SDK.buzon.comprimir(fichero); }
+async function buzonAdjuntar(blob) { return BUZON_SDK.adjuntar(blob); }
 // 1-oct · «¿Te ha resuelto la duda?»: las dos frases con las que el docente valora una respuesta del Mando, en el aviso de
 // respuestas (aviso-buzon.js) y en el hilo del buzón (buzon.js). Viajan como una respuesta suya más (las reglas ya lo dejan) y
 // la guardia las cuenta LEYENDO ESTA LÍNEA (mando/buzon.cjs → utilidad): un dato, un sitio. No la cambies de forma.
@@ -2172,19 +2187,6 @@ async function academiaEditar(uid, campos) {
 }
 async function academiaQuitar(uid) { await llamar("modFormacion", { mod: "stargate", accion: "quitar", uid }); }
 /**
- * 30-sep · UNA IMAGEN EN «PREGUNTA A NEBULA». Norberto: «añade la posibilidad de añadir adjuntos (arrastrar una imagen): eso
- * te ayudará a detectar errores». Va a la carpeta del grupo de la Academia (projects/<grupo>/mission_submissions/), cuya
- * regla de Storage YA deja a cualquiera con sesión subir una imagen de menos de 10 MB con su uid en el nombre: sin reglas
- * nuevas que desplegar. Llega comprimida desde academia.js. (Storage se carga aquí y solo aquí, al primer adjunto.)
- */
-async function academiaAdjuntar(perId, blob) {
-  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta de Google.");
-  const S = await Promise.reject(new Error("En la consola de ensayo no se suben archivos."));
-  const r = S.ref(S.getStorage(app), "projects/" + perId + "/mission_submissions/academia_" + yo.uid + "_" + Date.now() + ".jpg");
-  await S.uploadBytes(r, blob, { contentType: "image/jpeg" });
-  return S.getDownloadURL(r);
-}
-/**
  * 30-sep · …y le RESPONDE en su hilo (Norberto: «un botón Responder en el hilo de cada docente»). Va a `mando.mensajes`, que
  * solo escribe el Mando (las reglas); el docente lo ve en su hilo, firmado con el nombre de quien organiza.
  */
@@ -2425,7 +2427,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, vigilarMensajesDelSistema, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaResponder, academiaAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaResponder, buzonComprimir, buzonAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo, esDelEquipoDe, pasarAFantasma,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias, cambiarMiComandante, guardarFrase,
