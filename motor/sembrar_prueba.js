@@ -280,7 +280,8 @@ async function main() {
     // 13-sep · su alias, reservado como lo reserva la web (las reglas lo exigen a quien se aliste después)
     const clave = alias.replace(/[A-Z]+/g, m => m.toLowerCase()).trim().replace(/[áàäâãÁÀÄÂÃ]/g, "a").replace(/[éèëêÉÈËÊ]/g, "e").replace(/[íìïîÍÌÏÎ]/g, "i")
       .replace(/[óòöôõÓÒÖÔÕ]/g, "o").replace(/[úùüûÚÙÜÛ]/g, "u").replace(/[ñÑ]/g, "n").replace(/[çÇ]/g, "c").replace(/\//g, "-").replace(/ +/g, " ");
-    await db.collection("stargate_alias").doc(ID + "__" + clave).set({ projectId: ID, uid: uidFalso, alias: alias, creado: Date.now() });
+    // 8-oct (tanda 2) · en mod_alias, con su mod, como lo reserva hoy la web (lo de STARGATE ya vive en mod_*)
+    await db.collection("mod_alias").doc(ID + "__" + clave).set({ projectId: ID, uid: uidFalso, alias: alias, creado: Date.now(), mod: "stargate" });
     await ficha.set({
       userId: uidFalso,
       projectId: ID, displayName: alias,
@@ -369,8 +370,8 @@ async function sembrarZoco(gente) {
   const anuncios = [];
   for (const p of puestas) {
     if (!p.id) continue;
-    const ref = db.collection("stargate_zoco").doc();
-    await ref.set({ projectId: ID, estado: "abierto", vende: quien(p.de), pieza: pieza(p.id), creado: dia(p.hace), ofertas: 0 });
+    const ref = db.collection("mod_zoco").doc();   // 8-oct (tanda 2) · el Zoco de STARGATE, en mod_zoco
+    await ref.set({ projectId: ID, estado: "abierto", vende: quien(p.de), pieza: pieza(p.id), creado: dia(p.hace), ofertas: 0, mod: "stargate" });
     anuncios.push({ ref: ref, vende: p.de, pieza: pieza(p.id) });
   }
 
@@ -393,10 +394,10 @@ async function sembrarZoco(gente) {
       .update({ coins: Math.max(0, t.c.creditos - t.creditos), inventory: quitado });
     const mensajes = [{ de: "comprador", texto: t.mensaje, fecha: dia(2) }];
     if (t.respuesta) mensajes.push({ de: "vendedor", texto: t.respuesta, fecha: dia(1) });
-    await db.collection("stargate_tratos").doc().set({
+    await db.collection("mod_tratos").doc().set({   // 8-oct (tanda 2) · en mod_tratos, con su mod
       projectId: ID, anuncio: t.a.ref.id, vende: quien(t.a.vende), compra: quien(t.c), pieza: t.a.pieza,
       ofrece: ofrece, pide: t.pide || null, paso: t.paso, turno: t.turno, estado: "abierto",
-      mensajes: mensajes, creado: dia(2), actualizado: dia(1), caduca: Date.now() + 5 * 864e5
+      mensajes: mensajes, creado: dia(2), actualizado: dia(1), caduca: Date.now() + 5 * 864e5, mod: "stargate"
     });
     await t.a.ref.update({ ofertas: 1 });
   }

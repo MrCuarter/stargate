@@ -355,7 +355,6 @@ async function sembrarPER(per, alAvanzar) {
  */
 const aliasEnUso = (alias) => "«" + alias + "» ya lo lleva alguien de tu grupo. Elige otro alias (o pulsa el dado para que te sugiera uno).";
 const TEXTOS_ALIAS = { sinSesion: "Entra con tu cuenta antes de alistarte", ocupado: aliasEnUso, sinFicha: "Esa ficha ya no está" };
-const refAlias = (perId, alias) => ALISTARSE.ref(perId, alias);
 const aliasOcupado = (perId, alias, excepto) => ALISTARSE.ocupado(perId, alias, excepto);
 
 /**
@@ -748,8 +747,25 @@ async function miPapel() {
  * ensayo) son las del Firebase de mentira; en el laboratorio, las del emulador. Los textos, los campos y las colecciones de
  * STARGATE se los pone cada función de aquí. Se demuestra que da lo mismo en la batería 138.
  */
+/*
+ * 8-oct (tanda 2 de «adelantar lo de Navidad», GamificaPro PLAN_CENTRALIZAR) · DÓNDE VA CADA COSA DE UN GRUPO: `SDK.sitio`, con
+ * los datos de su proyecto (los de `projects/{grupo}`, leídos una vez). El alias, las reflexiones, los comentarios, el Zoco y los
+ * tratos de STARGATE están ya en `mod_alias`, `mod_reflexiones`, `mod_comentarios`, `mod_zoco` y `mod_tratos` (el mapa de
+ * GamificaPro: `pasadaPara`), en todos los grupos; lo de antes sigue también en las viejas hasta contraer (se borra en las dos).
+ * Lo leído vuelve como lo daban las viejas (`leer`: sin el `mod` ni lo del espejo). Lo mismo que hace la web de DPG.
+ */
+const PROYECTOS = new Map();
+function proyectoDe(perId) {
+  const id = String(perId);
+  if (!PROYECTOS.has(id)) {
+    PROYECTOS.set(id, getDoc(doc(db, "projects", id)).then((p) => (p.exists() ? p.data() : null))
+      .catch((e) => { PROYECTOS.delete(id); throw e; }));
+  }
+  return PROYECTOS.get(id);
+}
+const sitioDe = async (vieja, perId) => SDK.sitio(vieja, await proyectoDe(perId));
 const CTX = { fs: { db, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, writeBatch, onSnapshot, deleteField },
-              llamar, sesion };
+              llamar, sesion, sitio: sitioDe };
 const ALISTARSE = SDK.alistarse.crear(CTX);
 /*
  * Los retos (GP_SDK.retos, paso 8): otorgar (`modOtorgarReto`) y anular (`stargateAnularReto`) por el servidor, el aviso al
@@ -963,7 +979,14 @@ async function darDeBaja(perId, fichaId) {
   try { await deleteDoc(doc(db, "student_profiles", fichaId, "privado", "datos")); } catch (e) {}
   await deleteDoc(doc(db, "student_profiles", fichaId));
   // y su alias queda libre para otro
-  try { const ra = await getDoc(refAlias(perId, f.data().displayName)); if (ra.exists() && ra.data().uid === f.data().userId) await deleteDoc(ra.ref); } catch (e) {}
+  // 8-oct · en su sitio y, hasta contraer, también en la vieja (`antes`)
+  try {
+    const x = await ALISTARSE.reserva(perId, f.data().displayName);
+    for (const ref of [x.ref, x.antes].filter(Boolean)) {
+      const ra = await getDoc(ref).catch(() => null);
+      if (ra && ra.exists() && ra.data().uid === f.data().userId) await deleteDoc(ra.ref).catch(() => {});
+    }
+  } catch (e) {}
 }
 
 /**
@@ -1024,9 +1047,9 @@ const BUZON_VALORA = {"si": "✓ Me ha resuelto la duda.", "mas": "Necesito algo
  *
  * Norberto: «en los retos en los que tienen que compartir una breve reflexión… que lo respondan directamente
  * sobre el reto… y que puedan ver el del resto de sus compañeros así como el enlace (servirá de ejemplo) y
- * responderse/comentar». Una reflexión por recluta y reto (`stargate_reflexiones/{grupo__reto__ficha}`): la escribe
+ * responderse/comentar». Una reflexión por recluta y reto (`mod_reflexiones/{grupo__reto__ficha}`, 8-oct; antes stargate_reflexiones): la escribe
  * su dueño, la ve el grupo por su alias (aquí no hay nombres ni correos) y la quita su dueño o el profesorado. Los
- * comentarios (`stargate_comentarios`), cortos: los quita su autor, el dueño de la reflexión o el profesorado. Las
+ * comentarios (`mod_comentarios`, 8-oct; antes stargate_comentarios), cortos: los quita su autor, el dueño de la reflexión o el profesorado. Las
  * reglas viven en GamificaPro (firestore.rules); qué retos la llevan, en `_site_data.py → REFLEXION_RETOS`.
  */
 /*
@@ -1055,7 +1078,8 @@ async function comentariosDe(perId, reto) {
 async function comentar(perId, reflexionId, reto, fichaId, texto) {
   return RETOS.comentar(perId, reflexionId, reto, fichaId, texto, TEXTOS_RETOS);
 }
-async function borrarComentario(id) { await RETOS.borrarComentario(id); }
+/** 8-oct · con su grupo (`perId`), para quitarlo de su sitio (mod_comentarios) y, hasta contraer, de la vieja. */
+async function borrarComentario(id, perId) { await RETOS.borrarComentario(id, perId); }
 /**
  * Quitar una reflexión: primero sus comentarios (si no, se quedarían colgando de nada) y luego ella. Lo hace su dueño
  * (al deshacer el reto) o el profesorado (para moderar). Un comentario que no se pueda quitar no para lo demás.
@@ -1761,15 +1785,21 @@ async function presentesDeHoy(perId) {
  * Aquí solo se LEE —lo puesto en el Zoco del grupo y mis tratos— y se PIDE: poner, ofertar,
  * responder. Nada de esto toca créditos ni inventario desde el navegador.
  */
+/** 8-oct · el Zoco y los tratos del grupo, en su sitio (`sitioDe`); cada uno, como lo daba la vieja. */
+const delZoco = async (perId) => {
+  const [Z, T] = await Promise.all([sitioDe("stargate_zoco", perId), sitioDe("stargate_tratos", perId)]);
+  return { Z, T, z: collection(db, Z.coleccion), t: collection(db, T.coleccion) };
+};
+const conId = (s) => (d) => ({ id: d.id, ...s.leer(d.data()) });
 async function zocoDatos(perId) {
   const yo = await sesion();
-  const T = collection(db, "stargate_tratos");
+  const C = await delZoco(perId), T = C.t;
   const [anuncios, vendo, compro] = await Promise.all([
-    getDocs(query(collection(db, "stargate_zoco"), where("projectId", "==", perId), where("estado", "==", "abierto"))),
+    getDocs(query(C.z, where("projectId", "==", perId), where("estado", "==", "abierto"))),
     yo ? getDocs(query(T, where("projectId", "==", perId), where("vende.uid", "==", yo.uid))) : Promise.resolve({ docs: [] }),
     yo ? getDocs(query(T, where("projectId", "==", perId), where("compra.uid", "==", yo.uid))) : Promise.resolve({ docs: [] })
   ]);
-  let tratos = vendo.docs.concat(compro.docs).map(d => ({ id: d.id, ...d.data() }));
+  let tratos = vendo.docs.concat(compro.docs).map(conId(C.T));
   // un trato mío que caducó sin respuesta: se le pide al servidor que lo cierre (y devuelva lo
   // apartado) antes de enseñarlo. Sin tareas programadas: la caducidad es perezosa.
   const caducados = tratos.filter(t => t.estado === "abierto" && Number(t.caduca || 0) < Date.now());
@@ -1781,13 +1811,13 @@ async function zocoDatos(perId) {
     } finally { zocoDatos._cerrando = false; }
   }
   tratos = tratos.sort((a, b) => Number(b.actualizado || b.creado || 0) - Number(a.actualizado || a.creado || 0));
-  return { uid: yo ? yo.uid : "", anuncios: anuncios.docs.map(d => ({ id: d.id, ...d.data() }))
+  return { uid: yo ? yo.uid : "", anuncios: anuncios.docs.map(conId(C.Z))
     .sort((a, b) => Number(b.creado || 0) - Number(a.creado || 0)), tratos };
 }
 /** Todos los tratos del grupo (el docente): el registro y deshacer. */
 async function zocoTratosGrupo(perId) {
-  const r = await getDocs(query(collection(db, "stargate_tratos"), where("projectId", "==", perId)));
-  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => Number(b.actualizado || 0) - Number(a.actualizado || 0));
+  const C = await delZoco(perId), r = await getDocs(query(C.t, where("projectId", "==", perId)));
+  return r.docs.map(conId(C.T)).sort((a, b) => Number(b.actualizado || 0) - Number(a.actualizado || 0));
 }
 /**
  * 20-sep · LO PUESTO EN EL ZOCO DE UN GRUPO, para el profesorado. La ficha de cada recluta dice qué tiene puesto a
@@ -1795,8 +1825,8 @@ async function zocoTratosGrupo(perId) {
  * Zoco lo cruza con los tratos. Lo abierto y lo cerrado: retirar algo también es parte de la historia.
  */
 async function zocoAnunciosGrupo(perId) {
-  const r = await getDocs(query(collection(db, "stargate_zoco"), where("projectId", "==", perId)));
-  return r.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => Number(b.creado || 0) - Number(a.creado || 0));
+  const C = await delZoco(perId), r = await getDocs(query(C.z, where("projectId", "==", perId)));
+  return r.docs.map(conId(C.Z)).sort((a, b) => Number(b.creado || 0) - Number(a.creado || 0));
 }
 const zocoPoner = (perId, piezas) => llamar("stargateZocoPoner", { projectId: perId, piezas });
 const zocoRetirar = (anuncioId) => llamar("stargateZocoRetirar", { anuncioId });

@@ -1430,7 +1430,7 @@
     var caja = b.closest(".sgp-caja");
     b.disabled = true;
     if (b.hasAttribute("data-rfquitarcom")) {
-      try { await MOTOR.borrarComentario(b.getAttribute("data-rfquitarcom")); } catch (e) { b.disabled = false; return avisoFicha(e.message); }
+      try { await MOTOR.borrarComentario(b.getAttribute("data-rfquitarcom"), PER); } catch (e) { b.disabled = false; return avisoFicha(e.message); }
       var lista = b.closest(".sgp-rf-coms"), linea = b.closest("p");
       if (linea) linea.remove();
       if (lista) { var n = lista.querySelectorAll("p").length, s = lista.querySelector("summary");

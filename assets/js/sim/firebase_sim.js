@@ -180,7 +180,8 @@ function servidor(S) {
       }
       if (x.accion === "baja") {
         escribir(ruta + "/privado/datos", null); escribir(ruta, null);
-        resolverConsulta(query(collection(DB, "stargate_alias"), where("projectId", "==", x.projectId), where("uid", "==", f.userId))).forEach(([r]) => escribir(r, null));
+        // 8-oct (tanda 2) · el alias de STARGATE vive en mod_alias (GamificaPro: `pasadaPara` del mapa)
+        resolverConsulta(query(collection(DB, "mod_alias"), where("projectId", "==", x.projectId), where("uid", "==", f.userId))).forEach(([r]) => escribir(r, null));
         trasEscribir(); return { ok: true };
       }
       const e = new Error("En el ensayo no se puede mover a nadie de grupo: solo hay un grupo. En los tuyos de verdad, sí."); e.code = "functions/failed-precondition"; throw e;

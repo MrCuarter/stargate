@@ -57,6 +57,17 @@ for (const k of Object.keys(D)) {
     D[m[1] + "/" + B + "__" + m[2]] = Object.assign(JSON.parse(JSON.stringify(D[k])), { projectId: B });
 }
 D["stargate_alias/" + B + "__reservado sin ficha"] = { projectId: B, uid: "alguien", alias: "Reservado Sin Ficha", creado: 1 };
+// 8-oct (tanda 2 de «adelantar lo de Navidad») · el alias, las reflexiones, los comentarios, el Zoco y los tratos de STARGATE viven en
+// mod_* con el motor de ahora. Lo de antes de pasar está en LAS DOS, como lo deja el espejo (la vieja, y su copia en mod_* con su
+// `mod` y lo del espejo): el motor de antes lo lee de la vieja; el de ahora, de mod_*
+const PASADAS = /^(?:stargate|mod)_(alias|reflexiones|comentarios|zoco|tratos)\/(.+)$/;
+for (const k of Object.keys(D)) {
+  const m = k.match(PASADAS);
+  if (!m) continue;
+  const viejo = Object.assign({}, D[k]); delete viejo.mod; delete viejo.espejoDe; delete viejo.espejoHora;
+  D["stargate_" + m[1] + "/" + m[2]] = viejo;
+  D["mod_" + m[1] + "/" + m[2]] = Object.assign({}, viejo, { mod: "stargate", espejoDe: "stargate_" + m[1] + "/" + m[2], espejoHora: 1 });
+}
 globalThis.__SG_BUZON_ABIERTO = OPC.indexOf("--buzon") >= 0;
 // 8-oct · --ensayo: las funciones del servidor son las que SIMULA la consola de ensayo (modFormacion, modClase…), no el mostrador; y
 // el guion es el de la Academia y lo en vivo (batería 143), que antes se escribían desde el navegador y ahora van por el servidor
@@ -422,9 +433,17 @@ await new Promise((r) => setTimeout(r, 20));
 const tocado = (JSON.parse(guardado["sgEnsayo.db"] || "{}").c) || {};
 // 8-oct (tarde) · lo en vivo y el juego del final viven en mod_* (con su `mod`) con el motor de ahora: se apuntan con su nombre de
 // siempre y sin el `mod`, para comparar documento a documento con lo que escribía el de antes
-const comoSiempre = (k) => k.replace(/^mod_(envivo|respuestas|directo)\//, "stargate_$1/");
-Object.keys(tocado).map((k) => [comoSiempre(k), k]).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
-  .forEach(([nombre, k]) => apunta("tocado · " + nombre, nombre === k ? tocado[k] : sinMod(tocado[k])));
+// (8-oct, tanda 2 · también el alias, las reflexiones, los comentarios, el Zoco y los tratos; lo que el de ahora BORRA en los dos sitios
+// —hasta contraer—, una vez: el de antes lo borraba en uno)
+const comoSiempre = (k) => k.replace(/^mod_(envivo|respuestas|directo|alias|reflexiones|comentarios|zoco|tratos)\//, "stargate_$1/");
+const yaApuntado = {};
+Object.keys(tocado).map((k) => [comoSiempre(k), k]).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] < b[1] ? -1 : 1))
+  .forEach(([nombre, k]) => {
+    const v = nombre === k ? tocado[k] : sinMod(tocado[k]);
+    if (nombre in yaApuntado && JSON.stringify(yaApuntado[nombre]) === JSON.stringify(v)) return;
+    yaApuntado[nombre] = v;
+    apunta("tocado · " + nombre, v);
+  });
 apunta("avisos del documento", avisos);
 apunta("lo que queda en el navegador", Object.keys(guardado).filter((k) => k !== "sgEnsayo.db").sort().map((k) => [k, guardado[k]]));
 fs.rmSync(tmp, { recursive: true, force: true });

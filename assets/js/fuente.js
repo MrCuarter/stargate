@@ -625,7 +625,7 @@
                 return M.comentar(cuerpo.per, cuerpo.reflexion, cuerpo.reto, ficha.id, t3).then(function (id) { return { ok: true, id: id }; });
               }
               if (cuerpo.accion === "borrarComentario")
-                return M.borrarComentario(cuerpo.id).then(function () { return { ok: true }; });
+                return M.borrarComentario(cuerpo.id, cuerpo.per).then(function () { return { ok: true }; });
 
               /**
                * 15-sep (noche) · LOS LOGROS DE A BORDO. Los decide el servidor (`stargateHitos`); si una cubierta

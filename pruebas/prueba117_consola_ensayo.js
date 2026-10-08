@@ -59,7 +59,7 @@ c(DATOS.yo.correo === "docente@ensayo.invalid" && (P.coTeacherEmails || []).inde
   (V.docentes || []).some(d => d.correo === DATOS.yo.correo && d.rol === "referente" && d.imparte === true),
   "🔴 el docente de ensayo es referente que imparte en ese grupo (ve la consola entera)");
 const fichas = Object.keys(DATOS.docs).filter(k => /^student_profiles\/[^/]+$/.test(k));
-c(fichas.length === 30 && Object.keys(DATOS.docs).some(k => /^stargate_tratos\//.test(k)) && DATOS.docs["projects/nave-escuela/privado/tickets"],
+c(fichas.length === 30 && Object.keys(DATOS.docs).some(k => /^mod_tratos\//.test(k))   /* 8-oct (tanda 2) · en mod_tratos */ && DATOS.docs["projects/nave-escuela/privado/tickets"],
   "   30 reclutas, el Zoco con tratos vivos y los tickets de salida", fichas.length);
 c(Number(DATOS.generado) > 1.7e12 && /^\d{4}-\d{2}-\d{2}-\d+$/.test(DATOS.v), "   la semilla dice cuándo se sembró (para correr las fechas)");
 

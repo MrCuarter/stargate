@@ -51,7 +51,10 @@ c(/const REFLEX = "stargate_reflexiones", COMENT = "stargate_comentarios"/.test(
 c(/function idReflexion\(perId, reto, fichaId\) \{ return perId \+ "__" \+ reto \+ "__" \+ fichaId; \}/.test(M) ||
   retosSDK && /const idReflexion = SDK\.retos\.idReflexion;/.test(M) && /function idReflexion\(grupo, reto, fichaId\) \{ return grupo \+ "__" \+ reto \+ "__" \+ fichaId; \}/.test(RT), "   una por recluta y reto (grupo__reto__ficha)");
 c(/async function borrarReflexion[\s\S]{0,600}where\("reflexion", "==", id\)[\s\S]{0,300}deleteDoc\(doc\(db, REFLEX, id\)\)/.test(M) ||
-  retosSDK && /RETOS\.borrarReflexion\(perId, reto, fichaId\)/.test(M) && /function borrarReflexion[\s\S]{0,600}fs\.where\("reflexion", "==", SS\[0\]\.id\(id\)\)[\s\S]{0,400}fs\.deleteDoc\(fs\.doc\(db, SS\[0\]\.col, SS\[0\]\.id\(id\)\)\)/.test(RT) && /function en\(vieja, grupo\) \{\s*if \(!ctx\.sitio \|\| grupo == null\) return Promise\.resolve\(\{ col: vieja, id: String,/.test(RT),
+  retosSDK && /RETOS\.borrarReflexion\(perId, reto, fichaId\)/.test(M) && (/function borrarReflexion[\s\S]{0,600}fs\.where\("reflexion", "==", SS\[0\]\.id\(id\)\)[\s\S]{0,400}fs\.deleteDoc\(fs\.doc\(db, SS\[0\]\.col, SS\[0\]\.id\(id\)\)\)/.test(RT)
+    // 8-oct (tanda 2) · sus comentarios en su sitio y en la vieja, y después ella, en las dos (hasta contraer)
+    || /function borrarReflexion[\s\S]{0,900}fs\.where\("reflexion", "==", SS\[0\]\.id\(id\)\)[\s\S]{0,500}return borrarEnLosDos\(SS\[0\], id\)/.test(RT)
+      && /function borrarEnLosDos\(S, id\) \{\s*return fs\.deleteDoc\(fs\.doc\(db, S\.col, S\.id\(id\)\)\)/.test(RT)) && /function en\(vieja, grupo\) \{\s*if \(!ctx\.sitio \|\| grupo == null\) return Promise\.resolve\(\{ col: vieja, id: String,/.test(RT),
   "   quitar una reflexión quita antes sus comentarios (si no, se quedarían colgando)");
 c(["guardarReflexion", "reflexionesDe", "misReflexiones", "comentariosDe", "comentar", "borrarComentario", "borrarReflexion", "enlaceDeReflexion"]
   .every(f => new RegExp("\\b" + f + ",").test(trozo(M, "window.SG.MOTOR = {", 3000))), "   y todo se exporta en window.SG.MOTOR");

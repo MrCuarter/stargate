@@ -123,12 +123,12 @@ const TEXTOS = {
           }
         }
         if (rf && TEXTOS[reto]) {
-          const ref = db.collection("stargate_reflexiones").doc(ID + "__" + reto + "__" + d.id);
+          const ref = db.collection("mod_reflexiones").doc(ID + "__" + reto + "__" + d.id);   // 8-oct (tanda 2) · en mod_reflexiones
           if (!(await ref.get()).exists) {
-            const dat = { projectId: ID, reto, fichaId: d.id, uid: f.userId, texto: TEXTOS[reto][k % TEXTOS[reto].length], creado: cuando, editado: cuando };
+            const dat = { projectId: ID, reto, fichaId: d.id, uid: f.userId, texto: TEXTOS[reto][k % TEXTOS[reto].length], creado: cuando, editado: cuando, mod: "stargate" };
             if (enlace) dat.enlace = enlace;
             if (!ENSAYO) await ref.set(dat);
-            hechos.push("stargate_reflexiones/" + ref.id); nRf++;
+            hechos.push("mod_reflexiones/" + ref.id); nRf++;
           }
         }
       }
