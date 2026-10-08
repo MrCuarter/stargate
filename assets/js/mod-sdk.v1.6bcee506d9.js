@@ -1,12 +1,14 @@
-/* GamificaPro · mod-sdk v1 — GENERADO por scripts/build-sdk.mjs (npm run build:sdk) desde sdk/semanas.js, sdk/llamar.js, sdk/papel.js, sdk/alistarse.js, sdk/premios.js, sdk/asistencia.js, sdk/votacion.js, sdk/retos.js, sdk/equipo.js, sdk/buzon.js, sdk/economia.js, sdk/sitio.js.
+/* GamificaPro · mod-sdk v1 — GENERADO por scripts/build-sdk.mjs (npm run build:sdk) desde sdk/semanas.js, sdk/llamar.js, sdk/papel.js, sdk/alistarse.js, sdk/premios.js, sdk/asistencia.js, sdk/votacion.js, sdk/retos.js, sdk/equipo.js, sdk/buzon.js, sdk/economia.js, sdk/sitio.js, sdk/conectar.js, sdk/grupos.js.
  * No se edita a mano ni en las webs: se cambian las piezas en GamificaPro y se genera otro paquete (otra huella).
  * Sin claves, sin textos y sin colores de ningún mod. Deja window.GP_SDK (o module.exports en Node):
  *   GP_SDK.semanas                         la receta de las semanas (la de window.SGSEMANAS)
  *   GP_SDK.llamador(nombre => callable)    → llamar(nombre, datos), con los errores marcados por código
  *   GP_SDK.errores                         { codigo, delServidor, sinDesplegar, es, CODIGOS }
  *   GP_SDK.papel(llamar)                   → { miPapel(uid), olvidar() };  GP_SDK.papelDe(respuesta, mod) → { vitalicio, mando }
- *   GP_SDK.<pieza>.crear({ fs, llamar, sesion })   las piezas con ctx: alistarse, premios, asistencia, votacion, retos, equipo, buzon, economia
+ *   GP_SDK.<pieza>.crear({ fs, llamar, sesion })   las piezas con ctx: alistarse, premios, asistencia, votacion, retos, equipo, buzon, economia, grupos
  *   GP_SDK.sitio(vieja, proyecto)          → { coleccion, nueva, id(), datos(), mod }: dónde van los datos de ese grupo
+ *   GP_SDK.conectar({ mod, firebase, … })  → { EMU, app, auth, db, fns, google, entrar, entrarComo, salir }: Firebase, la entrada con Google
+ *                                            y el candado del emulador (demo-<mod>); recibe las funciones de Firebase de la web
  */
 (function (raiz) {
 function pieza(cuerpo) { var module = { exports: {} }; cuerpo.call({}, module, module.exports); return module.exports; }
@@ -1110,6 +1112,11 @@ var retos = pieza(function (module, exports) {
  *     profesorado). Las reglas viven en firestore.rules. En DPG las reflexiones las escribe el servidor al registrar.
  *   · LOS AVISOS al estudiante (`notifications`, la bandeja de GamificaPro: la crea cualquiera con sesión; la lee y la marca su
  *     destinatario): el porqué de validar o anular. Cada mod marca los suyos con su campo (`campo`: «stargate», «ceniza»…).
+ *   · 7-oct · LOS MENSAJES DEL SISTEMA (functions/modMensajes.js, `enviarMensajeDelSistema`): los escribe el servidor, firmados
+ *     por la voz de cada mod (STARGATE: NEBULA), con `modSistema: { voz, mod, para, fichaId… }`. Al estudiante le llega con la
+ *     marca de su mod, como los demás; a su docente, otro aparte (`para: 'docente'`, sin la marca). Lo puro: `delSistema(x)` y
+ *     `remitente(x, porDefecto)` (quién firma: «NEBULA» en vez de «tu Comandante»); para la consola del docente,
+ *     `avisosDelSistema(grupo)` y `vigilarAvisosDelSistema(grupo, alCambiar, uid)` (los suyos sin leer de ese grupo).
  *
  * Con `crear(ctx)` (ctx = { fs, llamar, sesion, sitio? }). Los textos y los títulos son de cada web.
  * 7-oct · `ctx.sitio` (opcional): (vieja, grupo) → el `GP_SDK.sitio(vieja, datos del grupo)` de ese grupo (o una promesa de él).
@@ -1131,6 +1138,12 @@ var retos = pieza(function (module, exports) {
     sinDestino: "No sé a quién mandárselo.",
   };
   function texto(t, k) { return (t && t[k] != null) ? String(t[k]) : TEXTOS[k]; }
+  /** 7-oct · El bloque de un mensaje del sistema (`modSistema`), o null si lo escribió una persona. */
+  function delSistema(x) { var s = x && x.modSistema; return s && typeof s === "object" && s.voz ? s : null; }
+  /** Quién firma un aviso: la voz del sistema si es suyo; si no, `porDefecto` (lo de cada web: «tu Comandante», «tu docente»…). */
+  function remitente(x, porDefecto) { var s = delSistema(x); return s ? String(s.voz) : porDefecto; }
+  /** ¿Es la copia que recibe el docente (a quién se lo dijo la voz y qué)? */
+  function paraDocente(x) { var s = delSistema(x); return !!(s && s.para === "docente"); }
   function idReflexion(grupo, reto, fichaId) { return grupo + "__" + reto + "__" + fichaId; }
 
   function requiere(ctx, nombres) {
@@ -1214,6 +1227,14 @@ var retos = pieza(function (module, exports) {
       return fs.onSnapshot(consultaAvisos(grupo, uid), function (r) { alCambiar(sinLeer(r.docs, campo)); }, function () { alCambiar([]); });
     }
     function avisoLeido(id) { return fs.updateDoc(fs.doc(db, "notifications", String(id)), { read: true }); }
+    /** 7-oct · Para la consola del docente: los mensajes del sistema sobre su alumnado de este grupo, sin leer, el último arriba. */
+    function avisosDelSistema(grupo) {
+      return misAvisos(grupo, null).then(function (l) { return l.filter(paraDocente); });
+    }
+    /** Los mismos, en directo (para `uid`, el de quien ha entrado) → dejar de escuchar. */
+    function vigilarAvisosDelSistema(grupo, alCambiar, uid) {
+      return vigilarAvisos(grupo, null, function (l) { alCambiar(l.filter(paraDocente)); }, uid);
+    }
 
     // ---------------------------------------------------------------- las reflexiones
     function guardarReflexion(grupo, reto, fichaId, txt, enlace, textos) {
@@ -1298,12 +1319,14 @@ var retos = pieza(function (module, exports) {
 
     return { idMision: idMision, registrar: registrar, anular: anular, otorgar: otorgar,
              avisar: avisar, misAvisos: misAvisos, vigilarAvisos: vigilarAvisos, avisoLeido: avisoLeido,
+             avisosDelSistema: avisosDelSistema, vigilarAvisosDelSistema: vigilarAvisosDelSistema,
              guardarReflexion: guardarReflexion, enlaceDeReflexion: enlaceDeReflexion, reflexionesDe: reflexionesDe,
              misReflexiones: misReflexiones, borrarReflexion: borrarReflexion,
              comentariosDe: comentariosDe, comentar: comentar, borrarComentario: borrarComentario };
   }
 
-  return { REFLEX: REFLEX, COMENT: COMENT, TOPES: TOPES, TEXTOS: TEXTOS, idReflexion: idReflexion, crear: crear };
+  return { REFLEX: REFLEX, COMENT: COMENT, TOPES: TOPES, TEXTOS: TEXTOS, idReflexion: idReflexion, crear: crear,
+           delSistema: delSistema, remitente: remitente, paraDocente: paraDocente };
 });
 // ─── fin de la pieza «retos» ───
 });
@@ -1715,15 +1738,267 @@ var sitio = pieza(function (module, exports) {
 });
 // ─── fin de la pieza «sitio» ───
 });
+var conectar = pieza(function (module, exports) {
+// ─── GP_SDK pieza «conectar» (sdk/conectar.js), tal cual ───
+'use strict';
+/**
+ * GAMIFICAPRO · CONECTAR: FIREBASE, LA ENTRADA CON GOOGLE Y EL CANDADO DEL EMULADOR (7-oct-2026) — pieza del SDK v1 (fase 5 de
+ * docs/PLAN_CENTRALIZAR.md, §2d: «conectar({mod, firebase})»).
+ *
+ * Las dos centralitas (STARGATE y DPG, `assets/js/motor.js`) abrían Firebase igual, cada una con su copia: la app, Auth,
+ * Firestore y Functions; el selector de cuentas de Google SIEMPRE (`prompt: select_account`: quien tiene dos cuentas, la de
+ * docente y la de alumno, acababa dentro con la equivocada sin saberlo); y el laboratorio, que conecta los tres emuladores. Aquí,
+ * una vez. El SDK no importa Firebase ni lleva claves: la web le pasa sus funciones (`firebase`), las de verdad o las del simulador.
+ *
+ *   var web = GP_SDK.conectar({
+ *     mod: "stargate",                  // el mod: de aquí sale el proyecto del emulador, `demo-<mod>`
+ *     firebase: { initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut,
+ *                 getFirestore, getFunctions, connectAuthEmulator, connectFirestoreEmulator, connectFunctionsEmulator,
+ *                 signInAnonymously, terminate },   // (la 1.ª, solo si la web deja entrar sin cuenta; la 2.ª, con cerrarAlSalir)
+ *     config: window.SG_FIREBASE,       // la configuración de producción
+ *     emu: window.SG_EMU === true,      // la página PIDE el laboratorio (el candado de abajo decide si se le hace caso)
+ *   });
+ *   → { mod, EMU, proyecto, app, auth, db, fns, google, entrar(), entrarInvitado()?, entrarComo(correo, nombre), salir() }
+ *
+ * 🔴 EL CANDADO DEL EMULADOR. Se conectan los emuladores (y se deja la configuración de verdad) solo si valen los TRES a la vez:
+ *   1. la página se sirve desde 127.0.0.1 o localhost (`host`; por defecto, `location.hostname`);
+ *   2. la web lo pide (`emu: true`);
+ *   3. el proyecto se llama `demo-<mod>` (o `demo-<mod>-<algo>`, para varios laboratorios a la vez): Firebase garantiza que un id
+ *      que empieza por «demo-» NUNCA habla con servicios reales. Si el proyecto pedido (`puertos.proyecto`) no cuadra, el SDK LANZA
+ *      un error: antes de que la petición pudiera caer en el de verdad.
+ *   Si falta el 1 o el 2, la página no está en el laboratorio: `EMU` es false y se usa `config` (si no hay y la web la exige con
+ *   `exigirConfig`, error con `textos.sinConfig`).
+ *
+ * Opciones (cada una existe porque las dos webs de hoy hacían algo distinto a propósito):
+ *   · `puertos`          { auth, firestore, functions, proyecto } de los emuladores. Por defecto, los estándar de Firebase
+ *                        (9099, 8080, 5001) y `demo-<mod>`. DPG usa otros (9109, 8180, 5101) para no chocar con STARGATE.
+ *   · `region`           la región de Functions (DPG: "us-central1"); sin ella, `getFunctions(app)` como STARGATE.
+ *   · `conservarConfig`  en el laboratorio, mezcla `config` con lo demo (STARGATE); si no, solo lo demo (DPG).
+ *   · `exigirConfig`     fuera del laboratorio, sin `config` es un error (DPG); si no, se sigue con `{}` (STARGATE).
+ *   · `cerrarAlSalir`    en el laboratorio, cierra el cliente de Firestore al salir de la página (`pagehide`; DPG: el emulador
+ *                        solo aguanta 6 conexiones HTTP/1.1 por servidor). Pide `firebase.terminate` y `ventana` (por defecto,
+ *                        `window`).
+ *   · `textos`           { sinConfig, soloLaboratorio } para decir lo mismo que decía cada web.
+ * La escucha de la sesión (`onAuthStateChanged`) y lo que se recuerda al salir (localStorage) son de cada web: la sesión de
+ * STARGATE no tiene invitados y la de DPG sí. `auth` va en el resultado para que cada una enganche la suya.
+ */
+(function (raiz, fabrica) {
+  if (typeof module === "object" && module.exports) module.exports = fabrica();
+  else raiz.GPCONECTAR = fabrica();
+})(typeof self !== "undefined" ? self : this, function () {
+  var LOCAL = /^(127\.0\.0\.1|localhost)$/;
+  var PUERTOS = { auth: 9099, firestore: 8080, functions: 5001 };
+  var TEXTOS = {
+    sinConfig: "GP_SDK.conectar: fuera del laboratorio hace falta la configuración de Firebase (`config`)",
+    soloLaboratorio: "solo en el laboratorio",
+  };
+
+  function requiere(fb, nombres) {
+    if (!fb) throw new Error("GP_SDK.conectar: falta `firebase` (las funciones de Firebase de la web)");
+    nombres.forEach(function (n) { if (!fb[n]) throw new Error("GP_SDK.conectar: falta firebase." + n); });
+    return fb;
+  }
+  /** El proyecto del emulador de ese mod: `demo-<mod>` o `demo-<mod>-<algo>`. */
+  function proyectoValido(mod, proyecto) {
+    var p = String(proyecto || ""), base = "demo-" + mod;
+    return p === base || (p.indexOf(base + "-") === 0 && p.length > base.length + 1 && /^[a-z0-9-]+$/.test(p));
+  }
+
+  function conectar(o) {
+    o = o || {};
+    var mod = String(o.mod || "");
+    if (!/^[a-z][a-z0-9]*$/.test(mod)) throw new Error("GP_SDK.conectar: falta `mod` (por ejemplo «stargate»)");
+    var fb = requiere(o.firebase, ["initializeApp", "getAuth", "GoogleAuthProvider", "signInWithPopup", "signInWithCredential",
+      "signOut", "getFirestore", "getFunctions", "connectAuthEmulator", "connectFirestoreEmulator", "connectFunctionsEmulator"]);
+    var textos = Object.assign({}, TEXTOS, o.textos || {});
+    var host = o.host != null ? String(o.host) : (typeof location !== "undefined" && location ? String(location.hostname || "") : "");
+
+    // los tres cerrojos: en un sitio que no es de pruebas el laboratorio no existe
+    var EMU = o.emu === true && LOCAL.test(host);
+    var puertos = Object.assign({}, PUERTOS, { proyecto: "demo-" + mod }, o.puertos || {});
+    if (EMU && !proyectoValido(mod, puertos.proyecto)) {
+      throw new Error("GP_SDK.conectar: en el laboratorio el proyecto tiene que llamarse demo-" + mod + " (o demo-" + mod +
+        "-algo), y no «" + puertos.proyecto + "»: solo un id «demo-…» garantiza que no se habla con servicios reales");
+    }
+    if (!EMU && o.exigirConfig === true && !o.config) throw new Error(textos.sinConfig);
+
+    var cfg = EMU
+      ? Object.assign({}, o.conservarConfig === true ? (o.config || {}) : {},
+        { projectId: puertos.proyecto, apiKey: "demo-api-key", authDomain: puertos.proyecto + ".firebaseapp.com" })
+      : (o.config || {});
+    var app = fb.initializeApp(cfg);
+    var auth = fb.getAuth(app);
+    var db = fb.getFirestore(app);
+    var fns = o.region ? fb.getFunctions(app, o.region) : fb.getFunctions(app);
+    var google = new fb.GoogleAuthProvider();
+    // 🔴 El selector de cuentas SIEMPRE: sin esto Google entra en silencio con la última cuenta usada.
+    google.setCustomParameters({ prompt: "select_account" });
+    if (EMU) {
+      fb.connectAuthEmulator(auth, "http://127.0.0.1:" + puertos.auth, { disableWarnings: true });
+      fb.connectFirestoreEmulator(db, "127.0.0.1", puertos.firestore);
+      fb.connectFunctionsEmulator(fns, "127.0.0.1", puertos.functions);
+      if (o.cerrarAlSalir === true) {
+        if (!fb.terminate) throw new Error("GP_SDK.conectar: `cerrarAlSalir` pide firebase.terminate");
+        var ventana = o.ventana || (typeof window !== "undefined" ? window : null);
+        if (!ventana) throw new Error("GP_SDK.conectar: `cerrarAlSalir` pide `ventana`");
+        ventana.addEventListener("pagehide", function () { fb.terminate(db).catch(function () {}); });
+      }
+    }
+
+    var web = {
+      mod: mod, EMU: EMU, proyecto: cfg.projectId, app: app, auth: auth, db: db, fns: fns, google: google,
+      /** La ventana de Google, con el selector de cuentas. Si se cierra o se cancela, lanza el error de Firebase tal cual. */
+      entrar: async function () { var r = await fb.signInWithPopup(auth, google); return r.user; },
+      /**
+       * Entrar como alguien, SIN ventana de Google: solo existe en el laboratorio. El emulador de Auth acepta un «token de
+       * Google» que es un JSON sin firmar; en producción esto sería imposible. No hay contraseña ni cuenta real.
+       */
+      entrarComo: async function (correo, nombre) {
+        if (!EMU) throw new Error(textos.soloLaboratorio);
+        var sub = "emu-" + String(correo).toLowerCase().replace(/[^a-z0-9]/g, "");
+        var cred = fb.GoogleAuthProvider.credential(JSON.stringify({ sub: sub, email: correo, email_verified: true, name: nombre || correo }));
+        var r = await fb.signInWithCredential(auth, cred);
+        return r.user;
+      },
+      /** Cierra la sesión de Firebase. Lo que la web recuerda (localStorage) lo borra ella antes. */
+      salir: async function () { await fb.signOut(auth); },
+    };
+    // sin cuenta (Firebase anónimo): solo si la web lo trae
+    if (fb.signInAnonymously) web.entrarInvitado = async function () { var r = await fb.signInAnonymously(auth); return r.user; };
+    return web;
+  }
+
+  return { conectar: conectar, proyectoValido: proyectoValido, LOCAL: LOCAL, PUERTOS: PUERTOS, TEXTOS: TEXTOS };
+});
+// ─── fin de la pieza «conectar» ───
+});
+var grupos = pieza(function (module, exports) {
+// ─── GP_SDK pieza «grupos» (sdk/grupos.js), tal cual ───
+'use strict';
+/**
+ * GAMIFICAPRO · MIS GRUPOS: LOS GRUPOS DE UN MOD EN LOS QUE FIGURO COMO DOCENTE (7-oct-2026) — pieza del SDK v1 (fase 5 de
+ * docs/PLAN_CENTRALIZAR.md, §2d: «`misGrupos()`, filtrados por `modDe`»).
+ *
+ * `misPERs` (STARGATE) y `misGrupos` (DPG) hacían lo mismo con dos copias: los proyectos donde mi correo está en
+ * `coTeacherEmails` (lo que mira Firestore para dejarme entrar), solo los del mod de la web, en orden (en marcha, por empezar, sin
+ * fecha, pasados), con el equipo docente de cada uno (`privado/stargate.docentes`, que las reglas solo dan al equipo), si soy
+ * referente, cómo me llamo en ese grupo y cuánta gente hay. Aquí, una vez:
+ *
+ *   var g = GP_SDK.grupos.crear(ctx, o);   // ctx = { fs, sesion }; o = las opciones de abajo
+ *   var mios = await g.misGrupos(correo, opc);
+ *   → [{ id, nombre, codigo, ownerId, teacherId, <mod>: bloque del mod del proyecto, …estado(), …extra(),
+ *        soyReferente, equipo: [{ nombre, correo, rol }], miNombre, reclutas, cola? }]
+ *
+ * El filtro es `modDe` (GP_SDK.sitio.modDe: la detección del servidor, `modWebDe`): el grupo es de ESTE mod. Un proyecto de la app
+ * (el de Elisabet), o de otro mod, no sale. Lo que decide cada web se lo pasa por opción:
+ *   · `mod`, `modDe`      obligatorios. `mod` da también la clave del bloque (`x.stargate`, `x.ceniza`).
+ *   · `estado(x)`         → { semana, estado, total, … }: cuándo está cada grupo. Cada web tiene su calendario (STARGATE: la gracia
+ *                         y la recuperación; DPG: las semanas del grupo), y se queda en la web. El orden de la lista sale de aquí.
+ *   · `filtro(x, opc)`    → false para dejar fuera un grupo que no es una clase (la Academia, la Escuela de Mentores…).
+ *   · `extra(d)`          → campos de la web (STARGATE: `factions`; DPG: `mod`, `prueba`), `d` = datos del proyecto.
+ *   · `esVitalicio(correo)`   la lista de personas que mandan en todo, de la web (por ahora; ver «miPapel»).
+ *   · `duenoEsReferente`  (DPG) también es referente quien creó el grupo (`ownerId`/`teacherId` = la sesión).
+ *   · `fantasmas`         (STARGATE) `reclutas` no cuenta las fichas del equipo docente jugando como recluta (`fantasma`).
+ *   · `cola`              (STARGATE) `cola`: las subidas de nota que esperan (`purchased_vouchers` en `pending`).
+ *   · `privado`           el documento de `projects/{id}/privado/` con el equipo (por defecto «stargate», compartido de hecho).
+ * 🔴 Ante un fallo al leer el equipo se asume que NO eres referente (equivocarse hacia dar menos permisos deja sin un botón; al
+ * revés, deja crear grupos que no tocan) y `equipo` queda en []. Un fallo al contar deja `reclutas` en null: «sin dato» es
+ * mejor que un cero que parece verdad.
+ * Lo que la web hace con la lista (la marca de docente en localStorage, «Crear grupo», anotar la conexión) es de la web.
+ */
+(function (raiz, fabrica) {
+  if (typeof module === "object" && module.exports) module.exports = fabrica();
+  else raiz.GPGRUPOS = fabrica();
+})(typeof self !== "undefined" ? self : this, function () {
+  var ORDEN = { "en marcha": 0, "por empezar": 1, "sin fecha": 2, "pasado": 3 };
+
+  function requiere(ctx, nombres) {
+    var fs = ctx && ctx.fs;
+    if (!fs) throw new Error("GP_SDK.grupos: falta ctx.fs (las funciones de Firestore de la web)");
+    nombres.forEach(function (n) { if (!fs[n]) throw new Error("GP_SDK.grupos: falta ctx.fs." + n); });
+    return fs;
+  }
+  /** Lo que falle se queda en null (una promesa que falla o una función que lanza). */
+  function aNull(hacer) {
+    try { return Promise.resolve(hacer()).catch(function () { return null; }); } catch (e) { return Promise.resolve(null); }
+  }
+
+  function crear(ctx, o) {
+    o = o || {};
+    var mod = String(o.mod || "");
+    if (!mod) throw new Error("GP_SDK.grupos: falta `mod`");
+    if (typeof o.modDe !== "function") throw new Error("GP_SDK.grupos: falta `modDe` (GP_SDK.sitio.modDe)");
+    var fs = requiere(ctx, ["db", "doc", "getDoc", "getDocs", "collection", "query", "where", "getCountFromServer"]);
+    var db = fs.db, privado = o.privado || "stargate";
+    var esVitalicio = o.esVitalicio || function () { return false; };
+    var sesion = ctx.sesion || function () { return Promise.resolve(null); };
+
+    function cuenta(coleccion, condiciones) {
+      return fs.getCountFromServer(fs.query.apply(null, [fs.collection(db, coleccion)].concat(condiciones)));
+    }
+    /** Fichas del equipo docente jugando como recluta (modo fantasma): sin dato, cero (antes no había ninguna). */
+    function fantasmasEn(id) {
+      return aNull(function () { return cuenta("student_profiles", [fs.where("projectId", "==", id), fs.where("fantasma", "==", true)]); })
+        .then(function (c) { return c ? c.data().count : 0; });
+    }
+
+    /** Los grupos de este mod en los que figuro como docente, en orden. `opc` llega a `filtro`. */
+    async function misGrupos(correo, opc) {
+      correo = String(correo || "").toLowerCase();
+      var r = await fs.getDocs(fs.query(fs.collection(db, "projects"), fs.where("coTeacherEmails", "array-contains", correo)));
+      // el bloque del mod viaja con el grupo, bajo el nombre del mod (`x.stargate`, `x.ceniza`)
+      var mios = r.docs.filter(function (d) { return o.modDe(d.data()) === mod; }).map(function (d) {
+        var p = d.data(), x = { id: d.id, nombre: p.name, codigo: p.joinCode || "", ownerId: p.ownerId || "", teacherId: p.teacherId || "" };
+        x[mod] = p[mod] || {};
+        return Object.assign(x, o.extra ? o.extra(p) : {});
+      }).filter(function (x) { return o.filtro ? o.filtro(x, opc) !== false : true; })
+        .map(function (x) { return o.estado ? Object.assign(x, o.estado(x)) : x; });
+      // En marcha primero, luego los que van a empezar, y los pasados al final: así, cuando una pantalla tiene que elegir un grupo
+      // por defecto, el primero ya es el correcto (en enero hay a la vez uno acabando y otro empezando).
+      mios.sort(function (a, b) { return (ORDEN[a.estado] - ORDEN[b.estado]) || String(a.nombre || "").localeCompare(String(b.nombre || "")); });
+
+      // ¿soy referente de este grupo?, el equipo y cómo me llamo en él: una lectura por grupo, a la vez
+      var yo = o.duenoEsReferente === true ? await sesion() : null;
+      await Promise.all(mios.map(async function (x) {
+        var vitalicio = esVitalicio(correo);
+        try {
+          var pv = await fs.getDoc(fs.doc(db, "projects", x.id, "privado", privado));
+          var eq = (pv.exists() ? pv.data().docentes : null) || x[mod].docentes || [];
+          var mio = eq.filter(function (d) { return String(d.correo || "").toLowerCase() === correo; })[0];
+          x.soyReferente = vitalicio || !!(yo && (x.ownerId === yo.uid || x.teacherId === yo.uid)) || !!(mio && mio.rol === "referente");
+          x.equipo = eq.map(function (d) { return { nombre: d.nombre || "", correo: String(d.correo || "").toLowerCase(), rol: d.rol || "docente" }; });
+          x.miNombre = (mio && mio.nombre) || "";
+        } catch (e) { x.soyReferente = vitalicio; x.equipo = []; x.miNombre = ""; }
+      }));
+      // cuánta gente hay (getCountFromServer no se trae las fichas: devuelve el número) y, si la web lo pide, lo que espera
+      await Promise.all(mios.map(async function (x) {
+        var res = await Promise.all([
+          aNull(function () { return cuenta("student_profiles", [fs.where("projectId", "==", x.id)]); }),
+          o.fantasmas === true ? fantasmasEn(x.id) : 0,
+          o.cola === true ? aNull(function () { return cuenta("purchased_vouchers", [fs.where("projectId", "==", x.id), fs.where("status", "==", "pending")]); }) : null,
+        ]);
+        x.reclutas = res[0] ? Math.max(0, res[0].data().count - res[1]) : null;
+        if (o.cola === true) x.cola = res[2] ? res[2].data().count : 0;
+      }));
+      return mios;
+    }
+    return { misGrupos: misGrupos };
+  }
+
+  return { crear: crear, ORDEN: ORDEN };
+});
+// ─── fin de la pieza «grupos» ───
+});
 
 var SDK = {
   version: "v1",
-  piezas: ["semanas","llamar","papel","alistarse","premios","asistencia","votacion","retos","equipo","buzon","economia","sitio"],
+  piezas: ["semanas","llamar","papel","alistarse","premios","asistencia","votacion","retos","equipo","buzon","economia","sitio","conectar","grupos"],
   semanas: semanas,
   llamador: llamar.llamador,
   errores: { codigo: llamar.codigo, delServidor: llamar.delServidor, sinDesplegar: llamar.sinDesplegar, es: llamar.es, CODIGOS: llamar.CODIGOS },
   papel: papel.crearPapel,
   papelDe: papel.papelDe,
+  conectar: conectar.conectar,
   alistarse: alistarse,
   premios: premios,
   asistencia: asistencia,
@@ -1732,6 +2007,7 @@ var SDK = {
   equipo: equipo,
   buzon: buzon,
   economia: economia,
+  grupos: grupos,
   sitio: sitio.crear({"mapa":{"stargate_alias":{"nueva":"mod_alias","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_anulaciones":{"nueva":"mod_anulaciones","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_asistencia":{"nueva":"mod_asistencia","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_batallas":{"nueva":"mod_batallas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_buzon":{"nueva":"mod_buzon","mod":"stargate","ids":"azar","porGrupo":false,"fase":"vieja"},"stargate_comentarios":{"nueva":"mod_comentarios","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_congelados":{"nueva":"mod_congelados","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_directo":{"nueva":"mod_directo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_envivo":{"nueva":"mod_envivo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_formacion":{"nueva":"mod_formacion","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_invitaciones":{"nueva":"mod_invitaciones","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_profes":{"nueva":"mod_profes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_referentes":{"nueva":"mod_referentes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_reflexiones":{"nueva":"mod_reflexiones","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_respuestas":{"nueva":"mod_respuestas","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_rutas":{"nueva":"mod_rutas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_tratos":{"nueva":"mod_tratos","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_zoco":{"nueva":"mod_zoco","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_asedio":{"nueva":"mod_asedio","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_asedio_ataques":{"nueva":"mod_asedio_ataques","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja"},"stargate_galeria":{"nueva":"mod_galeria","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_fama":{"nueva":"mod_fama","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_clase":{"nueva":"mod_clase","mod":"ceniza","ids":"grupo","porGrupo":true,"fase":"vieja"},"ceniza_formacion":{"nueva":"mod_formacion","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_invitaciones":{"nueva":"mod_invitaciones","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_referentes":{"nueva":"mod_referentes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_juegos":{"nueva":"mod_juegos","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_mesa":{"nueva":"mod_mesa","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_respuestas":{"nueva":"mod_repaso","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardia_partidas":{"nueva":"mod_retaguardia_partidas","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardias":{"nueva":"mod_retaguardias","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_publico":{"nueva":"mod_publico","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_publico_opiniones":{"nueva":"mod_publico_opiniones","mod":"ceniza","ids":"azar","porGrupo":false,"fase":"vieja"}},"novedades":{"2":["coleccionesMod","economiaSoloServidor","ticketMotor","medianocheUnica","bancoMotor","retaguardiaMotor"]},"mods":[{"mod":"stargate","reconocer":"bloque"},{"mod":"ceniza","reconocer":null}]})
 };
 if (typeof module === "object" && module.exports) module.exports = SDK;
