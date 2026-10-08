@@ -124,6 +124,11 @@ fs.writeFileSync(path.join(tmp, "js", "mostrador.mjs"), ENSAYO
   : "export const getFunctions = () => ({});\nexport const connectFunctionsEmulator = () => {};\n" +
     "export const httpsCallable = (fns, nombre) => (datos) => globalThis.__SG_SERVIDOR(nombre, datos);\n");
 let src = fs.readFileSync(MOTOR_FICHERO, "utf8");
+// 8-oct (tarde, tanda 1 de «adelantar lo de Navidad») · dónde lee y escribe este motor lo en vivo y el juego del final: el de antes, en las
+// viejas; el de ahora, en mod_* (lo que pone el motor, su `mod`, se quita para comparar)
+const EN_MOD = /"mod_directo"/.test(src);
+const SITIO = { envivo: EN_MOD ? "mod_envivo" : "stargate_envivo", directo: EN_MOD ? "mod_directo" : "stargate_directo" };
+const sinMod = (d) => { if (!d || typeof d !== "object" || Array.isArray(d)) return d; const x = Object.assign({}, d); delete x.mod; return x; };
 src = src.replace(/from "https:\/\/www\.gstatic\.com\/firebasejs\/[\d.]+\/firebase-(?:app|auth|firestore)\.js"/g, 'from "./sim/firebase_sim.mjs?h=guion"')
          .replace(/from "https:\/\/www\.gstatic\.com\/firebasejs\/[\d.]+\/firebase-functions\.js"/, 'from "./mostrador.mjs"');
 fs.writeFileSync(path.join(tmp, "js", "motor.mjs"), src);
@@ -146,7 +151,7 @@ try {
   if (DIRECTO) {
     // ─── 8-oct · el juego del final (`directoCanal`, sala «directo»): lo que se escribe, por el servidor del ensayo
     const espera = (ms) => new Promise((r) => setTimeout(r, ms));
-    const SALA = "stargate_directo", dentro = async (col) => (await M.getDocs(M.collection(M.db, SALA, NAVE, col))).docs.map((d) => [d.id.replace(/^ens[0-9a-z]{8,}$/, "ID-AZAR"), d.data()]).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+    const SALA = SITIO.directo, dentro = async (col) => (await M.getDocs(M.collection(M.db, SALA, NAVE, col))).docs.map((d) => [d.id.replace(/^ens[0-9a-z]{8,}$/, "ID-AZAR"), sinMod(d.data())]).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
     const mens = []; let canal = null;
     const alM = (m) => mens.push(JSON.parse(JSON.stringify(m)));
     const vistos = () => mens.splice(0, mens.length).map((m) => JSON.stringify(m)).sort().map((x) => JSON.parse(x));
@@ -155,9 +160,9 @@ try {
       await M.setDoc(M.doc(M.db, SALA, NAVE, "jugadores", "ens0002"), { projectId: NAVE, fichaId: "ens0002", uid: "prueba_nova", alias: "Nova", avatar: "a.png", listo: true, puntos: 40, stats: { aciertos: 4 }, actualizado: Date.now() });
       await paso("docente: abre el canal (oye al jugador que ya estaba)", async () => { canal = M.directoCanal(NAVE, true, null, alM); await espera(50); return vistos(); });
       await paso("docente: el estado de la partida", async () => { canal.enviar({ t: "estado", fase: "sala", cfg: { modo: "defensa", seg: 90 }, temaSemana: 3, inicio: null, eqs: [{ id: "e1", n: "Alfa" }] });
-        await espera(1200); return { sala: (await M.getDoc(M.doc(M.db, SALA, NAVE))).data(), oido: vistos() }; });
+        await espera(1200); return { sala: sinMod((await M.getDoc(M.doc(M.db, SALA, NAVE))).data()), oido: vistos() }; });
       await paso("docente: tres estados seguidos (queda el último)", async () => { for (const fase of ["cuenta", "juego", "fin"]) canal.enviar({ t: "estado", fase, cfg: { modo: "carrera" }, ronda: fase.length });
-        await espera(2300); return { sala: (await M.getDoc(M.doc(M.db, SALA, NAVE))).data(), oido: vistos() }; });
+        await espera(2300); return { sala: sinMod((await M.getDoc(M.doc(M.db, SALA, NAVE))).data()), oido: vistos() }; });
       await paso("docente: los sucesos (bomba, sabotaje de la pantalla, curar, retoma)", async () => {
         for (const m of [{ t: "bomba", quedan: 2 }, { t: "sabotaje", contra: "e1", de: "Ana" }, { t: "curar", escudo: 5 }, { t: "retoma", id: "ens0002", puntos: 40, stats: { a: 1 }, nuevo: false }]) canal.enviar(m);
         await espera(100); return { eventos: await dentro("eventos"), oido: vistos() }; });
@@ -174,7 +179,7 @@ try {
         await espera(2300); return await dentro("jugadores"); });
       await paso("jugador: puntos negativos y cifras vacías", async () => { canal.enviar({ t: "pts", puntos: -5 }); await espera(1200); return await dentro("jugadores"); });
       await paso("jugador: sabotaje", async () => { canal.enviar({ t: "sabotaje", id: yoJ.id }); await espera(100); return await dentro("eventos"); });
-      await paso("jugador: un tipo que no es suyo no se manda", async () => { canal.enviar({ t: "bomba" }); canal.enviar({ t: "estado", fase: "x" }); await espera(1200); return { eventos: await dentro("eventos"), sala: (await M.getDoc(M.doc(M.db, SALA, NAVE))).data() }; });
+      await paso("jugador: un tipo que no es suyo no se manda", async () => { canal.enviar({ t: "bomba" }); canal.enviar({ t: "estado", fase: "x" }); await espera(1200); return { eventos: await dentro("eventos"), sala: sinMod((await M.getDoc(M.doc(M.db, SALA, NAVE))).data()) }; });
       await paso("jugador: mio() tras jugar", () => canal.mio());
       await paso("jugador: el modo fantasma no escribe", async () => { const f = M.directoCanal(NAVE, false, Object.assign({}, yoJ, { fantasma: true }), alM); f.enviar({ t: "hola" }); f.enviar({ t: "pts", puntos: 7 }); f.enviar({ t: "sabotaje" }); await espera(1200); f.cerrar();
         return { jugadores: await dentro("jugadores"), eventos: await dentro("eventos") }; });
@@ -202,7 +207,7 @@ try {
     await paso("publicarEnVivo: dos seguidas, en orden", async () => { const a = M.publicarEnVivo(NAVE, { sesion: { k: "c4", n: 0 } }), b = M.publicarEnVivo(NAVE, { sesion: { k: "c5", n: 1 } }); await Promise.all([a, b]); });
     await paso("lanzarPregunta", () => M.lanzarPregunta(NAVE, " ¿Qué has aprendido hoy? ", "Ana"));
     await paso("lanzarPregunta: vacía", () => M.lanzarPregunta(NAVE, "   ", "Ana"));
-    const sala = await M.getDoc(M.doc(M.db, "stargate_envivo", NAVE)), PREG = sala.data().pregunta.id;
+    const sala = await M.getDoc(M.doc(M.db, SITIO.envivo, NAVE)), PREG = sala.data().pregunta.id;
     await paso("vigilarEnVivo", () => new Promise((ok) => { const fuera = M.vigilarEnVivo(NAVE, (d) => { fuera(); ok(d); }); }));
     await paso("responderPregunta", () => M.responderPregunta(NAVE, PREG, UNA, "Tritón", " Esto "));
     await paso("responderPregunta: la misma persona, otra vez (la cambia)", () => M.responderPregunta(NAVE, PREG, UNA, "Tritón", "Y esto"));
@@ -415,7 +420,11 @@ try {
 // lo tocado, documento a documento (lo guarda el ensayo en este navegador), y lo que se ha avisado
 await new Promise((r) => setTimeout(r, 20));
 const tocado = (JSON.parse(guardado["sgEnsayo.db"] || "{}").c) || {};
-Object.keys(tocado).sort().forEach((k) => apunta("tocado · " + k, tocado[k]));
+// 8-oct (tarde) · lo en vivo y el juego del final viven en mod_* (con su `mod`) con el motor de ahora: se apuntan con su nombre de
+// siempre y sin el `mod`, para comparar documento a documento con lo que escribía el de antes
+const comoSiempre = (k) => k.replace(/^mod_(envivo|respuestas|directo)\//, "stargate_$1/");
+Object.keys(tocado).map((k) => [comoSiempre(k), k]).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+  .forEach(([nombre, k]) => apunta("tocado · " + nombre, nombre === k ? tocado[k] : sinMod(tocado[k])));
 apunta("avisos del documento", avisos);
 apunta("lo que queda en el navegador", Object.keys(guardado).filter((k) => k !== "sgEnsayo.db").sort().map((k) => [k, guardado[k]]));
 fs.rmSync(tmp, { recursive: true, force: true });

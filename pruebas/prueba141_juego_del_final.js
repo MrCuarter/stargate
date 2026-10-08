@@ -38,8 +38,11 @@ const CANAL = funcion(MOTOR, "directoCanal");
   console.log("  Las llamadas exactas (directoCanal de motor.js, contra un mostrador)");
   // el mostrador: la sesión, Firestore (solo se lee, y se apunta qué se escucha) y `llamar`, que apunta cada llamada al servidor
   const llamadas = [], oyendo = [], escrituras = [];
+  // 8-oct (tarde) · dónde lee (mod_directo) y lo que quita al leer, de motor.js tal cual
+  const SITIOS = (MOTOR.match(/\nconst ENVIVO = [^\n]*\nconst comoAntes = [^\n]*\n/) || [""])[0];
+  c(/DIRECTO = "mod_directo"/.test(SITIOS) && /const comoAntes/.test(SITIOS), "   la sala del juego, de motor.js: mod_directo (con lo que se quita al leer)");
   const montar = (conLlamar) => new Function("auth", "db", "doc", "collection", "query", "where", "onSnapshot", "getDoc", "setDoc", "addDoc", "updateDoc", "deleteDoc", "llamar",
-    CANAL + "\nreturn directoCanal;")(
+    SITIOS + "\n" + CANAL + "\nreturn directoCanal;")(
     { currentUser: { uid: "yo" } }, {},
     (...a) => ({ doc: a.slice(1).join("/") }), (...a) => ({ col: a.slice(1).join("/") }), (...a) => ({ q: a }), (...a) => ({ w: a }),
     (ref, ok1) => { oyendo.push(ref.doc || ref.col || (ref.q && ref.q[0].col)); return () => {}; },
@@ -52,7 +55,7 @@ const CANAL = funcion(MOTOR, "directoCanal");
 
   // la pantalla del docente
   const D = directoCanal("g1", true, null, () => {});
-  c(canon(oyendo.splice(0)) === canon(["stargate_directo/g1", "stargate_directo/g1/eventos", "stargate_directo/g1/jugadores"]), "   el docente escucha la sala, los sucesos y los jugadores (leer sigue directo)");
+  c(canon(oyendo.splice(0)) === canon(["mod_directo/g1", "mod_directo/g1/eventos", "mod_directo/g1/jugadores"]), "   el docente escucha la sala, los sucesos y los jugadores (leer sigue directo)");
   D.enviar({ t: "estado", fase: "sala", cfg: { modo: "defensa" }, eqs: [{ id: "e1" }], vacio: undefined });
   await espera(40);
   c(canon(antes()) === canon([["modClase", { projectId: "g1", sala: "directo", accion: "poner", parte: "estado", valor: { fase: "sala", cfg: { modo: "defensa" }, eqs: [{ id: "e1" }] } }]]),
@@ -77,7 +80,7 @@ const CANAL = funcion(MOTOR, "directoCanal");
 
   // el móvil de un recluta
   const J = directoCanal("g1", false, { id: "f1", alias: "Nova", avatar: "a/b.png?x=1", fantasma: false }, () => {});
-  c(canon(oyendo.splice(0)) === canon(["stargate_directo/g1", "stargate_directo/g1/eventos"]), "   el recluta escucha la sala y los sucesos, pero no a los jugadores");
+  c(canon(oyendo.splice(0)) === canon(["mod_directo/g1", "mod_directo/g1/eventos"]), "   el recluta escucha la sala y los sucesos, pero no a los jugadores");
   J.enviar({ t: "hola", listo: true });
   await espera(40);
   c(canon(antes()) === canon([["modClase", { projectId: "g1", sala: "directo", accion: "responder", fichaId: "f1", avatar: "a/b.png?x=1", listo: true, puntos: 0, stats: {} }]]),
@@ -126,8 +129,9 @@ const CANAL = funcion(MOTOR, "directoCanal");
   console.log("\n  Ya no escribe desde el navegador (y leer sigue directo)");
   const sinSet = n => !/\b(setDoc|updateDoc|deleteDoc|addDoc)\(/.test(n);
   c(sinSet(CANAL) && sinSet(funcion(SIM, "directoCanal")), "🔴 ni un setDoc, addDoc, updateDoc o deleteDoc en directoCanal (motor.js y motor_sim.js, igual)");
-  c(/onSnapshot\(sala,/.test(CANAL) && /onSnapshot\(query\(collection\(db, "stargate_directo", perId, "eventos"\), where\("creado", ">", t0 - 2000\)\)/.test(CANAL) &&
-    /onSnapshot\(collection\(db, "stargate_directo", perId, "jugadores"\)/.test(CANAL) && /getDoc\(doc\(db, "stargate_directo", perId, "jugadores", yo\.id\)\)/.test(CANAL), "   la sala, los sucesos, los jugadores y «lo mío» se siguen leyendo directo (onSnapshot y getDoc)");
+  c(/onSnapshot\(sala,/.test(CANAL) && /onSnapshot\(query\(collection\(db, DIRECTO, perId, "eventos"\), where\("creado", ">", t0 - 2000\)\)/.test(CANAL) &&
+    /onSnapshot\(collection\(db, DIRECTO, perId, "jugadores"\)/.test(CANAL) && /getDoc\(doc\(db, DIRECTO, perId, "jugadores", yo\.id\)\)/.test(CANAL) &&
+    /const sala = doc\(db, DIRECTO, perId\);/.test(CANAL) && /DIRECTO = "mod_directo"/.test(MOTOR), "   la sala, los sucesos, los jugadores y «lo mío» se siguen leyendo directo (onSnapshot y getDoc)");
   c(funcion(SIM, "directoCanal").replace(/\s+/g, "") === CANAL.replace(/\s+/g, ""), "   y la consola de ensayo (motor_sim.js, que genera el build) lleva la misma función");
   c(!/sala: "directo"/.test(MOTOR.replace(CANAL, "")) && /sala: "directo"/.test(CANAL), "   la sala «directo» solo se nombra en directoCanal");
 
@@ -163,7 +167,7 @@ const CANAL = funcion(MOTOR, "directoCanal");
   if (!GPD) console.log("   (sin la carpeta de gamificapro al lado: la configuración del servidor no se comprueba aquí)");
   else {
     const S = fs.readFileSync(path.join(GPD, "functions", "mods", "stargate.js"), "utf8");
-    c(/directo: \{\s*coleccion: 'stargate_directo',\s*sello: true,\s*partes: \{ estado: 'documento' \},\s*sinCongelar: true,\s*respuestas: \{ forma: 'jugador', sub: 'jugadores', puntos: 100000, avatar: 300 \},\s*eventos: \{ sub: 'eventos', alumno: \['sabotaje'\] \},/.test(S),
+    c(/directo: \{\s*coleccion: 'mod_directo',\s*sello: true,\s*partes: \{ estado: 'documento' \},\s*sinCongelar: true,\s*respuestas: \{ forma: 'jugador', sub: 'jugadores', puntos: 100000, avatar: 300 \},\s*eventos: \{ sub: 'eventos', alumno: \['sabotaje'\] \},/.test(S),
       "   la sala: el estado como documento entero (con su sello), sin congelados, el jugador (puntos hasta 100.000, avatar de 300) y solo el sabotaje del alumnado");
     const MC = fs.readFileSync(path.join(GPD, "functions", "modClase.js"), "utf8");
     c(/accion === 'evento'|\/\/ evento/.test(MC) && /ev\.alumno \|\| \[\]\)\.includes\(t\)/.test(MC) && /t\.length > 40/.test(MC), "   y modClase deja al alumnado los tipos de «alumno» y corta el tipo de suceso a 40 letras");

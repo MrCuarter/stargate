@@ -102,7 +102,7 @@ const M = new Function("llamar", "auth", "sesion", cuerpo)(async (fn, d) => {
   function funcion2(n) { const i = MOTOR.search(new RegExp("\\n(async )?function " + n + "\\(")); const j = MOTOR.indexOf("\n}", i); return MOTOR.slice(i, j + 2); }
   c(/function vigilarEnVivo\(perId, alCambiar\) \{\n  return onSnapshot\(doc\(db, ENVIVO, perId\)/.test(MOTOR) && /function vigilarRespuestas\(/.test(MOTOR) && /async function academiaMia\(\) \{[\s\S]{0,200}getDoc\(doc\(db, "stargate_formacion", yo\.uid\)\)/.test(MOTOR) &&
     /function academiaEscuchar\(fn\)[\s\S]{0,300}onSnapshot\(doc\(db, "stargate_formacion", yo\.uid\)/.test(MOTOR), "   y leer sigue siendo directo (vigilarEnVivo, vigilarRespuestas, miRespuesta, academiaMia, academiaEscuchar)");
-  c(/directoCanal/.test(MOTOR) && /stargate_directo/.test(MOTOR) && /sala: "directo"/.test(MOTOR), "   y el juego del final (directoCanal, sala «directo») va por el servidor también: lo prueba la batería 141");
+  c(/directoCanal/.test(MOTOR) && /DIRECTO = "mod_directo"/.test(MOTOR) && /sala: "directo"/.test(MOTOR), "   y el juego del final (directoCanal, sala «directo») va por el servidor también: lo prueba la batería 141");
 
   console.log("\n  Lo mismo, paso a paso: el motor de antes escribiendo desde el navegador y el de ahora por el servidor, contra la consola de ensayo");
   const BASE = "19af6f49";
@@ -146,8 +146,14 @@ const M = new Function("llamar", "auth", "sesion", cuerpo)(async (fn, d) => {
       /hilo: \{ campo: 'mando', max: 200, texto: 2000, de: 80, firma: 'El Mando' \}/.test(S), "   la Academia: sus campos y topes (los de las reglas), quién la lee y quién la gestiona (el Mando), y el hilo");
     const CAMPOS = (MOTOR.match(/const ACADEMIA_CAMPOS = \[([^\]]*)\]/) || ["", ""])[1].replace(/["\s]/g, "").split(",").sort();
     c(canon(CAMPOS) === canon(["alias", "avance", "diseno", "feedback", "pasos", "preguntas"]), "   y los campos que filtra la web son los que el servidor deja guardar", CAMPOS);
-    c(/envivo: \{\s*coleccion: 'stargate_envivo',\s*sello: true,\s*partes: \{ sesion: 'mezcla' \},\s*sesion: 'sesion',\s*pregunta: \{ campo: 'pregunta', texto: 300, por: 80 \},\s*sinCongelar: true,\s*respuestas: \{ forma: 'texto', coleccion: 'stargate_respuestas', texto: 280 \},/.test(S),
+    c(/envivo: \{\s*coleccion: 'mod_envivo',\s*sello: true,\s*partes: \{ sesion: 'mezcla' \},\s*sesion: 'sesion',\s*pregunta: \{ campo: 'pregunta', texto: 300, por: 80 \},\s*sinCongelar: true,\s*respuestas: \{ forma: 'texto', coleccion: 'mod_respuestas', texto: 280 \},/.test(S),
       "   lo en vivo: la sala (con su sello), la sesión que se mezcla, la pregunta (300 y 80), sin congelados y la respuesta de texto (280)");
+    // 8-oct (tarde, tanda 1 de «adelantar lo de Navidad») · donde escribe el servidor es donde lee la web
+    c(/const ENVIVO = "mod_envivo", RESPUESTAS = "mod_respuestas", DIRECTO = "mod_directo";/.test(MOTOR) && /directo: \{\s*coleccion: 'mod_directo',/.test(S),
+      "🔴 la web lee lo en vivo y el juego del final de mod_envivo, mod_respuestas y mod_directo: donde los escribe el servidor");
+    c(/const comoAntes = \(d\) => \{[^\n]*delete x\.mod; delete x\.espejoDe; delete x\.espejoHora;/.test(MOTOR) &&
+      /alCambiar\(s\.exists\(\) \? comoAntes\(s\.data\(\)\) : \{\}\)/.test(MOTOR) && /\.\.\.comoAntes\(d\.data\(\)\)/.test(MOTOR) && /const d = comoAntes\(s\.data\(\)\);/.test(MOTOR),
+      "   y quita al leer lo que pone el motor (su `mod` y lo del espejo): la sala, las respuestas, la mía y lo mío del juego, como antes");
   }
 
   console.log("\n  Batería 143 · la Academia y lo en vivo, por el servidor");

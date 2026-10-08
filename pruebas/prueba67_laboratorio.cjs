@@ -4913,7 +4913,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await rv.js("document.getElementById('ses-directo').click(); 1");
       await rv.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return /^El mensaje$/.test(x.title)})[0]; b&&b.click(); return 1; })()");
       await dormir(1500);
-      const s1 = ((await leerDoc("stargate_envivo/" + P)) || {}).sesion || {};
+      const s1 = ((await leerDoc("mod_envivo/" + P)) || {}).sesion || {};
       c("🔴 en vivo · Rita emite la sesión: semana y diapositiva", s1.activa === true && s1.k === "foro", JSON.stringify(s1));
       const al = await nueva("Ana, siguiendo la sesión");
       await al.ir("entrar.html"); await al.entrarComo("ana@lab.test", "Ana Nueva");
@@ -4935,7 +4935,7 @@ const REG = {};   // cifras que se apuntan para el informe
         await al.js("!!document.querySelector('#mazo.ses-bloqueado') && !!document.querySelector('.ses-al-sigo') && !document.getElementById('ses-al-volver')"));
       await al.foto(FOTOS + "/44-sesion-alumna.png");
       await rv.js("document.getElementById('ses-directo').click(); 1"); await dormir(1200);
-      c("en vivo · al apagar «En directo», la sesión deja de emitirse", ((await leerDoc("stargate_envivo/" + P)) || {}).sesion.activa === false);
+      c("en vivo · al apagar «En directo», la sesión deja de emitirse", ((await leerDoc("mod_envivo/" + P)) || {}).sesion.activa === false);
       c("en vivo · sin errores en las sesiones", !rv.errores.concat(al.errores).filter(e => !/Failed to load resource/.test(e)).length, rv.errores.concat(al.errores)[0] || "");
       await rv.cerrar(); await av.cerrar(); await al.cerrar();
     }
@@ -5659,7 +5659,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await limpiar(ana);
       c("descubrir · Ana sigue a Rita hasta los retos, todavía sellados", llega && !(await ana.js("document.querySelector('.lienzo .rev-sellado').classList.contains('on')")));
       await rita.js("document.querySelector('.rev-sello').click(); 1"); await dormir(1000);
-      const env = ((await leerDoc("stargate_envivo/" + P)) || {}).sesion || {};
+      const env = ((await leerDoc("mod_envivo/" + P)) || {}).sesion || {};
       const loVe = await ana.hasta("document.querySelector('.lienzo .rev-sellado').classList.contains('on')", 30);
       c("🔴 descubrir · Rita rompe el sello y Ana lo ve romperse en su pantalla (se emite `f`)", env.k === "retos-semana" && env.f === 1 && loVe, JSON.stringify(env));
       c("   y en la pantalla de Ana no suena nada", !(await sonidos(ana)).length, (await sonidos(ana)).join(","));
