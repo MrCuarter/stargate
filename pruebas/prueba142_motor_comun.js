@@ -23,7 +23,7 @@ const MOTOR = L("assets/js/motor.js"), FUENTE = L("assets/js/fuente.js"), CONSOL
 const { pieza, FIJADO } = require("./sdk_pieza.js");
 
 console.log("  Los paquetes fijados");
-c(FIJADO === "mod-sdk.v1.71cde90942.js", "🔴 el SDK fijado es el de hoy (llama a los mod*; trae además los mensajes del sistema, conectar y grupos; 8-oct, tanda 2: el sitio de lo pasado para un mod entero, leer como la vieja y borrar en las dos)", FIJADO);
+c(FIJADO === "mod-sdk.v1.71cde90942.js", "🔴 el SDK fijado es el de hoy (llama a los mod*; trae además los mensajes del sistema, conectar, grupos y, 8-oct, cambiarComandante y, tanda 2, el sitio de lo pasado para un mod entero, leer como la vieja y borrar en las dos)", FIJADO);
 c(/^SIM_FIJADO = "mod-sim\.v1\.3855e2af74\.js"$/m.test(B) && /^import "\.\/mod-sim\.v1\.3855e2af74\.js";$/m.test(L("assets/js/sim/firebase_sim.js")), "   y el simulador común que contesta a los dos nombres");
 
 console.log("\n  Lo que va por el SDK (equipo, alumnado, anular, sorteos pendientes, oferta)");

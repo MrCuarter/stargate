@@ -1397,6 +1397,8 @@
       +'<div class="nf-quien"><h3>'+(r.corona?'<img class=ico src=assets/img/iconos/p/corona.png alt> ':'')+esc(r.alias)+(r.racha>=3?' <span class="chip-racha" title="Semanas seguidas registrando algo"><img class=ico src=assets/img/iconos/p/fuego.png alt> '+r.racha+'</span>':'')
       // 5-oct · EL MODO FANTASMA: su distintivo, a la vista (ver avisoFantasma)
       +(r.fantasma?' <span class="chip fantasma" tabindex="0" data-tip="Eres del equipo docente: lo ves todo como un recluta y tu progreso cuenta solo para ti. Tu clase no te ve: no sales en rankings, sesión ni sorteos, y tus compras no gastan existencias."><img class=ico src=assets/img/iconos/p/ojo.png alt> Modo fantasma</span>':'')
+      // 8-oct · la rueda dentada: alias, frase, Bitácora, personaje y Comandante (abrirAjustes)
+      +botonAjustes()
       +'</h3>'
       +(r.titulo?'<div class="titulo-recluta">«'+esc(r.titulo)+'»</div>':'')
       +'<p class="small"><b>Nivel '+ni.nivel+' · '+esc(ni.rangoNombre)+'</b>'+(ni.titulo&&ni.titulo!==ni.rangoNombre?' <span class="muted">('+esc(ni.titulo)+')</span>':'')+(r.fantasma?' · irías el '+r.pos+'.º (no sales en el ranking)':' · puesto '+r.pos)+(r.planeta&&r.planeta!=='—'?' · planeta '+esc(r.planeta):'')+(r.corona?' · <b>corona semanal</b>':'')+'</p>'
@@ -1499,6 +1501,8 @@
     var el=document.getElementById('nb-bit'); if(el) el.innerHTML=botonBitacora();
     // (y la frase de NEBULA, que insiste mientras no esté y deja de hacerlo en cuanto está)
     var nb=document.getElementById('nf-neb'); if(nb&&st.yo) try{ nb.innerHTML='<b>NEBULA:</b> '+nebulaDice(st.yo, window.SG.nivelInfo?window.SG.nivelInfo(st.yo.xp,(st.d||{}).tipo):null); }catch(e){}
+    // (8-oct · y su apartado en los ajustes, si la ventana está abierta)
+    pintarAjustes('bit');
   }
   document.addEventListener('click',function(ev){
     var b=ev.target&&ev.target.closest&&ev.target.closest('[data-bit-ed]'); if(!b||!window.SG||!window.SG.preguntar) return;
@@ -1515,6 +1519,223 @@
         },function(e){ window.SG.preguntar({ titulo:'No se ha podido guardar', texto:'Si tu cuenta está congelada, pídeselo a tu docente. ('+((e&&e.message)||e)+')', si:'Entendido', no:'' }); });
       });
   });
+
+  /**
+   * 🔴 8-oct · LA RUEDA DENTADA: TU FICHA, A UN CLIC. Norberto: «un estudiante debería poder cambiar su alias, frase, escribir
+   * su bitácora, cambiar comandante, personaje… Debe ser un botón intuitivo, fácil. La rueda dentada es universal».
+   *
+   * Un botón «⚙ Ajustes» al lado de su nombre, en la ficha, abre UNA ventana con cinco apartados, cada uno con lo que tiene
+   * ahora y cómo cambiarlo. Nada nuevo por dentro: cada apartado llama a lo que ya hacía eso en la web.
+   *   · Alias       → el cambio con reserva de siempre (MOTOR.aliasOcupado + MOTOR.cambiarAlias, GP_SDK.alistarse): nadie más
+   *                   del grupo puede llevarlo, y el viejo queda libre.
+   *   · Frase       → «Dos líneas sobre tu personaje» del alistamiento (MOTOR.guardarFrase: stargateBio y su copia privada).
+   *   · Bitácora    → el editor del enlace de la ficha ([data-bit-ed], arriba): el mismo, abierto desde aquí.
+   *   · Personaje   → el vestuario (o la lupa, si aún no se ha abierto): pulsarAvatar(), como el avatar.
+   *   · Comandante  → los Comandantes del grupo (st.d.escuadrones), marcado el suyo; al elegir otro, se confirma y lo hace el
+   *                   servidor del motor (MOTOR.cambiarMiComandante → GP_SDK.equipo.cambiarComandante → modComandante).
+   * 🔴 La ventana es la pieza del motor de las tarjetas (GamificaPro sdk/tarjetas.js, assets/js/tarjetas.js): la misma de
+   * «Leer más…» de los retos de la semana, con su velo, su ×, Esc, y a pantalla entera en el móvil. Vive fuera de la Nave
+   * (en <body>), así que el repintado de la Nave no la cierra ni le borra lo que se está escribiendo.
+   * En el ensayo (?simulacro=1) y en la demostración se ve todo, pero no se guarda nada: se dice al pulsar.
+   */
+  function puedeAjustes(){ return !!(st.yo && (motorNuevo()||SIMULACRO||enDemo())); }
+  function botonAjustes(){
+    if(!puedeAjustes()) return '';
+    return ' <button type="button" class="nf-ajustes" data-ajustes aria-haspopup="dialog" aria-label="Ajustes de tu ficha"'
+      +' title="Ajustes de tu ficha: alias, frase, Bitácora, personaje y Comandante"><img class=ico src=assets/img/iconos/p/ajustes.png alt><span>Ajustes</span></button>';
+  }
+  // '' (se guarda) · 'ensayo' · 'demo' · 'congelado' (se mira, pero no se toca)
+  function ajustesSoloMirar(){ return SIMULACRO?'ensayo':enDemo()?'demo':(st.yo&&st.yo.congelado)?'congelado':''; }
+  function ajustesBloqueado(){
+    var m=ajustesSoloMirar(); if(!m) return false;
+    aviso(m==='ensayo'?'<b>No disponible en el ensayo.</b> En la Nave de verdad, el recluta lo cambia aquí mismo. Aquí no se guarda nada.'
+      :m==='demo'?'<b>Esto es una demostración.</b> En tu Nave de verdad, aquí cambias tu ficha. Aquí no se guarda nada.'
+      :'Tu cuenta está congelada: puedes mirar, pero no cambiar nada. Habla con tu docente.', m==='congelado');
+    return true;
+  }
+  function ventanaAjustes(){
+    var cel=document.getElementById('ajf'); if(cel) return cel;
+    cel=document.createElement('div'); cel.id='ajf'; cel.className='gpt-celda ajf-celda';
+    cel.innerHTML='<details class="gpt-tarjeta ajf" id="ajf-det" aria-labelledby="ajf-t">'
+      +'<summary tabindex="-1"><span class="eyebrow amber">Tu ficha</span>'
+      +'<h3 id="ajf-t"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Ajustes de tu ficha</h3>'
+      +'<p class="small muted">Lo que tu tripulación ve de ti, y cómo cambiarlo.</p></summary>'
+      +'<button type="button" class="gpt-cerrar ajf-cerrar" data-gpt-cerrar aria-label="Cerrar los ajustes" title="Cerrar (Esc)">×</button>'
+      +'<div class="ajf-cuerpo" id="ajf-cuerpo"></div></details>'
+      +'<div class="gpt-velo" data-gpt-cerrar aria-hidden="true"></div>';
+    document.body.appendChild(cel);
+    var det=cel.querySelector('#ajf-det');
+    // al cerrarse (×, velo o Esc, que los pone la pieza), el foco vuelve a la rueda
+    det.addEventListener('toggle',function(){
+      document.body.classList.toggle('ajf-abierta',det.open);
+      if(!det.open){ var b=document.querySelector('[data-ajustes]'); if(b) try{ b.focus({preventScroll:true}); }catch(e){} }
+    });
+    cel.addEventListener('submit',function(ev){
+      var f=ev.target; if(!f||!f.getAttribute) return; ev.preventDefault();
+      if(f.getAttribute('data-ajf')==='alias') guardarAliasAjustes(f);
+      else if(f.getAttribute('data-ajf')==='frase') guardarFraseAjustes(f);
+    });
+    cel.addEventListener('click',function(ev){
+      var t=ev.target&&ev.target.closest; if(!t) return;
+      var c=ev.target.closest('[data-cmd]'); if(c){ elegirComandante(c); return; }
+      if(ev.target.closest('[data-ajf-pj]')){ det.open=false; pulsarAvatar(); return; }
+      if(ev.target.closest('[data-ajf-no]')) ajustesBloqueado();
+    });
+    return cel;
+  }
+  function abrirAjustes(){
+    if(!st.yo) return;
+    var cel=ventanaAjustes(), det=cel.querySelector('#ajf-det');
+    if(st.bit===undefined&&!SIMULACRO) cargarBitacora();
+    pintarAjustes();
+    if(window.GP&&window.GP.tarjetas&&window.GP.tarjetas.abierta()!==det) window.GP.tarjetas.cerrar();   // una ventana a la vez
+    det.open=true; det.scrollTop=0;   // (siempre desde arriba)
+    setTimeout(function(){ var x=cel.querySelector('.ajf-cerrar'); if(x) try{ x.focus({preventScroll:true}); }catch(e){} },30);
+  }
+  document.addEventListener('click',function(ev){
+    var b=ev.target&&ev.target.closest&&ev.target.closest('[data-ajustes]'); if(!b) return;
+    ev.preventDefault(); abrirAjustes();
+  });
+  /** Los cinco apartados (o uno solo, por su nombre: 'alias', 'frase', 'bit', 'pj', 'cmd'), si la ventana existe. */
+  function pintarAjustes(solo){
+    var cu=document.getElementById('ajf-cuerpo'); if(!cu||!st.yo) return;
+    var A={alias:apAlias, frase:apFrase, bit:apBitacora, pj:apPersonaje, cmd:apComandante};
+    if(solo){ var v=document.getElementById('ajf-ap-'+solo); if(v&&A[solo]) v.outerHTML=A[solo](); return; }
+    var m=ajustesSoloMirar();
+    cu.innerHTML=(m?'<p class="ajf-nota'+(m==='congelado'?' malo':'')+'">'+(m==='ensayo'?'<b>Ensayo:</b> lo ves como tu alumnado, pero aquí no se guarda nada (no disponible en el ensayo).'
+        :m==='demo'?'<b>Demostración:</b> en tu Nave de verdad, aquí cambias tu ficha. Aquí no se guarda nada.'
+        :'<b>Tu cuenta está congelada:</b> puedes mirar, pero no cambiar nada. Habla con tu docente.')+'</p>':'')
+      +'<div class="ajf-rejilla">'+apAlias()+apFrase()+apBitacora()+apPersonaje()+'</div>'+apComandante();
+  }
+  function apCab(id,ico,tit,txt){ return '<section class="ajf-ap" id="ajf-ap-'+id+'" aria-labelledby="ajf-h-'+id+'">'
+    +'<h4 id="ajf-h-'+id+'"><img class=ico src=assets/img/iconos/p/'+ico+'.png alt> '+tit+'</h4>'+(txt?'<p class="ajf-que">'+txt+'</p>':''); }
+  var noTocar=function(){ return ajustesSoloMirar()==='congelado'?' disabled':''; };
+  function apAlias(){
+    var r=st.yo;
+    return apCab('alias','editar','Tu alias','Con lo que sales en el tablero. Nadie más del grupo puede llevar el mismo.')
+      +'<p class="ajf-ahora">Ahora: <b>'+esc(r.alias)+'</b></p>'
+      +'<form class="ajf-form" data-ajf="alias" novalidate><label for="ajf-alias">Alias nuevo</label>'
+      +'<div class="ajf-fila"><input id="ajf-alias" name="alias" maxlength="24" autocomplete="off" spellcheck="false" value="'+esc(r.alias)+'"'+noTocar()+'>'
+      +'<button class="btn primary" type="submit"'+noTocar()+'>Guardar</button></div>'
+      +'<p class="ajf-msg" role="status"></p></form></section>';
+  }
+  function apFrase(){
+    var r=st.yo;
+    return apCab('frase','notas','Tu frase','Dos líneas sobre tu personaje: las lee tu tripulación al pulsar tu nombre en el tablero.')
+      +'<form class="ajf-form" data-ajf="frase" novalidate><label for="ajf-frase">Tu frase <i>(hasta 280 letras; vacía, se quita)</i></label>'
+      +'<textarea id="ajf-frase" name="frase" maxlength="280" rows="3" placeholder="Antes de embarcar, yo…"'+noTocar()+'>'+esc(r.bio||'')+'</textarea>'
+      +'<div class="ajf-fila fin"><button class="btn primary" type="submit"'+noTocar()+'>Guardar</button></div>'
+      +'<p class="ajf-msg" role="status"></p></form></section>';
+  }
+  function apBitacora(){
+    var m=ajustesSoloMirar(), real=!m&&st.yo.ficha, pl=window.SG_PLANTILLA_EP||'';
+    var ahora=!real?'<p class="ajf-ahora muted">Tu ePortfolio: lo que haces en cada reto, y lo que revisa tu Comandante.</p>'
+      :st.bit===undefined?'<p class="ajf-ahora muted">Mirando tu enlace…</p>'
+      :st.bit?'<p class="ajf-ahora">Ahora: <a href="'+esc(st.bit)+'" target="_blank" rel="noopener"><img class=ico src=assets/img/iconos/p/libro.png alt> Mi Bitácora ↗</a></p>'
+      :'<p class="ajf-ahora">Aún no has puesto tu Bitácora. <b>Es importante:</b> ahí va lo que haces en cada reto.</p>';
+    return apCab('bit','libro','Tu Bitácora','')
+      +ahora
+      +'<div class="ajf-fila"><button type="button" class="btn'+(real&&!st.bit?' primary':'')+'" '+(real?'data-bit-ed':'data-ajf-no')+noTocar()+'>'
+      +(real&&st.bit?'Cambiar el enlace':'<img class=ico src=assets/img/iconos/p/anadir.png alt> Añadir mi Bitácora')+'</button>'
+      +(pl&&!(real&&st.bit)?'<a class="small" href="'+esc(pl)+'" target="_blank" rel="noopener">La plantilla ↗</a>':'')+'</div></section>';
+  }
+  function apPersonaje(){
+    var r=st.yo, d=st.d||{}, SG=window.SG||{}, abre=vestuarioAbierto();
+    var av=SG.avatarImg?SG.avatarImg(r.avatar,r.alias,'ajf-av',r.xp,d.tipo):'';
+    return apCab('pj','escudo','Tu personaje','')
+      +'<div class="ajf-pj">'+av+'<p class="ajf-que">'+(abre?'Cámbiate de personaje o ponte uno de tus héroes.'
+        :'Podrás cambiarte de personaje cuando se abran los Héroes. Mientras, puedes verte en grande.')+'</p></div>'
+      +'<div class="ajf-fila"><button type="button" class="btn'+(abre?' primary':'')+'" data-ajf-pj>'
+      +(abre?'<img class=ico src=assets/img/iconos/p/editar.png alt> Cambiar mi personaje':'<img class=ico src=assets/img/iconos/p/ojo.png alt> Verme en grande')+'</button></div></section>';
+  }
+  /** Un Comandante por fila (el escuadrón va con él), en el orden del grupo. */
+  function comandantesDelGrupo(){
+    var vistos={};
+    return ((st.d&&st.d.escuadrones)||[]).filter(function(e){
+      var k=String(e.comandante||'').trim(); if(!k||vistos[k]) return false; vistos[k]=true; return true; });
+  }
+  function apComandante(){
+    var jefe=String(st.yo.profe||'').trim(), L=comandantesDelGrupo();
+    var cab=apCab('cmd','gente','Tu Comandante','Es quien te da clase, y con él va su escuadrón. Si te equivocaste al alistarte o has cambiado de clase, elige el tuyo.');
+    if(L.length<2) return cab+'<p class="ajf-ahora">'+(L.length?'En tu grupo hay un solo Comandante: <b>'+esc(L[0].comandante)+'</b> (escuadrón '+esc(L[0].nombre||'')+').'
+      :jefe?'Tu Comandante: <b>'+esc(jefe)+'</b>.':'Tu grupo aún no tiene escuadrones.')+'</p></section>';
+    return cab+'<div class="ajf-cmds" role="list">'+L.map(function(e){
+      var mio=String(e.comandante).trim()===jefe;
+      return '<button type="button" role="listitem" class="ajf-cmd'+(mio?' on':'')+'" data-cmd="'+esc(e.comandante)+'" data-esc="'+esc(e.nombre||'')+'"'
+        +(mio?' aria-current="true"':'')+noTocar()+'>'
+        +(e.emblema?'<img class="ajf-emb" src="'+esc(e.emblema)+'" alt="" loading="lazy">':'<span class="ajf-emb vacio" aria-hidden="true"></span>')
+        +'<span class="ajf-cmd-t"><b>'+esc(e.comandante)+'</b><small>Escuadrón '+esc(e.nombre||'—')+'</small></span>'
+        +'<em>'+(mio?'<img class=ico src=assets/img/iconos/p/hecho.png alt> El tuyo':'Elegir')+'</em></button>';
+    }).join('')+'</div><p class="ajf-msg" id="ajf-cmd-msg" role="status"></p></section>';
+  }
+  function msgAjustes(el,txt,malo){ if(!el) return; el.innerHTML=txt||''; el.classList.toggle('malo',!!malo); }
+  /** Tras un cambio: el tablero fresco y la ficha, y la Nave y la ventana repintadas. */
+  function recargarTrasAjuste(){
+    var fin=function(){ render(); pintarAjustes(); };
+    SG.FUENTE.tablero(per,true).then(function(d){
+      if(d&&!d.error) st.d=d;
+      quien(null,function(d2){ if(d2&&d2.yo) st.yo=d2.yo; fin(); }, d&&!d.error?d:undefined);
+    },fin);
+  }
+  function motorAjustes(el){
+    var M=window.SG&&window.SG.MOTOR; if(M) return M;
+    msgAjustes(el,'Un momento: la Nave aún se está conectando. Vuelve a probar en unos segundos.',true); return null;
+  }
+  function guardarAliasAjustes(f){
+    var r=st.yo, inp=f.querySelector('input'), msg=f.querySelector('.ajf-msg'), bot=f.querySelector('button');
+    var nuevo=String(inp.value||'').trim().replace(/\s+/g,' ');
+    if(!nuevo) return msgAjustes(msg,'Escribe tu alias nuevo.',true);
+    if(nuevo===r.alias) return msgAjustes(msg,'Ese ya es tu alias.');
+    if(ajustesBloqueado()) return;
+    var M=motorAjustes(msg); if(!M) return;
+    bot.disabled=true; msgAjustes(msg,'Guardando…');
+    Promise.resolve(M.aliasOcupado(per,nuevo,{ficha:r.ficha})).then(function(otro){
+      if(otro) throw new Error('«'+nuevo+'» ya lo lleva otro recluta del grupo. Elige otro.');
+      return M.cambiarAlias(per,r.ficha,nuevo);
+    }).then(function(){
+      bot.disabled=false; st.yo.alias=nuevo;
+      aviso('Desde ahora eres <b>'+esc(nuevo)+'</b> en el tablero');
+      recargarTrasAjuste();
+    },function(e){ bot.disabled=false; msgAjustes(msg,'No se ha podido cambiar: '+esc((e&&e.message)||e),true); });
+  }
+  function guardarFraseAjustes(f){
+    var r=st.yo, ta=f.querySelector('textarea'), msg=f.querySelector('.ajf-msg'), bot=f.querySelector('button');
+    var texto=String(ta.value||'').trim();
+    if(texto===String(r.bio||'').trim()) return msgAjustes(msg,'No has cambiado nada.');
+    if(ajustesBloqueado()) return;
+    var M=motorAjustes(msg); if(!M) return;
+    if(!M.guardarFrase) return msgAjustes(msg,'Recarga la página para poder guardarla.',true);
+    bot.disabled=true; msgAjustes(msg,'Guardando…');
+    M.guardarFrase(r.ficha,texto).then(function(){
+      bot.disabled=false; st.yo.bio=texto; msgAjustes(msg,'<img class=ico src=assets/img/iconos/p/hecho.png alt> Guardada.');
+      aviso(texto?'Tu frase, guardada: ya la ve tu tripulación':'Tu frase, quitada');
+      render();
+    },function(e){ bot.disabled=false; msgAjustes(msg,'No se ha podido guardar: '+esc((e&&e.message)||e),true); });
+  }
+  function elegirComandante(b){
+    if(b.classList.contains('on')||b.disabled) return;
+    var cmd=b.getAttribute('data-cmd'), escu=b.getAttribute('data-esc')||'', msg=document.getElementById('ajf-cmd-msg');
+    if(ajustesBloqueado()) return;
+    var preguntar=window.SG&&window.SG.preguntar; if(!preguntar) return;
+    preguntar({ quien:'Tu Comandante', titulo:'¿Cambiar de Comandante?',
+      texto:'Pasarás al escuadrón '+escu+', con tu Comandante '+cmd+'. Tu XP va contigo.',
+      si:'Sí, cambiar', no:'Mejor no' }).then(function(res){
+      if(!res) return;
+      var M=motorAjustes(msg); if(!M) return;
+      if(!M.cambiarMiComandante) return msgAjustes(msg,'Recarga la página para poder cambiarlo.',true);
+      Array.prototype.forEach.call(document.querySelectorAll('#ajf .ajf-cmd'),function(x){ x.disabled=true; });
+      msgAjustes(msg,'Cambiando de escuadrón…');
+      M.cambiarMiComandante(per,cmd).then(function(){
+        aviso('¡Bienvenido al escuadrón <b>'+esc(escu)+'</b>! Tu Comandante es ahora <b>'+esc(cmd)+'</b>');
+        recargarTrasAjuste();
+      },function(e){
+        Array.prototype.forEach.call(document.querySelectorAll('#ajf .ajf-cmd'),function(x){ x.disabled=false; });
+        var sin=window.GP_SDK&&GP_SDK.errores&&GP_SDK.errores.sinDesplegar&&GP_SDK.errores.sinDesplegar(e);
+        msgAjustes(msg,sin?'El cambio de Comandante aún no está en marcha. No se ha tocado nada: inténtalo más tarde o pídeselo a tu docente.'
+          :'No se ha podido cambiar, y no se ha tocado nada: '+esc((e&&e.message)||e),true);
+      });
+    });
+  }
   /**
    * 🔴 25-sep · LA ENTREGA, A LA VISTA. Norberto: «la actividad 1 se entrega siempre el último día de la semana 5 y la 2 el
    * último día de la semana 9… Añade en la semana 4 y 5 recordatorio de cuándo se entrega la act1, y la 7 y 8 de la act2.
