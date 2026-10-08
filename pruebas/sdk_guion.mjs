@@ -3,7 +3,7 @@
  * azar sembrado, y escribe en la salida lo que ha pasado paso a paso. La batería lo lanza dos veces, en procesos aparte: con el
  * motor.js de ANTES de los pasos 4-11 del SDK de GamificaPro (del historial de git) y con el de ahora, y compara las dos trazas.
  *
- *   node pruebas/sdk_guion.mjs <motor.js> [--yo=<uid>] [--buzon] [--sim=<firebase_sim.js>]
+ *   node pruebas/sdk_guion.mjs <motor.js> [--yo=<uid>] [--buzon] [--sim=<firebase_sim.js>] [--ensayo [--directo]]
  *
  * Firestore y Auth son los del ensayo (assets/js/sim/firebase_sim.js, el de este repo, con la Nave Escuela y un segundo grupo);
  * las funciones del servidor, un mostrador que apunta cada llamada y contesta lo que dice `RESPUESTAS` (o el error que se le
@@ -61,6 +61,9 @@ globalThis.__SG_BUZON_ABIERTO = OPC.indexOf("--buzon") >= 0;
 // 8-oct · --ensayo: las funciones del servidor son las que SIMULA la consola de ensayo (modFormacion, modClase…), no el mostrador; y
 // el guion es el de la Academia y lo en vivo (batería 140), que antes se escribían desde el navegador y ahora van por el servidor
 const ENSAYO = OPC.indexOf("--ensayo") >= 0;
+// 8-oct · --directo (con --ensayo): el guion es el del juego del final (batería 141), `directoCanal`: sin --yo, la pantalla del
+// docente (el estado y los sucesos); con --yo=<uid de una ficha>, el móvil de esa persona (hola, puntos, sabotaje)
+const DIRECTO = ENSAYO && OPC.indexOf("--directo") >= 0;
 const YO = (OPC.find((x) => x.startsWith("--yo=")) || "").slice(5);
 if (YO) DATOS.yo = { uid: YO, nombre: "Recluta " + YO, correo: YO + "@ensayo.invalid" };
 globalThis.fetch = async (u) => {
@@ -140,7 +143,45 @@ try {
   const datosAlta = (alias, comandante) => ({ alias, comandante, avatar: { cara: 1 }, bio: "hola", nombre: "Ana", apellidos: "Pi", correo: "", bitacora: "",
     consentimiento: { v: "2026-10-05", t: 5 } });
 
-  if (ENSAYO) {
+  if (DIRECTO) {
+    // ─── 8-oct · el juego del final (`directoCanal`, sala «directo»): lo que se escribe, por el servidor del ensayo
+    const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+    const SALA = "stargate_directo", dentro = async (col) => (await M.getDocs(M.collection(M.db, SALA, NAVE, col))).docs.map((d) => [d.id.replace(/^ens[0-9a-z]{8,}$/, "ID-AZAR"), d.data()]).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+    const mens = []; let canal = null;
+    const alM = (m) => mens.push(JSON.parse(JSON.stringify(m)));
+    const vistos = () => mens.splice(0, mens.length).map((m) => JSON.stringify(m)).sort().map((x) => JSON.parse(x));
+    if (!YO) {
+      // la pantalla del docente; y, para que la oiga, un jugador que ya estaba en la sala (de esta clase)
+      await M.setDoc(M.doc(M.db, SALA, NAVE, "jugadores", "ens0002"), { projectId: NAVE, fichaId: "ens0002", uid: "prueba_nova", alias: "Nova", avatar: "a.png", listo: true, puntos: 40, stats: { aciertos: 4 }, actualizado: Date.now() });
+      await paso("docente: abre el canal (oye al jugador que ya estaba)", async () => { canal = M.directoCanal(NAVE, true, null, alM); await espera(50); return vistos(); });
+      await paso("docente: el estado de la partida", async () => { canal.enviar({ t: "estado", fase: "sala", cfg: { modo: "defensa", seg: 90 }, temaSemana: 3, inicio: null, eqs: [{ id: "e1", n: "Alfa" }] });
+        await espera(1200); return { sala: (await M.getDoc(M.doc(M.db, SALA, NAVE))).data(), oido: vistos() }; });
+      await paso("docente: tres estados seguidos (queda el último)", async () => { for (const fase of ["cuenta", "juego", "fin"]) canal.enviar({ t: "estado", fase, cfg: { modo: "carrera" }, ronda: fase.length });
+        await espera(2300); return { sala: (await M.getDoc(M.doc(M.db, SALA, NAVE))).data(), oido: vistos() }; });
+      await paso("docente: los sucesos (bomba, sabotaje de la pantalla, curar, retoma)", async () => {
+        for (const m of [{ t: "bomba", quedan: 2 }, { t: "sabotaje", contra: "e1", de: "Ana" }, { t: "curar", escudo: 5 }, { t: "retoma", id: "ens0002", puntos: 40, stats: { a: 1 }, nuevo: false }]) canal.enviar(m);
+        await espera(100); return { eventos: await dentro("eventos"), oido: vistos() }; });
+      await paso("docente: sin t no manda nada", async () => { canal.enviar({ fase: "x" }); canal.enviar(null); await espera(50); return await dentro("eventos"); });
+      await paso("docente: cierra el canal", () => { canal.cerrar(); return "cerrado"; });
+    } else {
+      const yoJ = await M.directoYo(NAVE);
+      await paso("directoYo: quién soy en la sala", () => yoJ);
+      await paso("jugador: abre el canal y oye el estado", async () => { await M.setDoc(M.doc(M.db, SALA, NAVE), { projectId: NAVE, estado: { fase: "sala", cfg: { modo: "defensa" } }, actualizado: Date.now() });
+        canal = M.directoCanal(NAVE, false, yoJ, alM); await espera(50); return vistos(); });
+      await paso("jugador: mio() sin haber jugado", () => canal.mio());
+      await paso("jugador: hola (listo)", async () => { canal.enviar({ t: "hola", listo: true }); await espera(1200); return await dentro("jugadores"); });
+      await paso("jugador: puntos (tres seguidos, queda el último; redondeados y con tope)", async () => { canal.enviar({ t: "pts", puntos: 12.4, stats: { a: 1 } }); canal.enviar({ t: "pts", puntos: 55.6, stats: { a: 2, b: { c: 3 } } }); canal.enviar({ t: "pts", puntos: 999999, stats: { a: 3 } });
+        await espera(2300); return await dentro("jugadores"); });
+      await paso("jugador: puntos negativos y cifras vacías", async () => { canal.enviar({ t: "pts", puntos: -5 }); await espera(1200); return await dentro("jugadores"); });
+      await paso("jugador: sabotaje", async () => { canal.enviar({ t: "sabotaje", id: yoJ.id }); await espera(100); return await dentro("eventos"); });
+      await paso("jugador: un tipo que no es suyo no se manda", async () => { canal.enviar({ t: "bomba" }); canal.enviar({ t: "estado", fase: "x" }); await espera(1200); return { eventos: await dentro("eventos"), sala: (await M.getDoc(M.doc(M.db, SALA, NAVE))).data() }; });
+      await paso("jugador: mio() tras jugar", () => canal.mio());
+      await paso("jugador: el modo fantasma no escribe", async () => { const f = M.directoCanal(NAVE, false, Object.assign({}, yoJ, { fantasma: true }), alM); f.enviar({ t: "hola" }); f.enviar({ t: "pts", puntos: 7 }); f.enviar({ t: "sabotaje" }); await espera(1200); f.cerrar();
+        return { jugadores: await dentro("jugadores"), eventos: await dentro("eventos") }; });
+      await paso("jugador: sin ficha no escribe", async () => { const s = M.directoCanal(NAVE, false, null, alM); s.enviar({ t: "hola" }); await espera(1200); s.cerrar(); return await dentro("jugadores"); });
+      await paso("jugador: cierra el canal", () => { canal.cerrar(); return "cerrado"; });
+    }
+  } else if (ENSAYO) {
     // ─── 8-oct · la Academia de la Cero (modFormacion) y lo en vivo (modClase, sala «envivo»), por el servidor del ensayo
     const AC = "sim-docente";
     await paso("academiaGuardar", () => M.academiaGuardar({ alias: "Lyra", pasos: { a: 1 }, diseno: { objetivo: "x" }, intruso: "no entra", claude: { x: 1 } }));

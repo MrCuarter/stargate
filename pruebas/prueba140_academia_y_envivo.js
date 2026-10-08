@@ -8,7 +8,7 @@
  *   academiaGuardar / Editar / Responder / Quitar / Todos / Profes → modFormacion { mod: "stargate", accion }
  *   publicarEnVivo / lanzarPregunta / cerrarPregunta / responderPregunta / quitarRespuesta → modClase { sala: "envivo", accion }
  * Leer sigue siendo directo (academiaMia, academiaEscuchar, vigilarEnVivo, vigilarRespuestas, miRespuesta). El juego del final
- * (`directoCanal`, sala «directo») NO cambia: espera una decisión de Norberto.
+ * (`directoCanal`, sala «directo») lo hace la batería 141 (Norberto, 8-oct: «pasa al motor YA»).
  *
  * Qué se demuestra:
  *   1. cada llamada exacta (nombre y datos), corriendo las funciones de motor.js contra un mostrador;
@@ -102,7 +102,7 @@ const M = new Function("llamar", "auth", "sesion", cuerpo)(async (fn, d) => {
   function funcion2(n) { const i = MOTOR.search(new RegExp("\\n(async )?function " + n + "\\(")); const j = MOTOR.indexOf("\n}", i); return MOTOR.slice(i, j + 2); }
   c(/function vigilarEnVivo\(perId, alCambiar\) \{\n  return onSnapshot\(doc\(db, ENVIVO, perId\)/.test(MOTOR) && /function vigilarRespuestas\(/.test(MOTOR) && /async function academiaMia\(\) \{[\s\S]{0,200}getDoc\(doc\(db, "stargate_formacion", yo\.uid\)\)/.test(MOTOR) &&
     /function academiaEscuchar\(fn\)[\s\S]{0,300}onSnapshot\(doc\(db, "stargate_formacion", yo\.uid\)/.test(MOTOR), "   y leer sigue siendo directo (vigilarEnVivo, vigilarRespuestas, miRespuesta, academiaMia, academiaEscuchar)");
-  c(/directoCanal/.test(MOTOR) && /stargate_directo/.test(MOTOR) && !/sala: "directo"/.test(MOTOR), "   y el juego del final (directoCanal, stargate_directo) no cambia: espera una decisión de Norberto");
+  c(/directoCanal/.test(MOTOR) && /stargate_directo/.test(MOTOR) && /sala: "directo"/.test(MOTOR), "   y el juego del final (directoCanal, sala «directo») va por el servidor también: lo prueba la batería 141");
 
   console.log("\n  Lo mismo, paso a paso: el motor de antes escribiendo desde el navegador y el de ahora por el servidor, contra la consola de ensayo");
   const BASE = "19af6f49";
