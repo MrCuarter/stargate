@@ -491,9 +491,10 @@
       ico("ojo") + ' Entrar como fantasma</a>';
   }
   function heroComandante() {
-    var V = vivos(), nombre = (YO && (YO.nombre || YO.displayName)) || "Comandante";
+    // 8-oct · la DEMO y la Nave Escuela son robots, y la Academia es profesorado: no son grupos en los que das clase
+    var V = vivos().filter(function (p) { return p.deVerdad !== false; }), nombre = (YO && (YO.nombre || YO.displayName)) || "Comandante";
     // 🔴 8-oct · a tu cargo, solo el alumnado de TUS escuadrones en grupos de clase de verdad (motor.js, `aMiCargo`)
-    var total = V.reduce(function (a, p) { return a + (p.deVerdad ? Number(p.aMiCargo) || 0 : 0); }, 0), mio = miNombreAqui();
+    var total = V.reduce(function (a, p) { return a + (Number(p.aMiCargo) || 0); }, 0), mio = miNombreAqui();
     var pAqui = PERS.filter(function (x) { return x.id === PER; })[0], emb = pAqui ? emblemaDe(pAqui) : { img: "", nombre: "" };
     return '<div class="card cn-ficha ancha">' +
       '<div class="cn-ficha-c">' +
@@ -504,8 +505,8 @@
           (miCita() ? '<p class="cn-cita">' + esc(miCita()) + '</p>' : '') +
           '<p class="small"><b>Comandante' + (soyRefAlguno() ? ' referente' : '') + '</b>' + (mio ? ' · en este grupo, «' + esc(mio) + '»' : '') +
             (emb.propio ? ' · escuadrón <b>' + esc(emb.nombre) + '</b>' + (emb.con && emb.con.length ? ' <span class="muted">(compartido con ' + esc(emb.con.join(" y ")) + ')</span>' : '') : '') + (YO && YO.correo ? ' · <span class="muted">' + esc(YO.correo) + '</span>' : '') + '</p>' +
-          '<p class="monedas"><span class="m xp" tabindex="0" data-tip="Los grupos de STARGATE en los que das clase ahora mismo. Los terminados no cuentan."><b>' + V.length + '</b> ' + (V.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span>' +
-            '<span class="m cred" tabindex="0" data-tip="El alumnado de los escuadrones que llevas o compartes en esos grupos. Ser referente no suma; la DEMO, la Nave Escuela, la Academia y los fantasmas, tampoco."><b>' + total + '</b> ' + (total === 1 ? "recluta a tu cargo" : "reclutas a tu cargo") + '</span>' +
+          '<p class="monedas"><span class="m xp" tabindex="0" data-tip="Los grupos de STARGATE en los que das clase ahora mismo. Los terminados, la DEMO y la Nave Escuela no cuentan."><b>' + V.length + '</b> ' + (V.length === 1 ? "grupo en marcha" : "grupos en marcha") + '</span>' +
+            '<span class="m cred" tabindex="0" data-tip="El alumnado de los escuadrones que llevas o compartes en esos grupos. Ser referente no suma; los fantasmas, tampoco."><b>' + total + '</b> ' + (total === 1 ? "recluta a tu cargo" : "reclutas a tu cargo") + '</span>' +
             // 28-sep · los grupos finalizados (y archivados), a un clic: se abren en tu Nave y se reabren para recuperación
             (PERS.some(function (x) { return x.estado === "pasado"; }) ? '<button type="button" class="m fin-b" id="cn-finalizados" data-tip="Los cursos que ya han terminado: ábrelos en tu Nave o reábrelos para la recuperación">' +
               ico("medalla") + ' <b>' + PERS.filter(function (x) { return x.estado === "pasado"; }).length + '</b> finalizados</button>' : '') +
