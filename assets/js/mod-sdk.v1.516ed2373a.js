@@ -1581,9 +1581,12 @@ var buzon = pieza(function (module, exports) {
  *   · Sin índices compuestos: se ordena aquí, lo último tocado arriba.
  *
  * Puro: `TOPES`, `TEXTOS`, `adjuntos(lista)`. Con `crear(ctx, coleccion)` (ctx = { fs, sesion }; la colección, por defecto
- * `stargate_buzon`, la única que abren hoy las reglas): `enviar(m, textos)`, `mios()`, `todos()`, `responder(id, texto,
- * opciones, textos)` y `visto(id)`. Los textos (y cómo se llama el estudiante sin alias) y las frases para valorar una
- * respuesta son de cada web.
+ * `stargate_buzon`): `enviar(m, textos)`, `mios()`, `todos()`, `responder(id, texto, opciones, textos)` y `visto(id)`. Los textos
+ * (y cómo se llama el estudiante sin alias) y las frases para valorar una respuesta son de cada web.
+ * 8-oct (tanda 2c de «adelantar lo de Navidad») · la colección, por su nombre (lo de siempre) o por su SITIO
+ * (`GP_SDK.sitio("stargate_buzon", null)`, sdk/sitio.js): si está en `mod_*` (el mapa la ha pasado entera), lo escrito lleva su
+ * `mod`, lo que se cambia quita lo del espejo (`ctx.fs.deleteField`) y lo leído vuelve como lo daba la vieja (sin `mod` ni lo del
+ * espejo). Los ids son los de siempre. Quien llama ve lo mismo.
  */
 (function (raiz, fabrica) {
   if (typeof module === "object" && module.exports) module.exports = fabrica();
@@ -1610,11 +1613,21 @@ var buzon = pieza(function (module, exports) {
     return fs;
   }
 
+  /** Dónde está: un nombre de colección es la de siempre, tal cual; un sitio, lo que diga. */
+  function lugar(c) {
+    if (c && typeof c === "object") return c;
+    var mismo = function (x) { return x; };
+    return { coleccion: c || COLECCION, nueva: false, datos: mismo, leer: mismo, cambio: mismo };
+  }
+
   function crear(ctx, coleccion) {
-    var fs = requiere(ctx, ["db", "doc", "getDoc", "getDocs", "addDoc", "updateDoc", "collection", "query", "where"]);
-    var db = fs.db, B = coleccion || COLECCION;
+    var S = lugar(coleccion);
+    var fs = requiere(ctx, ["db", "doc", "getDoc", "getDocs", "addDoc", "updateDoc", "collection", "query", "where"].concat(S.nueva ? ["deleteField"] : []));
+    var db = fs.db, B = S.coleccion;
     var sesion = ctx.sesion || function () { return Promise.resolve(null); };
-    function porId(d) { return Object.assign({ id: d.id }, d.data()); }
+    function porId(d) { return Object.assign({ id: d.id }, S.leer(d.data())); }
+    /** Lo que se cambia: en mod_*, quitando lo del espejo si era una copia (ya es del motor). */
+    function cambio(c) { return S.nueva ? S.cambio(c, fs.deleteField) : c; }
     function recientes(r) { return r.docs.map(porId).sort(function (a, b) { return (b.actualizado || 0) - (a.actualizado || 0); }); }
 
     /**
@@ -1633,7 +1646,7 @@ var buzon = pieza(function (module, exports) {
         };
         var adj = adjuntos(m.adjuntos);
         if (adj.length) d.adjuntos = adj;
-        return fs.addDoc(fs.collection(db, B), d).then(function (r) { return r.id; });
+        return fs.addDoc(fs.collection(db, B), S.datos(d)).then(function (r) { return r.id; });
       });
     }
     /** Lo mío, lo último arriba. */
@@ -1658,12 +1671,12 @@ var buzon = pieza(function (module, exports) {
         if (t) cambios.respuestas = (d.data().respuestas || []).concat([{ de: o.comoMando ? "mando" : "docente", texto: t, fecha: Date.now() }]);
         if (o.comoMando) { cambios.estado = o.estado || d.data().estado; if (t) cambios.visto = false; }
         else cambios.estado = o.estado === "resuelto" ? "resuelto" : "nuevo";
-        return fs.updateDoc(ref, cambios);
+        return fs.updateDoc(ref, cambio(cambios));
       }).then(function () {});
     }
     /** «Ya lo he leído»: se apaga el aviso de respuesta nueva. Si falla, no pasa nada. */
     function visto(id) {
-      return Promise.resolve().then(function () { return fs.updateDoc(fs.doc(db, B, id), { visto: true }); }).then(function () {}, function () {});
+      return Promise.resolve().then(function () { return fs.updateDoc(fs.doc(db, B, id), cambio({ visto: true })); }).then(function () {}, function () {});
     }
 
     return { coleccion: B, enviar: enviar, mios: mios, todos: todos, responder: responder, visto: visto };
@@ -2121,7 +2134,7 @@ var SDK = {
   buzon: buzon,
   economia: economia,
   grupos: grupos,
-  sitio: sitio.crear({"mapa":{"stargate_alias":{"nueva":"mod_alias","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_anulaciones":{"nueva":"mod_anulaciones","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_asistencia":{"nueva":"mod_asistencia","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_batallas":{"nueva":"mod_batallas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_buzon":{"nueva":"mod_buzon","mod":"stargate","ids":"azar","porGrupo":false,"fase":"vieja"},"stargate_comentarios":{"nueva":"mod_comentarios","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_congelados":{"nueva":"mod_congelados","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_directo":{"nueva":"mod_directo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_envivo":{"nueva":"mod_envivo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_formacion":{"nueva":"mod_formacion","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja"},"stargate_invitaciones":{"nueva":"mod_invitaciones","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_profes":{"nueva":"mod_profes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_referentes":{"nueva":"mod_referentes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_reflexiones":{"nueva":"mod_reflexiones","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_respuestas":{"nueva":"mod_respuestas","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_rutas":{"nueva":"mod_rutas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_tratos":{"nueva":"mod_tratos","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_zoco":{"nueva":"mod_zoco","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_asedio":{"nueva":"mod_asedio","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_asedio_ataques":{"nueva":"mod_asedio_ataques","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_galeria":{"nueva":"mod_galeria","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_fama":{"nueva":"mod_fama","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"nueva"},"ceniza_clase":{"nueva":"mod_clase","mod":"ceniza","ids":"grupo","porGrupo":true,"fase":"vieja"},"ceniza_formacion":{"nueva":"mod_formacion","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_invitaciones":{"nueva":"mod_invitaciones","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_referentes":{"nueva":"mod_referentes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_juegos":{"nueva":"mod_juegos","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_mesa":{"nueva":"mod_mesa","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_respuestas":{"nueva":"mod_repaso","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardia_partidas":{"nueva":"mod_retaguardia_partidas","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardias":{"nueva":"mod_retaguardias","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_publico":{"nueva":"mod_publico","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_publico_opiniones":{"nueva":"mod_publico_opiniones","mod":"ceniza","ids":"azar","porGrupo":false,"fase":"vieja"}},"novedades":{"2":["coleccionesMod","economiaSoloServidor","ticketMotor","medianocheUnica","bancoMotor","retaguardiaMotor"]},"mods":[{"mod":"stargate","reconocer":"bloque"},{"mod":"ceniza","reconocer":null}]})
+  sitio: sitio.crear({"mapa":{"stargate_alias":{"nueva":"mod_alias","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_anulaciones":{"nueva":"mod_anulaciones","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_asistencia":{"nueva":"mod_asistencia","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_batallas":{"nueva":"mod_batallas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_buzon":{"nueva":"mod_buzon","mod":"stargate","ids":"azar","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_comentarios":{"nueva":"mod_comentarios","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_congelados":{"nueva":"mod_congelados","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_directo":{"nueva":"mod_directo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_envivo":{"nueva":"mod_envivo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_formacion":{"nueva":"mod_formacion","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_invitaciones":{"nueva":"mod_invitaciones","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_profes":{"nueva":"mod_profes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_referentes":{"nueva":"mod_referentes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_reflexiones":{"nueva":"mod_reflexiones","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_respuestas":{"nueva":"mod_respuestas","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_rutas":{"nueva":"mod_rutas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_tratos":{"nueva":"mod_tratos","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_zoco":{"nueva":"mod_zoco","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_asedio":{"nueva":"mod_asedio","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_asedio_ataques":{"nueva":"mod_asedio_ataques","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_galeria":{"nueva":"mod_galeria","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_fama":{"nueva":"mod_fama","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"nueva"},"ceniza_clase":{"nueva":"mod_clase","mod":"ceniza","ids":"grupo","porGrupo":true,"fase":"vieja"},"ceniza_formacion":{"nueva":"mod_formacion","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_invitaciones":{"nueva":"mod_invitaciones","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_referentes":{"nueva":"mod_referentes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_juegos":{"nueva":"mod_juegos","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_mesa":{"nueva":"mod_mesa","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_respuestas":{"nueva":"mod_repaso","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardia_partidas":{"nueva":"mod_retaguardia_partidas","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardias":{"nueva":"mod_retaguardias","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_publico":{"nueva":"mod_publico","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_publico_opiniones":{"nueva":"mod_publico_opiniones","mod":"ceniza","ids":"azar","porGrupo":false,"fase":"vieja"}},"novedades":{"2":["coleccionesMod","economiaSoloServidor","ticketMotor","medianocheUnica","bancoMotor","retaguardiaMotor"]},"mods":[{"mod":"stargate","reconocer":"bloque"},{"mod":"ceniza","reconocer":null}]})
 };
 if (typeof module === "object" && module.exports) module.exports = SDK;
 else raiz.GP_SDK = SDK;

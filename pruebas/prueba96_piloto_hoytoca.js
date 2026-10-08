@@ -21,7 +21,8 @@ c(/function selectorModo\(\)/.test(K) && /Piloto automático/.test(K) && /Mando 
 // 28-sep · solo la marca SIN valor: los retratos del Comandante llevan data-av="c1" y el piloto también los escondía
 c(/body\.modo-piloto \[data-av=""\]\{display:none!important\}/.test(CSS), "🔴 el piloto solo OCULTA (data-av, la marca sin valor): no hay dos consolas que mantener");
 const GP = "/Users/nor/Claude/vibewebs/gamificapro/firestore.rules";
-if (fs.existsSync(GP)) c(/request\.resource\.data\.modo in \['piloto', 'manual'\]/.test(fs.readFileSync(GP, "utf8")), "   y las reglas del servidor admiten el modo (solo esas dos palabras)");
+// (8-oct, tanda 2b · la ficha acotada, común a la vieja y a mod_profes: `d.modo`)
+if (fs.existsSync(GP)) c(/(request\.resource\.data|\bd)\.modo in \['piloto', 'manual'\]/.test(fs.readFileSync(GP, "utf8")), "   y las reglas del servidor admiten el modo (solo esas dos palabras)");
 
 // ── 2 · qué oculta el piloto
 // 19-sep · «Para tus Geniallys» vive en «Enlaces» y «Para todos tus grupos» en «Premios»: dos secciones que el piloto no enseña

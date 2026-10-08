@@ -1057,8 +1057,11 @@ async function cambiarAlias(perId, fichaId, nuevo, extra) {
  * que lo resuelvas sin que yo intervenga». El profesorado escribe (problema, duda o idea); cada cual
  * ve lo suyo y las respuestas; el Mando (los vitalicios) lo ve todo. Lo resuelve un asistente que
  * trabaja desde el servidor: aquí solo se escribe y se lee. Las reglas: `stargate_buzon`.
+ * 8-oct (tanda 2c de «adelantar lo de Navidad», GamificaPro PLAN_CENTRALIZAR) · entero en `mod_buzon` (el mapa de GamificaPro:
+ * `pasadaPara` con su mod), con los mismos ids: `SDK.sitio("stargate_buzon", null)` lo dice. Lo nuevo lleva su `mod`, lo que se
+ * cambia quita lo del espejo y lo leído vuelve como lo daba la vieja.
  */
-const BUZON = "stargate_buzon";
+const BUZON = SDK.sitio("stargate_buzon", null);
 /*
  * 7-oct · DEL SDK DE GAMIFICAPRO (GP_SDK.buzon, paso 10): escribir (las capturas, solo de nuestro almacén y hasta tres; la duda
  * del recluta con su alias y nunca urgente), lo mío, todo, contestar sin reescribir el hilo y «ya lo he leído». Aquí, la
@@ -2120,12 +2123,16 @@ async function citaEnGrupo(perId, nombre, cita) {
  * registrados y marcar con tic para añadirlos». Cada docente, SU documento: `stargate_formacion/{uid}` con sus hitos (`pasos`),
  * su diseño, sus preguntas, lo que opina de cada juego y cuánto lleva (`avance`). `claude` (las respuestas y los ajustes de su
  * camino) solo lo escribe la revisión diaria, con la cuenta de servicio: las reglas no dejan tocarlo desde el navegador.
+ * 8-oct (tanda 2c) · entera en `mod_formacion/stargate__{uid}` (`SDK.sitio("stargate_formacion", null)`): la suya se lee de ahí y
+ * vuelve como la daba la vieja; la escribe el servidor (`modFormacion`), como desde esta mañana.
  */
+const FORMACION = SDK.sitio("stargate_formacion", null);
+const academiaRef = (uid) => doc(db, FORMACION.coleccion, FORMACION.id(uid));
 const ACADEMIA_CAMPOS = ["alias", "pasos", "diseno", "preguntas", "feedback", "avance"];
 async function academiaMia() {
   const yo = await sesion(); if (!yo) return null;
-  const d = await getDoc(doc(db, "stargate_formacion", yo.uid));
-  return d.exists() ? d.data() : null;
+  const d = await getDoc(academiaRef(yo.uid));
+  return d.exists() ? FORMACION.leer(d.data()) : null;
 }
 async function academiaGuardar(campos) {
   const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta de Google.");
@@ -2136,7 +2143,7 @@ async function academiaGuardar(campos) {
 }
 function academiaEscuchar(fn) {
   // (si no se puede leer —las reglas sin desplegar, sin red—, se avisa igual: la Academia se pinta y lo dice, no se queda colgada)
-  return sesion().then((yo) => (yo ? onSnapshot(doc(db, "stargate_formacion", yo.uid), (d) => fn(d.exists() ? d.data() : null), (e) => fn(null, e)) : null));
+  return sesion().then((yo) => (yo ? onSnapshot(academiaRef(yo.uid), (d) => fn(d.exists() ? FORMACION.leer(d.data()) : null), (e) => fn(null, e)) : null));
 }
 /** El profesorado registrado en la Academia, para añadirlo a un grupo con un clic (lo leen el Mando y los referentes). */
 /** 29-sep (noche) · el panel del organizador (academia.html): todo lo de cada docente inscrito. Lo dejan leer las reglas al Mando y a los vitalicios. */

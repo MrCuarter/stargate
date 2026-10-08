@@ -123,7 +123,11 @@ if (!viejo) {
   try { simViejo = execFileSync("git", ["show", BASE + ":assets/js/sim/firebase_sim.js"], { cwd: R, encoding: "utf8", maxBuffer: 16 << 20 }); } catch (e) { /* sin historial */ }
   if (simViejo && /GP_SIM/.test(fs.readFileSync(path.join(R, "assets/js/sim/firebase_sim.js"), "utf8"))) {
     console.log("\n  · el ensayo de antes y el simulador común de GamificaPro");
-    const fsv = path.join(tmp, "firebase_sim_antes.js"); fs.writeFileSync(fsv, simViejo);
+    // (8-oct, tanda 2c · la centralita de ahora escribe el buzón en mod_buzon: el ensayo de antes, que solo conocía stargate_buzon, lo
+    // para también ahí, como el de ahora; si no, lo guardaría en el navegador y fingiría mandarlo)
+    const simViejo2c = simViejo.replace("[[/^stargate_buzon\\//,", "[[/^(stargate|mod)_buzon\\//,");
+    if (simViejo2c === simViejo) throw new Error("el ensayo de antes ya no para stargate_buzon como se espera: revisa la batería");
+    const fsv = path.join(tmp, "firebase_sim_antes.js"); fs.writeFileSync(fsv, simViejo2c);
     for (const opc of [[], ["--buzon"], ["--yo=prueba_triton"]]) {
       const a = correr(fn, opc.concat(["--sim=" + fsv])), b = correr(fn, opc);
       const dist = a.map((x, i) => [x[0], canon(x[1]) === canon((b[i] || [])[1]) && x[0] === (b[i] || [])[0]]).filter((x) => !x[1]).map((x) => x[0]);

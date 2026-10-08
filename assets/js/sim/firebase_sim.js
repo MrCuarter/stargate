@@ -49,7 +49,8 @@ function apuntarHecho(ruta, d) {
  * 🔴 LO QUE EN EL ENSAYO NO PUEDE «FUNCIONAR» SIN ENGAÑAR. El buzón es la línea con el equipo de STARGATE: si aquí se
  * guardara en la memoria del navegador, quien escribe una duda de verdad creería haberla mandado y no le leería nadie.
  */
-const NO_SE_GUARDA = [[/^stargate_buzon\//, "En la consola de ensayo el buzón no llega a nadie. Escríbenos desde tu Nave de Comandante de verdad."]];
+// (8-oct, tanda 2c de «adelantar lo de Navidad», GamificaPro · la web escribe ya en mod_buzon: tampoco)
+const NO_SE_GUARDA = [[/^(stargate|mod)_buzon\//, "En la consola de ensayo el buzón no llega a nadie. Escríbenos desde tu Nave de Comandante de verdad."]];
 
 const QUE_HACE = { completeMission: "registrar un reto como recluta", castVote: "votar como recluta", claimLinkedReward: "abrir un premio por enlace",
   consumeItem: "usar una carta", stargateAsistencia: "fichar en la llamada a filas", stargateBatalla: "jugar la batalla contra Joran",
@@ -188,15 +189,17 @@ function servidor(S) {
     },
     // 8-oct · la Academia de la Cero la guarda el servidor (GamificaPro: modFormacion, mod «stargate»; PLAN_CENTRALIZAR §1e): lo mismo
     // que escribía el navegador en stargate_formacion/{uid} (aquí no hay reglas: en el ensayo manda quien está dentro)
+    // (8-oct, tanda 2c · ya entera en mod_formacion/stargate__{uid}, con su mod, como el servidor; lo que se devuelve, como la vieja)
     async modFormacion(x) {
-      const ruta = (uid) => "stargate_formacion/" + uid, ahora = Date.now();
+      const ruta = (uid) => "mod_formacion/stargate__" + uid, ahora = Date.now();
+      const comoVuelve = (v) => { if (!v) return v; const { mod: _m, ...y } = v; return y; };
       if (x.mod !== "stargate") throw fallo("invalid-argument", "Ese mod no tiene formación del profesorado.");
       if (x.accion === "guardar")
         hacerSet(refDoc(ruta(YO.uid)), Object.assign({ uid: YO.uid, correo: String(YO.correo || "").toLowerCase(),
-          nombre: String(typeof x.nombre === "string" ? x.nombre : YO.nombre || "").slice(0, 80), t: ahora }, x.campos || {}), { merge: true });
-      else if (x.accion === "mia") return { ok: true, ficha: DATOS.get(ruta(YO.uid)) || null };
+          nombre: String(typeof x.nombre === "string" ? x.nombre : YO.nombre || "").slice(0, 80), t: ahora }, x.campos || {}, { mod: "stargate" }), { merge: true });
+      else if (x.accion === "mia") return { ok: true, ficha: comoVuelve(DATOS.get(ruta(YO.uid))) || null };
       else if (x.accion === "todos")
-        return { ok: true, lista: [...DATOS.entries()].filter(([k]) => /^stargate_formacion\/[^/]+$/.test(k)).map(([k, v]) => Object.assign({}, v, { uid: k.split("/")[1] })) };
+        return { ok: true, lista: [...DATOS.entries()].filter(([k]) => /^mod_formacion\/stargate__[^/]+$/.test(k)).map(([k, v]) => Object.assign({}, comoVuelve(v), { uid: k.split("__")[1] })) };
       else if (x.accion === "editar" || x.accion === "responder" || x.accion === "quitar") {
         if (x.accion === "quitar") escribir(ruta(String(x.uid || "")), null);
         else {

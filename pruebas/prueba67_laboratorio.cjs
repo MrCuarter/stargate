@@ -1736,9 +1736,10 @@ const REG = {};   // cifras que se apuntan para el informe
       await cambia("quim", { inventory: [HE], coins: 120 });
       await cambia("rut", { inventory: [CT, CS], coins: 60 });
       const n = (f, id) => (f.inventory || []).filter(x => x === id).length;
-      const tratos = () => consultar("stargate_tratos", "projectId", P);
+      // (8-oct · desde la tanda 2a de «adelantar lo de Navidad» el Zoco y los tratos de STARGATE viven en mod_zoco y mod_tratos)
+      const tratos = () => consultar("mod_tratos", "projectId", P);
       const trato = async id => (await tratos()).filter(t => t._id === id)[0];
-      const anuncios = () => consultar("stargate_zoco", "projectId", P);
+      const anuncios = () => consultar("mod_zoco", "projectId", P);
       const anuncioDe = async (k, id) => (await anuncios()).filter(a => a.estado === "abierto" && a.vende.uid === F[k]._uid && a.pieza.id === id).map(a => a._id);
       const tratoDe = async (anuncio, k) => (await tratos()).filter(t => t.anuncio === anuncio && t.compra.uid === F[k]._uid).sort((a, b) => b.creado - a.creado)[0];
 
@@ -2048,11 +2049,11 @@ const REG = {};   // cifras que se apuntan para el informe
       c("zoco · 9 · Pau no puede aceptar su propia oferta (le toca a Olga)", /no te toca/i.test(await llama(p9, "zocoResponder", [T9._id, "aceptar", {}])));
       c("zoco · 9 · ni contraofertar él", /no te toca/i.test(await llama(p9, "zocoResponder", [T9._id, "contraofertar", { pide: { creditos: 5, piezas: [] } }])));
       c("🔴 zoco · 9 · Quim (un tercero) no puede responder un trato ajeno", /no es tuyo/i.test(await llama(q9, "zocoResponder", [T9._id, "aceptar", {}])));
-      c("🔴 zoco · 9 · ni leerlo", /permission|insufficient/i.test(await q9.js(`window.SG.MOTOR.getDoc(window.SG.MOTOR.doc(window.SG.MOTOR.db,'stargate_tratos',${JSON.stringify(T9._id)})).then(function(){return 'LEYÓ'},function(e){return e.code||e.message})`)));
-      c("zoco · 9 · pero el anuncio sí lo ve todo el grupo", /LEYÓ/i.test(await q9.js(`window.SG.MOTOR.getDoc(window.SG.MOTOR.doc(window.SG.MOTOR.db,'stargate_zoco',${JSON.stringify(L_CN)})).then(function(){return 'LEYÓ'},function(e){return e.code||e.message})`)));
+      c("🔴 zoco · 9 · ni leerlo", /permission|insufficient/i.test(await q9.js(`window.SG.MOTOR.getDoc(window.SG.MOTOR.doc(window.SG.MOTOR.db,'mod_tratos',${JSON.stringify(T9._id)})).then(function(){return 'LEYÓ'},function(e){return e.code||e.message})`)));
+      c("zoco · 9 · pero el anuncio sí lo ve todo el grupo", /LEYÓ/i.test(await q9.js(`window.SG.MOTOR.getDoc(window.SG.MOTOR.doc(window.SG.MOTOR.db,'mod_zoco',${JSON.stringify(L_CN)})).then(function(){return 'LEYÓ'},function(e){return e.code||e.message})`)));
       const escribe = (q, ruta, id, datos) => q.js(`window.SG.MOTOR.setDoc(window.SG.MOTOR.doc(window.SG.MOTOR.db,${JSON.stringify(ruta)},${JSON.stringify(id)}),${JSON.stringify(datos)},{merge:true}).then(function(){return 'ESCRIBIÓ'},function(e){return e.code||e.message})`);
-      c("🔴 zoco · 9 · desde la consola del navegador: Pau no puede darse el trato por aceptado", !/ESCRIBIÓ/i.test(await escribe(p9, "stargate_tratos", T9._id, { estado: "aceptado" })));
-      c("🔴 zoco · 9 · ni fabricarse un anuncio", !/ESCRIBIÓ/i.test(await escribe(p9, "stargate_zoco", "trampa", { projectId: P, estado: "abierto" })));
+      c("🔴 zoco · 9 · desde la consola del navegador: Pau no puede darse el trato por aceptado", !/ESCRIBIÓ/i.test(await escribe(p9, "mod_tratos", T9._id, { estado: "aceptado" })));
+      c("🔴 zoco · 9 · ni fabricarse un anuncio", !/ESCRIBIÓ/i.test(await escribe(p9, "mod_zoco", "trampa", { projectId: P, estado: "abierto", mod: "stargate" })));
       c("🔴 zoco · 9 · ni tocarse los créditos o el inventario", !/ESCRIBIÓ/i.test(await escribe(p9, "student_profiles", F.pau._id, { coins: 9999 })) && !/ESCRIBIÓ/i.test(await escribe(p9, "student_profiles", F.pau._id, { inventory: [HX, HX, HX] })));
       await llama(o9, "zocoResponder", [T9._id, "contraofertar", { pide: { creditos: 20, piezas: [] }, mensaje: "" }]);
       c("zoco · 9 · en el paso 2 Olga ya no puede aceptar (le toca a Pau)", /no te toca/i.test(await llama(o9, "zocoResponder", [T9._id, "aceptar", {}])));
@@ -2230,10 +2231,10 @@ const REG = {};   // cifras que se apuntan para el informe
       const falsos = [];
       const cerrados = (await tratos()).filter(t => t.estado === "aceptado" && t.compra.uid === F.pau._uid && t.vende.uid === F.olga._uid).length;
       for (let i = cerrados; i < 3; i++) {
-        const ref = fs.collection("stargate_tratos").doc(); falsos.push(ref);
+        const ref = fs.collection("mod_tratos").doc(); falsos.push(ref);
         await ref.set({ projectId: P, anuncio: "falso", vende: { ficha: F.olga._id, uid: F.olga._uid, alias: "Olga Órbita" }, compra: { ficha: F.pau._id, uid: F.pau._uid, alias: "Pau Púlsar" },
           pieza: { id: CB, tipo: "cromo", clave: "P1_bran" }, ofrece: { creditos: 1, piezas: [] }, pagado: { creditos: 1, piezas: [] }, pide: null, paso: 1, turno: "vendedor",
-          estado: "aceptado", mensajes: [], creado: Date.now(), actualizado: Date.now(), caduca: Date.now() + 864e5 });
+          estado: "aceptado", mensajes: [], creado: Date.now(), actualizado: Date.now(), caduca: Date.now() + 864e5, mod: "stargate" });
       }
       const pareja = await llama(p17, "zocoOfertar", [L_OX, { creditos: 1, piezas: [] }, ""]);
       c("zoco · 17 · como mucho 3 trueques por semana entre la misma pareja (el cuarto, no)", /3 trueques esta semana/i.test(pareja), pareja);
@@ -2250,7 +2251,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const cQ18 = (await ficha("quim")).coins;
       await llama(q18, "zocoOfertar", [L_CT2, { creditos: 7, piezas: [] }, ""]); await cerrarTodas(q18);
       const T18q = await tratoDe(L_CT2, "quim");
-      await fs.collection("stargate_tratos").doc(T18q._id).update({ caduca: Date.now() - 864e5 });
+      await fs.collection("mod_tratos").doc(T18q._id).update({ caduca: Date.now() - 864e5 });
       const q18b = await naveZoco("quim", "vuelve a los 8 días");
       c("🔴 zoco · 18 · un trato de hace 8 días: al abrir su Zoco se cierra solo «⌛ Caducó sin respuesta»", await q18b.hasta("/Caducó sin respuesta/i.test(document.body.innerText)", 25));
       c("🔴 zoco · 18 · y le vuelven sus 7 ◈", (await trato(T18q._id)).estado === "caducado" && (await ficha("quim")).coins === cQ18);
@@ -2260,7 +2261,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const T18p = await tratoDe(L_HE, "pau");
       const o18 = await nave("olga", "contraoferta y espera");
       await llama(o18, "zocoResponder", [T18p._id, "contraofertar", { pide: { creditos: 12, piezas: [] } }]);
-      await fs.collection("stargate_tratos").doc(T18p._id).update({ caduca: Date.now() - 864e5 });
+      await fs.collection("mod_tratos").doc(T18p._id).update({ caduca: Date.now() - 864e5 });
       const cP18 = (await ficha("pau")).coins;
       const q18c = await nave("quim", "usa el Zoco");
       await llama(q18c, "zocoOfertar", [L_CT2, { creditos: 1, piezas: [] }, ""]);   // cualquiera que use el Zoco cierra lo caducado
@@ -2276,7 +2277,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await fo.ir("entrar.html"); await fo.entrarComo("forastero@lab.test", "Forastero"); await fo.ir("recluta.html?per=" + P); await fo.hasta("!!(window.SG&&window.SG.MOTOR)", 20);
       c("🔴 zoco · 19 · alguien sin ficha en el grupo no puede ofertar", /No tienes ficha/i.test(await llama(fo, "zocoOfertar", [L_HE, { creditos: 5, piezas: [] }, ""])));
       c("zoco · 19 · ni poner nada", /No tienes ficha/i.test(await llama(fo, "zocoPoner", [P, [HX]])));
-      c("zoco · 19 · ni leer tratos", /permission|insufficient/i.test(await fo.js(`window.SG.MOTOR.getDoc(window.SG.MOTOR.doc(window.SG.MOTOR.db,'stargate_tratos',${JSON.stringify(T2._id)})).then(function(){return 'LEYÓ'},function(e){return e.code||e.message})`)));
+      c("zoco · 19 · ni leer tratos", /permission|insufficient/i.test(await fo.js(`window.SG.MOTOR.getDoc(window.SG.MOTOR.doc(window.SG.MOTOR.db,'mod_tratos',${JSON.stringify(T2._id)})).then(function(){return 'LEYÓ'},function(e){return e.code||e.message})`)));
       await cerrarTodas(fo);
 
       // ─────────────────────────────────────────── 20 · LA DOCENTE: EL REGISTRO Y «DESHACER» (todo o nada)
@@ -2510,7 +2511,8 @@ const REG = {};   // cifras que se apuntan para el informe
     if (hacer(24)) {
       const A = admin(), fs = A.firestore();
       const cuenta = async (col, per) => (await fs.collection(col).where("projectId", "==", per).get()).size;
-      const COLS = ["missions", "rewards", "campaigns", "student_profiles", "stargate_alias", "stargate_zoco", "stargate_tratos"];
+      // (8-oct · desde la tanda 2a, el alias, el Zoco y los tratos de STARGATE, en mod_*)
+      const COLS = ["missions", "rewards", "campaigns", "student_profiles", "mod_alias", "mod_zoco", "mod_tratos"];
       const labAntes = {}; for (const col of COLS) labAntes[col] = await cuenta(col, "lab-clase");
       const nor = await nueva("Norberto crea un grupo para borrarlo");
       await nor.ir("entrar.html"); await nor.entrarComo("n.cuartero.10@gmail.com", "Norberto Cuartero");
@@ -2531,12 +2533,12 @@ const REG = {};   // cifras que se apuntan para el informe
         document.querySelector('#a-alias').value='Borja Bólido'; var r=document.querySelector('input[name=cmd]'); if(r) r.checked=true; return 1; })()`);
       await al.js("(function(){var a=document.querySelector('#a-acepto');if(a&&!a.checked){a.checked=true;if(a.onchange)a.onchange();}})(); document.querySelector('#a-enviar').click(); 1"); await al.hasta("!document.querySelector('#a-enviar')", 25); await al.cerrar();
       const fB = await fichaDe("borrable@lab.test", id);
-      await fs.collection("stargate_zoco").add({ projectId: id, estado: "abierto", vende: { ficha: fB ? fB._id : "", uid: fB ? fB._uid : "", alias: "Borja Bólido" },
+      await fs.collection("mod_zoco").add({ projectId: id, mod: "stargate", estado: "abierto", vende: { ficha: fB ? fB._id : "", uid: fB ? fB._uid : "", alias: "Borja Bólido" },
         pieza: { id: id + "__cromo_P1_bran", tipo: "cromo", clave: "P1_bran" }, creado: Date.now(), ofertas: 0 });
-      await fs.collection("stargate_tratos").add({ projectId: id, estado: "abierto", anuncio: "x", vende: { uid: "a" }, compra: { uid: "b" }, creado: Date.now() });
+      await fs.collection("mod_tratos").add({ projectId: id, mod: "stargate", estado: "abierto", anuncio: "x", vende: { uid: "a" }, compra: { uid: "b" }, creado: Date.now() });
       const lleno = {}; for (const col of COLS) lleno[col] = await cuenta(col, id);
       c("borrar · el grupo está lleno: retos, Mercado, un alumno, su alias y restos del Zoco",
-        !!id && lleno.missions > 10 && lleno.rewards > 5 && lleno.student_profiles === 1 && lleno.stargate_alias === 1 && lleno.stargate_zoco === 1 && lleno.stargate_tratos === 1, JSON.stringify(lleno));
+        !!id && lleno.missions > 10 && lleno.rewards > 5 && lleno.student_profiles === 1 && lleno.mod_alias === 1 && lleno.mod_zoco === 1 && lleno.mod_tratos === 1, JSON.stringify(lleno));
       // el botón, en Ajustes
       // 19-sep · en «Gestionar grupos» → «Cerrar el curso» (Norberto: «solo desde esa página se pueden crear, borrar o gestionar»)
       await aGestion(nor, id, "cerrar"); await nor.hasta("!!document.getElementById('s-borrar')", 15);
@@ -2590,7 +2592,7 @@ const REG = {};   // cifras que se apuntan para el informe
       for (const k of Object.keys(F)) await fs.collection("student_profiles").doc(F[k]._id).update({ coins: 300 });
       const ficha = k => fichaDe(GENTE[k][0], P);
       const papeletas = f => Number(((f && f.lotteryEntries) || {})[T] || 0);
-      const trato25 = async id => (await consultar("stargate_tratos", "projectId", P)).filter(t => t._id === id)[0];
+      const trato25 = async id => (await consultar("mod_tratos", "projectId", P)).filter(t => t._id === id)[0];
       const ticket = async () => (await fs.collection("rewards").doc(T).get()).data();
       c("sorteo · el grupo nace con el Gran Sorteo: la participación (20 ◈, sin tope por persona) apunta a su premio (2 licencias)",
         (await ticket()).systemEffect === "lottery_ticket" && (await ticket()).linkedItemId === PREMIO && (await ticket()).cost === 20 && (await ticket()).maxPerUser == null
@@ -2674,7 +2676,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("reventa · NEBULA pregunta «¿Pongo «Participación · Licencia de Genially…» en el Zoco?»", /Participación · Licencia de Genially/i.test(await s3.js("document.querySelector('.neb-capa').innerText")));
       await s3.js("document.querySelector('.neb-capa [data-si]').click(); 1");
       await s3.hasta("/ya está en el Zoco/i.test((document.getElementById('nave-aviso')||{}).innerText||'')", 25);
-      const anunciosP = async () => (await consultar("stargate_zoco", "projectId", P)).filter(a => a.estado === "abierto" && a.pieza.id === T);
+      const anunciosP = async () => (await consultar("mod_zoco", "projectId", P)).filter(a => a.estado === "abierto" && a.pieza.id === T);
       await llamaZ(s3, "zocoPoner", [P, [T, T]]);
       c("🔴 reventa · Sara pone 3 participaciones en el Zoco, y siguen siendo suyas (11)", (await anunciosP()).length === 3 && papeletas(await ficha("sara")) === 11);
       await s3.cerrar();
@@ -2694,7 +2696,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("reventa · 61 ◈ por una participación, no", /como mucho 60/.test(await llamaZ(l2, "zocoOfertar", [A2, { creditos: 61, piezas: [] }, ""])));
       c("🔴 reventa · y pagar con participaciones, tampoco (se quedarían fuera del bombo)", /Ofrece algo/.test(await llamaZ(l2, "zocoOfertar", [A2, { creditos: 0, piezas: [T] }, ""])));
       await l2.cerrar();
-      const tL = (await consultar("stargate_tratos", "projectId", P)).filter(t => t.anuncio === A1 && t.estado === "abierto")[0];
+      const tL = (await consultar("mod_tratos", "projectId", P)).filter(t => t.anuncio === A1 && t.estado === "abierto")[0];
       const s4 = await naveDe("sara", "acepta la reventa");
       const acep = await llamaZ(s4, "zocoResponder", [tL._id, "aceptar", {}]);
       const fSa = await ficha("sara"), fLo = await ficha("lola");
@@ -2705,7 +2707,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // una oferta que se queda abierta hasta DESPUÉS del sorteo (se comprueba al final)
       const m3 = await naveDe("mateo", "oferta por otra");
       await llamaZ(m3, "zocoOfertar", [A2, { creditos: 20, piezas: [] }, ""]); await m3.cerrar();
-      const tM = (await consultar("stargate_tratos", "projectId", P)).filter(t => t.anuncio === A2 && t.estado === "abierto")[0];
+      const tM = (await consultar("mod_tratos", "projectId", P)).filter(t => t.anuncio === A2 && t.estado === "abierto")[0];
 
       // 3 · la consola: el bombo, cambiar el precio, y sortear en directo
       await rita.ir("consola.html?per=" + P + "&tab=alumnado"); await rita.hasta("!!document.querySelector('.cn-t[data-sec=\"premios\"]')", 25);
@@ -2759,7 +2761,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("   (y no le suma nada)", papeletas(await ficha("lola")) === 0);
       await l0.cerrar();
       // 3b · la reventa, tras el sorteo: lo que quedaba en el Zoco se retira SOLO y cada oferta devuelve lo suyo
-      const tM2 = await trato25(tM._id), restos = (await consultar("stargate_zoco", "projectId", P)).filter(a => a.pieza.id === T && a._id !== A1);
+      const tM2 = await trato25(tM._id), restos = (await consultar("mod_zoco", "projectId", P)).filter(a => a.pieza.id === T && a._id !== A1);
       c("🔴 reventa · al sortear, las 2 participaciones que Sara aún tenía en el Zoco se retiran solas", restos.length === 2 && restos.every(a => a.estado === "retirado"),
         JSON.stringify(restos.map(a => a.estado)));
       const fM = await ficha("mateo");
@@ -2995,7 +2997,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const b1 = await naveDe("brasa", "compra el legendario");
       c("legendario · por un héroe, como mucho 180 ◈ (también por un legendario)", /como mucho 180/i.test(await llama(b1, "zocoOfertar", [puesto.anuncios[0], { creditos: 181, piezas: [] }, ""])));
       await llama(b1, "zocoOfertar", [puesto.anuncios[0], { creditos: 150, piezas: [] }, "¡Lo quiero!"]); await b1.cerrar();
-      const tLey = (await consultar("stargate_tratos", "projectId", P)).filter(t => t.anuncio === puesto.anuncios[0] && t.estado === "abierto")[0];
+      const tLey = (await consultar("mod_tratos", "projectId", P)).filter(t => t.anuncio === puesto.anuncios[0] && t.estado === "abierto")[0];
       const g2 = await naveDe("gelida", "acepta");
       const acep = await llama(g2, "zocoResponder", [tLey._id, "aceptar", {}]); await g2.cerrar();
       const [fg, fb] = [await ficha("gelida"), await ficha("brasa")];
@@ -3041,7 +3043,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const fgc = await ficha("gelida");
       c("🔴 congelar · la ficha lleva el candado (quién y cuándo)", !!(fgc.stargateCongelado && fgc.stargateCongelado.por === "rita@lab.test"), JSON.stringify(fgc.stargateCongelado));
       c("congelar · en Mi gente sale «🧊 congelado» a su lado", await rita.hasta("[].slice.call(document.querySelectorAll('[data-r]')).some(function(x){return /Gélida/.test(x.innerText)&&/congelado/i.test(x.innerText)})", 15));
-      const tratos = await consultar("stargate_tratos", "projectId", P), zoco = await consultar("stargate_zoco", "projectId", P);
+      const tratos = await consultar("mod_tratos", "projectId", P), zoco = await consultar("mod_zoco", "projectId", P);
       c("🔴 congelar · lo suyo sale del Zoco y cada oferta se anula devolviendo lo apartado (a Brasa sus 20, a Gélida sus 30)",
         zoco.filter(a => a._id === puesto2)[0].estado === "retirado" && tratos.filter(t => t.anuncio === puesto2)[0].estado === "anulado" && tratos.filter(t => t.anuncio === puestoB)[0].estado === "anulado"
         && (await ficha("brasa")).coins === antesB + 20 && (await ficha("gelida")).coins === antesG + 30,
@@ -3110,9 +3112,9 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 baja · no se enciende hasta escribir su alias exacto", /^APAGADO/.test(await rita.responder("Bras")));
       c("baja · y con el alias exacto, sí", /Dar de baja a «Brasa»/.test(await rita.responder("Brasa")));
       c("🔴 baja · Rita da de baja a Brasa (sin ser la dueña del grupo)", await rita.hasta("/ya no está en el grupo/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25), await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
-      const alias = await leerDoc("stargate_alias/" + P + "__brasa");
+      const alias = await leerDoc("mod_alias/" + P + "__brasa");
       c("🔴 baja · su ficha, sus datos y su alias ya no están (el alias queda libre)", !(await fs.collection("student_profiles").doc(F.brasa._id).get()).exists && !(await leerDoc("student_profiles/" + F.brasa._id + "/privado/datos")) && !alias);
-      c("baja · y lo suyo del Zoco, retirado", (await consultar("stargate_zoco", "projectId", P)).filter(a => a._id === puestoB)[0].estado === "retirado");
+      c("baja · y lo suyo del Zoco, retirado", (await consultar("mod_zoco", "projectId", P)).filter(a => a._id === puestoB)[0].estado === "retirado");
       c("congelar · sin errores en la consola", !rita.errores.filter(e => !/Failed to load resource/.test(e)).length, rita.errores[0] || "");
       await rita.cerrar();
     }
@@ -3571,7 +3573,8 @@ const REG = {};   // cifras que se apuntan para el informe
         await dani.js("[].slice.call(document.querySelectorAll('.bz-sol h3')).some(function(h){return /Genially/.test(h.textContent)})"));
       await dani.js("var t=document.getElementById('bz-texto'); t.value='No puedo pasar lista: los alumnos de mi escuadrón no ven el botón de Presente aunque la llamada está abierta'; t.dispatchEvent(new Event('input')); document.getElementById('bz-urgente').checked=true; document.getElementById('bz-urgente').dispatchEvent(new Event('change')); document.getElementById('bz-enviar').click(); 1");
       c("buzón · «📡 Transmitir al Mando» → «Transmisión recibida»", await dani.hasta("/Transmisión recibida/.test((document.getElementById('bz-aviso')||{}).innerText||'')", 25));
-      const m1 = (await consultar("stargate_buzon", "correo", "dani@lab.test")).filter(m => /Presente/.test(m.texto))[0];
+      // (8-oct, tanda 2c de «adelantar lo de Navidad», GamificaPro · el buzón, entero en mod_buzon)
+      const m1 = (await consultar("mod_buzon", "correo", "dani@lab.test")).filter(m => /Presente/.test(m.texto))[0];
       c("🔴 buzón · llega con su contexto: grupo, desde la llamada, urgente, y lo que el Capitán le ofreció",
         m1 && m1.projectId === P && m1.contexto && m1.contexto.desde === "llamada" && m1.urgente === true && m1.estado === "nuevo" && (m1.autoayuda || []).length >= 1,
         JSON.stringify(m1 && { p: m1.projectId, d: m1.contexto && m1.contexto.desde, u: m1.urgente, a: m1.autoayuda }));
@@ -3586,7 +3589,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const rita = await nueva("Rita no ve lo de Dani");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       await rita.ir("buzon.html?per=" + P); await rita.hasta("!!document.getElementById('bz-texto')", 30); await dormir(1200);
-      const aPelo = await rita.js("(function(){ var M=window.SG.MOTOR; return M.getDocs(M.collection(M.db,'stargate_buzon')).then(function(r){return 'LEYÓ '+r.size},function(e){return String(e.code||e.message)}); })()", 30000);
+      const aPelo = await rita.js("(function(){ var M=window.SG.MOTOR; return M.getDocs(M.collection(M.db,'mod_buzon')).then(function(r){return 'LEYÓ '+r.size},function(e){return String(e.code||e.message)}); })()", 30000);
       c("🔴 buzón · Rita no ve las transmisiones de Dani (ni en su página ni pidiendo toda la colección)",
         (await rita.js("document.querySelectorAll('.bz-lista .bz-msg').length")) === 0 && !(await rita.js("!!document.querySelector('.bz-mando')")) && /permission/i.test(aPelo), aPelo);
       await rita.cerrar();
@@ -3602,7 +3605,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await nor.foto(FOTOS + "/33-buzon-mando.png");
       await nor.js(`(function(){ var a=document.querySelector('.bz-mando .bz-msg[data-m="${m1 && m1._id}"]'); a.querySelector('textarea').value='Arreglado: ya cada Comandante ve su propia llamada. Pide que recarguen la Nave.'; a.querySelector('select').value='resuelto'; a.querySelector('[data-responder]').click(); return 1; })()`);
       await nor.hasta("/Respondido/.test((document.getElementById('bz-aviso')||{}).innerText||'')", 20);
-      const m1b = await leerDoc("stargate_buzon/" + m1._id);
+      const m1b = await leerDoc("mod_buzon/" + m1._id);
       c("🔴 buzón · la respuesta del Mando queda en el hilo, «resuelto» y marcada como no leída para Dani",
         m1b && m1b.estado === "resuelto" && m1b.visto === false && (m1b.respuestas || []).slice(-1)[0].de === "mando", JSON.stringify(m1b && { e: m1b.estado, v: m1b.visto }));
       await nor.cerrar();
@@ -3618,15 +3621,15 @@ const REG = {};   // cifras que se apuntan para el informe
       await dani2.js(`(function(){ var a=document.querySelector('.bz-msg[data-m="${m1._id}"]'); window.scrollTo({ top: a.getBoundingClientRect().top + scrollY - 70, behavior: 'instant' }); return 1; })()`); await dormir(600);
       await dani2.foto(FOTOS + "/33-buzon-respuesta.png");
       await dormir(1500);
-      c("buzón · al verla, deja de estar «sin leer»", (await leerDoc("stargate_buzon/" + m1._id)).visto === true);
+      c("buzón · al verla, deja de estar «sin leer»", (await leerDoc("mod_buzon/" + m1._id)).visto === true);
       await dani2.js(`(function(){ var a=document.querySelector('.bz-lista .bz-msg[data-m="${m1._id}"]'); a.querySelector('textarea').value='Funciona, gracias'; a.querySelector('[data-responder]').click(); return 1; })()`);
       await dani2.hasta("/Enviado al Mando/.test((document.getElementById('bz-aviso')||{}).innerText||'')", 20);
-      const m1c = await leerDoc("stargate_buzon/" + m1._id);
+      const m1c = await leerDoc("mod_buzon/" + m1._id);
       c("buzón · Dani contesta: su respuesta, en el hilo, y el mensaje vuelve a «nuevo» (el Mando lo verá)",
         m1c.estado === "nuevo" && m1c.respuestas.length === 2 && m1c.respuestas[1].de === "docente");
       await dani2.js(`document.querySelector('.bz-lista .bz-msg[data-m="${m1._id}"] [data-cerrar]').click(); 1`);
       await dani2.hasta("/Cerrado/.test((document.getElementById('bz-aviso')||{}).innerText||'')", 20);
-      c("buzón · y lo da por resuelto él mismo", (await leerDoc("stargate_buzon/" + m1._id)).estado === "resuelto");
+      c("buzón · y lo da por resuelto él mismo", (await leerDoc("mod_buzon/" + m1._id)).estado === "resuelto");
       c("buzón · sin errores en la página", !dani2.errores.filter(e => !/Failed to load resource/.test(e)).length, dani2.errores[0] || "");
       await dani2.cerrar();
     }
@@ -5267,7 +5270,7 @@ const REG = {};   // cifras que se apuntan para el informe
             c("mover · pregunta antes, en su ventana", /al grupo «LAB · Grupo de destino»/.test(await rm.responder()));
             const hecho = await rm.hasta("/ya está en «LAB · Grupo de destino»/.test((document.getElementById('c-aviso')||{}).innerText||'')", 40);
             const d = (await leerDoc("student_profiles/" + F.id)) || {};
-            const alias = await consultar("stargate_alias", "uid", antes.userId);
+            const alias = await consultar("mod_alias", "uid", antes.userId);
             c("🔴 mover · se mueve de verdad (el servidor): su ficha, ahora en el otro grupo", hecho && d.projectId === P2, (await rm.js("(document.getElementById('c-aviso')||{}).innerText||''")) + " · " + d.projectId);
             c("🔴   con todo lo suyo: xp, créditos, insignias y colección, y los retos traducidos al otro grupo",
               d.totalPoints === antes.totalPoints && d.coins === antes.coins && JSON.stringify(d.earnedBadges || []) === JSON.stringify(antes.earnedBadges || [])

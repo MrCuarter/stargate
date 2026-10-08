@@ -60,7 +60,8 @@ D["stargate_alias/" + B + "__reservado sin ficha"] = { projectId: B, uid: "algui
 // 8-oct (tanda 2 de «adelantar lo de Navidad») · el alias, las reflexiones, los comentarios, el Zoco y los tratos de STARGATE viven en
 // mod_* con el motor de ahora. Lo de antes de pasar está en LAS DOS, como lo deja el espejo (la vieja, y su copia en mod_* con su
 // `mod` y lo del espejo): el motor de antes lo lee de la vieja; el de ahora, de mod_*
-const PASADAS = /^(?:stargate|mod)_(alias|reflexiones|comentarios|zoco|tratos)\/(.+)$/;
+// (8-oct, tanda 2c · y el buzón, entero en mod_buzon con los mismos ids)
+const PASADAS = /^(?:stargate|mod)_(alias|reflexiones|comentarios|zoco|tratos|buzon)\/(.+)$/;
 for (const k of Object.keys(D)) {
   const m = k.match(PASADAS);
   if (!m) continue;
@@ -69,7 +70,8 @@ for (const k of Object.keys(D)) {
   D["mod_" + m[1] + "/" + m[2]] = Object.assign({}, viejo, { mod: "stargate", espejoDe: "stargate_" + m[1] + "/" + m[2], espejoHora: 1 });
 }
 // 8-oct (tanda 2b) · y las fichas del profesorado, los referentes y las invitaciones, enteros en mod_* con su id `stargate__…`
-const SUELTAS = /^(?:stargate_(profes|referentes|invitaciones)\/(.+)|mod_(profes|referentes|invitaciones)\/stargate__(.+))$/;
+// (8-oct, tanda 2c · y la Academia de la Cero, en mod_formacion)
+const SUELTAS = /^(?:stargate_(profes|referentes|invitaciones|formacion)\/(.+)|mod_(profes|referentes|invitaciones|formacion)\/stargate__(.+))$/;
 for (const k of Object.keys(D)) {
   const m = k.match(SUELTAS);
   if (!m) continue;
@@ -410,7 +412,10 @@ try {
     if (globalThis.__SG_BUZON_ABIERTO) {
       const ids = (await M.buzonMios()).map((x) => x.id);
       await paso("buzonMios", () => M.buzonMios());
-      await M.setDoc(M.doc(M.db, "stargate_buzon", "ajeno"), { uid: "otro", texto: "de otro", estado: "nuevo", respuestas: [], actualizado: 1 });
+      // (8-oct, tanda 2c · en las dos, como el espejo: el motor de antes lo lee de la vieja; el de ahora, de mod_buzon)
+      const ajeno = { uid: "otro", texto: "de otro", estado: "nuevo", respuestas: [], actualizado: 1 };
+      await M.setDoc(M.doc(M.db, "stargate_buzon", "ajeno"), ajeno);
+      await M.setDoc(M.doc(M.db, "mod_buzon", "ajeno"), Object.assign({}, ajeno, { mod: "stargate", espejoDe: "stargate_buzon/ajeno", espejoHora: 1 }));
       await paso("buzonTodos", () => M.buzonTodos());
       await paso("buzonResponder: el docente", () => M.buzonResponder(ids[0], "  Más datos  "));
       await paso("buzonResponder: el docente lo da por resuelto, sin texto", () => M.buzonResponder(ids[1], "", { estado: "resuelto" }));
@@ -450,8 +455,9 @@ const tocado = (JSON.parse(guardado["sgEnsayo.db"] || "{}").c) || {};
 // (8-oct, tanda 2 · también el alias, las reflexiones, los comentarios, el Zoco y los tratos; lo que el de ahora BORRA en los dos sitios
 // —hasta contraer—, una vez: el de antes lo borraba en uno)
 // (8-oct, tanda 2b · y lo suelto: `mod_profes/stargate__<uid>` es `stargate_profes/<uid>`)
-const comoSiempre = (k) => k.replace(/^mod_(envivo|respuestas|directo|alias|reflexiones|comentarios|zoco|tratos)\//, "stargate_$1/")
-  .replace(/^mod_(profes|referentes|invitaciones)\/stargate__/, "stargate_$1/");
+// (8-oct, tanda 2c · y el buzón y la Academia: `mod_buzon/<id>` es `stargate_buzon/<id>`; `mod_formacion/stargate__<uid>`, `stargate_formacion/<uid>`)
+const comoSiempre = (k) => k.replace(/^mod_(envivo|respuestas|directo|alias|reflexiones|comentarios|zoco|tratos|buzon)\//, "stargate_$1/")
+  .replace(/^mod_(profes|referentes|invitaciones|formacion)\/stargate__/, "stargate_$1/");
 const yaApuntado = {};
 Object.keys(tocado).map((k) => [comoSiempre(k), k]).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] < b[1] ? -1 : 1))
   .forEach(([nombre, k]) => {
