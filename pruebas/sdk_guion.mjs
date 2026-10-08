@@ -59,7 +59,7 @@ for (const k of Object.keys(D)) {
 D["stargate_alias/" + B + "__reservado sin ficha"] = { projectId: B, uid: "alguien", alias: "Reservado Sin Ficha", creado: 1 };
 globalThis.__SG_BUZON_ABIERTO = OPC.indexOf("--buzon") >= 0;
 // 8-oct · --ensayo: las funciones del servidor son las que SIMULA la consola de ensayo (modFormacion, modClase…), no el mostrador; y
-// el guion es el de la Academia y lo en vivo (batería 140), que antes se escribían desde el navegador y ahora van por el servidor
+// el guion es el de la Academia y lo en vivo (batería 143), que antes se escribían desde el navegador y ahora van por el servidor
 const ENSAYO = OPC.indexOf("--ensayo") >= 0;
 // 8-oct · --directo (con --ensayo): el guion es el del juego del final (batería 141), `directoCanal`: sin --yo, la pantalla del
 // docente (el estado y los sucesos); con --yo=<uid de una ficha>, el móvil de esa persona (hola, puntos, sabotaje)

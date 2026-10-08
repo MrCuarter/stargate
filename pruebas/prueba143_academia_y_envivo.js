@@ -1,6 +1,6 @@
 'use strict';
 /**
- * BATERÍA 140 · LA ACADEMIA Y LO EN VIVO, POR EL SERVIDOR (8-oct-2026, GamificaPro docs/PLAN_CENTRALIZAR.md §1e y fase 6)
+ * BATERÍA 143 · LA ACADEMIA Y LO EN VIVO, POR EL SERVIDOR (8-oct-2026, GamificaPro docs/PLAN_CENTRALIZAR.md §1e y fase 6)
  *
  * Lo que motor.js escribía desde el navegador en la Academia de la Cero (`stargate_formacion/{uid}`) y en lo en vivo del aula
  * (`stargate_envivo/{grupo}` y `stargate_respuestas/{grupo}__{pregunta}__{ficha}`) lo hace ahora el servidor del motor de
@@ -150,7 +150,7 @@ const M = new Function("llamar", "auth", "sesion", cuerpo)(async (fn, d) => {
       "   lo en vivo: la sala (con su sello), la sesión que se mezcla, la pregunta (300 y 80), sin congelados y la respuesta de texto (280)");
   }
 
-  console.log("\n  Batería 140 · la Academia y lo en vivo, por el servidor");
+  console.log("\n  Batería 143 · la Academia y lo en vivo, por el servidor");
   console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
   process.exit(fallos.length ? 1 : 0);
 })();

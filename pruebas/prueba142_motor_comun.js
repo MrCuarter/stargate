@@ -1,6 +1,6 @@
 'use strict';
 /**
- * BATERÍA 139 · EL MOTOR COMÚN: STARGATE LLAMA A LOS NOMBRES DEL MOTOR (8-oct-2026, GamificaPro docs/PLAN_CENTRALIZAR.md §1e)
+ * BATERÍA 142 · EL MOTOR COMÚN: STARGATE LLAMA A LOS NOMBRES DEL MOTOR (8-oct-2026, GamificaPro docs/PLAN_CENTRALIZAR.md §1e)
  *
  * Lo que STARGATE llamaba con nombre de mod ahora se llama por el del motor, que en el servidor es la MISMA función (mismo
  * manejador, mismas opciones, misma respuesta: GamificaPro functions/modNombres.js y la tabla functions/mods/nombres.js):
@@ -73,7 +73,7 @@ const tz = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZon
       "   " + n + " = " + par[n] + " (misma tabla, mismo manejador)"));
   }
 
-  console.log("\n  Batería 139 · el motor común (STARGATE llama a los nombres del motor)");
+  console.log("\n  Batería 142 · el motor común (STARGATE llama a los nombres del motor)");
   console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
   process.exit(fallos.length ? 1 : 0);
 })();
