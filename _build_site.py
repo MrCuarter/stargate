@@ -1308,7 +1308,7 @@ retos que se lanzan. Léela primero: es el mapa de la semana.</p></div>
 el botón <b>Presente</b>. Púlsalo y te llevas xp y créditos; si vienes a varias clases seguidas, la racha suma un extra.
 ¿No pudiste venir? <b>La sesión está en tu Nave</b> («Ver la sesión de la semana» y El Archivo): empieza por el índice de semanas y la ves a tu ritmo.</p></div>
 <div class="card"><h3>3 · Los retos</h3><p>Dos por tema: el <b>relámpago</b>, que haces en clase en quince minutos (o después, cuando tú quieras), y el <b>reto principal</b>, en casa.
-Los registras en la pestaña <b>Retos</b> {('(como mucho <b>' + str(TOPE_RETOS_SEMANA) + '</b> por semana; los relámpagos no cuentan)') if TOPE_RETOS_SEMANA else '(sin tope: a tu ritmo)'}. Al acabar cada tema, el <b>ticket de salida</b>: sin tu nombre, para decir qué te llevas y qué duda queda (si no estás en clase, te sale en tu Nave). Lleva un seudónimo solo si participas en la investigación, que es voluntaria.</p></div>
+Los registras en la pestaña <b>Retos</b> {('(como mucho <b>' + str(TOPE_RETOS_SEMANA) + '</b> por semana; los relámpagos no cuentan)') if TOPE_RETOS_SEMANA else '(sin tope: a tu ritmo)'}. Al acabar cada tema, el <b>ticket de salida</b>: sin tu nombre, para decir algo positivo que te llevas y algo a mejorar (una duda, un problema, una sugerencia) (si no estás en clase, te sale en tu Nave). Lleva un seudónimo solo si participas en la investigación, que es voluntaria.</p></div>
 </div>
 <div class="gr-dos" style="margin-top:18px">
 {_gr_img("orden", "La orden de la semana, con el vídeo y la firma de tu Comandante", "La orden de la semana.")}

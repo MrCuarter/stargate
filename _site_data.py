@@ -459,7 +459,7 @@ ACADEMIA = {
         "p": "El portfolio (en STARGATE, la <b>Bitácora</b>) es el <b>{{PESO_EP}} % de cada actividad</b>. Tus estudiantes lo enlazan en su web y tú lo ves en su ficha.",
         "pasos": ["En su web: <b>«Añadir mi Bitácora»</b> y pegan la dirección pública.", "Si aún no lo tienen, al lado está la plantilla."]},
        {"h": "El ticket de salida y el foro", "pj": "capitan:senala", "video": "ticket-y-foro",
-        "p": "Al acabar cada tema, el <b>ticket de salida</b>: sin nombre, qué se llevan y qué duda queda. Va al final de la sesión; quien no esté, lo ve en su web.",
+        "p": "Al acabar cada tema, el <b>ticket de salida</b>: sin nombre, algo positivo que se llevan y algo a mejorar (una duda, un problema, una sugerencia). Va al final de la sesión; quien no esté, lo ve en su web.",
         "pasos": ["Tú ves los resultados en tu panel → <b>Tickets de salida</b>.", "El <b>mensaje del foro</b> de cada semana ya va escrito: a tus estudiantes les sale solo en su web y, si quieres, lo copias al foro de la UNIR."]},
      ],
      "hitos": [

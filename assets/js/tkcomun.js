@@ -57,6 +57,9 @@
    * 🔴 5-oct · LAS PREGUNTAS DEL TICKET (la piel; el servidor, GamificaPro `modTicketLogica.js`, solo conoce sus ids y su
    * tipo: si se añade o se quita una, en los dos sitios). Los textos casan con `CORTO` de abajo, que les da su nombre corto.
    * «p» es la presentación de la asignatura; el resto de temas y el balance final («0») llevan las de siempre.
+   * 10-oct · Norberto: en los temas, en vez de «¿Alguna duda o comentario?», dos: «Algo positivo» y «Algo a mejorar».
+   * `RETIRADAS`: las que ya no se preguntan, pero tienen respuestas guardadas (y el servidor aún las acepta, por la web vieja
+   * en caché). El formulario no las pinta (`preguntasDe`); los paneles sí las leen (`filasDelMotor`).
    */
   var SEGUIDO = { id: "seguido", tipo: "opcion", texto: "¿Cómo has seguido esta clase?",
     opciones: [["directo", "En DIRECTO"], ["diferido", "En diferido (la grabación)"]] };
@@ -74,15 +77,22 @@
       { id: "teoria", tipo: "escala", texto: "Valora los contenidos teóricos" },
       { id: "practica", tipo: "escala", texto: "Valora las estrategias prácticas" },
       SEGUIDO,
-      { id: "duda", tipo: "texto", texto: "¿Alguna duda o comentario?" }]
+      { id: "positivo", tipo: "texto", texto: "Algo positivo: algo que has aprendido, que te ha sorprendido o que has descubierto" },
+      { id: "mejorar", tipo: "texto", texto: "Algo a mejorar: una duda, un comentario, un problema o una sugerencia" }]
   };
+  var RETIRADAS = { tema: [{ id: "duda", tipo: "texto", texto: "¿Alguna duda o comentario?" }] };
   function preguntasDe(tema) { return PREGUNTAS[String(tema)] || PREGUNTAS.tema; }
+  /** Las preguntas con las que se LEE lo guardado de un tema: las de hoy y las retiradas. */
+  function preguntasLeidas(tema) {
+    var k = PREGUNTAS[String(tema)] ? String(tema) : "tema";
+    return preguntasDe(tema).concat(RETIRADAS[k] || []);
+  }
 
   /** Los documentos de `mod_tickets` → las filas de la hoja de antes ({ r: { columna: valor }, fila, fecha }). */
   function filasDelMotor(docs) {
     var T = window.SG_TICKET_TEMAS || {}, out = [];
     (docs || []).forEach(function (d) {
-      var P = preguntasDe(d.tema);
+      var P = preguntasLeidas(d.tema);
       (d.filas || []).forEach(function (f) {
         var r = { "Selecciona el tema": T[String(d.tema)] || "", "Tu profesor o profesora": f.c || "" };
         P.forEach(function (q) {
@@ -102,7 +112,7 @@
    * es un texto largo. Manda la PREGUNTA, no lo larga que sea la respuesta.
    */
   var ELIGE = /Selecciona el tema|profesor o profesora|prefieres que transcurran|C[oó]mo has seguido/i;
-  var CORTO = [[/utilidad de las herramientas/i, "La utilidad de lo visto"], [/satisfacci[oó]n general del desarrollo/i, "La clase, en general"],
+  var CORTO = [[/^Algo positivo/i, "Lo positivo"], [/^Algo a mejorar/i, "A mejorar"], [/utilidad de las herramientas/i, "La utilidad de lo visto"], [/satisfacci[oó]n general del desarrollo/i, "La clase, en general"],
     [/contenidos te[oó]ricos/i, "La teoría"], [/estrategias pr[aá]cticas/i, "La práctica"], [/grado de participaci[oó]n/i, "Vuestra participación"],
     [/utilidad de la actividad/i, "La actividad, ¿os sirvió?"], [/calidad de la actividad que has entregado/i, "Vuestra entrega"],
     [/puntuaci[oó]n obtenida/i, "La nota"], [/vibraciones te ha transmitido/i, "La presentación"], [/utilidad que percibes del temario/i, "El temario"],
@@ -166,5 +176,5 @@
   }
 
   window.SG = window.SG || {};
-  window.SG.TK = { pedir: pedir, limpiar: limpiar, PREGUNTAS: PREGUNTAS, preguntasDe: preguntasDe, filasDelMotor: filasDelMotor, corto: corto, analizar: analizar, esDelTema: esDelTema, deTema: deTema, idTexto: idTexto, campo: campo };
+  window.SG.TK = { pedir: pedir, limpiar: limpiar, PREGUNTAS: PREGUNTAS, RETIRADAS: RETIRADAS, preguntasDe: preguntasDe, preguntasLeidas: preguntasLeidas, filasDelMotor: filasDelMotor, corto: corto, analizar: analizar, esDelTema: esDelTema, deTema: deTema, idTexto: idTexto, campo: campo };
 })();

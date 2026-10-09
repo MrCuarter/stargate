@@ -56,8 +56,8 @@ c(!/son anónimos y se guardan/.test(PRIV) && /no llevan tu nombre y se guardan 
 c(/<h2>8 · La investigación del ticket de salida \(voluntaria\)<\/h2>/.test(PRIV) && /6\.1\.a del RGPD/.test(PRIV) && /cinco años después de la última\s+publicación/.test(PRIV)
   && /«Borrar mi código»/.test(PRIV), "🔴 la política tiene su apartado: finalidad, base, quién, cuánto tiempo y cómo retirarlo");
 c(/<h2>9 · Cuánto tiempo<\/h2>/.test(PRIV) && /<h2>10 · Tus derechos/.test(PRIV) && /<h2>11 · Si esto cambia/.test(PRIV) && /cuando quieras \(punto 10\)/.test(PRIV), "   y la numeración (y su «punto 10») sigue cuadrando");
-c(/el <b>ticket de salida<\/b>: sin tu nombre, para decir qué te llevas/.test(L("guia-recluta.html")), "   la guía del recluta: «sin tu nombre»");
-c(/ticket de salida<\/b>: sin tu nombre, para decir qué te llevas[^"]*seudónimo/.test(L("assets/js/nebula-faq.js")) && !/sigue siendo anónimo/.test(L("assets/js/nebula-faq.js")),
+c(/el <b>ticket de salida<\/b>: sin tu nombre, para decir algo positivo que te llevas/.test(L("guia-recluta.html")), "   la guía del recluta: «sin tu nombre»");
+c(/ticket de salida<\/b>: sin tu nombre, para decir algo positivo que te llevas[^"]*seudónimo/.test(L("assets/js/nebula-faq.js")) && !/sigue siendo anónimo/.test(L("assets/js/nebula-faq.js")),
   "   NEBULA contesta «¿el ticket es anónimo?» con la verdad");
 c(/"¿Es anónimo el ticket de salida\?", "o": \["Sí: sin nombre\. Con seudónimo solo si lo aceptan para la investigación"/.test(DATOS), "   la pregunta de la Academia: «Sí: sin nombre. Con seudónimo solo si…»");
 c(/no "\s*\n\s*"lleva el nombre de nadie, y eso es innegociable/.test(DATOS), "   y la voz del paso R3: «no lleva el nombre de nadie, y eso es innegociable»");
