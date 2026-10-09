@@ -3,7 +3,7 @@
  * BATERÍA 113 · NEBULA RESPONDE SIN IA: LA BATERÍA DE PREGUNTAS Y SU BUSCADOR (27-sep)
  *
  * Norberto: «una gran batería de preguntas típicas (dónde registro, cómo compro, etc.). Si no sabes la respuesta, dices
- * que debes consultar con el Comandante y que le responderás en cuanto sepas la respuesta (menos de una hora)».
+ * que debes consultar con el Comandante y que le responderás en cuanto sepas la respuesta (en menos de 24 horas)».
  *
  * Se cargan assets/js/nebula-faq.js y assets/js/nebula-chat.js (sin navegador) y se comprueba: la batería (≥ 150,
  * ids únicos, sin correos ni historia secreta, `ir` válidos) y el buscador (preguntas reales, con erratas y coloquiales,
@@ -118,7 +118,7 @@ const CH = L("assets/js/nebula-chat.js");
 c(!/llamar\(\s*["']stargateNebula/.test(CH) && !/anthropic|openai|claude/i.test(CH), "🔴 ya no llama a ninguna IA");
 c(/buzonEnviar\(carta\)/.test(CH) && /tipo: "recluta"/.test(CH) && /origen: "nebula"/.test(CH) && /urgente: false/.test(CH), "🔴 la duda va al buzón del Mando como 'recluta' (origen nebula, no urgente)");
 c(/"Enviar mi duda"/.test(CH) && !/preguntar[\s\S]{0,400}enviarDuda\(q/.test(CH.slice(CH.indexOf("function preguntar"), CH.indexOf("function enviarDuda"))), "   y solo al pulsar «Enviar mi duda» (preguntar no envía nada)");
-c(/menos de una hora \(" \+ HORARIO/.test(CH) && /de 8 a 22 h/.test(CH), "   promete respuesta en menos de una hora, de 8 a 22 h");
+c(/te respondo aquí " \+ PLAZO/.test(CH) && /var PLAZO = "en menos de 24 horas"/.test(CH) && !/menos de una hora|de 8 a 22/.test(CH), "   promete respuesta en menos de 24 horas (9-oct: la guardia ya no pasa cada hora)");
 c(/guardarCola/.test(CH) && /vaciarCola/.test(CH), "   si el envío falla, la duda se guarda y se reintenta (no se pierde)");
 c(/Tus dudas al Comandante/.test(CH) && /buzonVisto\(m\.id\)/.test(CH) && /m\.projectId === per/.test(CH), "   «Tus dudas al Comandante»: las suyas de este grupo, y al verlas, buzonVisto");
 c(/¿Te ha servido\?/.test(CH) && /No, pregúntaselo al Comandante/.test(CH) && /¿Te refieres a…\?/.test(CH), "   «¿Te ha servido? Sí · No, pregúntaselo al Comandante» y «¿Te refieres a…?»");

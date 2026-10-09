@@ -382,7 +382,7 @@
       return cargar().then(function () {
         pintar();
         aviso('<img class="bz-ok-cap" src="assets/img/' + (aca ? 'personajes/nebula.png' : 'capitan/pulgar.png') + '" alt=""> <b>' + (aca ? "Recibido, Comandante." : "Transmisión recibida, Comandante.") + '</b> ' +
-          'Te respondemos aquí mismo en menos de una hora, de 8 a 22 h (y te avisamos por correo)' + (aca ? "" : "; lo urgente, lo primero") + '.', true);
+          'Te respondemos aquí mismo en menos de 24 horas (y te avisamos por correo)' + (aca ? "" : "; lo urgente, lo primero") + '.', true);
       });
     }).catch(function (e) {
       b.disabled = false; b.innerHTML = "<img class=ico src=assets/img/iconos/p/envivo.png alt> " + (aca ? "Enviar a NEBULA" : "Transmitir al Mando");

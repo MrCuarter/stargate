@@ -707,7 +707,7 @@ FAQ = [
  # 28-sep · el reparto de la nota final (NOTA_FINAL y EVALUACION: un dato, un sitio)
  ("¿Cómo se calcula la nota final?", f"Igual que siempre: STARGATE no la toca. El <b>{NOTA_FINAL['continua']} %</b> es la <b>evaluación continua</b>, puntuada sobre 10 ("
   + " + ".join(f"{e[0]} {e[1]}" for e in EVALUACION) + f"), y el <b>{NOTA_FINAL['examen']} %</b>, el <b>examen final</b>. En los grupos <b>PUA no hay examen</b>: la evaluación continua es el <b>{NOTA_FINAL_PUA['continua']} %</b> de la nota. Los xp, los créditos, las insignias y los juegos no suman nota; lo único del juego que la toca son las subidas del Arsenal, y ninguna se aplica sin que la apruebes en la <b>Cola de nota</b>. Detalle en <a href='actividades.html'>Actividades</a>."),
- ("¿Quién contesta las dudas de mi alumnado?", "Primero <b>NEBULA</b>: en su Nave, el botón <b>«Pregunta a NEBULA»</b> le contesta al momento con una batería de preguntas típicas (cómo se registra un reto, cómo se compra, fechas, el examen, la nota) y le lleva a donde se hace. No es una IA, no da soluciones de retos ni de tests y no destripa la historia. Si no lo sabe, el recluta pulsa <b>«Enviar mi duda»</b>: llega al buzón del Mando y la respuesta le sale en su chat en menos de una hora (de 8 a 22 h). A ti no te llega nada; lo que decides tú (un plazo, una nota, un reto anulado) te lo remiten."),
+ ("¿Quién contesta las dudas de mi alumnado?", "Primero <b>NEBULA</b>: en su Nave, el botón <b>«Pregunta a NEBULA»</b> le contesta al momento con una batería de preguntas típicas (cómo se registra un reto, cómo se compra, fechas, el examen, la nota) y le lleva a donde se hace. No es una IA, no da soluciones de retos ni de tests y no destripa la historia. Si no lo sabe, el recluta pulsa <b>«Enviar mi duda»</b>: llega al buzón del Mando y la respuesta le sale en su chat en menos de 24 horas. A ti no te llega nada; lo que decides tú (un plazo, una nota, un reto anulado) te lo remiten."),
  ("¿Qué son la Ruta, la sala de Joran, En directo y el Asedio?", f"Los juegos del viaje; <b>ninguno da nota</b>. <b>La Ruta de la Estática</b>: al cerrar cada tema, una misión de nave de unos 5 minutos, con una decena de preguntas del tema, hasta el planeta siguiente (sale en la sesión de cierre y en Retos → La Ruta); las medallas bronce, plata y oro dan xp y créditos una vez. <b>La sala de Joran</b> (Retos → Simulador de Joran, desde la semana {[c for c in CAPITULOS if c['clave'] == 'c11'][0]['semanas']['REGULAR']}): {len([m for m in SALA_JORAN['maquinas'] if m[0] != 'vuelo'])} máquinas arcade con hitos que dan créditos (no xp), el Simulador de vuelo para repasar, rankings y la Galería de juegos; tú la tienes en tu sección Simulador, en modo ensayo. <b>En directo</b>: el juego del final de cada clase, desde el móvil. <b>El Asedio</b>: en la semana {ASEDIO['semana']}, escuadrón contra escuadrón, de lunes a lunes, desde la Nave (en PUA no hay); la sesión lo presenta y la siguiente da el resultado."),
  ("¿Puedo mencionar Genially o la asignatura en público?", "En comunicación pública (redes, web abierta) el proyecto se nombra siempre «Proyecto Gamificado del Máster en Tecnología Educativa de la UNIR», sin la asignatura y sin citar herramientas. Dentro del aula y en esta web del profesorado, sin problema."),
  ("¿Cómo registran los alumnos sus retos e insignias?", "Solos, desde su <b>Nave</b>: abren el reto, lo hacen y pulsan <b>«Lo he hecho»</b>. Todos los retos son prácticos y <b>piden el enlace</b> (o la captura) de lo que se ha hecho: sin él no se registra. No hay tope: quien quiera repasar al final, puede; pero si alguien registra <b>" + str(AVISO_RETOS_DIA) + " o más en un solo día</b>, NEBULA te avisa en el Puente para que revises sus enlaces. Los xp, el nivel, los créditos, las insignias y el <b>avatar que evoluciona</b> se calculan solos. Tú ves cada enlace en <b>Reclutas</b> (pulsa la fila) y un aviso «<img class=ico src=assets/img/iconos/p/aviso.png alt> sin enlace» donde falte."),
@@ -846,7 +846,7 @@ un curso: se entra cuando se quiere.</p>
 <p>El curso del profesorado, <b>planeta a planeta</b>: un prólogo y ocho sesiones de 10-20 minutos. En cada una, su
 tripulante, una o dos piezas de la herramienta, <b>una misión en la consola de ensayo</b> que se corrige sola y
 <b>cinco preguntas dentro de un minijuego</b> (la que se falla vuelve a salir). Acaba con tu primera pieza de
-gamificación. Tus dudas, con «Pregunta a NEBULA»: llegan al mismo buzón y se contestan en la hora, de 8 a 22 h.</p>
+gamificación. Tus dudas, con «Pregunta a NEBULA»: llegan al mismo buzón y se contestan en menos de 24 horas.</p>
 <p style="margin-top:12px"><a class="btn primary" href="academia.html">Ir a la Academia</a></p></div>
 <div class="card"><h3><img class=ico src=assets/img/iconos/p/gente.png alt> La consola de ensayo</h3>
 <p><b>Tu Nave del Comandante de verdad</b>, botón a botón, con un grupo de mentira: 30 reclutas, el curso entero,
@@ -1216,7 +1216,7 @@ _GR_TABS = [
     ("mercado", "Mercado", "Dos secciones: el <b>Bazar</b>, donde gastas tus créditos (sobres, cápsulas, adornos para tu ficha y, al final del viaje, las subidas de nota), y el <b>Zoco</b>, el trueque con tu tripulación (pones cromos, héroes o participaciones y te ofrecen créditos u otras piezas)."),
     ("rankings", "Rankings", "El tablero de tu grupo: varias clasificaciones distintas, siempre por alias."),
     ("envivo", "En vivo", "Solo aparece mientras tu docente emite la clase: el juego del final, desde tu móvil y con tu personaje."),
-    ("pregunta", "Pregunta a NEBULA", "El botón redondo de abajo a la derecha: te contesta al momento (cómo se registra un reto, cómo se compra, la nota, las fechas, el examen). Si no lo sabe, pulsa «Enviar mi duda»: llega al Mando y la respuesta te sale en ese chat en menos de una hora (de 8 a 22 h)."),
+    ("pregunta", "Pregunta a NEBULA", "El botón redondo de abajo a la derecha: te contesta al momento (cómo se registra un reto, cómo se compra, la nota, las fechas, el examen). Si no lo sabe, pulsa «Enviar mi duda»: llega al Mando y la respuesta te sale en ese chat en menos de 24 horas."),
     ("mas", "El botón «···»", "Esta guía (con «¿Mi enlace abre lo mío?»), el sonido de las celebraciones y «No soy yo / salir»."),
 ]
 _GR_ABRE = {"nave": "Mi nave", "retos": "los Retos", "botin": "el Botín", "archivo": "El Archivo", "mercado": "el Bazar",
@@ -1438,7 +1438,7 @@ público. <a href="ayuda.html">La guía completa, paso a paso para cada herramie
 <div class="gr-dos">
 <div><p><b>Pregunta a NEBULA.</b> En tu Nave, abajo a la derecha: te contesta al momento cómo funciona STARGATE, tu Nave y la
 asignatura (fechas, entregas, el examen, la nota). Si no lo sabe, pulsa <b>«Enviar mi duda»</b>: se lo consulta a tu Comandante
-y la respuesta te sale en el mismo chat (en menos de una hora, de 8 a 22 h). No da soluciones de retos ni destripa la historia.</p></div>
+y la respuesta te sale en el mismo chat (en menos de 24 horas). No da soluciones de retos ni destripa la historia.</p></div>
 {_gr_img("nebula", "El chat de NEBULA en la Nave", "Pregunta a NEBULA.")}
 </div>
 <details class="faq"><summary>No puedo entrar, o entro y no veo mi Nave</summary><div>Casi siempre es la cuenta: entra con la <b>misma cuenta de Google con la que te alistaste</b>. En el menú «···» de tu Nave está «No soy yo / salir» para cambiarla. Si nunca te alistaste, te pedirá el código de clase.</div></details>
@@ -4964,7 +4964,7 @@ EC_PREGUNTAS = [
         f"(PUA: {NOTA_FINAL_PUA['continua']} % continua). Lo único del juego que toca la nota son las subidas de nota, con tu visto bueno.",
       btn=("Ver la evaluación", "actividades.html", "notas"), donde="Guía → Actividades y evaluación"),
  dict(id="escribir", sec="falla", corta="Cómo os escribo", q="¿Cómo os escribo?",
-      r="Con «¿Dudas? ¿Algo falla?», en cualquier pantalla. Contestamos en menos de una hora, de 8 a 22 h, todos los días.",
+      r="Con «¿Dudas? ¿Algo falla?», en cualquier pantalla. Contestamos en menos de 24 horas.",
       btn=("Escribir al buzón", "buzon.html", "mensaje"), donde="El botón de ayuda de cualquier pantalla"),
  dict(id="bloquea", sec="falla", corta="«Me está bloqueando la clase»", q="¿Cuándo marco «Me está bloqueando la clase ahora mismo»?",
       r="Solo si algo te impide dar la sesión en ese momento (no entran, no se abre…). Pasa delante de todo. Para una duda, sin marcar.",
@@ -5094,7 +5094,7 @@ _html = head("STARGATE en claro",
 <div class="ec-palabras">''' + "".join('<div class="ec-pal"><b>' + a + '</b><span>' + b + '</span></div>' for a, b in EC_TRADUCTOR) + '''</div></section>
 
 <div class="ec-fin">
-<div class="ec-fin-c card"><img src="assets/img/iconos/aviso.png" alt=""><div><h3>¿Algo falla?</h3><p>Escríbenos: contestamos en menos de una hora, de 8 a 22 h.</p>
+<div class="ec-fin-c card"><img src="assets/img/iconos/aviso.png" alt=""><div><h3>¿Algo falla?</h3><p>Escríbenos: contestamos en menos de 24 horas.</p>
 <a class="btn ec-btn" href="buzon.html">''' + _ec_ico("mensaje") + ''' Escribir al buzón</a></div></div>
 <div class="ec-fin-c card"><img src="assets/img/iconos/libro.png" alt=""><div><h3>¿Quieres más?</h3><p>La guía lo cuenta todo, con la historia y paso a paso.</p>
 <a class="btn ec-btn" href="guia.html">''' + _ec_ico("libro") + ''' Abrir la guía</a></div></div>

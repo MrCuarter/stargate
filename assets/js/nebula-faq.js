@@ -2,7 +2,7 @@
  * STARGATE · LA BATERÍA DE NEBULA (27-sep-2026) · las preguntas típicas del alumnado y sus respuestas.
  *
  * Norberto: «una gran batería de preguntas típicas (dónde registro, cómo compro, etc.). Si no sabes la respuesta, dices
- * que debes consultar con el Comandante y que le responderás en cuanto sepas la respuesta (menos de una hora)».
+ * que debes consultar con el Comandante y que le responderás en cuanto sepas la respuesta (en menos de 24 horas)».
  * Lo lee assets/js/nebula-chat.js (el buscador) y lo vigila pruebas/prueba113_nebula_faq.js.
  *
  *   { id, p: [formas de preguntarlo], claves: [palabras que pesan], r: 'respuesta (HTML sencillo)', ir?: 'pestaña de la Nave' }
@@ -78,7 +78,7 @@ window.SG_NEBULA_FAQ = [
     r: "STARGATE es el proyecto gamificado de la asignatura: ocho temas son ocho planetas, cada semana hay retos, llamada a filas y capítulo nuevo en tu Nave. Ganas xp (tu nivel) y créditos (para gastar). Vives una gamificación desde dentro, que es justo lo que aprenderás a diseñar." },
   { id: "quien_nebula", p: ["quién eres", "qué es NEBULA", "eres una IA", "eres una persona", "cómo funcionas"],
     claves: ["nebula", "quien", "eres", "ia", "bot", "persona"],
-    r: "Soy NEBULA, la IA de la nave. Respondo con lo que tengo en mis registros; si no lo sé, se lo consulto a tu Comandante y te respondo aquí en menos de una hora (de 8 a 22 h)." },
+    r: "Soy NEBULA, la IA de la nave. Respondo con lo que tengo en mis registros; si no lo sé, se lo consulto a tu Comandante y te respondo aquí en menos de 24 horas." },
   { id: "hablar_comandante", p: ["quiero hablar con el comandante", "cómo contacto con mi profesor", "cómo escribo al docente", "quiero preguntar al profe"],
     claves: ["hablar", "contactar", "escribir", "profesor", "comandante", "docente"],
     r: "Escríbeme aquí tu duda: si no la tengo, pulsa «Enviar mi duda» y le llega al Mando, que te responde en este chat. Las dudas de la asignatura, también en clase o en el foro de la plataforma de UNIR." },

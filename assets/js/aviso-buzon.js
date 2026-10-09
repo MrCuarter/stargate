@@ -12,7 +12,7 @@
  *  - Del buzón (stargate_buzon): lo que el Mando o NEBULA le ha contestado y aún no ha leído (`visto === false`; lo ya abierto en
  *    el buzón de este navegador, `sgBzVistos`, no cuenta: la misma cuenta que la burbuja de la consola). Si el mensaje quedó
  *    «resuelto»: «¿Te ha resuelto la duda?» → «Sí» (una respuesta suya, «✓ Me ha resuelto la duda.», y se cierra) o «Necesito
- *    algo más» (escribe qué le falta; el mensaje vuelve a la guardia, que lo contesta en la hora). Si quedó en marcha o anotado:
+ *    algo más» (escribe qué le falta; el mensaje vuelve a la guardia, que lo contesta en menos de 24 horas). Si quedó en marcha o anotado:
  *    «Entendido» o «Contestar».
  *  - De la Academia (stargate_formacion): lo que NEBULA o el Alto Mando le escribieron allí después de lo último que leyó en
  *    este navegador (`sgAcademia.claudeVisto`, la misma marca que la píldora) y en los últimos 7 días. «Entendido» o «Contestar».
@@ -202,7 +202,7 @@
       // «Necesito algo más» vuelve a la guardia (el mensaje pasa a «nuevo») con la frase delante: así se cuenta
       M.buzonResponder(x.id, (resuelto ? (V.mas || "Necesito algo más: ") : "") + t, {})
         .then(function () { return M.buzonVisto(x.id); })
-        .then(function () { abierto(1); listo("Enviado. Te contestamos aquí y por correo, normalmente en menos de una hora (de 8 a 22 h)."); }, fallo);
+        .then(function () { abierto(1); listo("Enviado. Te contestamos aquí y por correo en menos de 24 horas."); }, fallo);
     };
   }
 

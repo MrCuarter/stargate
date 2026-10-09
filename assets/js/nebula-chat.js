@@ -2,7 +2,7 @@
  * STARGATE · «NEBULA RESPONDE» · el chat de dudas del alumnado, SIN API de IA (27-sep-2026).
  *
  * Norberto: «una gran batería de preguntas típicas (dónde registro, cómo compro, etc.). Si no sabes la respuesta, dices
- * que debes consultar con el Comandante y que le responderás en cuanto sepas la respuesta (menos de una hora)».
+ * que debes consultar con el Comandante y que le responderás en cuanto sepas la respuesta (en menos de 24 horas)».
  *
  *   SG.NEBULA_CHAT.montar(contenedor, { per, fichaId, alias })  → pinta el chat (contenedor = elemento o id)
  *   SG.NEBULA_CHAT.buscar(texto)      → [{ id, puntos }] (las mejores, de más a menos)
@@ -21,7 +21,7 @@
 
   var IMG = "assets/img/personajes/nebula.png";
   var MAX = 500;
-  var HORARIO = "de 8 a 22 h";
+  var PLAZO = "en menos de 24 horas";
   var FRECUENTES = ["reto_registrar", "enlace_abre", "comprar", "no_presente", "evaluacion", "examen"];
   var NOMBRE_IR = { nave: "Ir a Mi nave", retos: "Ir a Retos", ruta: "Ir a la Ruta", simulador: "Ir al Simulador de Joran",
     botin: "Ir a tu Botín", "botin:cromos": "Ir a tus cromos", "botin:heroes": "Ir a tus héroes", "botin:insignias": "Ir a tus insignias",
@@ -323,11 +323,6 @@
     try { return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid" }).format(new Date()); }
     catch (e) { return new Date().toISOString().slice(0, 10); }
   }
-  function horaMadrid() {
-    try { return Number(new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", hour: "numeric", hour12: false }).format(new Date())); }
-    catch (e) { return new Date().getHours(); }
-  }
-  function fuera() { var h = horaMadrid(); return h < 8 || h >= 22; }
   function fechaCorta(ms) {
     try { return new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(ms)); }
     catch (e) { return ""; }
@@ -347,7 +342,7 @@
   function leerCola(per) { try { var c = JSON.parse(localStorage.getItem(claveCola(per)) || "[]"); return Array.isArray(c) ? c : []; } catch (e) { return []; } }
   function guardarCola(per, c) { try { if (c.length) localStorage.setItem(claveCola(per), JSON.stringify(c.slice(-10))); else localStorage.removeItem(claveCola(per)); } catch (e) { /* sin almacenamiento */ } }
 
-  var TXT_NADA = "Eso no lo tengo en mis registros. Se lo consulto a tu Comandante y te respondo aquí en menos de una hora (" + HORARIO + ").";
+  var TXT_NADA = "Eso no lo tengo en mis registros. Se lo consulto a tu Comandante y te respondo aquí " + PLAZO + ".";
 
   function montar(contenedor, opciones) {
     var raiz = typeof contenedor === "string" ? document.getElementById(contenedor) : contenedor;
@@ -533,7 +528,7 @@
         acc.appendChild(boton("Ninguna: pregúntaselo al Comandante", null, function () { nada(x.q, x.ids); }));
         b.appendChild(acc);
       } else if (x.k === "nada") {
-        texto(b, TXT_NADA + (fuera() && !x.enviada ? " Ahora es fuera de horario: te respondo a partir de las 8." : ""));
+        texto(b, TXT_NADA);
         acc = el("div", "nbc-acc");
         if (x.enviada) acc.appendChild(el("span", null, "Enviada. La respuesta saldrá aquí, en «Tus dudas al Comandante»."));
         else if (x.cola) {
@@ -586,7 +581,7 @@
     function alMando(q, cl, urls) {
       turnos.push({ r: "yo", t: q + (urls && urls.length ? (urls.length === 1 ? " (con una captura)" : " (con " + urls.length + " capturas)") : "") });
       empujar({ r: "nebula", k: "texto", t: cl === "idea" ? "Anotada tu idea, recluta: se la paso al Mando. Las ideas se leen todas, y las buenas acaban en tu Nave."
-        : "Recibido: se lo paso al Mando con tu alias. Te respondo aquí, en menos de una hora (" + HORARIO + ")." });
+        : "Recibido: se lo paso al Mando con tu alias. Te respondo aquí " + PLAZO + "." });
       enviarDuda(q, [], function () { guardar(per, turnos); pintar(); }, cl, urls);
     }
     // ── el buzón: enviar (solo al pulsar), la cola si falla, y «Tus dudas al Comandante»
@@ -601,7 +596,7 @@
         if (!M) throw new Error("sin motor");
         return M.buzonEnviar(carta);
       }).then(function () {
-        estado.textContent = (cl === "idea" ? "Idea enviada" : cl === "problema" ? "Problema enviado" : "Duda enviada") + ". Te respondo aquí en menos de una hora (" + HORARIO + ").";
+        estado.textContent = (cl === "idea" ? "Idea enviada" : cl === "problema" ? "Problema enviado" : "Duda enviada") + ". Te respondo aquí " + PLAZO + ".";
         fin(true); refrescar(true);
       }).catch(function () {
         var c = leerCola(per); c.push(carta); guardarCola(per, c);

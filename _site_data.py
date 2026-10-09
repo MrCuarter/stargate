@@ -479,9 +479,9 @@ ACADEMIA = {
         "p": "Para no agobiar, la web de tus estudiantes <b>se abre poco a poco</b>. NEBULA les presenta cada novedad:",
         "pasos": ["{{CAPITULOS}}"]},
        {"h": "Las novedades y el soporte", "pj": "capitan:tablet", "img": "assets/img/pres/guia/buzon.webp",
-        "p": "El botón <b>«¿Dudas? ¿Algo falla?»</b>, en cualquier pantalla, de 8 a 22 h:",
-        "pasos": ["Si es un <b>error de la web</b>, se arregla solo en menos de una hora.", "Si es una <b>duda</b> que ya sabemos, te contestamos en menos de una hora.",
-                  "Si hay que <b>consultarlo</b>, queda resuelto en 24 horas.", "¿Te bloquea la sesión? Marca <b>«Me está bloqueando la clase ahora mismo»</b>: pasa delante de todo."],
+        "p": "El botón <b>«¿Dudas? ¿Algo falla?»</b>, en cualquier pantalla, a cualquier hora:",
+        "pasos": ["Si es un <b>error de la web</b>, queda arreglado en menos de 24 horas.", "Si es una <b>duda</b>, te contestamos en menos de 24 horas.",
+                  "Si hay que <b>consultarlo</b> con el coordinador, queda «en marcha» y te avisamos al resolverlo.", "¿Te bloquea la sesión? Marca <b>«Me está bloqueando la clase ahora mismo»</b>: pasa delante de todo."],
         "botones": [["STARGATE en claro", "en-claro.html"]]},
      ],
      "hitos": [
@@ -492,7 +492,7 @@ ACADEMIA = {
      "preguntas": [
        {"p": "¿Por qué la web de tus estudiantes se abre poco a poco?", "o": ["Para no agobiar el primer día", "Porque no está terminada", "Para castigar a quien llega tarde"], "ok": 0, "porque": "Cada semana, una pieza nueva, y NEBULA la presenta."},
        {"p": "¿Cuándo se abre la tienda (Mercado)?", "o": ["En la semana {{SEM_MERCADO}}", "El primer día", "Al final del curso"], "ok": 0, "porque": "Desde la semana {{SEM_MERCADO}} gastan sus créditos."},
-       {"p": "Encuentras un error en la web. ¿Qué pasa?", "o": ["Se arregla solo en menos de una hora", "Hay que esperar al curso que viene", "Lo arreglas tú"], "ok": 0, "porque": "Escribe al buzón: los errores de la web se arreglan en la hora."},
+       {"p": "Encuentras un error en la web. ¿Qué pasa?", "o": ["Se arregla solo en menos de 24 horas", "Hay que esperar al curso que viene", "Lo arreglas tú"], "ok": 0, "porque": "Escribe al buzón: los errores de la web se arreglan en menos de 24 horas."},
        {"p": "¿Cuándo marcas «Me está bloqueando la clase»?", "o": ["Solo si algo te impide dar la sesión en ese momento", "Siempre", "Nunca"], "ok": 0, "porque": "Para una duda, sin marcar."},
        {"p": "¿Dónde está todo explicado sin la historia?", "o": ["En «En claro» (Ayuda ▾ → Guías)", "En los vídeos", "En el foro"], "ok": 0, "porque": "En claro: lo esencial, para entenderlo en dos minutos."},
      ]},
