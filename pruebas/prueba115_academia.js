@@ -130,6 +130,8 @@ c(/function conPermiso\(\)/.test(JS) && /M\.academiaMia\(\)/.test(JS) && /M\.aca
 c(/if \(!d \|\| !d\.bendicion\) \{ var x = new Error\("sin bendición"\); x\.sinBendicion = true; throw x; \}/.test(JS) && /e\.sinBendicion\) return portadaEsperaBendicion\(\)/.test(JS)
   && /Gracias por matricularte en la Academia de la Cero/.test(JS) && /bendición del Comandante/.test(JS),
   "🔴 9-oct · y sin la BENDICIÓN del Comandante, «gracias por matricularte… espera la bendición»: ni curso ni alistamiento");
+c(/function claseAlumnado\(\)/.test(JS) && (JS.match(/claseAlumnado\(\) \+/g) || []).length === 2 && /"clase_alumnado": \{"nombre": "PER 16450", "enlace": "alistarse\.html\?per=per-16450&codigo=SYA87B"\}/.test(L("_site_data.py"))
+  && /"clase_alumnado"/.test(HTML), "🔴 9-oct · y a quien no es docente, el camino a su clase: «Alistarme en el PER 16450» (y elige allí su comandante)");
 c(/data-bendecir/.test(JS) && /M\.academiaBendecir\(uid\)/.test(JS) && /async function academiaBendecir\(uid\)/.test(MOT) && /Espera tu bendición/.test(JS),
   "   y en el panel de quien organiza, «Dar la bendición» a quien espera");
 c(/x && x\.bendicion\) bendecidos\[x\.uid\] = true/.test(L("assets/js/crear.js")), "   al crear un grupo, solo se ofrece el profesorado bendecido");

@@ -342,6 +342,9 @@ ACADEMIA = {
   "grupo": PER_ACADEMIA,
   # 29-sep · Norberto: «ponme a mí como docente organizador» (el referente del grupo de la Academia, donde se alistan)
   "organiza": {"nombre": "Norberto Cuartero", "correo": "n.cuartero.10@gmail.com"},
+  # 9-oct · a quien se cuela en la Academia sin ser docente (espera la bendición), el camino a SU clase: alistarse en ella y elegir
+  # su comandante (Norberto: «prepara un mensaje sencillo que les lleve a alistarse a ese per y escojan ellos su comandante»)
+  "clase_alumnado": {"nombre": "PER 16450", "enlace": "alistarse.html?per=per-16450&codigo=SYA87B"},
   # 30-sep · las cuentas del equipo que NO hacen la Academia (en la presentación, «quién ha subido a bordo» no las cuenta):
   # quien la organiza ya va aparte; esta es la cuenta de servicio del Mando
   "no_la_hacen": ["mutecdgami@gmail.com"],

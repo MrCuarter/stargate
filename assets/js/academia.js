@@ -755,16 +755,28 @@
     app.innerHTML = '<main class="acd">' + cabecera(null) +
       '<section class="acd-ses"><div class="card acd-carta"><h2>¡Gracias por matricularte en la Academia de la Cero!</h2>' +
       "<p>Para poder entrar, tienes que esperar la <b>bendición del Comandante</b>. Cuando te la dé, esta página se abrirá sola con tu curso.</p>" +
-      "<p><b>Si eres estudiante</b>, esta no es tu clase: la tuya está en <b>Mi nave</b>.</p>" +
-      '<div class="acd-botones"><a class="btn primary" href="consola.html">' + ico("estrella") + " Ir a Mi nave</a></div>" +
+      claseAlumnado() +
       "</div></section></main>";
+  }
+  /**
+   * 9-oct · EL CAMINO A SU CLASE. Quien llega aquí sin ser docente suele ser un estudiante que se ha equivocado de puerta (seis el
+   * 6-oct). Norberto: «un mensaje sencillo que les lleve a alistarse a ese per y escojan ellos su comandante». El grupo y su enlace,
+   * en la configuración de la Academia (`clase_alumnado`, _site_data.py); en cuanto se alistan, la guardia les saca de aquí sola.
+   */
+  function claseAlumnado() {
+    var k = C.clase_alumnado;
+    return "<p><b>¿Eres estudiante?</b> Entonces esta no es tu sitio: la Academia es la formación del profesorado. " +
+      (k ? "Alístate en tu clase, el <b>" + esc(k.nombre) + "</b>, y elige allí a tu comandante. Es un minuto.</p>" +
+        '<div class="acd-botones"><a class="btn primary" href="' + esc(k.enlace) + '">' + ico("estrella") + " Alistarme en el " + esc(k.nombre) + "</a>" +
+        '<a class="btn" href="consola.html">Ya estoy alistado: ir a Mi nave</a></div>'
+      : "Tu clase está en <b>Mi nave</b>; si aún no te has alistado, hazlo con el código que te ha dado tu docente.</p>" +
+        '<div class="acd-botones"><a class="btn primary" href="consola.html">' + ico("estrella") + " Ir a Mi nave</a></div>");
   }
   function portadaSoloDocentes(motivo) {
     app.innerHTML = '<main class="acd">' + cabecera(null) +
       '<section class="acd-ses"><div class="card acd-carta"><h2>La Academia es solo para el profesorado invitado</h2>' +
       "<p>" + esc(motivo || "Esta formación es solo para el profesorado invitado.") + "</p>" +
-      "<p><b>Si eres estudiante</b>, aquí no tienes que hacer nada: tu clase está en <b>Mi nave</b>. Si todavía no te has alistado en ella, hazlo con el código que te ha dado tu docente.</p>" +
-      '<div class="acd-botones"><a class="btn primary" href="consola.html">' + ico("estrella") + " Ir a Mi nave</a></div>" +
+      claseAlumnado() +
       '<p class="acd-nota small">¿Eres docente y te han invitado? Entra con la cuenta de Google con la que te invitaron o pide un enlace nuevo a quien organiza la formación.</p>' +
       "</div></section></main>";
   }
