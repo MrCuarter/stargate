@@ -64,7 +64,9 @@ c(/\.bz-valora\{/.test(leer("assets/css/stargate.css")), "con su estilo");
 const REGLAS = path.join(RAIZ, "..", "..", "gamificapro", "firestore.rules");
 if (fs.existsSync(REGLAS)) {
   const R = fs.readFileSync(REGLAS, "utf8");
-  c(/affectedKeys\(\)\.hasOnly\(\['respuestas', 'estado', 'actualizado', 'visto'\]\)/.test(R), "el docente puede tocar respuestas, estado y visto de lo suyo");
+  c(/affectedKeys\(\)\.hasOnly\(\['respuestas', 'estado', 'actualizado', 'visto'\]\)/.test(R)
+  // 8-oct (tanda 2c, gamificapro 1216aab): la misma lista, ahora por buzonCambioValido (vieja y mod_buzon)
+  || (/buzonCambioValido\(\['respuestas', 'estado', 'actualizado', 'visto'\]\)/.test(R) && /affectedKeys\(\)\.hasOnly\(suyos\)/.test(R)), "el docente puede tocar respuestas, estado y visto de lo suyo");
   c(/request\.resource\.data\.estado in \['nuevo', 'resuelto'\]/.test(R), "y dejarlo «nuevo» o «resuelto»");
   c(/keys\(\)\.hasOnly\(\['de', 'texto', 'fecha', 'adjuntos'\]\)/.test(R) && /\.de == 'docente'/.test(R), "su respuesta lleva de, texto y fecha (lo que manda buzonResponder)");
 } else c(true, "(sin GamificaPro al lado: las reglas no se miran)");

@@ -70,7 +70,7 @@ c(/function enPanel\(\) \{ return \(ORG && !VER\) \|\| EN_LISTA; \}/.test(AJS) &
   "🔴 el panel de quien organiza no se repinta con el curso encima (ni le crea un registro, ni borra lo que está escribiendo)");
 
 c(/recargar\(\)\.then\(function \(\) \{ if \(!FICHA && !ORG\) return alistarAuto\(\)\.then\(recargar\); \}\)\.then\(pintar\)/.test(AJS)
-  && /const activos = registros\.docs\.filter/.test(L("../academia/academia_grupo.cjs")) && /--aunque-esten/.test(L("../academia/academia_grupo.cjs")),
+  && /const activos = registros(\.docs)?\.filter/.test(L("../academia/academia_grupo.cjs")) && /--aunque-esten/.test(L("../academia/academia_grupo.cjs")),
   "🔴 si le quitan la ficha con la Academia abierta, al volver a la pestaña se alista otra vez; y --vaciar no borra a quien está en ello");
 
 // ── 8 · Textos y enlaces
