@@ -98,8 +98,8 @@ c(/html:has\(body\.embed\.embed-caja\)\{background:transparent;color-scheme:norm
 // 9 · la Nave: simetría
 c(/\.reto-pl \.reto-cuenta\{margin-left:auto;min-width:3\.2em;text-align:right/.test(CSS) && /\.reto-pl>summary::after\{margin-left:14px\}/.test(CSS),
   "🔴 los contadores de los planetas, en el mismo eje");
-// 19-sep · la regla del aire: cada ficha mide lo que su texto (ya no se estiran a la altura de la vecina con los botones al fondo)
-c(/\.rs-grid\{grid-template-columns:repeat\(auto-fill,minmax\(280px,1fr\)\);align-items:start\}/.test(CSS) && /\.rs-grid \.reto-sem\[open\]\{grid-column:1\/-1\}/.test(CSS) && /\.reto-sem\.ficha \.rs-premio,\.reto-sem\.ficha:not\(\[open\]\) \.rs-premio\{margin:0\}/.test(CSS),
+// 19-sep · la regla del aire: cada ficha mide lo que su texto (9-oct: el mínimo, min(280px,100%), para que quepa a 320) (ya no se estiran a la altura de la vecina con los botones al fondo)
+c(/\.rs-grid\{grid-template-columns:repeat\(auto-fill,minmax\((?:min\(280px,100%\)|280px),1fr\)\);align-items:start\}/.test(CSS) && /\.rs-grid \.reto-sem\[open\]\{grid-column:1\/-1\}/.test(CSS) && /\.reto-sem\.ficha \.rs-premio,\.reto-sem\.ficha:not\(\[open\]\) \.rs-premio\{margin:0\}/.test(CSS),
   "🔴 los retos de la semana, en rejilla y cada uno de su altura (y el que abres ocupa la fila)");
 
 // 10 · la Nave: la misma tarjeta en «esta semana» y en «Qué hay que hacer, explicado», y el ejemplo solo donde lo hay

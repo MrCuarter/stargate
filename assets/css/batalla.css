@@ -147,7 +147,7 @@ body.embed #bt-app { padding-top: 8px; }
 .bt-hueco { display: inline-block; min-width: 72px; padding: 1px 10px; margin: 0 2px; border-radius: 8px;
   border: 2px dashed #2f4d68; color: var(--tenue, #9fb2c4); text-align: center; cursor: pointer; }
 .bt-hueco.lleno { border-style: solid; border-color: var(--teal, #37e0ec); color: #dff7fa; background: rgba(55, 224, 236, .12); }
-.bt-ops { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; }
+.bt-ops { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(230px,100%), 1fr)); gap: 8px; }
 .bt-ops.chips { display: flex; flex-wrap: wrap; }
 .bt-op { text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid #22374c; background: rgba(13, 24, 36, .85);
   color: #e8f2f8; font: inherit; font-size: 15.5px; cursor: pointer; transition: border-color .12s, background .12s, transform .12s; }

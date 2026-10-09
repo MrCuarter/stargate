@@ -139,6 +139,9 @@ def _menu_ayuda(opciones, active):
 def _traer_menu():
     GB.copiar_pieza(HERE, "menu.js", os.path.join(HERE, "assets", "js", "menu.js"), decir=print)
 _traer_menu()
+# 9-oct · LO QUE SE DESLIZA, QUE SE NOTE (GamificaPro sdk/desliza.js, la tanda de móviles): bordes difuminados en lo que se desliza
+# de lado (tablas, carriles, el índice de las guías). Se copia igual que menu.js, y no se edita aquí. Con defer, en todas las páginas.
+GB.copiar_pieza(HERE, "desliza.js", os.path.join(HERE, "assets", "js", "desliza.js"), decir=print)
 # 🔴 19-sep · «Mis grupos» es ahora la NAVE DEL COMANDANTE (se entra directo en tu grupo) y «Crear grupo» vive dentro de
 # «Gestionar grupos», con todo lo que se hace una o dos veces por curso (Norberto: «simplicidad máxima en la página
 # principal… no queremos info que se usará una o dos veces en todo el curso»). Solo el referente la ve.
@@ -5643,3 +5646,14 @@ for _html in _glob2.glob(os.path.join(HERE, "*.html")):
     if _s2 != _s:
         open(_html, "w", encoding="utf-8").write(_s2)
 print("menú «Ayuda ▾» en:", len(_con_menu), "páginas")
+
+# ---------------------------------------------------------------- 9-oct · lo que se desliza, que se note (GamificaPro sdk/desliza.js)
+# En TODAS las páginas, con su huella, como el menú: bordes difuminados en lo que se desliza de lado (la tanda de móviles).
+_TAG_DESLIZA = '<script src="assets/js/desliza.js?v=' + _ver("assets/js/desliza.js") + '" defer></script>'
+for _html in _glob2.glob(os.path.join(HERE, "*.html")):
+    _s = open(_html, encoding="utf-8").read()
+    _s2 = _re2.sub(r'<script src="assets/js/desliza\.js(\?v=[0-9a-f]+)?" defer></script>\n?', '', _s)
+    if "</head>" in _s2:
+        _s2 = _s2.replace("</head>", _TAG_DESLIZA + "\n</head>", 1)
+    if _s2 != _s:
+        open(_html, "w", encoding="utf-8").write(_s2)

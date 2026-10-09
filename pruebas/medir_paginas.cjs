@@ -10,6 +10,8 @@
  *
  *   node pruebas/medir_paginas.cjs antes --peso
  *   node pruebas/medir_paginas.cjs b --anchos=800,900,1280 --paginas=sesion,consola
+ *   node pruebas/medir_paginas.cjs m --tanda   → 9-oct · la tanda de móviles del motor (GamificaPro scripts/tanda-moviles.cjs):
+ *                   los 10 tamaños (320 a 1366, apaisado y tableta) y lo que se corta; fotos a 360 y 768
  *
  * Medido el 23-sep: la Nave del recluta pedía el tablero 4 veces y bajaba 13 MB de imágenes (11 eran las insignias en
  * PNG); después, 2 veces (la segunda, la recarga tras escribir un logro) y 1,8 MB.
@@ -23,6 +25,7 @@ const ETQ = process.argv[2] || "x";
 const ANCHOS = (process.argv.find(a => a.indexOf("--anchos=") === 0) || "--anchos=").slice(9).split(",").filter(Boolean).map(Number);
 const PESO = process.argv.includes("--peso");
 const MOVIL = process.argv.includes("--movil");   // 23-sep · el teléfono de verdad: táctil, 2x y su alto
+const TANDA = process.argv.includes("--tanda") && require((process.env.GAMIFICAPRO_DIR || "/Users/nor/Claude/vibewebs/gamificapro") + "/scripts/tanda-moviles.cjs");
 const MEDIR = `(function(){
   var r=performance.getEntriesByType('resource'), g={}, img={n:0,kb:0,fuera:0}, fn={}, fs={n:0};
   r.forEach(function(e){
@@ -96,17 +99,31 @@ const SCAN = `(function(){ var W=document.documentElement.clientWidth, m=[];
     }
     fs.writeFileSync("/tmp/lab-fotos/medir-" + ETQ + ".json", JSON.stringify(vistos, null, 1));
   }
-  for (const w of ANCHOS) {
+  const TAM = TANDA ? TANDA.TAMANOS.filter(t => !ANCHOS.length || ANCHOS.includes(t.ancho)) : ANCHOS.map(w => ({ ancho: w, alto: MOVIL ? 844 : 900, movil: MOVIL }));
+  let cortes = 0;
+  for (const { ancho: w, alto: h, movil } of TAM) {
     for (const [n, p, url, listo, pest] of PAG) {
-      await p.tamano(w, MOVIL ? 844 : 900, MOVIL); await p.ir(url);
+      await p.tamano(w, h, movil); await p.ir(url);
       const ok = await p.hasta(`!!document.querySelector(${JSON.stringify(listo)})`, 60); await dormir(3500);
       // (las celebraciones que salen solas al entrar —sobres, logros de a bordo— tapan la página: fuera, como las cerraría alguien)
+      // (9-oct · y la privacidad, que se acepta pulsando como el recluta, y la bienvenida del Comandante, «Ahora no»: las dos tapaban las fotos)
+      if (await p.js("(function(){var b=document.querySelector('[data-cons-si]'); if(b){b.click(); return 1;} return 0;})()").catch(() => 0)) await dormir(1500);
+      await p.js("(function(){var b=[].slice.call(document.querySelectorAll('.bc-capa button')).filter(function(x){return /Ahora no/.test(x.textContent)})[0]; if(b) b.click(); return 1;})()").catch(() => {});
       await p.js("[].slice.call(document.querySelectorAll('.sb-capa,#nave-logro.open,.tour-invite,.neb-capa')).forEach(function(x){x.remove()}); document.body.style.overflow=''; 1").catch(() => {});
       if (pest) { await p.js(`(function(){var b=document.querySelector('.gs-panel [data-tab="${pest}"]'); if(b) b.click(); return 1;})()`); await dormir(2500); }
+      if (TANDA) {
+        const VER = (process.argv.find(a => a.indexOf("--ver=") === 0) || "").slice(6);   // (diagnóstico: JS que se evalúa e imprime)
+        if (VER) console.log(w + "×" + h, n, await p.js(VER));
+        const f = TANDA.fallos(JSON.parse(await p.js(TANDA.ESCANEO))); if (f.length || !ok) cortes++;
+        if (f.length || !ok) console.log(w + "×" + h, n, ok ? "" : "(NO CARGÓ)", "\n    " + f.join("\n    "));
+        if (w === 360 || w === 768) await p.foto("/tmp/lab-fotos/mp-" + ETQ + "-" + n + "-" + w + ".png");
+        continue;
+      }
       const res = await p.js(SCAN);
       console.log(w, n, ok ? "" : "(NO CARGÓ)", res);
       await p.foto("/tmp/lab-fotos/mp-" + ETQ + "-" + n + "-" + w + ".png");
     }
   }
+  if (TANDA) console.log(cortes ? cortes + " pantallas con algo cortado" : "Nada se corta.");
   await al.cerrar(); await doc.cerrar(); await L.parar(); process.exit(0);
 })().catch(e => { console.error(e); process.exit(1); });
