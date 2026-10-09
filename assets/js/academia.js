@@ -720,6 +720,35 @@
    * con la inicial del apellido o un número) y en el escuadrón de quien organiza: el mismo `alistar` que la puerta del alumnado.
    * Si algo falla, la sesión «Tu Nave de recluta» ofrece el alta a mano.
    */
+  /**
+   * 🔴 9-oct · SOLO EL PROFESORADO INVITADO. Un estudiante del PER 16450 abrió esta página, entró con Google y quedó registrado
+   * como docente y alistado en el grupo de la Academia (con Norberto de comandante). Norberto: «La Academia es SOLO para
+   * docentes: los que yo añado manualmente o a través de un enlace. NO debe haber ninguna otra forma». Antes de alistar, su
+   * ficha de formación: si ya la tiene, adelante; si no, la pide al servidor con su invitación (el `?inv=` de su enlace), que
+   * solo la hace con el visto bueno de Norberto (GamificaPro: `modFormacion`, `alta: 'invitacion'`). Sin ella, ni registro ni
+   * alistamiento (las reglas tampoco dejan nacer la ficha de recluta de este grupo sin la de formación).
+   */
+  var INV = (function () { try { return new URLSearchParams(location.search).get("inv") || ""; } catch (e) { return ""; } })();
+  function conPermiso() {
+    return M.academiaMia().then(function (d) {
+      if (d) return;
+      return M.academiaGuardar({ alias: ((YO && YO.nombre) || "").split(" ")[0] || "" }, { invitacion: INV }).then(function () {
+        if (INV) try { history.replaceState(null, "", location.pathname); } catch (e) { /* (sin historia, da igual) */ }
+      }, function (e) {
+        if (/permission/i.test(String((e && e.code) || ""))) { var x = new Error((e && e.message) || ""); x.sinInvitacion = true; throw x; }
+        throw e;
+      });
+    });
+  }
+  function portadaSoloDocentes(motivo) {
+    app.innerHTML = '<main class="acd">' + cabecera(null) +
+      '<section class="acd-ses"><div class="card acd-carta"><h2>La Academia es solo para el profesorado invitado</h2>' +
+      "<p>" + esc(motivo || "Esta formación es solo para el profesorado invitado.") + "</p>" +
+      "<p><b>Si eres estudiante</b>, aquí no tienes que hacer nada: tu clase está en <b>Mi nave</b>. Si todavía no te has alistado en ella, hazlo con el código que te ha dado tu docente.</p>" +
+      '<div class="acd-botones"><a class="btn primary" href="consola.html">' + ico("estrella") + " Ir a Mi nave</a></div>" +
+      '<p class="acd-nota small">¿Eres docente y te han invitado? Entra con la cuenta de Google con la que te invitaron o pide un enlace nuevo a quien organiza la formación.</p>' +
+      "</div></section></main>";
+  }
   function alistarAuto() {
     if (DEMO || !M || !YO || FICHA || !M.alistar || !M.aliasOcupado) return Promise.resolve();
     var limpio = function (t) { return String(t || "").replace(/[^A-Za-zÀ-ÿ0-9 ]+/g, " ").replace(/\s+/g, " ").trim(); };
@@ -754,7 +783,7 @@
       "<h2>" + N + " sesiones cortas, a tu ritmo</h2><p class=\"acd-voz\">«El viaje de La Constancia: en cada planeta, un poco de su historia, una pieza de la herramienta, una misión en tu consola de ensayo y sus preguntas dentro de un minijuego. Una sesión cada vez.»<span>NEBULA</span></p>" +
       '<p class="acd-que">Unas ' + Math.round(total / 60) + " horas en total, repartidas como quieras: cada sesión se abre al terminar la anterior, y siempre sigues donde lo dejaste.</p>" +
       '<div class="acd-botones"><button type="button" class="btn primary grande btn-google" id="acd-entrar">' + ((window.SG && window.SG.LOGO_G) || "") + "<span>Entrar con mi cuenta de Google</span></button></div>" +
-      '<p class="acd-nota">' + ico("candado") + " Al entrar quedas <b>registrado como docente</b> de STARGATE y <b>alistado como recluta</b> en el grupo de la Academia, para vivirla como tu alumnado. <b>Tus estudiantes nunca verán tu correo:</b> si lo prefieres, usa una cuenta personal.</p></div>" +
+      '<p class="acd-nota">' + ico("candado") + " <b>Solo para el profesorado invitado.</b> Al entrar con tu invitación quedas <b>registrado como docente</b> de STARGATE y <b>alistado como recluta</b> en el grupo de la Academia, para vivirla como tu alumnado. <b>Tus estudiantes nunca verán tu correo:</b> si lo prefieres, usa una cuenta personal.</p></div>" +
       '<img class="acd-pj" src="assets/img/personajes/nebula.png" alt="NEBULA"></div></div></div></section></main>';
     var b = document.getElementById("acd-entrar");
     if (b) b.onclick = function () { b.disabled = true; M.entrar().then(function () { location.reload(); }, function (e) { b.disabled = false; if (window.SG && window.SG.avisar) window.SG.avisar("No se ha podido entrar", String((e && e.message) || e)); }); };
@@ -919,21 +948,38 @@
         '<section class="card acd-org-cab"><p class="kicker">La Academia de la Cero · la organizas tú</p><h1>Tu profesorado en la Academia</h1>' +
         "<p>Quién se ha inscrito, lo que ha hecho cada uno y sus mensajes. Aquí corriges su nombre o su correo y echas a quien ya no la va a hacer. Todos los demás docentes, sin excepción, la hacen como alumnado.</p>" +
         '<div class="acd-org-cifras">' + cifra(P.length, P.length === 1 ? "inscrito" : "inscritos") + cifra(P.length - fin, "en marcha") + cifra(fin, "terminada") + cifra(dudas, "sin respuesta") + "</div>" +
-        '<div class="acd-botones"><button type="button" class="btn primary" id="acd-org-copiar">' + ico("enlace") + " Copiar el enlace para el profesorado</button>" +
+        // 🔴 9-oct · solo con invitación: un correo autorizado o un enlace de un solo uso (el enlace pelado ya no registra a nadie)
+        '<div class="acd-org-ed"><label><span>Autorizar a un docente por su correo de Google</span><input type="email" maxlength="120" id="acd-org-correo" placeholder="nombre@gmail.com"></label></div>' +
+        '<div class="acd-botones"><button type="button" class="btn primary" id="acd-org-autorizar">' + ico("candado") + " Autorizar ese correo</button>" +
+        '<button type="button" class="btn" id="acd-org-copiar">' + ico("enlace") + " Crear un enlace de invitación (un solo uso)</button></div>" +
+        '<div class="acd-botones">' +
         '<a class="btn" href="crear.html">' + ico("estrella") + " Crear un grupo con ellos</a>" +
         '<a class="btn" href="buzon.html?desde=academia">' + ico("mensaje") + " Sus dudas, en el buzón del Mando</a></div>" +
         // 1-oct · un solo botón de ayuda: desde hoy sus dudas van al buzón (las contesta la guardia, firmadas por NEBULA)
         '<p class="acd-nota small">Desde el 1-oct sus dudas y lo que no funciona llegan al <b>buzón del Mando</b>, como las de las clases (marcadas «La Academia de la Cero»), y las contesta la guardia como NEBULA. Aquí quedan sus mensajes anteriores y los comentarios de NEBULA a lo que entregan.</p>' +
         '<p class="acd-nota small" id="acd-org-msg" aria-live="polite"></p></section>' +
-        (P.length ? P.map(fila).join("") : '<section class="card"><p class="muted">Todavía no se ha inscrito nadie. Comparte el enlace: al entrar con Google quedan registrados y alistados.</p></section>') +
+        (P.length ? P.map(fila).join("") : '<section class="card"><p class="muted">Todavía no se ha inscrito nadie. Autoriza su correo o mándale un enlace de invitación: al entrar con Google quedan registrados y alistados.</p></section>') +
         (sueltas.length ? '<h2 class="acd-org-h2">En el grupo de la Academia, sin inscribirse</h2><p class="small muted">Cuentas alistadas como recluta que no han entrado en la Academia (por ejemplo, una de pruebas).</p>' + sueltas.map(suelta).join("") : "") +
         "</main>";
       engancharPestanas();
       var cp = document.getElementById("acd-org-copiar");
       if (cp) cp.onclick = function () {
-        var u = location.origin + "/academia.html", m = document.getElementById("acd-org-msg");
-        var ok = function () { m.textContent = "Copiado: " + u; }, mal = function () { m.textContent = "El enlace: " + u; };
-        try { navigator.clipboard.writeText(u).then(ok, mal); } catch (e) { mal(); }
+        var m = document.getElementById("acd-org-msg"); cp.disabled = true; m.textContent = "Creando el enlace…";
+        M.academiaInvitar().then(function (r) {
+          cp.disabled = false;
+          var u = location.origin + "/academia.html?inv=" + encodeURIComponent(r.token);
+          var hasta = " Sirve para UNA persona y caduca el " + new Date(r.caduca).toLocaleDateString("es-ES") + ".";
+          var ok = function () { m.textContent = "Copiado: " + u + "." + hasta; }, mal = function () { m.textContent = "El enlace: " + u + "." + hasta; };
+          try { navigator.clipboard.writeText(u).then(ok, mal); } catch (e) { mal(); }
+        }, function (e) { cp.disabled = false; m.textContent = "No se ha podido crear el enlace: " + ((e && e.message) || e); });
+      };
+      var au = document.getElementById("acd-org-autorizar");
+      if (au) au.onclick = function () {
+        var m = document.getElementById("acd-org-msg"), c = document.getElementById("acd-org-correo"), v = String(c.value || "").trim().toLowerCase();
+        if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(v)) { m.textContent = "Escribe un correo de Google válido."; c.focus(); return; }
+        au.disabled = true; m.textContent = "Autorizando…";
+        M.academiaInvitar(v).then(function () { au.disabled = false; c.value = ""; m.textContent = "Autorizado: " + v + ". Ya puede entrar en la Academia con esa cuenta de Google (" + location.origin + "/academia.html)."; },
+          function (e) { au.disabled = false; m.textContent = "No se ha podido autorizar: " + ((e && e.message) || e); });
       };
       var sinReglas = function (e) { return /permission|insufficient|denegad/i.test(String((e && (e.code || e.message)) || "")) ? " Falta desplegar las reglas nuevas de la Academia (desplegar_stargate.sh reglas)." : ""; };
       Array.prototype.forEach.call(app.querySelectorAll("[data-uid]"), function (el) {
@@ -994,7 +1040,7 @@
   document.addEventListener("visibilitychange", function () {
     // (30-sep · y si su ficha de recluta ya no está —la quitó quien organiza—, se vuelve a alistar sola, como al entrar)
     if (document.visibilityState === "visible" && !DEMO && YO && !escribiendo() && !enPanel())
-      recargar().then(function () { if (!FICHA && !ORG) return alistarAuto().then(recargar); }).then(pintar);
+      recargar().then(function () { if (!FICHA && !ORG) return conPermiso().then(function () { return alistarAuto(); }).then(recargar); }).then(pintar, function () {});
   });
 
   function arrancar() {
@@ -1005,7 +1051,7 @@
       YO = yo;
       if (!yo) return portadaSinCuenta();
       if (esOrganiza(yo)) { ORG = true; return lsLeer("org.tab", "profes") === "curso" ? verCurso() : pintarOrganiza(); }   // (quien la organiza no se registra ni se alista: la lleva)
-      return recargar().then(function () { if (!FICHA) return alistarAuto().then(recargar); }).then(function () {
+      return recargar().then(function () { if (!FICHA) return conPermiso().then(function () { return alistarAuto(); }).then(recargar); }).then(function () {
         var primeraVez = true;
         M.academiaEscuchar(function (d, err) {
           if (err) { SIN_GUARDAR = true; if (primeraVez) { primeraVez = false; pintar(); } return; }
@@ -1019,7 +1065,10 @@
           if (!escribiendo()) pintar(); else pintarClaude();
         });
       });
-    }).catch(function (e) { app.innerHTML = '<main class="acd"><p>No se ha podido abrir la Academia: ' + esc((e && e.message) || e) + "</p></main>"; });
+    }).catch(function (e) {
+      if (e && e.sinInvitacion) return portadaSoloDocentes(e.message);
+      app.innerHTML = '<main class="acd"><p>No se ha podido abrir la Academia: ' + esc((e && e.message) || e) + "</p></main>";
+    });
   }
   if (DEMO || (window.SG && window.SG.MOTOR)) arrancar(); else document.addEventListener("sg:motor", arrancar);
 })();

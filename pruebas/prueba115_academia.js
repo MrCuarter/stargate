@@ -92,10 +92,10 @@ c(["maq_conquista", "maq_evacuacion", "maq_laberinto", "maq_rutaazul", "maq_desc
 
 // ── 6 · La página, el motor y el registro del profesorado
 c(/window\.SG_ACADEMIA=/.test(HTML) && /window\.SG_PER_ACADEMIA=/.test(HTML) && /assets\/js\/academia\.js\?v=/.test(HTML) && /noindex/.test(HTML), "   academia.html: sus datos, su script con huella y fuera de los buscadores");
-c(/async function academiaGuardar/.test(MOT) && /"stargate_formacion"/.test(MOT) && /academiaMia, academiaGuardar, academiaEscuchar, academiaProfes/.test(MOT), "🔴 motor: su documento en stargate_formacion/{uid} (y la lista para crear grupos)");
+c(/async function academiaGuardar/.test(MOT) && /"stargate_formacion"/.test(MOT) && /academiaMia, academiaGuardar, academiaInvitar, academiaEscuchar, academiaProfes/.test(MOT), "🔴 motor: su documento en stargate_formacion/{uid} (y la lista para crear grupos)");
 // 8-oct · lo guarda el servidor (GamificaPro: modFormacion, mod «stargate»): el correo sale de su sesión de Google, verificado, no de la web
 const GP_ST = ["/Users/nor/Claude/vibewebs/gamificapro/functions/mods/stargate.js"].find(f => require("fs").existsSync(f));
-c(/llamar\("modFormacion", \{ mod: "stargate", accion: "guardar", campos: limpio, nombre: String\(yo\.nombre \|\| ""\) \}\)/.test(MOT.slice(MOT.indexOf("async function academiaGuardar"))) &&
+c(/llamar\("modFormacion", Object\.assign\(\{ mod: "stargate", accion: "guardar", campos: limpio, nombre: String\(yo\.nombre \|\| ""\) \}, inv\)\)/.test(MOT.slice(MOT.indexOf("async function academiaGuardar"))) &&
   (!GP_ST || /identidad: \{ nombre: 80, correo: 120 \}/.test(require("fs").readFileSync(GP_ST, "utf8"))), "   con su correo de Google (el de verdad: lo pone el servidor, del token verificado)");
 c(/entrar ES registrarse/.test(JS) && /Tus estudiantes nunca verán tu correo/.test(JS), "🔴 entrar es registrarse, y avisa: «Tus estudiantes nunca verán tu correo»");
 c(/\(e\) => fn\(null, e\)/.test(MOT) && /SIN_GUARDAR/.test(JS), "   si no se puede leer su documento, la Academia se pinta y lo dice (no se queda colgada)");
@@ -121,8 +121,14 @@ c(/Los fondos de cada planeta \(Drive del equipo\)/.test(TODO), "   y los fondos
 
 // ── 9 · Al entrar, docente Y recluta; y la Academia siempre a mano en su Nave (Norberto, 29-sep)
 const REC = L("assets/js/recluta.js");
-c(/function alistarAuto\(\)/.test(JS) && /M\.alistar\(G, \{ alias: alias, comandante:/.test(JS) && /M\.aliasOcupado\(G, alias/.test(JS) && /if \(!FICHA\) return alistarAuto\(\)\.then\(recargar\)/.test(JS),
-  "🔴 al entrar se le alista SOLO como recluta en el grupo de la Academia (alias libre, escuadrón de quien organiza)");
+c(/function alistarAuto\(\)/.test(JS) && /M\.alistar\(G, \{ alias: alias, comandante:/.test(JS) && /M\.aliasOcupado\(G, alias/.test(JS) && /if \(!FICHA\) return conPermiso\(\)\.then\(function \(\) \{ return alistarAuto\(\); \}\)\.then\(recargar\)/.test(JS),
+  "🔴 al entrar se le alista SOLO como recluta en el grupo de la Academia (alias libre, escuadrón de quien organiza), y solo con su ficha de formación");
+// 🔴 9-oct · SOLO EL PROFESORADO INVITADO (Norberto: «La Academia es SOLO para docentes: los que yo añado manualmente o a través de un enlace»)
+c(/function conPermiso\(\)/.test(JS) && /M\.academiaMia\(\)/.test(JS) && /M\.academiaGuardar\(\{ alias: [^}]*\}, \{ invitacion: INV \}\)/.test(JS) && /get\("inv"\)/.test(JS)
+  && /e\.sinInvitacion\) return portadaSoloDocentes/.test(JS) && /async function academiaInvitar\(correo\)/.test(MOT) && /invitacion: String\(opciones\.invitacion\)/.test(MOT),
+  "🔴 9-oct · sin invitación (su correo autorizado o el enlace ?inv=), ni registro ni alistamiento: sale «solo para el profesorado invitado»");
+c(/id="acd-org-autorizar"/.test(JS) && /M\.academiaInvitar\(v\)/.test(JS) && /M\.academiaInvitar\(\)\.then/.test(JS) && /academia\.html\?inv=/.test(JS),
+  "   el panel de quien organiza: autorizar un correo o crear un enlace de un solo uso");
 c(/registrado como docente/.test(JS) && /alistado como recluta/.test(JS), "   y la portada lo dice antes de entrar");
 c(/function avisoAcademia\(\)/.test(REC) && /per!==window\.SG_PER_ACADEMIA/.test(REC) && /pestanas\(\)\+avisoAcademia\(\)/.test(REC) && /rastroAcademia\(\{nave:true\}\)/.test(REC),
   "🔴 en su Nave de recluta (grupo de la Academia), la puerta al curso arriba del todo (y apunta «Abre tu Nave»)");

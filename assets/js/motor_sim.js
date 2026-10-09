@@ -2154,12 +2154,22 @@ async function academiaMia() {
   const d = await getDoc(academiaRef(yo.uid));
   return d.exists() ? FORMACION.leer(d.data()) : null;
 }
-async function academiaGuardar(campos) {
+async function academiaGuardar(campos, opciones) {
   const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta de Google.");
   const limpio = {};
   ACADEMIA_CAMPOS.forEach((k) => { if (campos[k] !== undefined) limpio[k] = campos[k]; });
-  // 8-oct · lo guarda el servidor (GamificaPro: `modFormacion`, mod «stargate»): el mismo documento, con su correo verificado
-  await llamar("modFormacion", { mod: "stargate", accion: "guardar", campos: limpio, nombre: String(yo.nombre || "") });
+  // 8-oct · lo guarda el servidor (GamificaPro: `modFormacion`, mod «stargate»): el mismo documento, con su correo verificado.
+  // 9-oct · la primera vez, solo con invitación (su correo autorizado por Norberto o `invitacion`, el token de su enlace)
+  const inv = opciones && opciones.invitacion ? { invitacion: String(opciones.invitacion) } : {};
+  await llamar("modFormacion", Object.assign({ mod: "stargate", accion: "guardar", campos: limpio, nombre: String(yo.nombre || "") }, inv));
+}
+/**
+ * 🔴 9-oct · INVITAR A LA ACADEMIA (solo el Mando). Norberto: «La Academia es SOLO para docentes: los que yo añado manualmente o
+ * a través de un enlace». Con `correo`, ese correo queda autorizado → { correo }; sin él, un enlace de UN solo uso que caduca
+ * → { token, caduca } (va en academia.html?inv=<token>).
+ */
+async function academiaInvitar(correo) {
+  return llamar("modFormacion", Object.assign({ mod: "stargate", accion: "invitar" }, correo ? { correo: String(correo).trim().toLowerCase() } : {}));
 }
 function academiaEscuchar(fn) {
   // (si no se puede leer —las reglas sin desplegar, sin red—, se avisa igual: la Academia se pinta y lo dice, no se queda colgada)
@@ -2427,7 +2437,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, vigilarMensajesDelSistema, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaResponder, buzonComprimir, buzonAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaInvitar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaResponder, buzonComprimir, buzonAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo, esDelEquipoDe, pasarAFantasma,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias, cambiarMiComandante, guardarFrase,
