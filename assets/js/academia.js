@@ -751,6 +751,33 @@
       return d;
     });
   }
+  /**
+   * 🔴 9-oct · LA PREGUNTA. Norberto: «Una pregunta clara: ¿Eres DOCENTE o ESTUDIANTE del Máster en Tecnología Educativa de la
+   * UNIR? Si es estudiante se cierra la puerta; si es docente, apruebo yo». Sale a quien entra sin invitación (ni su correo
+   * autorizado ni un enlace). Estudiante: la puerta cerrada y el camino a su clase. Docente: pide entrar (el servidor le hace la
+   * ficha SIN bendición: `solicitud`) y espera; la guardia se lo cuenta a Norberto y él la da o no.
+   */
+  function portadaPregunta() {
+    app.innerHTML = '<main class="acd">' + cabecera(null) +
+      '<section class="acd-ses"><div class="card acd-carta"><h2>Antes de entrar, una pregunta</h2>' +
+      "<p><b>¿Eres DOCENTE o ESTUDIANTE del Máster en Tecnología Educativa de la UNIR?</b></p>" +
+      '<div class="acd-botones"><button type="button" class="btn primary grande" id="acd-soy-docente">Soy DOCENTE</button>' +
+      '<button type="button" class="btn grande" id="acd-soy-estudiante">Soy ESTUDIANTE</button></div>' +
+      '<p class="small muted" id="acd-soy-st" aria-live="polite"></p></div></section></main>';
+    document.getElementById("acd-soy-estudiante").onclick = portadaEstudiante;
+    var bd = document.getElementById("acd-soy-docente"), st = document.getElementById("acd-soy-st");
+    bd.onclick = function () {
+      bd.disabled = true; st.textContent = "Enviando tu solicitud…";
+      M.academiaGuardar({ alias: ((YO && YO.nombre) || "").split(" ")[0] || "" }, { solicitud: "docente" })
+        .then(function () { location.reload(); }, function (e) { bd.disabled = false; st.textContent = "No se ha podido: " + ((e && e.message) || e); });
+    };
+  }
+  function portadaEstudiante() {
+    app.innerHTML = '<main class="acd">' + cabecera(null) +
+      '<section class="acd-ses"><div class="card acd-carta"><h2>La Academia es solo para el profesorado</h2>' +
+      "<p>Aquí se forma el equipo docente, así que la puerta está cerrada para el alumnado.</p>" + claseAlumnado() +
+      "</div></section></main>";
+  }
   function portadaEsperaBendicion() {
     app.innerHTML = '<main class="acd">' + cabecera(null) +
       '<section class="acd-ses"><div class="card acd-carta"><h2>¡Gracias por matricularte en la Academia de la Cero!</h2>' +
@@ -1107,7 +1134,8 @@
         });
       });
     }).catch(function (e) {
-      if (e && e.sinInvitacion) return portadaSoloDocentes(e.message);
+      // 9-oct · sin invitación, la pregunta (con un enlace que no vale, lo que le pasa a ese enlace)
+      if (e && e.sinInvitacion) return INV ? portadaSoloDocentes(e.message) : portadaPregunta();
       if (e && e.sinBendicion) return portadaEsperaBendicion();
       app.innerHTML = '<main class="acd"><p>No se ha podido abrir la Academia: ' + esc((e && e.message) || e) + "</p></main>";
     });

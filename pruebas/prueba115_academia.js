@@ -125,12 +125,17 @@ c(/function alistarAuto\(\)/.test(JS) && /M\.alistar\(G, \{ alias: alias, comand
   "🔴 al entrar se le alista SOLO como recluta en el grupo de la Academia (alias libre, escuadrón de quien organiza), y solo con su ficha de formación");
 // 🔴 9-oct · SOLO EL PROFESORADO INVITADO (Norberto: «La Academia es SOLO para docentes: los que yo añado manualmente o a través de un enlace»)
 c(/function conPermiso\(\)/.test(JS) && /M\.academiaMia\(\)/.test(JS) && /M\.academiaGuardar\(\{ alias: [^}]*\}, \{ invitacion: INV \}\)/.test(JS) && /get\("inv"\)/.test(JS)
-  && /e\.sinInvitacion\) return portadaSoloDocentes/.test(JS) && /async function academiaInvitar\(correo\)/.test(MOT) && /invitacion: String\(opciones\.invitacion\)/.test(MOT),
+  && /e\.sinInvitacion\) return INV \? portadaSoloDocentes/.test(JS) && /async function academiaInvitar\(correo\)/.test(MOT) && /invitacion: String\(opciones\.invitacion\)/.test(MOT),
   "🔴 9-oct · sin invitación (su correo autorizado o el enlace ?inv=), ni registro ni alistamiento: sale «solo para el profesorado invitado»");
 c(/if \(!d \|\| !d\.bendicion\) \{ var x = new Error\("sin bendición"\); x\.sinBendicion = true; throw x; \}/.test(JS) && /e\.sinBendicion\) return portadaEsperaBendicion\(\)/.test(JS)
   && /Gracias por matricularte en la Academia de la Cero/.test(JS) && /bendición del Comandante/.test(JS),
   "🔴 9-oct · y sin la BENDICIÓN del Comandante, «gracias por matricularte… espera la bendición»: ni curso ni alistamiento");
-c(/function claseAlumnado\(\)/.test(JS) && (JS.match(/claseAlumnado\(\) \+/g) || []).length === 2 && /"clase_alumnado": \{"nombre": "PER 16450", "enlace": "alistarse\.html\?per=per-16450&codigo=SYA87B"\}/.test(L("_site_data.py"))
+c(/function portadaPregunta\(\)/.test(JS) && /¿Eres DOCENTE o ESTUDIANTE del Máster en Tecnología Educativa de la UNIR\?/.test(JS)
+  && /e\.sinInvitacion\) return INV \? portadaSoloDocentes\(e\.message\) : portadaPregunta\(\)/.test(JS)
+  && /\{ solicitud: "docente" \}/.test(JS) && /getElementById\("acd-soy-estudiante"\)\.onclick = portadaEstudiante/.test(JS)
+  && /opciones\.solicitud === "docente"\) inv\.solicitud = "docente"/.test(MOT),
+  "🔴 9-oct · sin invitación, la pregunta «¿DOCENTE o ESTUDIANTE?»: estudiante, puerta cerrada y a su clase; docente, pide entrar y espera la bendición");
+c(/function claseAlumnado\(\)/.test(JS) && (JS.match(/claseAlumnado\(\) \+/g) || []).length === 3 && /"clase_alumnado": \{"nombre": "PER 16450", "enlace": "alistarse\.html\?per=per-16450&codigo=SYA87B"\}/.test(L("_site_data.py"))
   && /"clase_alumnado"/.test(HTML), "🔴 9-oct · y a quien no es docente, el camino a su clase: «Alistarme en el PER 16450» (y elige allí su comandante)");
 c(/data-bendecir/.test(JS) && /M\.academiaBendecir\(uid\)/.test(JS) && /async function academiaBendecir\(uid\)/.test(MOT) && /Espera tu bendición/.test(JS),
   "   y en el panel de quien organiza, «Dar la bendición» a quien espera");

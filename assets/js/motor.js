@@ -2156,6 +2156,8 @@ async function academiaGuardar(campos, opciones) {
   // 8-oct · lo guarda el servidor (GamificaPro: `modFormacion`, mod «stargate»): el mismo documento, con su correo verificado.
   // 9-oct · la primera vez, solo con invitación (su correo autorizado por Norberto o `invitacion`, el token de su enlace)
   const inv = opciones && opciones.invitacion ? { invitacion: String(opciones.invitacion) } : {};
+  // 9-oct · «¿Eres DOCENTE o ESTUDIANTE?»: quien dice ser docente pide entrar (y espera la bendición de Norberto)
+  if (opciones && opciones.solicitud === "docente") inv.solicitud = "docente";
   await llamar("modFormacion", Object.assign({ mod: "stargate", accion: "guardar", campos: limpio, nombre: String(yo.nombre || "") }, inv));
 }
 /**
