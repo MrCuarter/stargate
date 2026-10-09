@@ -128,6 +128,14 @@ c(/FRECUENTES = \[/.test(CH) && (CH.match(/FRECUENTES = \[([^\]]*)\]/)[1].split(
 c((CH.match(/FRECUENTES = \[([^\]]*)\]/)[1].match(/"([^"]+)"/g) || []).every((x) => ids.indexOf(x.slice(1, -1)) >= 0), "   y todas existen en la batería");
 c(/aria-live/.test(CH) && /max-width:480px/.test(CH) && !/font-size:(\d|1[01])px/.test(CH), "   aria-live, móvil y letra de 12 px o más");
 c(!/[\u{1F300}-\u{1FAFF}]/u.test(CH), "   sin emojis");
+{ // 9-oct · las respuestas del Mando, con los enlaces pulsables (el vídeo de registrar un reto: buzon.cjs retos-semana)
+  const re = new RegExp(CH.match(/re = \/(.+?)\/g, i = 0/)[1], "g");
+  const t = "vídeo: https://stargate.mistercuarter.es/v/alumno-registrar-reto.mp4\n1. En Mi nave (https://x.es/a?b=1). Y «https://y.es/z», fin.";
+  const urls = t.match(re) || [];
+  c(/d\.appendChild\(conEnlaces\(r\.texto\)\)/.test(CH) && !/innerHTML/.test(CH.slice(CH.indexOf("function conEnlaces"), CH.indexOf("function boton"))) && /a\.rel = "noopener"/.test(CH),
+    "   las respuestas del Mando llevan sus enlaces pulsables (sin innerHTML, en otra pestaña)");
+  c(urls.join(" ") === "https://stargate.mistercuarter.es/v/alumno-registrar-reto.mp4 https://x.es/a?b=1 https://y.es/z", "   y el enlace se corta bien (sin el punto, el paréntesis ni las comillas de detrás)", urls.join(" | "));
+}
 
 console.log("\n  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);

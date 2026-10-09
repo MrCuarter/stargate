@@ -262,6 +262,7 @@
     ".nbc-est.si{border-color:#1b6b58;color:#7fe7c4}",
     ".nbc-resp{margin-top:6px;padding:6px 8px;border-left:3px solid var(--nbc-cian);background:#0c2530;white-space:pre-wrap;overflow-wrap:anywhere}",
     ".nbc-resp b{display:block;font-size:12px;color:var(--nbc-cian)}",
+    ".nbc-resp a{color:var(--nbc-cian);text-decoration:underline}",
     ".nbc-log{padding:14px 16px;display:flex;flex-direction:column;gap:10px;max-height:420px;min-height:120px;overflow-y:auto;overflow-x:hidden}",
     ".nbc-b{max-width:88%;padding:9px 12px;border-radius:12px;overflow-wrap:anywhere;word-break:break-word}",
     ".nbc-b.yo{align-self:flex-end;background:#16324a;border:1px solid #21507a;border-bottom-right-radius:4px;white-space:pre-wrap}",
@@ -313,6 +314,20 @@
     if (cls) e.className = cls;
     if (txt != null) e.textContent = txt;
     return e;
+  }
+  /**
+   * 9-oct · Las respuestas del Mando, con sus enlaces pulsables (el vídeo de cómo se registra un reto, por ejemplo: buzon.cjs
+   * retos-semana). Antes iban como texto y el enlace había que copiarlo. Solo http(s); el resto, texto tal cual.
+   */
+  function conEnlaces(txt) {
+    var f = document.createDocumentFragment(), s = String(txt || ""), re = /https?:\/\/[^\s<>«»"]+[^\s<>«»".,;:!?)]/g, i = 0, m;
+    while ((m = re.exec(s))) {
+      if (m.index > i) f.appendChild(document.createTextNode(s.slice(i, m.index)));
+      var a = el("a", null, m[0]); a.href = m[0]; a.target = "_blank"; a.rel = "noopener";
+      f.appendChild(a); i = m.index + m[0].length;
+    }
+    if (i < s.length) f.appendChild(document.createTextNode(s.slice(i)));
+    return f;
   }
   function boton(txt, cls, fn) {
     var b = el("button", "nbc-btn" + (cls ? " " + cls : ""), txt);
@@ -639,7 +654,7 @@
         rs.forEach(function (r) {
           var d = el("div", "nbc-resp");
           d.appendChild(el("b", null, "Tu Comandante" + (r.fecha ? " · " + fechaCorta(r.fecha) : "")));
-          d.appendChild(document.createTextNode(r.texto));
+          d.appendChild(conEnlaces(r.texto));
           li.appendChild(d);
         });
         miasLista.appendChild(li);
