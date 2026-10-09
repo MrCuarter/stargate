@@ -146,6 +146,9 @@ _traer_menu()
 # 9-oct · LO QUE SE DESLIZA, QUE SE NOTE (GamificaPro sdk/desliza.js, la tanda de móviles): bordes difuminados en lo que se desliza
 # de lado (tablas, carriles, el índice de las guías). Se copia igual que menu.js, y no se edita aquí. Con defer, en todas las páginas.
 GB.copiar_pieza(HERE, "desliza.js", os.path.join(HERE, "assets", "js", "desliza.js"), decir=print)
+# 9-oct · CAMBIAR EL CORREO CON EL QUE ENTRO (GamificaPro sdk/cuenta.js): la ventana y los pasos son del motor; se copia igual y se
+# carga con defer en la Nave del recluta (recluta.html), que es donde está el botón (menú «···»).
+GB.copiar_pieza(HERE, "cuenta.js", os.path.join(HERE, "assets", "js", "cuenta.js"), decir=print)
 # 🔴 19-sep · «Mis grupos» es ahora la NAVE DEL COMANDANTE (se entra directo en tu grupo) y «Crear grupo» vive dentro de
 # «Gestionar grupos», con todo lo que se hace una o dos veces por curso (Norberto: «simplicidad máxima en la página
 # principal… no queremos info que se usará una o dos veces en todo el curso»). Solo el referente la ve.
@@ -5680,5 +5683,16 @@ for _html in _glob2.glob(os.path.join(HERE, "*.html")):
     _s2 = _re2.sub(r'<script src="assets/js/desliza\.js(\?v=[0-9a-f]+)?" defer></script>\n?', '', _s)
     if "</head>" in _s2:
         _s2 = _s2.replace("</head>", _TAG_DESLIZA + "\n</head>", 1)
+    if _s2 != _s:
+        open(_html, "w", encoding="utf-8").write(_s2)
+
+# ---------------------------------------------------------------- 9-oct · cambiar el correo con el que entro (GamificaPro sdk/cuenta.js)
+# Solo en la Nave del recluta (recluta.html): el botón está en su menú «···». Con su huella, como desliza.js.
+_TAG_CUENTA = '<script src="assets/js/cuenta.js?v=' + _ver("assets/js/cuenta.js") + '" defer></script>'
+for _html in [os.path.join(HERE, "recluta.html")]:
+    _s = open(_html, encoding="utf-8").read()
+    _s2 = _re2.sub(r'<script src="assets/js/cuenta\.js(\?v=[0-9a-f]+)?" defer></script>\n?', '', _s)
+    if "</head>" in _s2:
+        _s2 = _s2.replace("</head>", _TAG_CUENTA + "\n</head>", 1)
     if _s2 != _s:
         open(_html, "w", encoding="utf-8").write(_s2)

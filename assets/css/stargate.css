@@ -8275,3 +8275,8 @@ body.ajf-abierta{overflow:hidden}
   .nave-barra-u{padding-top:4px;padding-bottom:4px}
   .nb-tabs{grid-auto-flow:row;grid-template-columns:repeat(3,minmax(0,1fr))}
 }
+
+/* 9-oct · CAMBIAR EL CORREO CON EL QUE ENTRO (GamificaPro sdk/cuenta.js): la piel de su ventana, la de las ventanas de la Nave */
+.gpc-velo{--gpc-capa:80;--gpc-velo:rgba(4,8,14,.78);--gpc-fondo:#101a28;--gpc-tinta:var(--ink);--gpc-borde:#3a5578;
+  --gpc-acento:var(--teal);--gpc-acento-tinta:#04131a;--gpc-aviso-fondo:rgba(245,176,67,.12);--gpc-aviso-tinta:var(--ink)}
+.gpc-ventana h2{font-family:'Unbounded',sans-serif}

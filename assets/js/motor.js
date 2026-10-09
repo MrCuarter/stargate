@@ -12,9 +12,9 @@
  * terminar deja `window.SG.MOTOR` y avisa con el evento `sg:motor` para que el resto de la web
  * —que son scripts normales— sepa que ya puede usarlo.
  */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, onAuthStateChanged,
-         connectAuthEmulator }
+         connectAuthEmulator, reauthenticateWithPopup }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, getCountFromServer, writeBatch, onSnapshot,
          deleteField, connectFirestoreEmulator }
@@ -2432,9 +2432,28 @@ function directoCanal(perId, esDocente, yo, alMensaje) {
   return { enviar, mio, cerrar: () => fuera.forEach((f) => { try { f(); } catch (e) { /* nada */ } }) };
 }
 
+/**
+ * 9-oct · CAMBIAR EL CORREO CON EL QUE ENTRO (GamificaPro sdk/cuenta.js → assets/js/cuenta.js, y `modCuenta` en el servidor). Caso de
+ * «Ave fenix»: se alistó con su Gmail personal y quería entrar con el del máster. La ventana y los pasos son del motor: aquí solo se
+ * le dan Firebase, `llamar` y la piel. Al terminar, la Nave recarga y ya entra con el Google nuevo (la misma ficha).
+ */
+let CUENTA = null;
+function cuenta() {
+  if (!window.GP || !window.GP.cuenta) throw new Error("falta assets/js/cuenta.js");
+  if (!CUENTA) CUENTA = window.GP.cuenta.crear({
+    firebase: { initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, signOut, reauthenticateWithPopup, connectAuthEmulator,
+                signInWithCredential, deleteApp },
+    app, auth, llamar, emu: EMU ? "http://127.0.0.1:9099" : null,
+    clases: { boton: "btn", secundario: "btn ghost" },
+  });
+  return CUENTA;
+}
+/** Abre la ventana. 🔴 En el clic del botón y sin esperas antes: abre la de Google. */
+function cambiarCuenta() { return cuenta().abrir(); }
+
 window.SG = window.SG || {};
-if (EMU) window.SG.EMU = { entrarComo };
-window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
+if (EMU) window.SG.EMU = { entrarComo, cuenta };
+window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, cambiarCuenta, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, vigilarMensajesDelSistema, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaInvitar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaBendecir, academiaResponder, buzonComprimir, buzonAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,

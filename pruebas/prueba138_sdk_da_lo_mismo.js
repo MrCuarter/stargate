@@ -127,7 +127,12 @@ if (!viejo) {
     // para también ahí, como el de ahora; si no, lo guardaría en el navegador y fingiría mandarlo)
     const simViejo2c = simViejo.replace("[[/^stargate_buzon\\//,", "[[/^(stargate|mod)_buzon\\//,");
     if (simViejo2c === simViejo) throw new Error("el ensayo de antes ya no para stargate_buzon como se espera: revisa la batería");
-    const fsv = path.join(tmp, "firebase_sim_antes.js"); fs.writeFileSync(fsv, simViejo2c);
+    // (9-oct · la centralita de ahora importa también reauthenticateWithPopup y deleteApp, para «Cambiar el correo con el que entro»,
+    // GamificaPro sdk/cuenta.js: el ensayo de antes no los tenía y el módulo no cargaba. Se le dan los mismos que al de ahora; ningún
+    // paso del guion los usa)
+    const simViejoCuenta = /export const reauthenticateWithPopup/.test(simViejo2c) ? simViejo2c : simViejo2c +
+      '\nexport const reauthenticateWithPopup = () => Promise.reject(new Error("En la consola de ensayo no se cambia de cuenta."));\nexport const deleteApp = () => Promise.resolve();\n';
+    const fsv = path.join(tmp, "firebase_sim_antes.js"); fs.writeFileSync(fsv, simViejoCuenta);
     for (const opc of [[], ["--buzon"], ["--yo=prueba_triton"]]) {
       const a = correr(fn, opc.concat(["--sim=" + fsv])), b = correr(fn, opc);
       const dist = a.map((x, i) => [x[0], canon(x[1]) === canon((b[i] || [])[1]) && x[0] === (b[i] || [])[0]]).filter((x) => !x[1]).map((x) => x[0]);

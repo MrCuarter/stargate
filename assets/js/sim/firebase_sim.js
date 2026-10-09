@@ -309,6 +309,9 @@ export const signInWithPopup = S.signInWithPopup;
 export const signInWithCredential = S.signInWithCredential;
 export const signInAnonymously = S.signInAnonymously;
 export const signOut = S.signOut;
+// 9-oct · lo que importa motor.js para «Cambiar el correo con el que entro» (sdk/cuenta.js): en el ensayo no sale el botón
+export const reauthenticateWithPopup = () => Promise.reject(new Error("En la consola de ensayo no se cambia de cuenta."));
+export const deleteApp = () => Promise.resolve();
 export const onAuthStateChanged = S.onAuthStateChanged;
 export const connectAuthEmulator = S.connectAuthEmulator;
 export const getFirestore = S.getFirestore;

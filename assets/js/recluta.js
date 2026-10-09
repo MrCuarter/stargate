@@ -2776,6 +2776,8 @@
     return '<div class="nb-menu" id="nb-menu" hidden role="menu">'
       +(!DEMO?'<a role="menuitem" href="guia-recluta.html"><span>Guía del recluta<em>cómo funciona todo, y si tu enlace abre lo tuyo</em></span></a>':'')
       +'<hr><div class="nb-fiesta" id="nb-fiesta"></div>'
+      // 9-oct · cambiar la cuenta de Google con que entra (GamificaPro sdk/cuenta.js): su ficha no se mueve
+      +(!DEMO&&!window.SG_ENSAYO&&motorNuevo()?'<a role="menuitem" href="#" id="nb-cuenta"><span>Cambiar el correo con el que entro<em>si te alistaste con otra cuenta de Google</em></span></a>':'')
       +'<a role="menuitem" href="#" id="nb-salir"><span>No soy yo / salir</span></a>'
       +'</div>';
   }
@@ -5535,6 +5537,10 @@
         },function(e){ b.disabled=false; b.textContent='Abrir'; aviso('No se ha podido abrir: '+esc(String(e)), true); }); }; });
     var salir=document.getElementById('nb-salir');
     if(salir) salir.onclick=function(e){ e.preventDefault(); olvidar(); };
+    var cambiaCuenta=document.getElementById('nb-cuenta');
+    if(cambiaCuenta) cambiaCuenta.onclick=function(e){ e.preventDefault();
+      var M=window.SG&&window.SG.MOTOR;
+      try{ M.cambiarCuenta(); }catch(err){ aviso('No se ha podido abrir: '+esc(String(err&&err.message||err)), true); } };
     cablearTeclado();
     Array.prototype.forEach.call(root.querySelectorAll('[data-hecho]'),function(b){
       b.onclick=function(){ marcarReto(b.getAttribute('data-hecho'), b); };
