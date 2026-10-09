@@ -113,8 +113,8 @@ c(!chicas.length, "   nada por debajo de 12 px", chicas);
   const SGJ = L("assets/js/stargate.js"), MOTJ = L("assets/js/motor.js");
   c(/getItem\('sgEnAcademia'\)==='1'/.test(SGJ) && /querySelectorAll\('\[data-solo-academia\]'\),function\(a\)\{ a\.hidden = !aca; \}/.test(SGJ),
     "   se enciende solo con sgEnAcademia (stargate.js)");
-  c(/addEventListener\('sg:sesion'/.test(SGJ) && /M\.academiaMia\(\)\.then\(function\(d\)\{ poner\(!!d\); \}/.test(SGJ) && /SG_ACADEMIA_ORGANIZA/.test(SGJ)
-    && /if\(!yo \|\| !yo\.uid\) return poner\(false\)/.test(SGJ), "   y sgEnAcademia = su ficha de formación o quien organiza (sin sesión, no)");
+  c(/addEventListener\('sg:sesion'/.test(SGJ) && /M\.academiaMia\(\)\.then\(function\(d\)\{ poner\(!!\(d && d\.bendicion\)\); \}/.test(SGJ) && /SG_ACADEMIA_ORGANIZA/.test(SGJ)
+    && /if\(!yo \|\| !yo\.uid\) return poner\(false\)/.test(SGJ), "   y sgEnAcademia = su ficha de formación CON la bendición del Comandante, o quien organiza (sin sesión, no)");
 }
 
 console.log("\n  Batería 136 · «Ayuda ▾» y las guías");

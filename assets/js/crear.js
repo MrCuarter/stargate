@@ -134,7 +134,10 @@
   var ACADEMIA = null;
   function cargarAcademia() {
     if (!MOTOR.academiaProfes) return;
-    MOTOR.academiaProfes().then(function (l) { ACADEMIA = l || []; pintarAcademia(); }, function () { ACADEMIA = null; pintarAcademia(); });
+    // 9-oct · solo el profesorado con la bendición del Comandante (quien espera no es docente todavía)
+    Promise.all([MOTOR.academiaProfes(), MOTOR.academiaTodos()]).then(function (r) {
+      var bendecidos = {}; (r[1] || []).forEach(function (x) { if (x && x.bendicion) bendecidos[x.uid] = true; });
+      ACADEMIA = (r[0] || []).filter(function (x) { return bendecidos[x.uid]; }); pintarAcademia(); }, function () { ACADEMIA = null; pintarAcademia(); });
   }
   function enLista(correo) { correo = String(correo || "").toLowerCase(); return docentes.some(function (d) { return String(d.correo || "").toLowerCase() === correo; }); }
   function avanceDe(a) {

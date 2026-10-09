@@ -2055,7 +2055,7 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
    * 🔴 9-oct · «ACADEMIA», SOLO A QUIEN NORBERTO HA AUTORIZADO. Norberto: «la ACADEMIA SOLO debe verse a docentes autorizados, NO
    * debe verse jamás en el menú de nadie que no esté autorizado por mí». Un estudiante del PER 16450 la vio en «Ayuda ▾», entró
    * con Google y quedó registrado como docente (6-oct). Al saber quién eres (`sg:sesion`, del motor): quien la organiza, o con su
-   * ficha de formación (que solo hace el servidor con su invitación: GamificaPro `modFormacion`, `alta: 'invitacion'`), sí; los
+   * ficha de formación bendecida (que solo hace el servidor con su invitación: GamificaPro `modFormacion`, `alta: 'invitacion'`), sí; los
    * demás (y sin sesión), no. Lo de las páginas (`[data-solo-academia]`) nace oculto y lo enciende encenderSegunRol.
    */
   document.addEventListener('sg:sesion', function(e){
@@ -2065,7 +2065,8 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
     if(yo.correo && String(yo.correo).toLowerCase() === org) return poner(true);
     var M = window.SG && window.SG.MOTOR;
     if(!M || !M.academiaMia) return poner(false);
-    M.academiaMia().then(function(d){ poner(!!d); }, function(){ poner(false); });
+    // (con su ficha Y la bendición del Comandante: quien espera no ve la Academia en el menú)
+    M.academiaMia().then(function(d){ poner(!!(d && d.bendicion)); }, function(){ poner(false); });
   });
   // 23-sep · la altura de la barra de arriba, para lo que se pega justo debajo (el índice de las guías)
   function altoNav(){ var n=document.querySelector('.nav'); if(n) document.documentElement.style.setProperty('--nav-h', Math.round(n.getBoundingClientRect().height)+'px'); }

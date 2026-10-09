@@ -729,16 +729,35 @@
    * alistamiento (las reglas tampoco dejan nacer la ficha de recluta de este grupo sin la de formación).
    */
   var INV = (function () { try { return new URLSearchParams(location.search).get("inv") || ""; } catch (e) { return ""; } })();
+  /**
+   * 🔴 9-oct (segunda capa) · LA BENDICIÓN DEL COMANDANTE. Norberto: «si algún usuario consigue acceder a la academia y su nombre
+   * no es ninguno de [mi lista], debe aparecerle que gracias por matricularte en la academia, pero debe esperar la "bendición" del
+   * comandante para poder entrar». Su ficha de formación nace bendecida solo si le abre la puerta Norberto en persona (su correo
+   * autorizado, o es del Mando o vitalicio); con un enlace, espera. La guardia se lo dice a Norberto y él la da (su panel, abajo).
+   * Sin ella: esta pantalla, sin curso ni alistamiento (el servidor y las reglas tampoco lo dejan).
+   */
   function conPermiso() {
     return M.academiaMia().then(function (d) {
-      if (d) return;
+      if (d) return d;
       return M.academiaGuardar({ alias: ((YO && YO.nombre) || "").split(" ")[0] || "" }, { invitacion: INV }).then(function () {
         if (INV) try { history.replaceState(null, "", location.pathname); } catch (e) { /* (sin historia, da igual) */ }
+        return M.academiaMia();
       }, function (e) {
         if (/permission/i.test(String((e && e.code) || ""))) { var x = new Error((e && e.message) || ""); x.sinInvitacion = true; throw x; }
         throw e;
       });
+    }).then(function (d) {
+      if (!d || !d.bendicion) { var x = new Error("sin bendición"); x.sinBendicion = true; throw x; }
+      return d;
     });
+  }
+  function portadaEsperaBendicion() {
+    app.innerHTML = '<main class="acd">' + cabecera(null) +
+      '<section class="acd-ses"><div class="card acd-carta"><h2>¡Gracias por matricularte en la Academia de la Cero!</h2>' +
+      "<p>Para poder entrar, tienes que esperar la <b>bendición del Comandante</b>. Cuando te la dé, esta página se abrirá sola con tu curso.</p>" +
+      "<p><b>Si eres estudiante</b>, esta no es tu clase: la tuya está en <b>Mi nave</b>.</p>" +
+      '<div class="acd-botones"><a class="btn primary" href="consola.html">' + ico("estrella") + " Ir a Mi nave</a></div>" +
+      "</div></section></main>";
   }
   function portadaSoloDocentes(motivo) {
     app.innerHTML = '<main class="acd">' + cabecera(null) +
@@ -914,7 +933,11 @@
           '<div class="acd-org-a"><div class="acd-barra" aria-hidden="true"><i style="width:' + Math.round(100 * Math.min(ses, tot) / Math.max(1, tot)) + '%"></i></div>' +
           "<span>" + (a.fin ? "<b>" + esc(C.final.titulo) + "</b>" : ses + " de " + tot + " sesiones") + "</span></div>" +
           (sr ? '<span class="chip acd-org-dudas">' + sr + " sin respuesta</span>" : "") +
+          (x.bendicion ? "" : '<span class="chip acd-org-dudas">Espera tu bendición</span>') +
           "</summary>" +
+          // 9-oct · la bendición del Comandante: sin ella no entra (ni se alista en el grupo de la Academia)
+          (x.bendicion ? "" : '<div class="acd-botones"><button type="button" class="btn primary" data-bendecir>' + ico("estrella") + " Dar la bendición</button>" +
+            '<span class="small muted">Sin ella no puede entrar en la Academia. Si no es docente, échale abajo.</span></div>') +
           '<p class="small muted">Hitos: ' + (Number(a.hitos) || 0) + " de " + (Number(a.de) || "—") + (x.alias ? " · alias en la Academia «" + esc(x.alias) + "»" : "") +
             " · " + (f ? "alistado en el grupo de la Academia como «" + esc(f.alias) + "» (" + f.retos + (f.retos === 1 ? " reto" : " retos") + ")" : "sin ficha de recluta todavía") + "</p>" +
           (conDiseno ? '<h3>Su primera pieza</h3><dl class="acd-org-dis">' + CAMPOS.map(function (c) { return "<dt>" + c[1] + "</dt><dd>" + (esc(d[c[0]] || "") || "—") + "</dd>"; }).join("") + "</dl>" : "") +
@@ -984,6 +1007,12 @@
       var sinReglas = function (e) { return /permission|insufficient|denegad/i.test(String((e && (e.code || e.message)) || "")) ? " Falta desplegar las reglas nuevas de la Academia (desplegar_stargate.sh reglas)." : ""; };
       Array.prototype.forEach.call(app.querySelectorAll("[data-uid]"), function (el) {
         var uid = el.getAttribute("data-uid"), x = P.filter(function (y) { return y.uid === uid; })[0], res = el.querySelector(".acd-org-res");
+        var bb = el.querySelector("[data-bendecir]");
+        if (bb) bb.onclick = function () {
+          bb.disabled = true; res.textContent = "Dando la bendición…";
+          M.academiaBendecir(uid).then(function () { res.textContent = "Bendecido: ya puede entrar en la Academia."; bb.remove(); },
+            function (e) { bb.disabled = false; res.textContent = "No se ha podido: " + ((e && e.message) || e); });
+        };
         var br = el.querySelector("[data-responder]");
         br.onclick = function () {
           var ta = el.querySelector("[data-resp]"), rst = el.querySelector("[data-resp-st]"), t = ta.value.trim();
@@ -1040,7 +1069,7 @@
   document.addEventListener("visibilitychange", function () {
     // (30-sep · y si su ficha de recluta ya no está —la quitó quien organiza—, se vuelve a alistar sola, como al entrar)
     if (document.visibilityState === "visible" && !DEMO && YO && !escribiendo() && !enPanel())
-      recargar().then(function () { if (!FICHA && !ORG) return conPermiso().then(function () { return alistarAuto(); }).then(recargar); }).then(pintar, function () {});
+      recargar().then(function () { if (!FICHA && !ORG) return conPermiso().then(function () { return alistarAuto(); }).then(recargar); }).then(pintar, function (e) { if (e && e.sinBendicion) portadaEsperaBendicion(); });
   });
 
   function arrancar() {
@@ -1051,7 +1080,7 @@
       YO = yo;
       if (!yo) return portadaSinCuenta();
       if (esOrganiza(yo)) { ORG = true; return lsLeer("org.tab", "profes") === "curso" ? verCurso() : pintarOrganiza(); }   // (quien la organiza no se registra ni se alista: la lleva)
-      return recargar().then(function () { if (!FICHA) return conPermiso().then(function () { return alistarAuto(); }).then(recargar); }).then(function () {
+      return recargar().then(function () { return conPermiso(); }).then(function () { if (!FICHA) return alistarAuto().then(recargar); }).then(function () {
         var primeraVez = true;
         M.academiaEscuchar(function (d, err) {
           if (err) { SIN_GUARDAR = true; if (primeraVez) { primeraVez = false; pintar(); } return; }
@@ -1067,6 +1096,7 @@
       });
     }).catch(function (e) {
       if (e && e.sinInvitacion) return portadaSoloDocentes(e.message);
+      if (e && e.sinBendicion) return portadaEsperaBendicion();
       app.innerHTML = '<main class="acd"><p>No se ha podido abrir la Academia: ' + esc((e && e.message) || e) + "</p></main>";
     });
   }

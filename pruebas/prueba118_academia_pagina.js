@@ -39,7 +39,7 @@ c(/if \(!a \|\| ENSAYO \|\| ORGANIZO_ACADEMIA\(\)\) return "";/.test(CJS), "   a
 // ── 3 · Quien la organiza la lleva; todos los demás la hacen
 c(/function esOrganiza\(yo\) \{ return !!\(yo && C\.organiza && String\(yo\.correo \|\| ""\)\.toLowerCase\(\) === String\(C\.organiza\.correo \|\| ""\)\.toLowerCase\(\)\); \}/.test(AJS),
   "   academia.js reconoce al organizador por su correo (y a nadie más: ni vitalicios ni referentes)");
-const iSes = AJS.indexOf("if (!yo) return portadaSinCuenta();"), iOrg = AJS.indexOf("if (esOrganiza(yo)) { ORG = true; return"), iAli = AJS.indexOf("return alistarAuto(); }).then(recargar)", iOrg);   // (30-sep · la de arrancar; la de volver a la pestaña ya excluye al organizador: !ORG)
+const iSes = AJS.indexOf("if (!yo) return portadaSinCuenta();"), iOrg = AJS.indexOf("if (esOrganiza(yo)) { ORG = true; return"), iAli = AJS.indexOf("alistarAuto().then(recargar)", iOrg);   // (30-sep · la de arrancar; la de volver a la pestaña ya excluye al organizador: !ORG)
 c(iSes > 0 && iOrg > iSes && iAli > iOrg, "🔴 el organizador ve su panel ANTES de registrarse o alistarse: no se apunta como alumno");
 c(/M\.academiaTodos\(\)/.test(AJS) && /async function academiaTodos\(\)/.test(MOT) && /academiaProfes, academiaTodos,/.test(MOT), "   el panel lee a todo el profesorado inscrito (motor.js → academiaTodos)");
 c(/String\(x\.correo\)\.toLowerCase\(\) !== yo/.test(AJS), "   y se deja fuera a sí mismo");

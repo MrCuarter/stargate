@@ -2190,6 +2190,8 @@ async function academiaEditar(uid, campos) {
   }
   await llamar("modFormacion", { mod: "stargate", accion: "editar", uid, campos: c });   // 8-oct · lo hace el servidor
 }
+/** 🔴 9-oct · la BENDICIÓN DEL COMANDANTE (solo el Mando): desde ese momento entra en la Academia y se alista en su grupo. */
+async function academiaBendecir(uid) { await llamar("modFormacion", { mod: "stargate", accion: "bendecir", uid }); }
 async function academiaQuitar(uid) { await llamar("modFormacion", { mod: "stargate", accion: "quitar", uid }); }
 /**
  * 30-sep · …y le RESPONDE en su hilo (Norberto: «un botón Responder en el hilo de cada docente»). Va a `mando.mensajes`, que
@@ -2432,7 +2434,7 @@ window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, vigilarMensajesDelSistema, resolverVale,
-                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaInvitar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaResponder, buzonComprimir, buzonAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
+                    llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaInvitar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaBendecir, academiaResponder, buzonComprimir, buzonAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo, esDelEquipoDe, pasarAFantasma,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias, cambiarMiComandante, guardarFrase,

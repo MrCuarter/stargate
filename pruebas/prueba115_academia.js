@@ -121,12 +121,18 @@ c(/Los fondos de cada planeta \(Drive del equipo\)/.test(TODO), "   y los fondos
 
 // ── 9 · Al entrar, docente Y recluta; y la Academia siempre a mano en su Nave (Norberto, 29-sep)
 const REC = L("assets/js/recluta.js");
-c(/function alistarAuto\(\)/.test(JS) && /M\.alistar\(G, \{ alias: alias, comandante:/.test(JS) && /M\.aliasOcupado\(G, alias/.test(JS) && /if \(!FICHA\) return conPermiso\(\)\.then\(function \(\) \{ return alistarAuto\(\); \}\)\.then\(recargar\)/.test(JS),
+c(/function alistarAuto\(\)/.test(JS) && /M\.alistar\(G, \{ alias: alias, comandante:/.test(JS) && /M\.aliasOcupado\(G, alias/.test(JS) && /return recargar\(\)\.then\(function \(\) \{ return conPermiso\(\); \}\)\.then\(function \(\) \{ if \(!FICHA\) return alistarAuto\(\)\.then\(recargar\); \}\)/.test(JS),
   "🔴 al entrar se le alista SOLO como recluta en el grupo de la Academia (alias libre, escuadrón de quien organiza), y solo con su ficha de formación");
 // 🔴 9-oct · SOLO EL PROFESORADO INVITADO (Norberto: «La Academia es SOLO para docentes: los que yo añado manualmente o a través de un enlace»)
 c(/function conPermiso\(\)/.test(JS) && /M\.academiaMia\(\)/.test(JS) && /M\.academiaGuardar\(\{ alias: [^}]*\}, \{ invitacion: INV \}\)/.test(JS) && /get\("inv"\)/.test(JS)
   && /e\.sinInvitacion\) return portadaSoloDocentes/.test(JS) && /async function academiaInvitar\(correo\)/.test(MOT) && /invitacion: String\(opciones\.invitacion\)/.test(MOT),
   "🔴 9-oct · sin invitación (su correo autorizado o el enlace ?inv=), ni registro ni alistamiento: sale «solo para el profesorado invitado»");
+c(/if \(!d \|\| !d\.bendicion\) \{ var x = new Error\("sin bendición"\); x\.sinBendicion = true; throw x; \}/.test(JS) && /e\.sinBendicion\) return portadaEsperaBendicion\(\)/.test(JS)
+  && /Gracias por matricularte en la Academia de la Cero/.test(JS) && /bendición del Comandante/.test(JS),
+  "🔴 9-oct · y sin la BENDICIÓN del Comandante, «gracias por matricularte… espera la bendición»: ni curso ni alistamiento");
+c(/data-bendecir/.test(JS) && /M\.academiaBendecir\(uid\)/.test(JS) && /async function academiaBendecir\(uid\)/.test(MOT) && /Espera tu bendición/.test(JS),
+  "   y en el panel de quien organiza, «Dar la bendición» a quien espera");
+c(/x && x\.bendicion\) bendecidos\[x\.uid\] = true/.test(L("assets/js/crear.js")), "   al crear un grupo, solo se ofrece el profesorado bendecido");
 c(/id="acd-org-autorizar"/.test(JS) && /M\.academiaInvitar\(v\)/.test(JS) && /M\.academiaInvitar\(\)\.then/.test(JS) && /academia\.html\?inv=/.test(JS),
   "   el panel de quien organiza: autorizar un correo o crear un enlace de un solo uso");
 c(/registrado como docente/.test(JS) && /alistado como recluta/.test(JS), "   y la portada lo dice antes de entrar");
