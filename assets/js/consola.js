@@ -751,14 +751,15 @@
   function avisosSistema() {
     if (!SISTEMA.length) return "";
     return SISTEMA.slice(0, 5).map(function (x) {
-      var m = x.modSistema || {}, anul = m.accion === "anulado", val = m.accion === "validado";
+      // 10-oct · `equipo`: a ti, sin estudiante de por medio (GamificaPro, enviarMensajeAlEquipo)
+      var m = x.modSistema || {}, anul = m.accion === "anulado", val = m.accion === "validado", eq = !!m.equipo;
       var cuando = x.createdAt ? new Date(x.createdAt) : null, quien = esc(m.alumno || "un recluta");
       return '<div class="card msg-cmd' + (anul ? " anulado" : val ? " validado" : "") + '" role="status">' +
         '<p class="mc-cab"><span class="mc-ico" aria-hidden="true">' + (anul ? "↩" : val ? ico("hecho") : ico("envivo")) + "</span>" +
-        "<b>Mensaje de " + esc(m.voz) + " · a " + quien + "</b>" +
+        "<b>Mensaje de " + esc(m.voz) + (eq ? " para ti" : " · a " + quien) + "</b>" +
         (cuando ? '<span class="mc-cuando">' + esc(cuando.toLocaleDateString("es-ES", { day: "numeric", month: "short" })) + ", " + esc(cuando.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })) + "</span>" : "") +
         '<button type="button" class="btn min" data-sis-leido="' + esc(x.id) + '">Entendido</button></p>' +
-        (m.reto ? '<p class="mc-que">' + (anul ? "Ha anulado el reto " : val ? "Ha validado el reto " : "Le ha escrito sobre el reto ") + "<b>" + esc(m.reto) + "</b> de " + quien + ".</p>"
+        (eq ? "" : m.reto ? '<p class="mc-que">' + (anul ? "Ha anulado el reto " : val ? "Ha validado el reto " : "Le ha escrito sobre el reto ") + "<b>" + esc(m.reto) + "</b> de " + quien + ".</p>"
                 : '<p class="mc-que">Le ha escrito a ' + quien + ".</p>") +
         (x.message ? '<p class="mc-txt">«' + esc(x.message) + "»</p>" : "") + "</div>";
     }).join("") + (SISTEMA.length > 5 ? '<p class="small muted">Y ' + (SISTEMA.length - 5) + " más: se ven al dar por leídos estos.</p>" : "");

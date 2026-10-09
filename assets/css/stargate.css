@@ -8280,3 +8280,30 @@ body.ajf-abierta{overflow:hidden}
 .gpc-velo{--gpc-capa:80;--gpc-velo:rgba(4,8,14,.78);--gpc-fondo:#101a28;--gpc-tinta:var(--ink);--gpc-borde:#3a5578;
   --gpc-acento:var(--teal);--gpc-acento-tinta:#04131a;--gpc-aviso-fondo:rgba(245,176,67,.12);--gpc-aviso-tinta:var(--ink)}
 .gpc-ventana h2{font-family:'Unbounded',sans-serif}
+/* 🔴 10-oct · EL ESCUADRÓN DEL TICKET (sesion.js, diaTicketEscuadron): el escuadrón que llegó a su raya, con su Comandante de
+   cuerpo entero, y la carrera de todos con la raya de cada uno (su meta, que sube cada vez que cobra). */
+.dia.tk-esc{gap:14px}
+.tke-caja{display:flex;flex-direction:column;gap:14px;min-width:0}
+.tke-heroe{display:flex;align-items:flex-end;gap:clamp(14px,3vw,32px);min-width:0}
+.tke-cmd{width:clamp(130px,22%,240px);max-height:38vh;flex:none;align-self:flex-end}
+.tke-txt{display:flex;flex-direction:column;gap:8px;min-width:0}
+.tke-txt h2{margin:0;font-size:clamp(1.8rem,4.6vw,3.4rem);line-height:1.05;color:var(--amber);text-wrap:balance}
+.tke-sub{margin:0;font-size:clamp(1rem,1.8vw,1.35rem);line-height:1.4}
+.tke-sub b{color:#e8f3fa}.tke-pct{color:var(--amber)!important;font-variant-numeric:tabular-nums}
+.tke-premio{margin:0;display:flex;align-items:center;gap:10px;border:1px solid rgba(245,176,67,.45);background:rgba(245,176,67,.08);
+  border-radius:14px;padding:10px 14px;font-size:clamp(.95rem,1.6vw,1.2rem);line-height:1.35}
+.tke-premio .ico{width:30px;height:30px;flex:none}
+.tke-lista .esc-f{padding:8px 14px}.tke-lista .esc-emb{width:48px;height:48px}
+.tke-bar{position:relative;overflow:visible}
+.tke-bar s{position:absolute;top:-5px;bottom:-5px;width:3px;margin-left:-1px;border-radius:2px;background:var(--amber);box-shadow:0 0 8px rgba(245,176,67,.6)}
+.tke-pie{margin:0;color:var(--muted);font-size:clamp(.85rem,1.3vw,1rem)}
+@media (max-width:720px){
+  .tke-heroe{flex-direction:column;align-items:stretch;text-align:center}
+  .tke-txt{overflow-wrap:anywhere}
+  .tke-cmd{width:auto;height:150px;max-height:none;align-self:center}
+  .tke-premio{text-align:left}
+  .tke-lista .esc-f{grid-template-columns:auto minmax(0,1fr) auto}
+  .tke-lista .esc-bar{display:block;grid-column:1/-1}
+}
+.tk-pres{margin:0;border:1px dashed rgba(245,176,67,.5);border-radius:12px;padding:8px 12px;background:rgba(245,176,67,.06);font-size:clamp(.9rem,1.4vw,1.05rem)}
+.tk-pres a{color:var(--amber);font-weight:700}
