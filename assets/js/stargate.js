@@ -55,6 +55,10 @@
     var doc=false, rec=false; try{ doc = localStorage.getItem('sgEsDocente')==='1'; rec = localStorage.getItem('sgEsRecluta')==='1'; }catch(e){}
     Array.prototype.forEach.call(document.querySelectorAll('.solo-docente'),function(a){ a.hidden = !doc; });
     Array.prototype.forEach.call(document.querySelectorAll('.solo-sesion'),function(a){ a.hidden = !(doc || rec); });
+    // 🔴 9-oct · la Academia, solo a quien Norberto ha autorizado (abajo, al saber quién eres: su ficha de formación o quien la
+    // organiza). Nace oculta en el HTML, como lo del referente: si naciera visible, un estudiante la vería antes de esconderse.
+    var aca=false; try{ aca = localStorage.getItem('sgEnAcademia')==='1'; }catch(e){}
+    Array.prototype.forEach.call(document.querySelectorAll('[data-solo-academia]'),function(a){ a.hidden = !aca; });
     var b = document.getElementById('sg-modo'), wrap = document.querySelector('.nav .wrap');
     if(!ref || !wrap || (document.body && document.body.classList.contains('embed'))){ if(b) b.remove(); return; }
     if(!b){
@@ -70,6 +74,22 @@
   }
   encenderSegunRol();
   document.addEventListener('sg:rol', encenderSegunRol);
+  /**
+   * 🔴 9-oct · «ACADEMIA», SOLO A QUIEN NORBERTO HA AUTORIZADO. Norberto: «la ACADEMIA SOLO debe verse a docentes autorizados, NO
+   * debe verse jamás en el menú de nadie que no esté autorizado por mí». Un estudiante del PER 16450 la vio en «Ayuda ▾», entró
+   * con Google y quedó registrado como docente (6-oct). Al saber quién eres (`sg:sesion`, del motor): quien la organiza, o con su
+   * ficha de formación (que solo hace el servidor con su invitación: GamificaPro `modFormacion`, `alta: 'invitacion'`), sí; los
+   * demás (y sin sesión), no. Lo de las páginas (`[data-solo-academia]`) nace oculto y lo enciende encenderSegunRol.
+   */
+  document.addEventListener('sg:sesion', function(e){
+    var yo = e && e.detail, org = String(window.SG_ACADEMIA_ORGANIZA || '').toLowerCase();
+    var poner = function(si){ try{ localStorage.setItem('sgEnAcademia', si ? '1' : '0'); }catch(x){} encenderSegunRol(); };
+    if(!yo || !yo.uid) return poner(false);
+    if(yo.correo && String(yo.correo).toLowerCase() === org) return poner(true);
+    var M = window.SG && window.SG.MOTOR;
+    if(!M || !M.academiaMia) return poner(false);
+    M.academiaMia().then(function(d){ poner(!!d); }, function(){ poner(false); });
+  });
   // 23-sep · la altura de la barra de arriba, para lo que se pega justo debajo (el índice de las guías)
   function altoNav(){ var n=document.querySelector('.nav'); if(n) document.documentElement.style.setProperty('--nav-h', Math.round(n.getBoundingClientRect().height)+'px'); }
   altoNav(); window.addEventListener('resize', altoNav);

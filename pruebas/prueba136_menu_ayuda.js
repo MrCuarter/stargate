@@ -103,6 +103,20 @@ c(/@media \(max-width:480px\)\{\.nav:has\(\.gpm\) \.brand \.modo\{display:none\}
 const chicas = (CSS.slice(CSS.indexOf("«AYUDA ▾»")).match(/font-size:\.(\d+)rem/g) || []).map(x => parseFloat("0." + x.match(/\.(\d+)/)[1])).filter(x => x * 16 < 12);
 c(!chicas.length, "   nada por debajo de 12 px", chicas);
 
+// 🔴 9-oct · LA ACADEMIA, SOLO A QUIEN NORBERTO HA AUTORIZADO (un estudiante la vio en «Ayuda ▾» y se registró como docente)
+{
+  const paginas = fs.readdirSync(R).filter(f => f.endsWith(".html"));
+  const conAcademia = paginas.filter(f => /<a role="menuitem"[^>]*href="academia\.html"/.test(L(f)));
+  const sinOcultar = conAcademia.filter(f => !/<a role="menuitem" tabindex="-1" href="academia\.html"[^>]*data-solo-academia hidden>/.test(L(f)));
+  c(conAcademia.length > 0 && !sinOcultar.length, "🔴 9-oct · «Academia» nace OCULTA en el menú de todas las páginas (" + conAcademia.length + ")", sinOcultar);
+  c(/<div class="card" data-solo-academia hidden><h3>[^<]*<img[^>]*> La Academia de la Cero/.test(L("guia.html")), "   y la tarjeta «Ir a la Academia» de la guía, también");
+  const SGJ = L("assets/js/stargate.js"), MOTJ = L("assets/js/motor.js");
+  c(/getItem\('sgEnAcademia'\)==='1'/.test(SGJ) && /querySelectorAll\('\[data-solo-academia\]'\),function\(a\)\{ a\.hidden = !aca; \}/.test(SGJ),
+    "   se enciende solo con sgEnAcademia (stargate.js)");
+  c(/addEventListener\('sg:sesion'/.test(SGJ) && /M\.academiaMia\(\)\.then\(function\(d\)\{ poner\(!!d\); \}/.test(SGJ) && /SG_ACADEMIA_ORGANIZA/.test(SGJ)
+    && /if\(!yo \|\| !yo\.uid\) return poner\(false\)/.test(SGJ), "   y sgEnAcademia = su ficha de formación o quien organiza (sin sesión, no)");
+}
+
 console.log("\n  Batería 136 · «Ayuda ▾» y las guías");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);

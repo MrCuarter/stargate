@@ -104,8 +104,11 @@ FAV = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0
 NAV = [("consola.html","Mi nave","cons"),("gestion.html","Gestionar grupos","gest","referente")]
 # Cada opción: la página, su texto, la clave de `active` (la de head()), una línea y, si cuelgan de ella, las páginas que cubre
 # con su clave (en ellas, la opción sale marcada); o, con `pulsa`, el botón de la página que abre.
+# 🔴 9-oct · la Academia lleva `solo="academia"`: nace oculta y solo se enciende a quien Norberto ha autorizado (su ficha de
+# formación, o quien la organiza: stargate.js, al saber quién eres). Norberto: «la ACADEMIA SOLO debe verse a docentes autorizados,
+# NO debe verse jamás en el menú de nadie que no esté autorizado por mí» (un estudiante entró por aquí el 6-oct)
 AYUDA_DOCENTE = [
-    dict(href="academia.html", texto="Academia", clave="acad", sub="El curso del profesorado, a tu ritmo"),
+    dict(href="academia.html", texto="Academia", clave="acad", sub="El curso del profesorado, a tu ritmo", solo="academia"),
     dict(href="guias.html", texto="Guías", clave="guias", sub="La rápida, sin historia, o la completa",
          cubre={"guia.html": "guia", "en-claro.html": "claro"}),
     dict(href="buzon.html?desde=menu", texto="Escribir al Mando", clave="buzon", sub="Una duda, una idea o algo que falla"),
@@ -127,7 +130,8 @@ def _menu_ayuda(opciones, active):
             return f'<button type="button" role="menuitem" tabindex="-1" data-gpm-pulsa="{x["pulsa"]}" hidden>{dentro}</button>'
         cubre = f' data-gpm-paginas="{" ".join(x["cubre"])}"' if x.get("cubre") else ''
         actual = ' aria-current="page"' if _actual(x) else ''
-        return f'<a role="menuitem" tabindex="-1" href="{x["href"]}"{cubre}{actual}>{dentro}</a>'
+        solo = ' data-solo-academia hidden' if x.get("solo") == "academia" else ''
+        return f'<a role="menuitem" tabindex="-1" href="{x["href"]}"{cubre}{actual}{solo}>{dentro}</a>'
     return (f'<div class="gpm gpm-derecha{" gpm-activo" if any(_actual(x) for x in opciones) else ""}" data-gpm id="nav-ayuda">'
             '<button type="button" class="gpm-boton" aria-haspopup="true" aria-expanded="false" aria-controls="nav-ayuda-lista">'
             'Ayuda <span class="gpm-flecha" aria-hidden="true">▾</span></button>'
@@ -845,7 +849,7 @@ gana, qué hacéis vosotros y —sobre todo— lo que no. Para verla otra vez, o
 <p class="lead">Dos sitios para aprender la herramienta sin tocar un grupo de verdad. Ninguno sigue el calendario de
 un curso: se entra cuando se quiere.</p>
 <div class="grid cols-2">
-<div class="card"><h3><img class=ico src=assets/img/iconos/p/medalla.png alt> La Academia de la Cero</h3>
+<div class="card" data-solo-academia hidden><h3><img class=ico src=assets/img/iconos/p/medalla.png alt> La Academia de la Cero</h3>
 <p>El curso del profesorado, <b>planeta a planeta</b>: un prólogo y ocho sesiones de 10-20 minutos. En cada una, su
 tripulante, una o dos piezas de la herramienta, <b>una misión en la consola de ensayo</b> que se corrige sola y
 <b>cinco preguntas dentro de un minijuego</b> (la que se falla vuelve a salir). Acaba con tu primera pieza de
@@ -2028,6 +2032,10 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
     var doc=false, rec=false; try{ doc = localStorage.getItem('sgEsDocente')==='1'; rec = localStorage.getItem('sgEsRecluta')==='1'; }catch(e){}
     Array.prototype.forEach.call(document.querySelectorAll('.solo-docente'),function(a){ a.hidden = !doc; });
     Array.prototype.forEach.call(document.querySelectorAll('.solo-sesion'),function(a){ a.hidden = !(doc || rec); });
+    // 🔴 9-oct · la Academia, solo a quien Norberto ha autorizado (abajo, al saber quién eres: su ficha de formación o quien la
+    // organiza). Nace oculta en el HTML, como lo del referente: si naciera visible, un estudiante la vería antes de esconderse.
+    var aca=false; try{ aca = localStorage.getItem('sgEnAcademia')==='1'; }catch(e){}
+    Array.prototype.forEach.call(document.querySelectorAll('[data-solo-academia]'),function(a){ a.hidden = !aca; });
     var b = document.getElementById('sg-modo'), wrap = document.querySelector('.nav .wrap');
     if(!ref || !wrap || (document.body && document.body.classList.contains('embed'))){ if(b) b.remove(); return; }
     if(!b){
@@ -2043,6 +2051,22 @@ JS_TEMPLATE = r"""// STARGATE — modales, vídeos y utilidades (autogenerado po
   }
   encenderSegunRol();
   document.addEventListener('sg:rol', encenderSegunRol);
+  /**
+   * 🔴 9-oct · «ACADEMIA», SOLO A QUIEN NORBERTO HA AUTORIZADO. Norberto: «la ACADEMIA SOLO debe verse a docentes autorizados, NO
+   * debe verse jamás en el menú de nadie que no esté autorizado por mí». Un estudiante del PER 16450 la vio en «Ayuda ▾», entró
+   * con Google y quedó registrado como docente (6-oct). Al saber quién eres (`sg:sesion`, del motor): quien la organiza, o con su
+   * ficha de formación (que solo hace el servidor con su invitación: GamificaPro `modFormacion`, `alta: 'invitacion'`), sí; los
+   * demás (y sin sesión), no. Lo de las páginas (`[data-solo-academia]`) nace oculto y lo enciende encenderSegunRol.
+   */
+  document.addEventListener('sg:sesion', function(e){
+    var yo = e && e.detail, org = String(window.SG_ACADEMIA_ORGANIZA || '').toLowerCase();
+    var poner = function(si){ try{ localStorage.setItem('sgEnAcademia', si ? '1' : '0'); }catch(x){} encenderSegunRol(); };
+    if(!yo || !yo.uid) return poner(false);
+    if(yo.correo && String(yo.correo).toLowerCase() === org) return poner(true);
+    var M = window.SG && window.SG.MOTOR;
+    if(!M || !M.academiaMia) return poner(false);
+    M.academiaMia().then(function(d){ poner(!!d); }, function(){ poner(false); });
+  });
   // 23-sep · la altura de la barra de arriba, para lo que se pega justo debajo (el índice de las guías)
   function altoNav(){ var n=document.querySelector('.nav'); if(n) document.documentElement.style.setProperty('--nav-h', Math.round(n.getBoundingClientRect().height)+'px'); }
   altoNav(); window.addEventListener('resize', altoNav);

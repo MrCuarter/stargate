@@ -23,8 +23,8 @@ const CON = L("consola.html"), ACA = L("academia.html"), GUIA = L("guia.html"), 
 const OPC = h => (h.match(/<div class="gpm-lista"[^>]*>([\s\S]*?)<\/div><\/div>/) || ["", ""])[1];
 c(/AYUDA_DOCENTE = \[\s*dict\(href="academia\.html", texto="Academia", clave="acad"/.test(B) && /NAV = \[\("consola\.html","Mi nave","cons"\),\("gestion\.html","Gestionar grupos","gest","referente"\)\]/.test(B),
   "🔴 «Academia» en el menú del profesorado: después de «Gestionar grupos», la primera de «Ayuda ▾»");
-c(/<a role="menuitem" tabindex="-1" href="academia\.html">Academia</.test(OPC(CON)) && /<a role="menuitem" tabindex="-1" href="academia\.html">Academia</.test(OPC(GUIA)), "   visible en las páginas del profesorado (sin «solo»: para todos)");
-c(/<a role="menuitem" tabindex="-1" href="academia\.html" aria-current="page">Academia</.test(OPC(ACA)) && /class="gpm gpm-derecha gpm-activo"/.test(ACA), "   y encendida en la propia Academia");
+c(/<a role="menuitem" tabindex="-1" href="academia\.html" data-solo-academia hidden>Academia</.test(OPC(CON)) && /<a role="menuitem" tabindex="-1" href="academia\.html" data-solo-academia hidden>Academia</.test(OPC(GUIA)), "   🔴 9-oct · en las páginas del profesorado, OCULTA hasta saber que esa cuenta está autorizada (solo el profesorado invitado)");
+c(/<a role="menuitem" tabindex="-1" href="academia\.html" aria-current="page" data-solo-academia hidden>Academia</.test(OPC(ACA)) && /class="gpm gpm-derecha gpm-activo"/.test(ACA), "   y encendida en la propia Academia");
 
 // ── 2 · Su grupo, fuera de las listas de clase
 c(/async function misPERs\(correo, opc\)/.test(MOT) && /\.filter\(x => !x\.stargate\.academia \|\| !!\(opc && opc\.academia\)\)/.test(MOT),
