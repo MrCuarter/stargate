@@ -444,7 +444,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // 🔴 y Ana lo ve en su Nave para ponérselo (el inventario cuenta como comprado)
       await ana.ir("recluta.html?per=lab-clase");
       await ana.hasta("!!document.querySelector('.nb-t[data-tab=\"botin\"]')", 25);
-      await ana.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
+      await ana.js("var t=document.querySelector('.nb-t[data-tab=\"botin\"]'); if(t) t.click(); 1");
       // (25-sep · el Botín tiene tres puertas: el marco, con los héroes y adornos)
       await ana.hasta("!!document.querySelector('[data-bsec=\"heroes\"]')", 10);
       await ana.js("var b=document.querySelector('[data-bsec=\"heroes\"]'); if(b) b.click(); 1");
@@ -1624,10 +1624,10 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 sesión · la semana 2 lleva la misión mayor (la actividad y los retos que la construyen) ANTES de las misiones",
         rot.indexOf("La actividad") > 0 && rot.indexOf("Ya la tienes empezada") === rot.indexOf("La actividad") + 1
         && rot.indexOf("Misión 1") > rot.indexOf("Ya la tienes empezada"), JSON.stringify(rot));
-      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='La actividad'})[0].click(); 1"); await dormir(700);
+      await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='La actividad'})[0]; if(b) b.click(); return 1; })()"); await dormir(700);
       const act1 = await rita.texto();
       c("sesión · la actividad, con lo que pesa y cuándo se resuelve", /4,3 de los 10 puntos/.test(act1) && /semana 9/.test(act1) && /Tabla técnica/.test(act1), act1.slice(0, 120));
-      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Ya la tienes empezada'})[0].click(); 1"); await dormir(700);
+      await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Ya la tienes empezada'})[0]; if(b) b.click(); return 1; })()"); await dormir(700);
       const act2 = await rita.texto();
       c("🔴 sesión · y los retos que la construyen, con la frase que importa («los retos no puntúan; la actividad, sí»)",
         /no puntúan/.test(act2) && /La hoja de ruta/.test(act2) && /La Bitácora en marcha/.test(act2) && /Del boceto a la forja/.test(act2), act2.slice(0, 160));   // 23-sep · los 20 retos
@@ -2865,15 +2865,15 @@ const REG = {};   // cifras que se apuntan para el informe
       const rots = rots0.filter(x => x !== "La pregunta");
       // (15-sep · entre la llamada y el vídeo, «El mensaje»: el del foro, como apertura de saga)
       // 20-sep · la semana 10 abre tema (el 6) y también lo cierra: por eso lleva «Cómo os fue» y «Vuestras dudas»
-      // detrás de la llamada, y el «Ticket de salida» embebido de última (el ticket se rellena al ACABAR el tema).
+      // (10-oct · ahora «Cómo os fue», «El escuadrón del ticket» y «Lo que escribisteis»: sesion.js, diasTicket) detrás de la llamada, y el «Ticket de salida» embebido de última (el ticket se rellena al ACABAR el tema).
       // (27-sep · al cerrar el tema, tras el cierre del planeta van la misión de la Ruta, el ticket y el juego En directo)
-      const sinTk = rots.filter(x => ["Cómo os fue", "Vuestras dudas", "Ticket de salida", "La Ruta", "En directo"].indexOf(x) < 0);
+      const sinTk = rots.filter(x => ["Cómo os fue", "El escuadrón del ticket", "Lo que escribisteis", "Ticket de salida", "La Ruta", "En directo"].indexOf(x) < 0);
       c("🔴 sesión · empieza por la portada, la llamada a filas y el mensaje; luego el vídeo; y el de cierre va lo último (semana 10)",
         sinTk[0] === "Portada" && sinTk[1] === "Llamada a filas" && sinTk[2] === "El mensaje" && sinTk[3] === "Rumbo al planeta"   /* 24-sep · la intro del tema, con su nombre */
         && sinTk[sinTk.length - 1] === "Cierre del planeta" && sinTk.indexOf("Tu ejemplo") < 0 && sinTk.indexOf("El despegue") < 0, JSON.stringify(rots));   // 23-sep · dentro del Genially, el despegue ES el Genially
       c("🔴 sesión · y el ticket: el resumen y las dudas al principio, el formulario al final del todo",
-        rots[2] === "Cómo os fue" && rots[3] === "Vuestras dudas" && rots[rots.length - 2] === "Ticket de salida" && rots[rots.length - 1] === "En directo",   // (27-sep · y detrás, el juego)
-        JSON.stringify(rots.slice(0, 5)) + " … " + rots.slice(-2).join(", "));
+        rots[2] === "Cómo os fue" && rots[3] === "El escuadrón del ticket" && rots[4] === "Lo que escribisteis" && rots[rots.length - 2] === "Ticket de salida" && rots[rots.length - 1] === "En directo",   // (27-sep · y detrás, el juego)
+        JSON.stringify(rots.slice(0, 6)) + " … " + rots.slice(-2).join(", "));
       const ir_ = async t => f2.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return x.getAttribute('title')===${JSON.stringify(t)}})[0]; if(b){ b.click(); return 1; } return 0; })()`);
       // la llamada a filas, tocada DESDE la sesión, y la gente entrando con su cara
       for (const d of (await fs.collection("attendance_sessions").where("projectId", "==", P).where("active", "==", true).get()).docs) await d.ref.update({ active: false });
@@ -3656,9 +3656,10 @@ const REG = {};   // cifras que se apuntan para el informe
         if (await dani.js("!![].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return /^Misiones de la semana/.test(b.title)})[0]")) { sem = k; break; }
       }
       const titulos = await dani.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.title})");
-      // (20-sep · si la semana abre tema, entre medias van «Cómo os fue» y «Vuestras dudas»: el ticket del anterior)
+      // (20-sep · si la semana abre tema, entre medias van «Cómo os fue» y «Vuestras dudas»: el ticket del anterior;
+      //  10-oct · ahora «Cómo os fue», «El escuadrón del ticket» y «Lo que escribisteis»)
       // (24-sep · y entre la llamada y el mensaje, «La pregunta» de la clase: el orden que pidió Norberto)
-      const sinTk_ = titulos.filter(x => ["Cómo os fue", "Vuestras dudas", "Ticket de salida", "La pregunta"].indexOf(x) < 0);
+      const sinTk_ = titulos.filter(x => ["Cómo os fue", "El escuadrón del ticket", "Lo que escribisteis", "Ticket de salida", "La pregunta"].indexOf(x) < 0);
       const iLl = sinTk_.indexOf("Llamada a filas"), iMs = sinTk_.indexOf("El mensaje");
       c("🔴 sesión · el mensaje de la semana va después de la llamada a filas y la pregunta (antes del vídeo)", iMs > 0 && iMs === iLl + 1, JSON.stringify(titulos.slice(0, 6)));
       const irA = async (re) => dani.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(x){return ${re}.test(x.title)})[0]; if(b){ b.click(); return true; } return false; })()`);
@@ -3716,6 +3717,9 @@ const REG = {};   // cifras que se apuntan para el informe
       await dani3.js("var b=document.querySelector('#ses-salir-b'); if(b) b.click(); 1");
       c("🔴 embed · y sale: vuelve la puerta de Google", await dani3.hasta("/Entra con tu cuenta de docente/.test(document.body.innerText)", 20));
       await dani3.cerrar();
+      // (10-oct · con --solo=34 nadie ha alistado a Ana en las secciones de antes: sin ficha, la sesión le dice «esas
+      //  credenciales no coinciden con las de ningún comandante» y su Nave sale vacía; se alista aquí si le falta, como Sara en la 26)
+      for (let k = 0; k < 2 && !(await fichaDe("ana@lab.test", P)); k++) { const a = await nueva("Alta Ana"); await alistar(a, "ana@lab.test", "Ana Nueva", "Andrómeda", 0); await a.cerrar(); }
       const ana = await nueva("Ana entra por la sesión");
       await ana.ir("entrar.html"); await ana.entrarComo("ana@lab.test", "Ana Nueva");
       await ana.ir("sesion.html?embed=1");
@@ -3723,11 +3727,11 @@ const REG = {};   // cifras que se apuntan para el informe
       // es un estudiante y le deje también visualizarlo». Antes se le echaba a su Nave; ahora VE la sesión, sin los mandos
       // del docente (no puede emitir en directo), y desde ahí ficha, vota y responde.
       c("🔴 embed · una estudiante que abre la sesión LA VE, sin los mandos del docente",
-        await ana.hasta("location.pathname.indexOf('sesion.html')>=0 && !!document.querySelector('.dia') && !document.getElementById('ses-directo')", 30), await ana.js("location.href"));
+        await ana.hasta("location.pathname.indexOf('sesion.html')>=0 && !!document.querySelector('.dia') && !document.getElementById('ses-directo')", 30), await ana.js("location.href+' · '+document.body.innerText.replace(/\\s+/g,' ').slice(0,200)"));
       // su Nave: insignias por temas y el «+» del segundo enlace
       await ana.ir("recluta.html?per=lab-clase");
       await ana.hasta("!!document.querySelector('.nb-t[data-tab=\"botin\"]')", 30);
-      await ana.js("document.querySelector('.nb-t[data-tab=\"botin\"]').click(); 1");
+      await ana.js("var t=document.querySelector('.nb-t[data-tab=\"botin\"]'); if(t) t.click(); 1");
       // 16-sep · 27 casillas: 24 de siempre + la Bitácora en marcha, Mano rápida y Listo para la batalla
       c("🔴 Nave · las insignias, por temas: 8 planetas + la historia + los hitos, las 27 casillas",
         await ana.hasta("document.querySelectorAll('.ins-tema').length===10 && document.querySelectorAll('.ins-temas .badge-col .b[data-key]').length===27", 15),
@@ -5088,7 +5092,10 @@ const REG = {};   // cifras que se apuntan para el informe
       const ses = ((((await leerDoc("projects/" + P)) || {}).stargate || {}).sesiones) || {};
       c("   y se guarda al tocar una casilla", g1 && Object.values(ses).some(v => (v || []).indexOf("videos") >= 0), JSON.stringify(ses));
       await rp.js("document.querySelector('[data-cfg-todo]').click(); 1");
-      c("   «Marcar todo» lo devuelve a completo", await rp.hasta("/sale todo/.test((document.querySelector('.cfg-capa #m-sec-msg')||{}).textContent||'')", 25));
+      // (5-oct · ya no dice «· sale todo»: con todo marcado, «✓ Guardado» a secas; las de serie apagadas quedan encendidas, «+clave»)
+      const gTodo = await rp.hasta("/^✓ Guardado$/.test(((document.querySelector('.cfg-capa #m-sec-msg')||{}).textContent||'').trim())", 25);
+      const sesTodo = ((((await leerDoc("projects/" + P)) || {}).stargate || {}).sesiones) || {};
+      c("   «Marcar todo» lo devuelve a completo", gTodo && Object.values(sesTodo).every(v => (v || []).every(k => k.charAt(0) === "+")), JSON.stringify(sesTodo));
       await rp.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1");
       c("   y Escape la cierra", await rp.hasta("!document.querySelector('.cfg-capa')", 5));
       // 🔴 20-sep · en su lugar, TU mensaje del foro: se escribe aquí y vale para TODOS tus grupos (ficha del docente)
@@ -5145,8 +5152,10 @@ const REG = {};   // cifras que se apuntan para el informe
       await dn.js("try{ localStorage.removeItem('sgModoNivel'); }catch(e){} 1");   // (como un docente de verdad, la primera vez)
       await dn.ir("consola.html"); await dn.hasta("!!document.querySelector('.cn-secs') && !!document.querySelector('.pt-hoy .ht')", 75); await dormir(800);
       c("🔴 piloto · un docente nuevo empieza en PILOTO AUTOMÁTICO", await dn.js("document.body.classList.contains('modo-piloto') && document.querySelector('.modo-sel [data-modo=\"piloto\"]').classList.contains('on')"));
-      c("   sin la rueda de la sesión, sin Ajustes y sin las herramientas (Geniallys, para todos tus grupos)",
-        await dn.js("['.gp-cfg','#doc-ajustes-b','.gp-herr'].every(function(s){ var e=document.querySelector(s); return !e || getComputedStyle(e).display==='none'; })"));
+      // (28-sep · la rueda de la sesión SÍ sale en piloto, Norberto: «un docente no puede configurar las diapositivas de clase
+      //  que quiere mostrar»; consola.js, botonCfgSesion sin data-av)
+      c("   con la rueda de la sesión, pero sin Ajustes y sin las herramientas (Geniallys, para todos tus grupos)",
+        await dn.js("(function(){ var r=document.querySelector('.gp-cfg'); return !!r && getComputedStyle(r).display!=='none' && ['#doc-ajustes-b','.gp-herr'].every(function(s){ var e=document.querySelector(s); return !e || getComputedStyle(e).display==='none'; }); })()"));
       c("🔴 hoy toca · en el Puente, con fichas de reto completas y el calendario de la semana",
         await dn.js("!!document.querySelector('.pt-hoy .ht') && document.querySelectorAll('.pt-hoy .ht-reto').length>0 && document.querySelectorAll('.pt-hoy .ht-cal li').length>0 && !!document.querySelector('.pt-hoy .ht-reto .ht-reto-pie .p.xp')"));
       await dn.ir("consola.html?per=" + P); await dn.hasta("!!document.querySelector('.pt-cab')", 75); await dormir(1000);
@@ -5318,13 +5327,14 @@ const REG = {};   // cifras que se apuntan para el informe
         && /tema=(Tema|Actividad)(\+|%20)/.test(src || ""), src);
       c("   y sin huecos sin rellenar", (src || "").indexOf("{") < 0 && (src || "").indexOf("%7B") < 0, src);
       await rt.foto(FOTOS + "/49-ticket-form.png");
-      // la semana 3 ABRE el tema 2: primero «Cómo os fue», después «Vuestras dudas»
+      // la semana 3 ABRE el tema 2: primero «Cómo os fue», después «El escuadrón del ticket» y «Lo que escribisteis» (10-oct)
       await rt.ir("sesion.html?per=lab-clase&sem=3"); await rt.hasta("!!document.querySelector('.barra-pasos .p')", 60);
       const r3 = await rt.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.title})");
-      c("🔴 ticket · la semana 3 abre tema: «Cómo os fue» y detrás «Vuestras dudas», al principio",
-        r3.indexOf("Cómo os fue") > 0 && r3.indexOf("Vuestras dudas") === r3.indexOf("Cómo os fue") + 1 && r3.indexOf("Cómo os fue") <= 3, JSON.stringify(r3.slice(0, 6)));
+      c("🔴 ticket · la semana 3 abre tema: «Cómo os fue», «El escuadrón del ticket» y «Lo que escribisteis», al principio",
+        r3.indexOf("Cómo os fue") > 0 && r3.indexOf("El escuadrón del ticket") === r3.indexOf("Cómo os fue") + 1
+        && r3.indexOf("Lo que escribisteis") === r3.indexOf("Cómo os fue") + 2 && r3.indexOf("Cómo os fue") <= 3, JSON.stringify(r3.slice(0, 6)));
       c("   y esa sesión NO cierra tema: no lleva el formulario", r3.indexOf("Ticket de salida") < 0, JSON.stringify(r3.slice(-3)));
-      await rt.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.title==='Vuestras dudas'})[0].click(); 1");
+      await rt.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.title==='Lo que escribisteis'})[0]; if(b) b.click(); return 1; })()");
       // (el lector de tickets vive en Google: aquí no hay respuestas, así que lo que toca es el mensaje)
       const nada = await rt.hasta("!!document.getElementById('ses-tk') && !/Leyendo vuestras respuestas/.test(document.getElementById('ses-tk').innerText)", 40);
       c("🔴 ticket · sin respuestas, «¡No hay comentarios!» animando a rellenarlo (nunca un hueco en blanco)",

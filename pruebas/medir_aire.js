@@ -42,6 +42,9 @@
     // 28-sep · las tarjetas de reto del Puente, SIEMPRE a la misma altura (Norberto: «haz que los retos se ajusten al ancho
     // de la caja… SIEMPRE, la misma altura»): la más corta se estira hasta la más alta y su pie va abajo. Ese hueco es a propósito.
     if (e.closest(".ht-retos")) return;
+    // 10-oct · y el equipo docente por escuadrón (28-sep, «tarjetas del mismo tamaño»; norma del 6-oct «lo que va junto,
+    // igual»): la rejilla iguala las filas y el pie (.eq-pie, margin-top:auto) va abajo en todas. También a propósito.
+    if (e.closest(".eq-grupo .eq-lista")) return;
     var s = getComputedStyle(e);
     if (s.overflowY === "auto" || s.overflowY === "scroll") return;
     var t = [];
