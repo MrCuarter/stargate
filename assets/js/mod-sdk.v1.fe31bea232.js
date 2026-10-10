@@ -334,6 +334,8 @@ var alistarse = pieza(function (module, exports) {
   else raiz.GPALISTARSE = fabrica();
 })(typeof self !== "undefined" ? self : this, function () {
   var COLECCION = "stargate_alias";
+  // 10-oct · quién es de cada grupo (functions/modMiembros.js): `mod_miembros/{grupo}__{uid}`
+  var MIEMBROS = "mod_miembros";
 
   function plano(t) {
     return String(t || "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ");
@@ -409,6 +411,11 @@ var alistarse = pieza(function (module, exports) {
             return d.id !== e.ficha && (!e.uid || d.data().userId !== e.uid) && plano(d.data().displayName) === plano(alias);
           })[0];
           return otro ? String(otro.data().displayName || alias) : null;
+        }, function (err) {
+          // 10-oct · las fichas de un grupo solo las lee su gente (firestore.rules → «LEER, SOLO EL GRUPO»): quien aún no se ha
+          // alistado no las ve. No pasa nada: la reserva (arriba, y la de la escritura) es la que manda desde el 13-sep
+          if (denegado(err)) return null;
+          throw err;
         });
       });
     }
@@ -467,6 +474,9 @@ var alistarse = pieza(function (module, exports) {
         var traducir = function (e) { return o.traducir ? o.traducir(e) : e; };
         return reservar(lote, grupo, yo.uid, alias, T).then(function () {
           lote.set(fichaRef, fichaNueva(yo.uid, grupo, alias, o.ficha));
+          // 10-oct · y que es de este grupo, en la misma escritura (functions/modMiembros.js): las reglas dejan leer lo del grupo
+          // solo a su gente, y así lo lee desde la primera pantalla (sin esperar al disparador del servidor)
+          lote.set(fs.doc(db, MIEMBROS, grupo + "__" + yo.uid), { projectId: grupo, uid: yo.uid, fichas: [fichaRef.id], creado: Date.now() });
           return lote.commit().catch(function (e) {
             if (!denegado(e)) throw traducir(e);
             // dos personas pulsando a la vez con el mismo alias: el servidor deja pasar a una sola

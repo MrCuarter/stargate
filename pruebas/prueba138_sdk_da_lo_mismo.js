@@ -93,7 +93,12 @@ if (!viejo) {
   const fn = path.join(R, "assets/js/motor.js");
   for (const [nombre, opc] of [["el docente de ensayo", []], ["con el buzón abierto", ["--buzon"]], ["un recluta (Tritón)", ["--yo=prueba_triton"]]]) {
     console.log("\n  · " + nombre);
-    const a0 = correr(fv, opc), b = correr(fn, opc);
+    const a0 = correr(fv, opc), b0 = correr(fn, opc);
+    // 10-oct · cerrar lecturas (gamificapro functions/modMiembros.js): el alta escribe, en el mismo lote que la ficha, quién es de
+    // cada grupo (mod_miembros/<grupo>__<uid>), que las reglas miran para dejar leer el grupo solo a su gente. Es lo único nuevo.
+    const miembros = b0.filter((x) => /^tocado · mod_miembros\//.test(x[0])), b = b0.filter((x) => !/^tocado · mod_miembros\//.test(x[0]));
+    c(miembros.length > 0 && miembros.every((x) => { const id = x[0].replace("tocado · mod_miembros/", ""), d = x[1] || {}; return id === d.projectId + "__" + d.uid && Array.isArray(d.fichas) && d.fichas.length === 1; }),
+      "   a propósito · el alta escribe también quién es del grupo (mod_miembros/<grupo>__<uid>, con su ficha): " + miembros.length, miembros.map((x) => x[0]));
     const a = a0.map((x) => (RENOMBRES[x[0]] ? [RENOMBRES[x[0]], x[1]] : x));
     Object.keys(RENOMBRES).forEach((k) => c(a0.some((x) => x[0] === k) && b.some((x) => x[0] === RENOMBRES[k]) && !b.some((x) => x[0] === k),
       "   a propósito · " + k.slice(2) + " pasa a ser " + RENOMBRES[k].slice(2) + ", con los mismos datos"));
