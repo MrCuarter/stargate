@@ -180,9 +180,13 @@
   ];
   var COLORES = { acento: "#37e0ec", acento2: "#f5b043", rareza: ["#8fd8e0", "#3fa9ff", "#b48cff", "#ffc94a"] };
 
+  /**
+   * 10-oct · el parte se cuenta POR ESCUADRÓN (GamificaPro `BONUS`): con este ticket, algún escuadrón ha llegado a su meta (no
+   * tiene por qué ser el tuyo) y cada recluta de ese escuadrón cobra su propia tirada, con su aviso en la Nave.
+   */
   function tripulacionHtml(r) {
-    return r.tripulacion > 0 ? '<p class="tk-tripu"><b>¡Parte de la tripulación!</b> Con tu ticket, más de la cuarta parte de la clase ha respondido: '
-      + "hay premio para toda la tripulación.</p>" : "";
+    return r.tripulacion > 0 ? '<p class="tk-tripu"><b>¡Parte de la tripulación!</b> Con tu ticket, un escuadrón ha llegado a su meta: '
+      + "cada recluta de ese escuadrón tiene su propia tirada de premio. Si es el tuyo, te llega el aviso a tu Nave.</p>" : "";
   }
   /** La casilla que se enseña: la que tocó; si era un sobre que el grupo no tiene, los créditos que se pagaron en su lugar. */
   function casillaDe(P) {

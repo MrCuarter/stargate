@@ -178,12 +178,39 @@ c(/per=demo-stargate/.test(GUIA), "   «Probar la Nave como estudiante» lleva a
 c(/window\.SG_PER_DEMO \|\| "demo-stargate"/.test(AULA_JS) && /window\.SG_PER_DEMO \|\| "demo-stargate"/.test(CONS),
   "   y si algún día no llegara, el respaldo es el mismo");
 
+// ── 2b · 10-oct · «Algo positivo» y «Algo a mejorar» en vez de «¿Alguna duda o comentario?» (en los temas, no en la presentación)
+{
+  const TK = ventana.SG.TK, P = TK.preguntasDe("3").map(q => q.id);
+  igual(P.slice(-2), ["positivo", "mejorar"], "🔴 10-oct · los temas preguntan «Algo positivo» y «Algo a mejorar»…");
+  c(P.indexOf("duda") < 0 && TK.preguntasDe("0").map(q => q.id).indexOf("duda") < 0, "   y ya no pintan la duda (ni en el balance final)");
+  c(TK.preguntasDe("p").map(q => q.id).indexOf("duda") >= 0, "   la presentación, como estaba");
+  igual([TK.corto(TK.preguntasDe("3").slice(-2)[0].texto), TK.corto(TK.preguntasDe("3").slice(-1)[0].texto)], ["Lo positivo", "A mejorar"], "   con sus nombres cortos");
+  c(TK.preguntasDe("3").filter(q => q.tipo === "texto").every(q => /^Algo (positivo|a mejorar): /.test(q.texto)), "   con los textos de Norberto");
+  const filasMotor = TK.filasDelMotor([{ tema: "3", filas: [
+    { k: "a", c: "Capitana Vega", r: { general: 4, duda: "Una duda de la web vieja" } },
+    { k: "b", c: "Capitana Vega", r: { general: 5, positivo: "Aprendí a montar un vídeo", mejorar: "Más tiempo para practicar" } }] }]);
+  const tx = TK.analizar(filasMotor).textos.map(x => [TK.corto(x.c), x.v]);
+  igual(tx, [["Dudas y comentarios", "Una duda de la web vieja"], ["Lo positivo", "Aprendí a montar un vídeo"], ["A mejorar", "Más tiempo para practicar"]],
+    "🔴 los paneles leen lo nuevo y lo de antes (las filas con «duda» no se pierden)");
+  // el servidor (GamificaPro functions/mods/stargate.js) acepta justo lo que pinta la web más lo retirado
+  const gp = path.resolve(raiz, "../../gamificapro/functions/mods/stargate.js");
+  if (fs.existsSync(gp)) {
+    const m = fs.readFileSync(gp, "utf8").match(/tema: \{ general: 'escala'[^}]*\}/);
+    const ids = m ? (m[0].match(/(\w+): (?:'|SEGUIDO)/g) || []).map(x => x.split(":")[0]) : [];
+    if (ids.indexOf("positivo") < 0) console.log("   · (GamificaPro aún sin «positivo» en su main: se compara al fusionar la rama ticket-salida)");
+    else igual(ids.slice().sort(), TK.preguntasDe("3").concat(TK.RETIRADAS.tema).map(q => q.id).sort(), "   y el servidor acepta lo mismo (más la duda, por la web vieja en caché)");
+  }
+}
+
 // ── 8 · el botón, donde no tapa nada
 c(/\.ses-aula-b\{display:flex/.test(CSS) && !/\.ses-aula-b\{position:absolute/.test(CSS),
   "🔴 el botón de las herramientas ya no flota encima de la barra de pasos");
 c(/\.tk-nota\{display:grid/.test(CSS) && /\.tk-n-b \.v1/.test(CSS), "   y el resumen del ticket tiene su barra de colores");
 c(/\.tk-nada\{/.test(CSS), "   y el «¡No hay comentarios!», su recuadro");
 
+// 10-oct · con «Algo positivo» y «Algo a mejorar» ya no son solo dudas: la diapositiva es «Lo que escribisteis»
+c(/rot:'Lo que escribisteis'/.test(SES) && /<h2>Lo que escribisteis<\/h2>/.test(SES) && /'Nadie escribió nada sobre <b>'/.test(SES) && !/Vuestras dudas|ninguna duda/.test(SES),
+  "🔴 la diapositiva de los textos: «Lo que escribisteis» (y «Nadie escribió nada sobre…»)");
 console.log("\n  Batería 99 · el ticket por tema y las herramientas de clase (20-sep)");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);

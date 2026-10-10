@@ -2218,7 +2218,7 @@
    * que quepan en la diapositiva».
    *
    * Aquí se repasa con calma lo que escribió el alumnado y se decide qué se lee en clase; la sesión obedece esas
-   * marcas (`sesion.js`, diapositiva «Vuestras dudas»). Las respuestas se piden con el lector común (`SG.TK`).
+   * marcas (`sesion.js`, diapositiva «Lo que escribisteis»). Las respuestas se piden con el lector común (`SG.TK`).
    */
   var TK_TEMA = null;          // qué tema se está mirando (null = el último cerrado)
   var TK_MARCAS = null;
