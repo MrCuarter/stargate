@@ -246,7 +246,8 @@ const TAB3 = fs.readFileSync(path.join(__dirname, "..", "motor", "tablero.js"), 
 const NAVE = js("recluta.js");
 c(/\{GRUPO\}/.test(TAB3), "🔴 el tablero rellena el hueco del GRUPO: él es quien lo sabe");
 c(/\{COMANDANTE\}/.test(NAVE), "   y la Nave el del COMANDANTE: ella es quien sabe de quién es cada recluta");
-c(/function ticketUrl\(d\)/.test(NAVE), "   con un solo sitio donde se hace la sustitución");
+// 10-oct · el ticketUrl de antes no lo usaba nadie: la sustitución vive en ticketDelTema (la tarjeta «Tu ticket de salida está abierto»)
+c((NAVE.match(/split\('\{COMANDANTE\}'\)/g) || []).length === 1 && /function ticketDelTema\(\)\{[\s\S]*?split\('\{COMANDANTE\}'\)/.test(NAVE), "   con un solo sitio donde se hace la sustitución");
 c(/encodeURIComponent/.test(TAB3) && /encodeURIComponent/.test(NAVE),
   "   y los dos escapan el valor: un nombre con espacios rompería la dirección");
 const BON = fs.readFileSync(path.join(__dirname, "..", "apps-script", "Bonus.gs"), "utf8");

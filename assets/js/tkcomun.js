@@ -168,3 +168,137 @@
   window.SG = window.SG || {};
   window.SG.TK = { pedir: pedir, limpiar: limpiar, PREGUNTAS: PREGUNTAS, preguntasDe: preguntasDe, filasDelMotor: filasDelMotor, corto: corto, analizar: analizar, esDelTema: esDelTema, deTema: deTema, idTexto: idTexto, campo: campo };
 })();
+
+/**
+ * 🔴 10-oct · EL PARTE POR ESCUADRÓN, aparte del lector de arriba (y en su propio bloque, para no pisar la rama
+ * `preguntas-ticket`, que cambia las preguntas): se cuelga de `SG.TK`.
+ */
+(function () {
+  /* ── 🔴 10-oct · EL PARTE DE LA TRIPULACIÓN, ESCUADRÓN POR ESCUADRÓN ────────────────────────────────────────────────
+   * Norberto (PER 16450): «la raya para la meta del 25 %… la idea es ir incrementando la raya». El servidor (GamificaPro
+   * `modTicket`, functions/modTicketParte.js) cuenta el ticket de cada tema por escuadrón y cada uno tiene su meta: empieza en
+   * el 25 % y sube 5 puntos cada vez que la pasa (tope, 50 %). Aquí, lo que necesitan la sala del docente, su Nave, la Nave del
+   * recluta y la sesión: qué tickets están en juego, cómo va cada escuadrón (`parte`), si este recluta ya lo envió (`estado`)
+   * y la línea con su barra y su raya. Solo recuentos: nada de lo que se contestó.
+   */
+  var escH = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  /** Los tickets del curso, en orden: el del embarque («p», semana 1) y el de cada tema con su última semana (`fin`, índice). */
+  function ticketsDelCurso(L) {
+    var out = [{ clave: "p", fin: 0 }];
+    (L || []).forEach(function (s, i) {
+      var k = String(Number(s && s.tema_n) || 0), ya = out.filter(function (x) { return x.clave === k; })[0];
+      if (ya) ya.fin = i; else out.push({ clave: k, fin: i });
+    });
+    return out;
+  }
+  /**
+   * Los tickets que ya se pueden enviar en la semana `i` (0 = la primera) de `L`, del más reciente al más antiguo: el del tema
+   * que se cierra esa semana, los de los temas ya cerrados y el del embarque. En STARGATE el ticket no tiene ventana (el
+   * servidor no le pone `VENTANA`): lo que se abre, no se cierra. Norberto: «cuando empiece la semana del tema dos, se puede
+   * recordar hacer el del tema 1».
+   */
+  function ticketsAbiertos(L, i) {
+    if (!(i >= 0) || !L || !L[i]) return [];
+    return ticketsDelCurso(L).filter(function (x) { return x.fin <= i; }).map(function (x) { return x.clave; }).reverse();
+  }
+  /** Los dos que mira el docente en la semana `i`: el del tema de esa semana y el anterior (en la semana 1, el 1 y el embarque). */
+  function ticketsDelDocente(L, i) {
+    if (!(i >= 0) || !L || !L[i]) return [];
+    var T = ticketsDelCurso(L), k = String(Number(L[i].tema_n) || 0), j = T.map(function (x) { return x.clave; }).indexOf(k);
+    return j < 0 ? [] : [T[j], T[j - 1]].filter(Boolean).map(function (x) { return x.clave; });
+  }
+  /** El nombre corto de un ticket: «El embarque», «El repaso final» o «Tema 1 · Fôrge» (de SG_TICKET_TEMAS). */
+  function nombreTicket(clave) {
+    clave = String(clave);
+    if (clave === "p") return "El embarque";
+    if (clave === "0") return "El repaso final";
+    var t = String((window.SG_TICKET_TEMAS || {})[clave] || ""), m = t.match(/^(Tema\s*\d+).*\(([^)]+)\)\s*$/);
+    return m ? m[1] + " · " + m[2] : (t.split(":")[0] || "Tema " + clave);
+  }
+  /** «del embarque», «del repaso final», «de Tema 1 · Fôrge»: para «Ticket … : 34 de 86». */
+  function delTicket(clave) { var n = nombreTicket(clave); return /^El /.test(n) ? "del " + n.slice(3).toLowerCase() : "de " + n; }
+
+  /**
+   * Cómo va el parte de un tema: los escuadrones del servidor ([{ firma, respuestas, fichas, meta, umbral, llega, cobrado }]) o
+   * null si no contesta (sin desplegar, sin red, sin permiso). 🔴 Lee las ~300 fichas del grupo: UNA vez por página y tema, y
+   * se guarda 10 minutos en esta pestaña (repintar, o volver a la Nave, no vuelve a preguntar).
+   */
+  var PARTES = {};
+  function parte(per, tema, M) {
+    var k = String(per) + "|" + String(tema), ss = null;
+    if (PARTES[k]) return PARTES[k];
+    try { ss = JSON.parse(sessionStorage.getItem("sgParte:" + k) || "null"); } catch (e) { ss = null; }
+    if (ss && Array.isArray(ss.e) && Date.now() - Number(ss.t) < 10 * 60000) return (PARTES[k] = Promise.resolve(ss.e));
+    M = M || (window.SG && window.SG.MOTOR);
+    if (!per || !M || typeof M.llamar !== "function") return Promise.resolve(null);
+    PARTES[k] = Promise.resolve().then(function () { return M.llamar("modTicket", { accion: "parte", projectId: per, tema: String(tema) }); })
+      .then(function (r) {
+        var e = r && r.ok && Array.isArray(r.escuadrones) ? r.escuadrones : null;
+        if (e) try { sessionStorage.setItem("sgParte:" + k, JSON.stringify({ t: Date.now(), e: e })); } catch (x) { /* sin almacenamiento */ }
+        return e;
+      }, function () { return null; });
+    return PARTES[k];
+  }
+  /**
+   * ¿Este recluta ya envió el ticket de `tema`? true / false, o null si el servidor no contesta (y entonces no se le pide
+   * nada). 🔴 Lo dice el servidor (`modTicket({ accion: 'estado' })`), no la marca vieja de este navegador (`sgTicket:…`,
+   * que se ponía también al cargar el formulario de Google). Lo que el servidor ya ha dicho que sí se apunta con la ficha
+   * (`sgTkHecho:<grupo>:<tema>:<ficha>`) y no se vuelve a preguntar: enviado, no se des-envía.
+   */
+  function claveHecho(per, tema, ficha) { return "sgTkHecho:" + per + ":" + tema + ":" + (ficha || ""); }
+  function apuntarHecho(per, tema, ficha) { try { localStorage.setItem(claveHecho(per, tema, ficha), "1"); } catch (e) { /* sin almacenamiento */ } }
+  function estado(per, tema, ficha, M) {
+    try { if (localStorage.getItem(claveHecho(per, tema, ficha)) === "1") return Promise.resolve(true); } catch (e) { /* sin almacenamiento */ }
+    M = M || (window.SG && window.SG.MOTOR);
+    if (!per || !M || typeof M.llamar !== "function") return Promise.resolve(null);
+    return Promise.resolve().then(function () { return M.llamar("modTicket", { accion: "estado", projectId: per, tema: String(tema) }); })
+      .then(function (r) {
+        if (!r || r.ok === false) return null;
+        if (r.hecho) { apuntarHecho(per, tema, ficha); return true; }
+        return r.abierto === false ? null : false;   // (con ventana, como en DPG: fuera de ella no se pide)
+      }, function () { return null; });
+  }
+  /**
+   * 🔴 LA RAYA: dónde hay que llegar, en % del escuadrón. El sitio exacto es el umbral del servidor sobre sus fichas (con su
+   * mínimo de 3 y el redondeo hacia arriba); el número que se dice, su meta. Si el tema ya se cobró, el servidor devuelve la
+   * meta con la que se juzgó (GamificaPro modTicketLogica.js, `parteDelTema`: `cobrados[tema]`), no la que tiene ahora: así la
+   * diapositiva que se proyecta después de cobrar pinta la raya que había que pasar.
+   */
+  function rayaDe(e) { return e && e.fichas ? Math.min(100, Math.round(Number(e.umbral) * 1000 / e.fichas) / 10) : 100; }
+  /** Un escuadrón del servidor, en cifras para pintar: { firma, n, total, pct, meta (%), raya (%), llega }. */
+  function cifrasDe(e) {
+    var total = Math.max(0, Number(e.fichas) || 0), n = Math.min(Math.max(0, Number(e.respuestas) || 0), total);
+    return { firma: e.firma, n: n, total: total, pct: total ? Math.round(n * 100 / total) : 0, meta: Math.round((Number(e.meta) || 0) * 100),
+      raya: rayaDe(e), llega: !!e.llega };
+  }
+  /** La barra con su raya (0-100 % de las fichas del escuadrón). */
+  function barraParte(c) {
+    return '<span class="tkp-bar' + (c.llega ? " llega" : "") + '" role="img" aria-label="' + c.n + " de " + c.total + "; la raya, en el " + c.meta + ' %">'
+      + '<i style="width:' + c.pct + '%"></i><s style="left:' + c.raya + '%"></s></span>';
+  }
+  /**
+   * Las líneas de un ticket, una por escuadrón: «Faro Umbral · 34 de 86», la barra y la raya. `o` = { mio: la firma de quien
+   * mira (sale primera y destacada), nombres: { firma: nombre del escuadrón } }. Los escuadrones sin fichas o sin Comandante
+   * (firma vacía) no salen. En DPG hay uno solo, sin firma (la columna entera): `o.columna` lo deja pasar.
+   */
+  function lineasParte(esc, o) {
+    o = o || {};
+    var L = (esc || []).filter(function (e) { return e && Number(e.fichas) > 0 && (o.columna || String(e.firma || "").trim()); }).map(cifrasDe);
+    L.sort(function (a, b) { return (b.firma === o.mio) - (a.firma === o.mio) || String((o.nombres || {})[a.firma] || a.firma).localeCompare(String((o.nombres || {})[b.firma] || b.firma), "es"); });
+    return L.map(function (c) {
+      var nom = (o.nombres || {})[c.firma], cmd = String(c.firma || "").replace(/^comandante\s+/i, "");
+      return '<div class="tkp-f' + (c.firma === o.mio ? " mio" : "") + '">'
+        + '<span class="tkp-n"><b>' + escH(o.columna ? (o.titulo || "La clase") : (nom || "Escuadrón de " + cmd)) + '</b>'
+        + (o.columna ? "" : "<em>" + (c.firma === o.mio ? "El tuyo · " : "") + "Comandante " + escH(cmd) + "</em>") + "</span>"
+        + '<span class="tkp-c"><b>' + c.n + "</b> de " + c.total + "<em>" + (c.llega ? "¡pasó la raya!" : "la raya, " + c.meta + " %") + "</em></span>"
+        + barraParte(c) + "</div>";
+    }).join("");
+  }
+
+  window.SG = window.SG || {};
+  window.SG.TK = window.SG.TK || {};
+  var TK = window.SG.TK, nuevas = { ticketsDelCurso: ticketsDelCurso, ticketsAbiertos: ticketsAbiertos, ticketsDelDocente: ticketsDelDocente,
+    nombreTicket: nombreTicket, delTicket: delTicket, parte: parte, estado: estado, apuntarHecho: apuntarHecho, rayaDe: rayaDe, cifrasDe: cifrasDe,
+    barraParte: barraParte, lineasParte: lineasParte };
+  for (var k in nuevas) TK[k] = nuevas[k];
+})();

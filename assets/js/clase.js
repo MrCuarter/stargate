@@ -308,6 +308,7 @@
         +'<p class="small muted">Se abre la semana entera montada como presentación: el planeta, los vídeos con su momento, las misiones con lo que piden, las insignias y el hito. No hace falta montar ningún Genially.</p>'
         +'<p><a class="btn small" href="foro.html?per='+encodeURIComponent(st.per)+'" target="_blank" rel="noopener">Ver el mensaje del foro para copiar ↗</a> '
         +'<a class="btn small" href="cronologia.html#sem'+sem+'" target="_blank" rel="noopener">La semana entera ↗</a></p></div>':'')
+      +bloqueParte()
       +'<h3 style="margin-top:1.2em">Dudas del ticket de salida</h3>'
       +'<div class="selrow" style="margin-bottom:10px">'
       +'<select id="selTema"><option value="">Todos los temas</option>'
@@ -317,6 +318,52 @@
       +(t.length?'<div class="tablewrap"><table><thead><tr><th>Fecha</th><th>Tema</th><th>Lo que dicen</th><th></th></tr></thead><tbody>'+filas+'</tbody></table></div>'
                 :'<p class="lead">Ningún ticket con ese filtro.</p>')
       +'</section>';}
+
+  /**
+   * 🔴 10-oct · EL TICKET, ESCUADRÓN POR ESCUADRÓN. Norberto (PER 16450): por escuadrón, «Ticket de <tema>: 34 de 86» con una
+   * barra y LA RAYA de su meta («la raya para la meta del 25 %… la idea es ir incrementando la raya»). Del ticket del tema de
+   * esta semana y del anterior (en la semana 1, el del tema 1 y el del embarque): SG.TK.ticketsDelDocente. Con lo que cuenta el
+   * servidor (`modTicket` parte, SG.TK.parte: una lectura por grupo y tema, guardada 10 minutos). Su escuadrón, primero y
+   * destacado; los demás se ven (son solo recuentos). Si el servidor no contesta, la tarjeta no sale.
+   */
+  function semanasDeTicket(){
+    var tipo=(st.d&&st.d.tipo)||'REGULAR';
+    // (en PUA, una semana por tema, como en la consola: la semana w es el tema min(w, 8))
+    return tipo==='PUA' ? [1,2,3,4,5,6,7,8].map(function(n){ return {tema_n:n}; }) : SEM;
+  }
+  function clavesDelParte(){
+    var TK=window.SG&&SG.TK, L=semanasDeTicket(), sem=Number(st.d&&st.d.semana)||0;
+    if(!TK||!TK.ticketsDelDocente||!st.per||sem<1) return [];
+    return TK.ticketsDelDocente(L, Math.min(sem, L.length)-1);
+  }
+  function bloqueParte(){
+    if(!clavesDelParte().length) return '';
+    return '<div class="card" id="sala-parte"><h3><img class=ico src=assets/img/iconos/p/ticket.png alt> El ticket de salida, por escuadrón</h3>'
+      +'<p class="small muted">Cuántos de cada escuadrón lo han enviado. La línea amarilla es <b>su raya</b>: el escuadrón que la pasa cobra una tirada de la rueda por recluta, y su raya sube 5 puntos para el siguiente tema (empieza en el 25 %; como mucho, el 50 %).</p>'
+      +'<div id="sala-parte-l"><p class="small muted">Contando…</p></div></div>';
+  }
+  function parteDe(clave){
+    if(!st.demo) return SG.TK.parte(st.per, clave);
+    // (la demo: escuadrones de mentira, para enseñarla y medirla sin cuenta)
+    var D={ p:[[34,86,.3,26,true],[15,76,.25,19,false],[22,71,.25,18,true],[9,64,.25,16,false]], x:[[12,86,.35,31,false],[20,76,.25,19,true],[6,71,.3,22,false],[3,64,.25,16,false]] }[clave==='p'?'p':'x'];
+    var F=['Mr Cuarter','Norberto Cuartero','Comandante L. Carlota','Comandante Ana Ruiz'];
+    return Promise.resolve(D.map(function(x,i){ return {firma:F[i], respuestas:x[0], fichas:x[1], meta:x[2], umbral:x[3], llega:x[4], cobrado:x[4]}; }));
+  }
+  function pintarParte(){
+    var caja=document.getElementById('sala-parte-l'); if(!caja) return;
+    var claves=clavesDelParte(), per=st.per, TK=SG.TK, nombres={};
+    (((st.d&&st.d.escuadrones))||[]).forEach(function(e){ if(e&&e.comandante) nombres[e.comandante]=e.nombre||''; });
+    Promise.all(claves.map(parteDe)).then(function(R){
+      if(st.per!==per||!document.body.contains(caja)) return;
+      var html=claves.map(function(k,j){
+        var E=R[j]; if(!E) return '';
+        var lineas=TK.lineasParte(E, { mio:st.profe, nombres:nombres });
+        return lineas ? '<h4 class="tkp-tema">Ticket '+esc(TK.delTicket(k))+(j===0?' <em>· el de este tema</em>':' <em>· el anterior</em>')+'</h4><div class="tkp">'+lineas+'</div>' : '';
+      }).join('');
+      if(html) caja.innerHTML=html;
+      else { var c=document.getElementById('sala-parte'); if(c) c.remove(); }
+    });
+  }
 
   // 🔴 v3.43 · El boton decia «Corregir» y por eso Norberto no encontro la ficha (9-sep): abre la
   // radiografia entera —inventario, canjes y los campos de correccion— pero su nombre solo prometia
@@ -658,6 +705,7 @@
     var tp=document.getElementById('taparPase');
     if(tp)tp.onclick=function(){ st.paseOculto=!st.paseOculto; render(); };
     cuentaAtras();
+    pintarParte();
     var sp=document.getElementById('selPer'); if(sp)sp.onchange=function(){st.per=sp.value;localStorage.setItem('sgClasePer',st.per);cargarPer();};
     var cd=document.getElementById('cambiarD'); if(cd) cd.onclick=olvidarCorreo;
     var cd2=document.getElementById('cambiarD2'); if(cd2) cd2.onclick=olvidarCorreo;

@@ -2243,6 +2243,7 @@
     return '<details class="card pt-tk pt-plega"' + (TK_TEMA != null ? " open" : "") + '><summary>' +
         '<span class="pt-plega-t">' + ico("ticket") + ' Tickets de salida</span>' +
         '<span class="small muted" id="tk-resumen">' + esc(elegido.nombre) + ' · el último que cerrasteis</span></summary>' +
+      '<div id="tk-parte" hidden></div>' +
       '<p class="small muted">Lo que escribieron al acabar el tema. Elige qué se lee en clase: lo que <b>fijes</b> sale seguro en la sesión, lo que <b>ocultes</b> no sale, y del resto salen los que quepan.</p>' +
       '<label class="tk-sel">De qué tema <select id="tk-tema">' + temas.map(function (x) {
         return '<option value="' + x.n + '"' + (x.n === elegido.n ? " selected" : "") + '>' + esc(x.nombre) + '</option>'; }).join("") + '</select></label>' +
@@ -2290,6 +2291,31 @@
           }, function (e) { aviso("No se ha podido guardar: " + (e.message || e)); pintarCajaTickets(SEMS, iAhora); });
         };
       }, function () { caja.innerHTML = '<p class="small muted">No he podido leer las respuestas ahora mismo.</p>'; });
+  }
+
+  /**
+   * 🔴 10-oct · EL TICKET, ESCUADRÓN POR ESCUADRÓN, EN LA CAJA DE TICKETS. Norberto (PER 16450): por escuadrón, «Ticket de
+   * <tema>: 34 de 86» con una barra y LA RAYA de su meta («la idea es ir incrementando la raya»). Lo mismo que la sala del
+   * docente (clase.js, bloqueParte): el ticket del tema de esta semana y el anterior (SG.TK.ticketsDelDocente), con lo que
+   * cuenta el servidor (`modTicket` parte; SG.TK.parte, una lectura por grupo y tema). El escuadrón que llevo (o comparto),
+   * primero y destacado; los demás se ven: son solo recuentos. Si el servidor no contesta, no sale.
+   */
+  function pintarParteConsola(t, sem) {
+    var caja = document.getElementById("tk-parte"), TK = window.SG && SG.TK, perAqui = PER;
+    if (!caja || !TK || !TK.ticketsDelDocente || !(sem >= 1)) return;
+    var L = t.tipo === "PUA" ? [1, 2, 3, 4, 5, 6, 7, 8].map(function (n) { return { tema_n: n }; }) : (window.SG_SEMANAS || []);
+    var claves = TK.ticketsDelDocente(L, Math.min(sem, L.length) - 1), nombres = {};
+    (t.escuadrones || []).forEach(function (e) { if (e && e.comandante) nombres[e.comandante] = e.nombre || ""; });
+    Promise.all(claves.map(function (k) { return TK.parte(PER, k, MOTOR); })).then(function (R) {
+      if (PER !== perAqui || !document.body.contains(caja)) return;
+      var html = claves.map(function (k, j) {
+        var lineas = R[j] ? TK.lineasParte(R[j], { mio: miComandanteAqui(), nombres: nombres }) : "";
+        return lineas ? '<h4 class="tkp-tema">Ticket ' + esc(TK.delTicket(k)) + ' <em>· ' + (j === 0 ? "el de este tema" : "el anterior") + '</em></h4><div class="tkp">' + lineas + '</div>' : "";
+      }).join("");
+      if (!html) return;
+      caja.innerHTML = html + '<p class="tkp-pie">La línea amarilla es la raya de cada escuadrón: quien la pasa cobra una tirada de la rueda por recluta, y su raya sube 5 puntos para el siguiente tema.</p>';
+      caja.hidden = false;
+    });
   }
 
   function verPortada(t) {
@@ -2382,6 +2408,7 @@
     cablearBotonNebula();
     cablearForo(sem, foroTxt, mioForo);
     pintarCajaTickets(SEMS, Math.max(0, Math.min(sem, SEMS.length) - 1));
+    pintarParteConsola(t, sem);
     Array.prototype.forEach.call(document.querySelectorAll("#consola-app [data-tab-ir]"), function (b) {
       b.onclick = function () { TAB = b.getAttribute("data-tab-ir"); pintar(); };
     });

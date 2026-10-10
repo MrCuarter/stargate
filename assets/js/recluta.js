@@ -4416,6 +4416,7 @@
         // 5-oct · antes que nada, el consentimiento (una vez): lo de siempre al entrar va detrás, y solo si acepta
         pedirConsentimiento(function(){
         cargarInvestigacion();   // 7-oct · la investigación del ticket: voluntaria, se ofrece en una tarjeta (no bloquea nada)
+        cargarTickets();         // 10-oct · los tickets que no ha enviado (servidor), una vez por carga
         setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200); setTimeout(sorteosAlEntrar, 900); setTimeout(ofertaAlEntrar, 1100);
         setTimeout(comprobarHitos, 1800);   // 15-sep · el día a bordo y los logros que ya se vean en los datos
         setTimeout(comprobarBatalla, 2400);  // 16-sep · el reto de la batalla, si ganó y no llegó a registrarse (desde el 23-sep, ninguno: BT.reto = null)
@@ -4849,35 +4850,71 @@
     });
   }
 
-  // El ticket es un formulario compartido por todos los grupos: lleva un hueco para el Comandante
-  // que solo la Nave puede rellenar, porque es la única que sabe de quién es cada recluta. Si no hay
-  // nadie identificado, el hueco se queda vacío y el alumno lo escribe: nadie se queda sin enviarlo.
-  function ticketUrl(d){
-    var u=String(d.formTicket||'');
-    return u.split('{COMANDANTE}').join(encodeURIComponent((st.yo&&st.yo.profe)||''));
-  }
-
   /**
    * 🔴 26-sep · EL TICKET DE SALIDA, TAMBIÉN EN LA NAVE. Norberto: «insertado así, aparecerá perfectamente integrado en
-   * STARGATE, tanto en la plataforma como en las sesiones». En la sesión ya iba incrustado (su última diapositiva de cada
-   * tema); en la Nave solo se llegaba desde el menú «···». Ahora, la semana que cierra un tema, una tarjeta plegada con el
-   * formulario dentro (el mismo SG_TICKET_URL, con grupo, Comandante y tema ya puestos). Enviado aquí o en la sesión (mismo
-   * navegador), se da por hecho: `sgTicket:<grupo>:<tema>` (quien lo rellenó en clase no lo manda dos veces).
+   * STARGATE, tanto en la plataforma como en las sesiones».
+   *
+   * 🔴 10-oct · «TU TICKET DE SALIDA ESTÁ ABIERTO». Norberto: «lanzar un aviso en la nave del estudiante recordando hacer el
+   * ticket de salida de la sesión presentación a todos los que no lo han hecho» y «cuando empiece la semana del tema dos, se
+   * puede recordar hacer el del tema 1». Antes, una tarjeta solo la última semana del tema, y se fiaba de este navegador
+   * (`sgTicket:…`, que se ponía también al cargar el formulario de Google). Ahora, una tarjeta con UNA LÍNEA POR TICKET QUE NO
+   * HA ENVIADO, según el servidor (`modTicket` estado): el del tema que se cierra esta semana y los anteriores, también el del
+   * embarque («p»): en STARGATE el ticket no tiene ventana, lo que se abre no se cierra (SG.TK.ticketsAbiertos). Del más
+   * reciente al más antiguo y en una sola tarjeta, para no llenar la Nave. Cada línea dice cómo va su escuadrón respecto a su
+   * raya (`modTicket` parte: «Tu escuadrón: 15 de 76 · la raya, 25 %») y el botón abre el ticket en una ventana (ticket.html,
+   * como siempre). Al enviarlo, su línea se va (el ticket avisa: `sg-ticket-hecho`). Nada en la demo, el simulacro, la Nave
+   * proyectada o incrustada ni para un fantasma. Las lecturas, una vez por carga de la Nave (cargarTickets), no al repintar.
+   *   st.tk: undefined (sin preguntar) · { ficha, lista: [{ clave, hecho, esc }] }
    */
+  function tkVisible(){
+    return !!(window.SG&&window.SG.TK&&window.SG.TK.estado) && !DEMO && !SIMULACRO && q.get('embed')!=='1' && window.top===window.self
+      && !!per && !!window.SG_TICKET_URL && !!st.yo && !!st.yo.ficha && !st.yo.fantasma && (st.estado==='curso'||st.estado==='fin');
+  }
+  function cargarTickets(){
+    var ficha=st.yo&&st.yo.ficha;
+    if(st.tkPara===ficha) return;      // (una vez por ficha y carga de la Nave)
+    st.tkPara=ficha; st.tk=null;
+    if(!tkVisible()) return;
+    var TK=window.SG.TK, L=st.semanas||[], i=Math.min(Math.max(Number(st.actual)||1,1),L.length)-1;
+    var claves=TK.ticketsAbiertos(L, i); if(!claves.length) return;
+    Promise.all(claves.map(function(k){ return TK.estado(per, k, ficha); })).then(function(hechos){
+      if(!st.yo||st.yo.ficha!==ficha) return;
+      var lista=claves.map(function(k,j){ return { clave:k, hecho:hechos[j]!==false }; });   // (null = sin respuesta: no se pide)
+      var pend=lista.filter(function(x){ return !x.hecho; });
+      st.tk={ ficha:ficha, lista:lista }; if(!pend.length) return;
+      render();
+      // 🔴 el parte lee las fichas de todo el grupo: solo para los tres más recientes que le faltan
+      var mio=String(st.yo.profe||'').trim();
+      Promise.all(pend.slice(0,3).map(function(x){ return TK.parte(per, x.clave).then(function(E){
+        x.esc=(E||[]).filter(function(e){ return mio && String(e.firma||'').trim()===mio; })[0]||null; }); }))
+        .then(function(){ if(st.tk&&st.tk.ficha===ficha) render(); });
+    });
+  }
+  function ticketHecho(clave){
+    if(!st.tk) return;
+    st.tk.lista.forEach(function(x){ if(x.clave===String(clave)) x.hecho=true; });
+    if(window.SG&&window.SG.TK) window.SG.TK.apuntarHecho(per, clave, st.tk.ficha);
+  }
   function ticketDelTema(){
-    var d=st.d||{}, U=window.SG_TICKET_URL||''; if(st.estado!=='curso'||!U||!per||SIMULACRO) return '';
-    var L=st.semanas||[], i=Math.min(Math.max(Number(st.actual)||1,1),L.length)-1, s=L[i]; if(!s) return '';
-    var n=Number(s.tema_n)||0, sig=L[i+1]; if(!n||(sig&&Number(sig.tema_n)===n)) return '';   // solo la última semana del tema
-    var op=(window.SG_TICKET_TEMAS||{})[String(n)]||''; if(!op) return '';
-    var u=U.split('{GRUPO}').join(encodeURIComponent(per)).split('{COMANDANTE}').join(encodeURIComponent((st.yo&&st.yo.profe)||'')).split('{TEMA}').join(encodeURIComponent(op));
-    var clave='sgTicket:'+per+':'+op, hecho=false; try{ hecho=localStorage.getItem(clave)==='1'; }catch(e){}
-    return '<details class="card tk-nave'+(hecho?' hecho':'')+'" data-tk="'+esc(clave)+'">'
-      +'<summary><img class="tk-nave-i" src="assets/img/iconos/p/ticket.png" alt=""><span class="tk-nave-t"><b>'+(hecho?'Ticket de salida enviado':'El ticket de salida')+' · '+esc(op)+'</b>'
-      +'<small>'+(hecho?'Gracias: lo que dijisteis sale en la próxima clase. Puedes abrirlo otra vez si quieres añadir algo.'
-        :'Sin tu nombre'+(invMia()&&window.SG.INV.participa(st.inv.estado)?' (con tu seudónimo: participas en la investigación)':'')+' y en dos minutos, con una cápsula de suministros de premio. Lo que digáis se proyecta en la próxima clase.')+'</small></span>'
-      +'<span class="btn'+(hecho?'':' primary')+' tk-nave-b">'+(hecho?'Abrir':'Rellenarlo')+'</span></summary>'
-      +'<div class="tk-nave-f"><iframe data-src="'+esc(u+'&embedded=true')+'" title="Ticket de salida" loading="lazy"></iframe>'
-      +'<p class="small muted">¿No se ve bien? <a href="'+esc(u)+'" target="_blank" rel="noopener">Ábrelo en otra pestaña</a>.</p></div></details>';
+    if(!tkVisible()) return '';
+    if(st.tkPara!==st.yo.ficha){ setTimeout(cargarTickets,0); return ''; }   // (si se identificó por otro camino)
+    if(!st.tk||st.tk.ficha!==st.yo.ficha) return '';
+    var TK=window.SG.TK, U=window.SG_TICKET_URL, pend=st.tk.lista.filter(function(x){ return !x.hecho; });
+    if(!pend.length) return '';
+    var uno=pend.length===1;
+    return '<div class="card tk-abierto" id="tk-abierto" role="region" aria-label="Ticket de salida sin enviar">'
+      +'<div class="tk-abierto-cab"><img src="assets/img/iconos/p/ticket.png" alt=""><div><h3>'+(uno?'Tu ticket de salida está abierto':'Tus tickets de salida están abiertos')+'</h3>'
+      +'<p>Dos minutos y sin tu nombre'+(invMia()&&window.SG.INV.participa(st.inv.estado)?' (con tu seudónimo: participas en la investigación)':'')+'. '
+      +'Al enviarlo, <b>una tirada de la rueda</b> para ti; y si tu escuadrón pasa su raya, <b>otra para cada recluta</b> del escuadrón.</p></div></div>'
+      +pend.map(function(x){
+        var u=U.split('{GRUPO}').join(encodeURIComponent(per)).split('{COMANDANTE}').join(encodeURIComponent((st.yo&&st.yo.profe)||'')).split('{TEMA}').join(encodeURIComponent(x.clave));
+        var c=x.esc?TK.cifrasDe(x.esc):null;
+        return '<div class="tk-uno-l" data-tk-clave="'+esc(x.clave)+'"><span class="tku-t"><b>Ticket '+esc(TK.delTicket(x.clave))+'</b>'
+          +(c?'<small class="tku-esc">Tu escuadrón: <b>'+c.n+' de '+c.total+'</b> · '+(c.llega?'¡ya pasó la raya ('+c.meta+' %)!':'la raya, '+c.meta+' %')+'</small>'
+             :'<small>'+(x.clave==='p'?'El de la primera clase: sigue abierto.':'Sigue abierto: cuenta para la raya de tu escuadrón.')+'</small>')+'</span>'
+          +(c?TK.barraParte(c):'')
+          +'<a class="btn primary" href="'+esc(u)+'" data-vent="Ticket de salida · '+esc(TK.nombreTicket(x.clave))+'">Rellenarlo</a></div>';
+      }).join('')+'</div>';
   }
   /**
    * 🔴 7-oct · LA INVESTIGACIÓN DEL TICKET, VOLUNTARIA DE VERDAD (assets/js/investigacion.js; GamificaPro
@@ -4928,24 +4965,19 @@
       // (leída la propuesta, ya se le ha ofrecido: la tarjeta no vuelve; la línea del pie, siempre)
       alCerrar:function(){ if(st.inv){ I.marcarVisto(st.inv.ficha); } render(); } });
   });
-  // 5-oct · el ticket ya no es un Google Form: ticket.html avisa al enviarse (`sg-ticket-hecho`) y la tarjeta se da por hecha ya
+  // 5-oct · el ticket ya no es un Google Form: ticket.html avisa al enviarse (`sg-ticket-hecho`). 10-oct · desde la ventana de la
+  // tarjeta «Tu ticket de salida está abierto»: su línea se va y la ficha se refresca (la tirada ya está pagada). Y si se envió
+  // en otra pestaña (ticket.html apunta `sgTicket:<grupo>:<opción>` solo al enviarlo o si el servidor dice que ya estaba), lo mismo.
   window.addEventListener('message',function(ev){
-    var m=ev.data; if(ev.origin!==location.origin||!m||m.tipo!=='sg-ticket-hecho') return;
-    Array.prototype.forEach.call(document.querySelectorAll('details.tk-nave'),function(d){
-      var f=d.querySelector('iframe'); if(!f||f.contentWindow!==ev.source) return;
-      d.classList.add('hecho');
-      var b=d.querySelector('.tk-nave-t b'); if(b) b.textContent=b.textContent.replace(/^El ticket de salida/,'Ticket de salida enviado');
-      var bt=d.querySelector('.tk-nave-b'); if(bt){ bt.textContent='Abrir'; bt.classList.remove('primary'); }
-    });
+    var m=ev.data; if(ev.origin!==location.origin||!m||m.tipo!=='sg-ticket-hecho'||m.per!==per) return;
+    ticketHecho(m.tema); refrescar();
   });
-  document.addEventListener('toggle',function(ev){
-    var d=ev.target; if(!d||!d.classList||!d.classList.contains('tk-nave')||!d.open) return;
-    var f=d.querySelector('iframe[data-src]'); if(!f||f.getAttribute('src')) return;
-    var cargas=0;
-    // 28-sep · el ticket tiene varias páginas: la 2.ª carga es solo «Siguiente» (ver sesion.js, diaTicketForm)
-    f.addEventListener('load',function(){ if(++cargas>2){ try{ localStorage.setItem(d.getAttribute('data-tk'),'1'); }catch(e){} d.classList.add('hecho'); } });
-    f.src=f.getAttribute('data-src');
-  }, true);
+  window.addEventListener('storage',function(ev){
+    var k=String(ev.key||''), pre='sgTicket:'+per+':'; if(k.indexOf(pre)!==0||ev.newValue!=='1'||!st.tk) return;
+    var op=k.slice(pre.length), T=window.SG_TICKET_TEMAS||{};
+    Object.keys(T).forEach(function(c){ if(T[c]===op||c===op) ticketHecho(c); });
+    render();
+  });
 
   function puntoDe(el){
     if(!el||!el.getBoundingClientRect) return null;

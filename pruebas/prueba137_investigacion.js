@@ -61,7 +61,8 @@ c(/ticket de salida<\/b>: sin tu nombre, para decir qué te llevas[^"]*seudónim
   "   NEBULA contesta «¿el ticket es anónimo?» con la verdad");
 c(/"¿Es anónimo el ticket de salida\?", "o": \["Sí: sin nombre\. Con seudónimo solo si lo aceptan para la investigación"/.test(DATOS), "   la pregunta de la Academia: «Sí: sin nombre. Con seudónimo solo si…»");
 c(/no "\s*\n\s*"lleva el nombre de nadie, y eso es innegociable/.test(DATOS), "   y la voz del paso R3: «no lleva el nombre de nadie, y eso es innegociable»");
-c(!/Anónimo y en dos minutos/.test(REC) && /'Sin tu nombre'\+/.test(REC), "   la tarjeta del ticket en la Nave: «Sin tu nombre…»");
+// 10-oct · la tarjeta es ahora «Tu ticket de salida está abierto» (una línea por ticket sin enviar): «Dos minutos y sin tu nombre…»
+c(!/Anónimo y en dos minutos/.test(REC) && /'<p>Dos minutos y sin tu nombre'\+/.test(REC), "   la tarjeta del ticket en la Nave: «Dos minutos y sin tu nombre…»");
 
 // ───────────────────────── investigacion.js, ejecutado
 /** Un elemento de mentira: lee de su innerHTML los [data-inv] y los da como botones y casillas. */

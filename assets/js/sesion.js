@@ -1289,7 +1289,7 @@
         +'<div id="ses-tk"><p class="sub">Leyendo vuestras respuestas…</p></div></div></div>',
        montar: function(el){ return montarTicket(el, lista, ant, 'notas'); }},
       diaTicketEscuadron(function(v){ return esDelTema(v, lista, ant); },
-        'el ticket de '+String((lista[ant]&&lista[ant].tema)||'el tema anterior').replace(/\s*\(cont\.\)/,'')),
+        'el ticket de '+String((lista[ant]&&lista[ant].tema)||'el tema anterior').replace(/\s*\(cont\.\)/,''), String(Number(lista[ant]&&lista[ant].tema_n)||0)),
       {k:'ticket_dudas', sec:'ticket', rot:'Vuestras dudas', html:
         '<div class="dia ticket"><img class="tk-neb" src="assets/img/personajes/nebula.png" alt="">'
         +'<div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/mensaje.png alt> Lo que escribisteis</div><h2>Vuestras dudas y comentarios</h2>'
@@ -1327,7 +1327,7 @@
     if(!window.SG_TICKETS_API||!st.per) return [];
     var op={ filtro:function(v){ return /^Presentaci/i.test(String(v||'').trim()); }, tema:'la presentación de la asignatura' };
     return diasTicket([{sem:0}], 1).map(function(x){
-      if(x.k==='ticket_escuadron') return diaTicketEscuadron(op.filtro, 'el ticket del embarque');
+      if(x.k==='ticket_escuadron') return diaTicketEscuadron(op.filtro, 'el ticket del embarque', 'p');
       var q=x.k==='ticket'?'notas':'textos';
       x.html=x.html.replace('El ticket del tema anterior','El ticket del embarque').replace('Cómo os fue','Cómo os fue el embarque');
       x.montar=function(el){ return montarTicket(el, [], 0, q, op); };
@@ -1343,12 +1343,28 @@
    * Aquí se cuenta con las filas del ticket (su Comandante) y las fichas vivas (`profe`): solo recuentos, nada de lo que se
    * contestó. Sale el escuadrón con más porcentaje que llegó a su meta, su Comandante de cuerpo entero, y la carrera de todos
    * con su raya. `metas` (por Comandante, 0-1) llega del servidor cuando lo hay; si no, la de partida.
+   *
+   * 🔴 10-oct (tarde) · CON LO QUE DICE EL SERVIDOR. Primero se pregunta el parte del tema (`modTicket` parte, SG.TK.parte en
+   * tkcomun.js): las fichas que cuentan, las respuestas de cada escuadrón, su meta, su umbral y si llega. Es lo que se cobró, y
+   * la raya es la de cada escuadrón (la que ya subió quien cobró antes). Como la diapositiva se proyecta DESPUÉS de cobrar el
+   * tema, la raya que se pinta es la que había que pasar: el servidor da, de un tema ya cobrado, la meta con que se juzgó; y el
+   * sitio de la raya es su umbral sobre sus fichas (SG.TK.rayaDe). Si no contesta, la cuenta de antes con la meta de partida.
+   * `clave`: el ticket («p», «1»…). Y al pie (Norberto, «cuando empiece la semana del tema dos, se puede recordar hacer el del
+   * tema 1»): «¿Os falta el ticket de <ese tema>? Sigue abierto en vuestra Nave» (en el del embarque, «el del embarque»).
    */
   var PARTE={ fraccion:0.25, minimo:3 };   // la meta de partida del `BONUS` del servidor: si cambia allí, aquí
-  function diaTicketEscuadron(filtro, tema){
+  function diaTicketEscuadron(filtro, tema, clave){
     return {k:'ticket_escuadron', sec:'ticket', rot:'El escuadrón del ticket', html:
       '<div class="dia tk-esc"><div class="tke-caja"><p class="sub">Contando los tickets de cada escuadrón…</p></div></div>',
-      montar: function(el){ return montarTicketEscuadron(el, filtro, tema); }};
+      montar: function(el){ return montarTicketEscuadron(el, filtro, tema, clave); }};
+  }
+  /** El parte del servidor, con la forma de `cuentaTicketEscuadrones` (solo los escuadrones con Comandante y fichas). */
+  function escuadronesDelParte(Es){
+    var E=(st.d&&st.d.escuadrones)||[], TK=window.SG.TK;
+    return (Es||[]).filter(function(x){ return String(x.firma||'').trim() && Number(x.fichas)>0; }).map(function(x){
+      var c=TK.cifrasDe(x), cmd=String(x.firma).trim(), e=E.filter(function(y){ return y.comandante===cmd; })[0]||{};
+      return { cmd:cmd, nombre:e.nombre||cmd, emblema:e.emblema||'', n:c.n, total:c.total, pct:c.pct, meta:c.meta, raya:c.raya, llega:c.llega };
+    }).sort(function(a,b){ return b.pct-a.pct || b.n-a.n; });
   }
   function cuentaTicketEscuadrones(lista, filtro, metas){
     var campo=function(r,frag){ for(var k in r) if(k.indexOf(frag)>=0) return r[k]; return ''; };
@@ -1360,15 +1376,15 @@
       var e=E.filter(function(x){ return x.comandante===c; })[0]||{}, n=Math.min(resp[c]||0, fichas[c]);
       var meta=(metas&&metas[c])||PARTE.fraccion, umbral=Math.max(PARTE.minimo, Math.ceil(meta*fichas[c]));
       return { cmd:c, nombre:e.nombre||c, emblema:e.emblema||'', n:n, total:fichas[c], pct:Math.round(n*100/fichas[c]),
-        meta:Math.round(meta*100), llega:n>=umbral };
+        meta:Math.round(meta*100), raya:Math.min(100, umbral*100/fichas[c]), llega:n>=umbral };
     }).sort(function(a,b){ return b.pct-a.pct || b.n-a.n; });
   }
-  function montarTicketEscuadron(el, filtro, tema){
+  function montarTicketEscuadron(el, filtro, tema, clave){
     var caja=el.querySelector('.tke-caja'), vivo=true, parar=null;
     var sinCmd=function(c){ return String(c).replace(/^comandante\s+/i,''); };
-    var pinta=function(lista){
+    var pinta=function(lista, delServidor){
       if(!vivo) return;
-      var F=cuentaTicketEscuadrones(lista, filtro, null);
+      var F=delServidor||cuentaTicketEscuadrones(lista, filtro, null);
       if(F.length<2){ caja.innerHTML='<p class="sub">Esta diapositiva compara escuadrones, y este grupo tiene uno.</p>'; return; }
       var gana=F.filter(function(f){ return f.llega; })[0]||null;
       var cara=gana
@@ -1390,18 +1406,23 @@
           return '<div class="esc-f'+(f.cmd===st.miNombre?' mio':'')+'" style="--i:'+i+'" data-media="'+f.pct+'"'+(gana&&f.cmd===gana.cmd?' data-lider':'')+'>'
             +(f.emblema?'<img class="esc-emb" src="'+esc(f.emblema)+'" alt="">':'<span class="esc-emb vacia"><img class=ico src=assets/img/iconos/p/escudo.png alt></span>')
             +'<span class="esc-nom"><b><img class="ico esc-corona" src=assets/img/iconos/p/corona.png alt> '+esc(f.nombre)+'</b><em>Comandante '+esc(sinCmd(f.cmd))+' · '+f.n+' de '+f.total+'</em></span>'
-            +'<span class="esc-bar tke-bar" title="La raya: '+f.meta+' %"><i style="--w:'+Math.round(f.pct*100/max)+'%"></i><s style="left:'+Math.round(f.meta*100/max)+'%"></s></span>'
+            +'<span class="esc-bar tke-bar" title="La raya: '+f.meta+' %"><i style="--w:'+Math.round(f.pct*100/max)+'%"></i><s style="left:'+Math.min(100, Math.round(f.raya*100/max))+'%"></s></span>'
             +'<span class="esc-xp"><b data-cuenta="'+f.pct+'">0</b> %</span></div>';
         }).join('')+'</div>'
-        +'<p class="tke-pie">La raya es la meta de cada escuadrón: quien la pasa, cobra, y su raya sube para el siguiente tema. El ticket son dos minutos y no lleva vuestro nombre. ¿Os falta el del embarque? Sigue abierto en vuestra Nave.</p>';
+        +'<p class="tke-pie">La raya es la meta de cada escuadrón: quien la pasa, cobra, y su raya sube para el siguiente tema. El ticket son dos minutos y no lleva vuestro nombre. '
+        +'¿Os falta '+(clave==='p'?'el del embarque':'el ticket de '+esc(window.SG.TK.nombreTicket(clave)))+'? Sigue abierto en vuestra Nave: cuenta para la raya de vuestro escuadrón.</p>';
       contarTodo(caja.querySelector('.tke-heroe'));
       parar=montarCarrera(caja);
       if(gana) sonar('nivel', reduceMov()?0:2500);
     };
-    var pr=precargarTickets();
-    if(!pr){ caja.innerHTML='<p class="sub">No he podido leer los tickets ahora mismo. Pasa a la siguiente.</p>'; return null; }
-    pr.then(function(r){ if(r.error){ if(vivo) caja.innerHTML='<p class="sub">No he podido leer los tickets ahora mismo. Pasa a la siguiente.</p>'; } else pinta(r.lista); },
-      function(){ if(vivo) caja.innerHTML='<p class="sub">No he podido leer los tickets ahora mismo. Pasa a la siguiente.</p>'; });
+    var sinLeer=function(){ if(vivo) caja.innerHTML='<p class="sub">No he podido leer los tickets ahora mismo. Pasa a la siguiente.</p>'; };
+    var aMano=function(){   // (sin el parte del servidor: la cuenta de antes, con la meta de partida)
+      var pr=precargarTickets(); if(!pr) return sinLeer();
+      pr.then(function(r){ if(r.error) sinLeer(); else pinta(r.lista); }, sinLeer);
+    };
+    var TK=window.SG&&window.SG.TK;
+    if(TK&&TK.parte&&clave&&st.per) TK.parte(st.per, clave).then(function(E){ var F=E&&escuadronesDelParte(E); if(F&&F.length) pinta(null, F); else aMano(); }, aMano);
+    else aMano();
     return function(){ vivo=false; if(parar) parar(); };
   }
   /** 5-oct · el medidor del 1 al 5: la media de todas las preguntas, en un arco que se llena. */

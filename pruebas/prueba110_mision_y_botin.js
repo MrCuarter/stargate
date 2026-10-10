@@ -98,7 +98,8 @@ c(/class="dia entrega en-v2 con-fondo"/.test(SES) && /class="en-neb"><img src="a
 c(/pl=Number\(x\.tema_n\)\?planeta\(x\.tema_n\):\(x\.planeta\|\|null\)/.test(SES), "   el índice del diferido: la semana 15 con el planeta de la Estática");
 c(/function ticketDelTema\(\)/.test(NAVE) && /\+ticketDelTema\(\)/.test(NAVE) && /SG_TICKET_URL=/.test(RH) && /SG_TICKET_TEMAS=/.test(RH),
   "🔴 el ticket de salida, también en la Nave, la semana que cierra cada tema (el mismo formulario, ya rellenado)");
-c(/localStorage\.setItem\(f\.getAttribute\('data-tk'\),'1'\)/.test(SES) && /localStorage\.getItem\(clave\)==='1'/.test(NAVE), "   enviado en la sesión o en la Nave, no se pide dos veces");
+// 10-oct · ya no se fía de este navegador: lo dice el servidor (SG.TK.estado, `modTicket` estado), y lo enviado se quita
+c(/TK\.estado\(per, k, ficha\)/.test(NAVE) && /m\.tipo!=='sg-ticket-hecho'/.test(NAVE) && /ticketHecho\(m\.tema\)/.test(NAVE), "   enviado en la sesión o en la Nave, no se pide dos veces (lo dice el servidor)");
 
 // ── 7 · 26-sep · el diferido del recluta, sin paja; y los rankings de la consola, que no respondían
 c(/var FUERA_DIFERIDO=\['ticket','ticket_dudas','movido','simulacro'\], RANKINGS_SESION=\['semanal','top','coleccion','escuadrones'\];/.test(SES)

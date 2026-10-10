@@ -6868,22 +6868,6 @@ details.reto-sem.re-destaca{box-shadow:0 0 0 2px var(--teal),0 0 26px rgba(55,22
 .en-v2 .en-r b{font-size:clamp(.8rem,1.45cqw,1.25rem)}
 .en-v2 .en-r small{font-size:clamp(.75rem,1.15cqw,1rem);color:var(--mut)}
 
-/* ════════ 26-sep · el ticket de salida, en la Nave (la semana que cierra cada tema) ════════ */
-.tk-nave{padding:0;overflow:hidden;border-color:rgba(55,224,236,.4)}
-.tk-nave summary{display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;list-style:none}
-.tk-nave summary::-webkit-details-marker{display:none}
-.tk-nave-i{width:44px;height:44px;object-fit:contain;flex:none}
-.tk-nave-t{display:flex;flex-direction:column;flex:1;min-width:0;line-height:1.3}
-.tk-nave-t small{font-size:.85rem;color:var(--mut)}
-.tk-nave-b{flex:none;padding:10px 18px}
-.tk-nave[open] .tk-nave-b{visibility:hidden}
-.tk-nave.hecho{border-color:rgba(106,214,142,.45)}
-.tk-nave.hecho .tk-nave-t b{color:#9be3b3}
-.tk-nave-f{padding:0 18px 14px}
-.tk-nave-f iframe{display:block;width:100%;height:min(70vh,640px);border:0;border-radius:12px;background:#fff}
-.tk-nave-f p{margin:8px 0 0}
-@media(max-width:560px){ .tk-nave summary{flex-wrap:wrap} .tk-nave-b{width:100%;text-align:center} }
-
 /* ════════ 26-sep · LA PRESENTACIÓN DE LA ASIGNATURA, APARTE (sesión 1) ════════ */
 /* el banner del grupo: «La presentación», a mano siempre y encendida en la semana 1 */
 .gr-acc{flex-wrap:wrap;justify-content:flex-end}
@@ -8307,3 +8291,39 @@ body.ajf-abierta{overflow:hidden}
 }
 .tk-pres{margin:0;border:1px dashed rgba(245,176,67,.5);border-radius:12px;padding:8px 12px;background:rgba(245,176,67,.06);font-size:clamp(.9rem,1.4vw,1.05rem)}
 .tk-pres a{color:var(--amber);font-weight:700}
+/* 🔴 10-oct · EL PARTE POR ESCUADRÓN (tkcomun.js, SG.TK.lineasParte): «Ticket de <tema>: 34 de 86», con su barra y LA RAYA de
+   su meta (Norberto: «la raya para la meta del 25 %… la idea es ir incrementando la raya»). En la sala del docente, en la caja
+   de tickets de su Nave y en la tarjeta del recluta. El escuadrón de quien mira, primero y destacado; los demás, visibles. */
+.tkp{display:flex;flex-direction:column;gap:8px;min-width:0}
+.tkp-tema{margin:6px 0 0;font-size:1rem;line-height:1.3}
+.tkp-tema em{font-style:normal;font-weight:400;color:var(--mut);font-size:.88rem}
+.tkp-f{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:8px 12px;border:1px solid var(--line);
+  border-radius:12px;background:rgba(255,255,255,.02);min-width:0}
+.tkp-f.mio{border-color:rgba(55,224,236,.55);background:rgba(55,224,236,.07)}
+.tkp-n{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.tkp-n b{overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+.tkp-n em,.tkp-c em{font-style:normal;font-size:.82rem;color:var(--mut)}
+.tkp-f.mio .tkp-n em{color:var(--teal2)}
+.tkp-c{text-align:right;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tkp-c em{display:block}
+.tkp-c b{font-size:1.15rem;color:#e8f3fa}
+.tkp-bar{grid-column:1/-1;position:relative;display:block;height:10px;border-radius:6px;background:rgba(255,255,255,.08);margin:4px 0 2px}
+.tkp-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.tkp-bar.llega i{background:linear-gradient(90deg,#6ad68e,#9be3b3)}
+.tkp-bar s{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1px;border-radius:2px;background:var(--amber);box-shadow:0 0 8px rgba(245,176,67,.6)}
+.tkp-pie{margin:2px 0 0;font-size:.85rem;color:var(--mut)}
+/* 10-oct · LA TARJETA DEL TICKET EN LA NAVE DEL RECLUTA (recluta.js, ticketDelTema): los que aún no ha enviado, del más reciente
+   al más antiguo, en una sola tarjeta con una línea por ticket. */
+.tk-abierto{border-color:rgba(245,176,67,.5);display:flex;flex-direction:column;gap:10px}
+.tk-abierto-cab{display:flex;align-items:center;gap:12px;min-width:0}
+.tk-abierto-cab img{width:44px;height:44px;object-fit:contain;flex:none}
+.tk-abierto-cab h3{margin:0;font-size:1.1rem}
+.tk-abierto-cab p{margin:2px 0 0;font-size:.9rem;color:var(--mut);line-height:1.35}
+.tk-uno-l{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center;padding:10px 12px;border:1px solid var(--line);
+  border-radius:12px;background:rgba(255,255,255,.02);min-width:0}
+.tk-uno-l .tku-t{display:flex;flex-direction:column;min-width:0;line-height:1.3}
+.tk-uno-l .tku-t small{color:var(--mut);font-size:.85rem}
+.tk-uno-l .tku-t .tku-esc{color:#e8f3fa}
+.tk-uno-l .btn{grid-column:2;grid-row:1/span 2;min-height:40px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+.tk-uno-l .tkp-bar{grid-column:1}
+@media (max-width:520px){ .tk-uno-l{grid-template-columns:minmax(0,1fr)} .tk-uno-l .btn{grid-column:1;grid-row:auto;width:100%} }
