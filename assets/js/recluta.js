@@ -4910,7 +4910,7 @@
         var u=U.split('{GRUPO}').join(encodeURIComponent(per)).split('{COMANDANTE}').join(encodeURIComponent((st.yo&&st.yo.profe)||'')).split('{TEMA}').join(encodeURIComponent(x.clave));
         var c=x.esc?TK.cifrasDe(x.esc):null;
         return '<div class="tk-uno-l" data-tk-clave="'+esc(x.clave)+'"><span class="tku-t"><b>Ticket '+esc(TK.delTicket(x.clave))+'</b>'
-          +(c?'<small class="tku-esc">Tu escuadrón: <b>'+c.n+' de '+c.total+'</b> · '+(c.llega?'¡ya pasó la raya ('+c.meta+' %)!':'la raya, '+c.meta+' %')+'</small>'
+          +(c?'<small class="tku-esc">'+TK.fraseParte(c,'Tu escuadrón')+'</small>'
              :'<small>'+(x.clave==='p'?'El de la primera clase: sigue abierto.':'Sigue abierto: cuenta para la raya de tu escuadrón.')+'</small>')+'</span>'
           +(c?TK.barraParte(c):'')
           +'<a class="btn primary" href="'+esc(u)+'" data-vent="Ticket de salida · '+esc(TK.nombreTicket(x.clave))+'">Rellenarlo</a></div>';

@@ -6,7 +6,7 @@
  * empiece la semana del tema dos, se puede recordar hacer el del tema 1».
  *
  * Lo común vive en tkcomun.js (SG.TK): qué tickets están en juego, el parte del servidor (`modTicket` parte), si el recluta ya
- * lo envió (`modTicket` estado) y la línea con su barra y su raya. Lo usan la sala del docente (clase.js), la caja de tickets
+ * lo envió (`modTicket` estado) y la línea con su barra y su raya (11-oct: de GamificaPro sdk/parte.js, `GP.parte`, con la piel «tkp»). Lo usan la sala del docente (clase.js), la caja de tickets
  * de su Nave (consola.js), la Nave del recluta (recluta.js) y la diapositiva del escuadrón (sesion.js).
  */
 const fs = require("fs"), path = require("path");
@@ -25,6 +25,7 @@ const TEMAS = JSON.parse(HTML.match(/window\.SG_TICKET_TEMAS=(\{[^}]*\})/)[1]);
 const almacen = () => { const m = {}; return { getItem: k => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, _m: m }; };
 const W = { SG_TICKET_TEMAS: TEMAS };
 global.window = W; global.localStorage = almacen(); global.sessionStorage = almacen();
+require(path.join(raiz, "assets/js/parte.js"));   // (en la página, antes que tkcomun.js)
 require(path.join(raiz, "assets/js/tkcomun.js"));
 const TK = W.SG.TK;
 
@@ -83,13 +84,19 @@ c(/tkp-n"><b>La clase<\/b>/.test(TK.lineasParte([{ firma: null, respuestas: 5, f
   c(/if\(st\.tkPara===ficha\) return;/.test(REC) && /cargarTickets\(\);\s+\/\/ 10-oct/.test(REC), "   las lecturas, una vez por carga (no al repintar)");
   c(/TK\.ticketsAbiertos\(L, i\)/.test(REC) && /pend\.slice\(0,3\)/.test(REC), "   los que no ha enviado; el parte, de los tres más recientes");
   c(/'Tu ticket de salida está abierto':'Tus tickets de salida están abiertos'/.test(REC) && /pend\.map\(function\(x\)\{/.test(REC), "🔴 una sola tarjeta, una línea por ticket");
-  c(/>Tu escuadrón: <b>'\+c\.n\+' de '\+c\.total\+'<\/b> · '/.test(REC) && /'la raya, '\+c\.meta\+' %'/.test(REC), "   «Tu escuadrón: 15 de 76 · la raya, 25 %»");
+  c(/'<small class="tku-esc">'\+TK\.fraseParte\(c,'Tu escuadrón'\)\+'<\/small>'/.test(REC), "   «Tu escuadrón: 15 de 76 · la raya, 25 %» (la frase del motor, GP.parte)");
+  igual(TK.fraseParte(TK.cifrasDe({ firma: "Ana", respuestas: 15, fichas: 76, meta: 0.25, umbral: 19 }), "Tu escuadrón"), "Tu escuadrón: <b>15 de 76</b> · la raya, 25 %", "   letra por letra");
+  igual(TK.fraseParte(TK.cifrasDe(faro), "Tu escuadrón"), "Tu escuadrón: <b>34 de 86</b> · ¡ya pasó la raya (30 %)!", "   y cuando ya la pasó");
   c(/una tirada de la rueda<\/b> para ti; y si tu escuadrón pasa su raya, <b>otra para cada recluta<\/b>/.test(REC), "   y la recompensa: una tirada al enviarlo y otra para todos si pasan la raya");
   c(/data-vent="Ticket de salida · '/.test(REC) && /split\('\{TEMA\}'\)\.join\(encodeURIComponent\(x\.clave\)\)/.test(REC), "   el botón abre ticket.html?per=…&tema=… en la ventana de la Nave");
   c(/ticketHecho\(m\.tema\); refrescar\(\);/.test(REC) && /window\.addEventListener\('storage'/.test(REC), "   enviado (aquí o en otra pestaña), su línea se va");
   c(!/tk-nave/.test(REC + CSS) && !/function ticketUrl\(d\)/.test(REC), "   sin rastro de la tarjeta de antes (tk-nave) ni de ticketUrl");
   c(/<script src="assets\/js\/tkcomun\.js(\?v=\w+)?" defer><\/script>/.test(HTML) && /<script src="assets\/js\/tkcomun\.js(\?v=\w+)?" defer><\/script>/.test(leer("clase.html")),
     "   la Nave y la sala cargan tkcomun.js");
+  ["recluta.html", "clase.html", "consola.html", "sesion.html", "gestion.html", "ensayo.html", "ticket.html"].forEach(function (f) {
+    c(/<script src="assets\/js\/parte\.js\?v=\w+" defer><\/script>\n<script src="assets\/js\/tkcomun\.js(\?v=\w+)?" defer><\/script>/.test(leer(f)), "   " + f + ": la pieza del motor (parte.js), justo antes de tkcomun.js");
+  });
+  c(!/function escH|tkp-bar|tkp-f/.test(leer("assets/js/tkcomun.js")) && /x\.clase = "tkp"/.test(leer("assets/js/tkcomun.js")), "   tkcomun.js ya no pinta él las líneas: solo les pone la piel");
 
   c(/TK\.parte\(st\.per, clave\)\.then\(function\(E\)\{ var F=E&&escuadronesDelParte\(E\);/.test(SES) && /else aMano\(\);/.test(SES),
     "🔴 la diapositiva del escuadrón, con el parte del servidor; si no contesta, la cuenta de antes");

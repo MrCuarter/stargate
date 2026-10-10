@@ -191,7 +191,6 @@
    * recluta y la sesión: qué tickets están en juego, cómo va cada escuadrón (`parte`), si este recluta ya lo envió (`estado`)
    * y la línea con su barra y su raya. Solo recuentos: nada de lo que se contestó.
    */
-  var escH = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   /** Los tickets del curso, en orden: el del embarque («p», semana 1) y el de cada tema con su última semana (`fin`, índice). */
   function ticketsDelCurso(L) {
     var out = [{ clave: "p", fin: 0 }];
@@ -268,47 +267,28 @@
         return r.abierto === false ? null : false;   // (con ventana, como en DPG: fuera de ella no se pide)
       }, function () { return null; });
   }
-  /**
-   * 🔴 LA RAYA: dónde hay que llegar, en % del escuadrón. El sitio exacto es el umbral del servidor sobre sus fichas (con su
-   * mínimo de 3 y el redondeo hacia arriba); el número que se dice, su meta. Si el tema ya se cobró, el servidor devuelve la
-   * meta con la que se juzgó (GamificaPro modTicketLogica.js, `parteDelTema`: `cobrados[tema]`), no la que tiene ahora: así la
-   * diapositiva que se proyecta después de cobrar pinta la raya que había que pasar.
+  /*
+   * 🔴 LA RAYA Y LAS LÍNEAS DEL PARTE son del motor (11-oct; GamificaPro sdk/parte.js, `GP.parte`, que se carga antes que este
+   * fichero; prueba: GamificaPro tests/sdk/parte.test.ts, letra por letra lo que se pintaba aquí). Aquí, solo su piel: «tkp».
+   *   rayaDe(e)          dónde hay que llegar, en % del escuadrón: el umbral del servidor sobre sus fichas (si el tema ya se
+   *                      cobró, el de la meta con la que se juzgó: así la diapositiva que se proyecta después pinta la raya
+   *                      que había que pasar)
+   *   cifrasDe(e)        { firma, n, total, pct, meta (%), raya (%), llega }
+   *   barraParte(c)      la barra con su raya
+   *   fraseParte(c, q)   «Tu escuadrón: <b>15 de 76</b> · la raya, 25 %»
+   *   lineasParte(E, o)  una fila por escuadrón: o = { mio, nombres, columna, titulo } (ver la pieza)
    */
-  function rayaDe(e) { return e && e.fichas ? Math.min(100, Math.round(Number(e.umbral) * 1000 / e.fichas) / 10) : 100; }
-  /** Un escuadrón del servidor, en cifras para pintar: { firma, n, total, pct, meta (%), raya (%), llega }. */
-  function cifrasDe(e) {
-    var total = Math.max(0, Number(e.fichas) || 0), n = Math.min(Math.max(0, Number(e.respuestas) || 0), total);
-    return { firma: e.firma, n: n, total: total, pct: total ? Math.round(n * 100 / total) : 0, meta: Math.round((Number(e.meta) || 0) * 100),
-      raya: rayaDe(e), llega: !!e.llega };
-  }
-  /** La barra con su raya (0-100 % de las fichas del escuadrón). */
-  function barraParte(c) {
-    return '<span class="tkp-bar' + (c.llega ? " llega" : "") + '" role="img" aria-label="' + c.n + " de " + c.total + "; la raya, en el " + c.meta + ' %">'
-      + '<i style="width:' + c.pct + '%"></i><s style="left:' + c.raya + '%"></s></span>';
-  }
-  /**
-   * Las líneas de un ticket, una por escuadrón: «Faro Umbral · 34 de 86», la barra y la raya. `o` = { mio: la firma de quien
-   * mira (sale primera y destacada), nombres: { firma: nombre del escuadrón } }. Los escuadrones sin fichas o sin Comandante
-   * (firma vacía) no salen. En DPG hay uno solo, sin firma (la columna entera): `o.columna` lo deja pasar.
-   */
-  function lineasParte(esc, o) {
-    o = o || {};
-    var L = (esc || []).filter(function (e) { return e && Number(e.fichas) > 0 && (o.columna || String(e.firma || "").trim()); }).map(cifrasDe);
-    L.sort(function (a, b) { return (b.firma === o.mio) - (a.firma === o.mio) || String((o.nombres || {})[a.firma] || a.firma).localeCompare(String((o.nombres || {})[b.firma] || b.firma), "es"); });
-    return L.map(function (c) {
-      var nom = (o.nombres || {})[c.firma], cmd = String(c.firma || "").replace(/^comandante\s+/i, "");
-      return '<div class="tkp-f' + (c.firma === o.mio ? " mio" : "") + '">'
-        + '<span class="tkp-n"><b>' + escH(o.columna ? (o.titulo || "La clase") : (nom || "Escuadrón de " + cmd)) + '</b>'
-        + (o.columna ? "" : "<em>" + (c.firma === o.mio ? "El tuyo · " : "") + "Comandante " + escH(cmd) + "</em>") + "</span>"
-        + '<span class="tkp-c"><b>' + c.n + "</b> de " + c.total + "<em>" + (c.llega ? "¡pasó la raya!" : "la raya, " + c.meta + " %") + "</em></span>"
-        + barraParte(c) + "</div>";
-    }).join("");
-  }
+  var GPP = function () { return window.GP.parte; };
+  function rayaDe(e) { return GPP().raya(e); }
+  function cifrasDe(e) { return GPP().cifras(e); }
+  function barraParte(c) { return GPP().barra(c, "tkp"); }
+  function fraseParte(c, quien) { return GPP().frase(c, quien); }
+  function lineasParte(esc, o) { var x = {}, k; for (k in (o || {})) x[k] = o[k]; x.clase = "tkp"; return GPP().lineas(esc, x); }
 
   window.SG = window.SG || {};
   window.SG.TK = window.SG.TK || {};
   var TK = window.SG.TK, nuevas = { ticketsDelCurso: ticketsDelCurso, ticketsAbiertos: ticketsAbiertos, ticketsDelDocente: ticketsDelDocente,
     nombreTicket: nombreTicket, delTicket: delTicket, parte: parte, estado: estado, apuntarHecho: apuntarHecho, rayaDe: rayaDe, cifrasDe: cifrasDe,
-    barraParte: barraParte, lineasParte: lineasParte };
+    barraParte: barraParte, fraseParte: fraseParte, lineasParte: lineasParte };
   for (var k in nuevas) TK[k] = nuevas[k];
 })();

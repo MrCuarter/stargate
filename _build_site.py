@@ -149,6 +149,9 @@ GB.copiar_pieza(HERE, "desliza.js", os.path.join(HERE, "assets", "js", "desliza.
 # 9-oct · CAMBIAR EL CORREO CON EL QUE ENTRO (GamificaPro sdk/cuenta.js): la ventana y los pasos son del motor; se copia igual y se
 # carga con defer en la Nave del recluta (recluta.html), que es donde está el botón (menú «···»).
 GB.copiar_pieza(HERE, "cuenta.js", os.path.join(HERE, "assets", "js", "cuenta.js"), decir=print)
+# 11-oct · EL PARTE DEL TICKET, EN LÍNEAS (GamificaPro sdk/parte.js, `GP.parte`): la raya, la barra y las líneas de cada escuadrón son
+# del motor (las mismas que DPG); tkcomun.js solo les pone la piel («tkp»). Se copia igual y se carga antes que tkcomun.js.
+GB.copiar_pieza(HERE, "parte.js", os.path.join(HERE, "assets", "js", "parte.js"), decir=print)
 # 🔴 19-sep · «Mis grupos» es ahora la NAVE DEL COMANDANTE (se entra directo en tu grupo) y «Crear grupo» vive dentro de
 # «Gestionar grupos», con todo lo que se hace una o dos veces por curso (Norberto: «simplicidad máxima en la página
 # principal… no queremos info que se usará una o dos veces en todo el curso»). Solo el referente la ve.
@@ -5685,6 +5688,16 @@ for _html in _glob2.glob(os.path.join(HERE, "*.html")):
     _s2 = _re2.sub(r'<script src="assets/js/desliza\.js(\?v=[0-9a-f]+)?" defer></script>\n?', '', _s)
     if "</head>" in _s2:
         _s2 = _s2.replace("</head>", _TAG_DESLIZA + "\n</head>", 1)
+    if _s2 != _s:
+        open(_html, "w", encoding="utf-8").write(_s2)
+
+# ---------------------------------------------------------------- 11-oct · el parte del ticket, en líneas (GamificaPro sdk/parte.js)
+# En cada página que carga tkcomun.js, justo antes (con defer, en orden): SG.TK.lineasParte y compañía son GP.parte con la piel «tkp».
+_TAG_PARTE = '<script src="assets/js/parte.js?v=' + _ver("assets/js/parte.js") + '" defer></script>'
+for _html in _glob2.glob(os.path.join(HERE, "*.html")):
+    _s = open(_html, encoding="utf-8").read()
+    _s2 = _re2.sub(r'<script src="assets/js/parte\.js(\?v=[0-9a-f]+)?" defer></script>\n?', '', _s)
+    _s2 = _re2.sub(r'(<script src="assets/js/tkcomun\.js(\?v=\w+)?" defer></script>)', lambda m: _TAG_PARTE + "\n" + m.group(1), _s2)
     if _s2 != _s:
         open(_html, "w", encoding="utf-8").write(_s2)
 
