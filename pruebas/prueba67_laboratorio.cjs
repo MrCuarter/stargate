@@ -332,7 +332,7 @@ const REG = {};   // cifras que se apuntan para el informe
         await p.hasta("/" + alias + "/.test(document.body.innerText)", 25);
         const hay = await p.hasta("[].slice.call(document.querySelectorAll('button')).some(function(b){return /Presente/.test(b.textContent)})", 25);
         if (!hay) return { hay: false, texto: (await p.texto()).slice(0, 200) };
-        await p.js("[].slice.call(document.querySelectorAll('button')).filter(function(b){return /Presente/.test(b.textContent)})[0].click(); 1");
+        await p.js("(function(){ var b=[].slice.call(document.querySelectorAll('button')).filter(function(b){return /Presente/.test(b.textContent)})[0]; if(b) b.click(); return 1; })()");
         await dormir(9000);
         return { hay: true, texto: await p.texto() };
       };
@@ -378,14 +378,14 @@ const REG = {};   // cifras que se apuntan para el informe
 
       // 🔴 13-sep · «En clase hoy»: quien ha respondido hoy, con sus caras (Carla es de otro escuadrón)
       c("clase · «La clase» enseña «🟢 En clase hoy · 2»", /En clase hoy · 2/.test(await rita.texto()), (await rita.texto()).slice(0, 300));
-      await rita.js("[].slice.call(document.querySelectorAll('.au-t')).filter(function(b){return /Premiar/.test(b.textContent)})[0].click(); 1");
+      await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.au-t')).filter(function(b){return /Premiar/.test(b.textContent)})[0]; if(b) b.click(); return 1; })()");
       await rita.hasta("document.querySelectorAll('.au-cara').length>0", 15);
       const caras = await rita.js("[].slice.call(document.querySelectorAll('.au-cara b')).map(function(b){return b.textContent})");
       const fuente = await rita.js("(document.querySelector('[data-fuente][aria-pressed=true]')||{}).textContent||''");
       c("premiar · abre en «En clase hoy» con las caras de Ana y Beto (y nadie más)", /En clase hoy/.test(fuente)
         && caras.length === 2 && caras.indexOf("Andrómeda") >= 0 && caras.indexOf("Bólido") >= 0, fuente + " · " + JSON.stringify(caras));
       await rita.foto(FOTOS + "/5-aula-premiar.png");
-      const tocar = alias => rita.js(`[].slice.call(document.querySelectorAll('.au-cara')).filter(function(b){return b.querySelector('b').textContent===${JSON.stringify(alias)}})[0].click(); 1`);
+      const tocar = alias => rita.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.au-cara')).filter(function(b){return b.querySelector('b').textContent===${JSON.stringify(alias)}})[0]; if(b) b.click(); return 1; })()`);
       const dar = async k => { await rita.js(`document.querySelector('.au-pr[data-k=${k}]').click(); 1`);
         await rita.hasta("!/Repartiendo/.test((document.getElementById('au-pmsg')||{}).textContent||'Repartiendo') && !!(document.getElementById('au-pmsg')||{}).textContent", 30); };
       // a uno: +20 ◈ a Beto
@@ -591,7 +591,7 @@ const REG = {};   // cifras que se apuntan para el informe
       const antes = await fichaDe("ana@lab.test", "lab-clase");
       await ana.js(`(function(){ var b=[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(x){return /Sobre de cromos/.test(x.getAttribute('data-nombre')||'') && !/^oferta/.test(x.getAttribute('data-tipo')||'')})[0]; b.click(); return 1; })()`);
       await ana.hasta("!!document.querySelector('.neb-capa')", 8);
-      await ana.js("var c=document.querySelector('.neb-capa'); [].slice.call(c.querySelectorAll('button')).filter(function(x){return /canjear/i.test(x.textContent)})[0].click(); 1");
+      await ana.js("(function(){ var c=document.querySelector('.neb-capa'); var b=[].slice.call(c.querySelectorAll('button')).filter(function(x){return /canjear/i.test(x.textContent)})[0]; if(b) b.click(); return 1; })()");
       const sale = await ana.hasta("!!document.querySelector('.sb-capa .sb-carta')", 25);
       c("sobre · al canjear, sale la primera carta BOCA ABAJO", sale && !(await ana.js("document.querySelector('.sb-carta').classList.contains('girada')")));
       c("sobre · y dice cuántas vienen (tres puntos)", (await ana.js("document.querySelectorAll('.sb-puntos i').length")) === 3,
@@ -637,7 +637,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await ana.ir("recluta.html?per=lab-clase#mercado");
       const hay = await ana.hasta("[].slice.call(document.querySelectorAll('button[data-canje]')).some(function(b){return b.getAttribute('data-tipo')==='cromo_repes'})", 20);
       c("repetidas · con 3 repetidas justas, el botón «Cambiar» aparece", hay);
-      await ana.js("[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(b){return b.getAttribute('data-tipo')==='cromo_repes'})[0].click(); 1");
+      await ana.js("(function(){ var b=[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(b){return b.getAttribute('data-tipo')==='cromo_repes'})[0]; if(b) b.click(); return 1; })()");
       await ana.hasta("!!document.querySelector('.neb-capa')", 8);
       await ana.js("var c=document.querySelector('.neb-capa'); var b=c&&[].slice.call(c.querySelectorAll('button')).filter(function(x){return !/Ahora no/i.test(x.textContent)})[0]; if(b) b.click(); 1");
       const sobre = await ana.hasta("!!document.querySelector('.sb-capa')", 25);
@@ -804,7 +804,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 evidencia · «Mi gente» ya no pone «⚠️ N sin enlace» al lado de nadie (el enlace es obligatorio al registrar)",
         await rita.js("!document.querySelector('tr[data-r] .sin-evid') && !/sin enlace/.test(document.querySelector('table').innerText)"));
       await rita.foto(FOTOS + "/11-mi-gente-avisos.png");
-      await rita.js("[].slice.call(document.querySelectorAll('[data-r]')).filter(function(f){return /Cometa/.test(f.textContent)})[0].click(); 1");
+      await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('[data-r]')).filter(function(f){return /Cometa/.test(f.textContent)})[0]; if(b) b.click(); return 1; })()");
       // 17-sep · sin «Lo que ha entregado»: el enlace se ve pulsando el reto (Norberto: «bórralo, vamos a simplificar»)
       await rita.hasta("!!document.querySelector('#c-modal [data-reto=\"B1\"]')", 12);
       c("evidencia · la ficha ya no tiene «Lo que ha entregado»", await rita.js("!/Lo que ha entregado/.test(document.querySelector('#c-modal').innerText)"));
@@ -1650,10 +1650,10 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 presentación · se alistan y fichan EN CLASE, rellenan el ticket y «nos vemos en Fôrge» (nada de Fôrge dentro)",
         pos1("¡Alistaos!") > pos1("La Bitácora") && pos1("Llamada a filas") > pos1("¡Alistaos!") && pos1("Ticket de salida") > pos1("Llamada a filas")
         && pos1("Hasta Fôrge") > pos1("Ticket de salida") && pos1("El despegue") < 0 && pos1("Misión 1") < 0, JSON.stringify(r1));
-      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Ticket de salida'})[0].click(); 1"); await dormir(700);
+      await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Ticket de salida'})[0]; if(b) b.click(); return 1; })()"); await dormir(700);
       const tk1 = await rita.js("(document.querySelector('.dia.ticket-form iframe')||{}).src||''");
       c("🔴 presentación · el ticket lleva ya elegida «Presentación de la asignatura»", /Presentaci%C3%B3n%20de%20la%20asignatura|Presentaci%C3%B3n\+de\+la\+asignatura/.test(tk1), tk1.slice(0, 160));
-      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Lo que puntúa'})[0].click(); 1"); await dormir(700);
+      await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Lo que puntúa'})[0]; if(b) b.click(); return 1; })()"); await dormir(700);
       const nota1 = await rita.texto();
       c("   y cuenta lo que puntúa: las dos actividades con su semana, y que los retos no", /Actividad 1/.test(nota1) && /semana 2/.test(nota1) && /Actividad 2/.test(nota1) && /retos no puntúan/.test(nota1), nota1.slice(0, 200));
       // la semana 1, ya como sesión 2: Fôrge, sin repetir lo de la presentación
@@ -1670,15 +1670,15 @@ const REG = {};   // cifras que se apuntan para el informe
         ["La misión", "Qué entregas", "3 · Tabla técnica", "Haz capturas", "Para el 10", "Las fechas"].every(t => ra.indexOf(t) > 0), JSON.stringify(ra));
       await rita.ir("sesion.html?per=lab-clase&pres=1");
       await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>12", 25);
-      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Lo que puntúa'})[0].click(); 1"); await dormir(700);
+      await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Lo que puntúa'})[0]; if(b) b.click(); return 1; })()"); await dormir(700);
       await rita.foto(FOTOS + "/21-embarque-nota.png");
       // (y de vuelta a la semana 2, que es la que miran las comprobaciones de «Lo nuevo» que vienen detrás)
       await rita.ir("sesion.html?per=lab-clase&sem=2");
       await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
-      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Novedades'})[0].click(); 1"); await dormir(700);
+      await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Novedades'})[0]; if(b) b.click(); return 1; })()"); await dormir(700);
       c("sesión · «🔓 Se abre esta semana en STARGATE: El Mercado Estelar», con lo que se puede hacer", /Se abre esta semana/i.test(await rita.texto()) && /sobres de cromos/i.test(await rita.texto()));
       await rita.foto(FOTOS + "/21-sesion-lo-nuevo.png");
-      await rita.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Enséñalo'})[0].click(); 1"); await dormir(700);
+      await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Enséñalo'})[0]; if(b) b.click(); return 1; })()"); await dormir(700);
       const src = await rita.js("(document.querySelector('.dia.simulacro iframe')||{}).getAttribute ? document.querySelector('.dia.simulacro iframe').getAttribute('src') : ''");
       c("🔴 sesión · «Enséñalo» incrusta la Nave del Comandante en ESA semana, con NEBULA", /simulacro=1/.test(src) && /semana=2/.test(src) && /per=lab-clase/.test(src) && /nebula=1/.test(src), src);
       // (el marco es de la misma web: se mira por dentro desde la página)
@@ -2850,7 +2850,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 embed · con dos grupos, primero pregunta «¿En qué grupo estamos?»", await f2.hasta("document.querySelectorAll('.ses-grupo').length>=2 && /En qué grupo estamos/.test(document.body.innerText)", 25),
         (await f2.texto()).slice(0, 200));
       await p.foto(FOTOS + "/26-embed-grupo.png");
-      await f2.js(`[].slice.call(document.querySelectorAll('.ses-grupo')).filter(function(b){return b.getAttribute('data-per')==='${P}'})[0].click(); 1`);
+      await f2.js(`(function(){ var b=[].slice.call(document.querySelectorAll('.ses-grupo')).filter(function(b){return b.getAttribute('data-per')==='${P}'})[0]; if(b) b.click(); return 1; })()`);
       c("🔴 embed · elige su grupo y arranca la sesión de la semana que toca", await f2.hasta("!!document.querySelector('.mazo .dia.portada') && /Semana 10/i.test(document.querySelector('.mazo').innerText)", 25),
         (await f2.texto()).slice(0, 200));
       const vista = JSON.parse(await f2.js("JSON.stringify({ prep: !!document.querySelector('.prep'), tira: !!document.querySelector('.sem-tira'), panel: !!document.querySelector('.dia.genially iframe'), alto: document.querySelector('.mazo').getBoundingClientRect().height, vh: innerHeight, cambiar: !!document.getElementById('ses-cambiar') })"));
@@ -3259,7 +3259,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await ses.ir("entrar.html"); await ses.entrarComo("rita@lab.test", "Rita Referente");
       await ses.ir("sesion.html?per=" + P);
       const hayDia = await ses.hasta("[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='La oferta'})", 30);
-      if (hayDia) { await ses.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='La oferta'})[0].click(); 1"); await dormir(1500); }
+      if (hayDia) { await ses.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='La oferta'})[0]; if(b) b.click(); return 1; })()"); await dormir(1500); }
       const txtOf = hayDia ? await ses.js("(function(){ var d=document.querySelector('.lienzo .dia.oferta-dia'); return d?d.innerText:''; })()") : "";
       const dbgOf = await ses.js("(function(){ var t=document.querySelector('.lienzo .of-dia-txt'); if(!t) return 'sin .of-dia-txt · '+((document.querySelector('.lienzo')||{}).innerHTML||'').slice(0,400); var c=getComputedStyle(t), r=t.getBoundingClientRect(); return JSON.stringify({d:c.display,v:c.visibility,o:c.opacity,a:c.animationName,w:r.width,h:r.height,x:r.x,y:r.y,html:t.outerHTML.slice(0,160)}); })()");
       c("ofertas · la sesión proyectada tiene «⚡ La oferta de la semana»: imagen, precio tachado, unidades y hasta cuándo",
@@ -3811,7 +3811,9 @@ const REG = {};   // cifras que se apuntan para el informe
       await an.ir("crear.html");
       c("🔴 profes · ahora sí puede crear grupos", await an.hasta("!!document.getElementById('btn-crear')", 25));
       await an.ir("consola.html");
-      c("profes · y Mis grupos le da la bienvenida (aún sin grupos), con «Crear mi primer grupo»", await an.hasta("/Bienvenida al puente/.test(document.body.innerText) && /Crear mi primer grupo/.test(document.body.innerText)", 25));
+      // (10-oct · tras aceptar la invitación, el canal del emulador se atasca ~57 s y la consola se queda en «Buscando tus grupos…»:
+      //  medido con la web de antes de la tanda 3 y con la de ahora, igual; con 25 s fallaba siempre. No es la web: se espera 90 s)
+      c("profes · y Mis grupos le da la bienvenida (aún sin grupos), con «Crear mi primer grupo»", await an.hasta("/Bienvenida al puente/.test(document.body.innerText) && /Crear mi primer grupo/.test(document.body.innerText)", 90), (await an.texto()).slice(0, 160));
       await an.cerrar();
       // María prueba el mismo enlace
       const ma = await nueva("María prueba el mismo enlace");
@@ -4176,7 +4178,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await lara.ir("recluta.html?per=" + P + "#mercado"); await lara.hasta("!!document.querySelector('button[data-canje]')", 25);
       await lara.js(`(function(){ var b=[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(x){return /Sobre de cromos/.test(x.getAttribute('data-nombre')||'') && !/^oferta/.test(x.getAttribute('data-tipo')||'')})[0]; b.click(); return 1; })()`);
       await lara.hasta("!!document.querySelector('.neb-capa')", 8);
-      await lara.js("var c=document.querySelector('.neb-capa'); [].slice.call(c.querySelectorAll('button')).filter(function(x){return /canjear/i.test(x.textContent)})[0].click(); 1");
+      await lara.js("(function(){ var c=document.querySelector('.neb-capa'); var b=[].slice.call(c.querySelectorAll('button')).filter(function(x){return /canjear/i.test(x.textContent)})[0]; if(b) b.click(); return 1; })()");
       await lara.hasta("!!document.querySelector('.sb-capa .sb-carta')", 25);
       await dormir(2500);
       c("🔴 a bordo · con el sobre abierto en pantalla, el logro ESPERA (no lo pisa)", !(await lara.js("!!document.querySelector('#nave-logro.open')")));
@@ -4890,7 +4892,7 @@ const REG = {};   // cifras que se apuntan para el informe
 
       // 1 · la votación en directo le salta a Ana sin recargar
       await rv.ir("aula.html?per=" + P); await rv.hasta("document.querySelectorAll('.au-t').length>5", 40);
-      await rv.js("[].slice.call(document.querySelectorAll('.au-t')).filter(function(b){return /Votación/.test(b.textContent)})[0].click(); 1");
+      await rv.js("(function(){ var b=[].slice.call(document.querySelectorAll('.au-t')).filter(function(b){return /Votación/.test(b.textContent)})[0]; if(b) b.click(); return 1; })()");
       await rv.hasta("!!document.getElementById('au-vt-crear')", 20);
       await rv.js(`(function(){ document.getElementById('au-vt-preg').value='¿Qué vemos el próximo día?';
         var ops=document.querySelectorAll('.au-vt-op-inp'); ops[0].value='Genially'; ops[1].value='Canva';
@@ -4901,7 +4903,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("   y aparece la pestaña «En vivo»", await av.js("!!document.querySelector('.nb-t[data-tab=\"envivo\"]')"));
 
       // 2 · la pregunta en directo: Ana responde, Rita la ve al momento con su alias
-      await rv.js("[].slice.call(document.querySelectorAll('.au-t')).filter(function(b){return /Pregunta/.test(b.textContent)})[0].click(); 1");
+      await rv.js("(function(){ var b=[].slice.call(document.querySelectorAll('.au-t')).filter(function(b){return /Pregunta/.test(b.textContent)})[0]; if(b) b.click(); return 1; })()");
       await rv.hasta("!!document.getElementById('au-pq-lanzar')", 20);
       await rv.js("document.getElementById('au-pq-inp').value='¿Qué es lo que más os ha costado?'; document.getElementById('au-pq-lanzar').click(); 1");
       const hayPq = await rv.hasta("!!document.getElementById('au-pq-muro') && !!document.getElementById('au-pq-cerrar')", 30);
@@ -5408,7 +5410,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("🔴 herramientas · el botón está arriba y NO tapa ni un paso de la barra", !tapa && /Herramientas/.test(await rt.js("document.getElementById('ses-aula-b').textContent")));
       // el enlace para el chat, en la portada
       // (23-sep · la clase la abre la pregunta: la portada se busca por su nombre, no por ser la primera)
-      await rt.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){ return b.title==='Portada'; })[0].click(); 1"); await dormir(400);
+      await rt.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){ return b.title==='Portada'; })[0]; if(b) b.click(); return 1; })()"); await dormir(400);
       c("🔴 chat · la portada trae «Copiar el enlace para el chat» (solo quien da la clase)",
         await rt.js("!!document.getElementById('ses-chat')"));
       // y las herramientas de clase, con lo de directo y nada más
@@ -5419,7 +5421,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("   sin la llamada a filas, sin «para nombrar en voz alta» y sin «tu escuadrón»",
         !/Tocar llamada/.test(txt) && !/nombrar en voz alta/i.test(txt) && !/Tu escuadrón/i.test(txt));
       c("🔴 chat · y el enlace de unirse, con su botón de copiar", /seguir=1&fichar=1/.test(await rt.js("(document.querySelector('.au-chat-u')||{}).textContent||''")));
-      await rt.js("[].slice.call(document.querySelectorAll('.au-t')).filter(function(b){return /Premiar/.test(b.textContent)})[0].click(); 1");
+      await rt.js("(function(){ var b=[].slice.call(document.querySelectorAll('.au-t')).filter(function(b){return /Premiar/.test(b.textContent)})[0]; if(b) b.click(); return 1; })()");
       await rt.hasta("!!document.querySelector('.au-pr')", 20);
       // (van con loading="lazy": se recorre la lista entera para que les toque cargar)
       await rt.js("[].slice.call(document.querySelectorAll('.au-pr')).forEach(function(x){ x.scrollIntoView(); }); 1");
@@ -5514,7 +5516,7 @@ const REG = {};   // cifras que se apuntan para el informe
 
       // 🔴 y en la SESIÓN PROYECTADA: la semana 3 abre el tema 2, así que «Cómo os fue» lee el ticket del tema 1
       await ne.ir("sesion.html?per=nave-escuela&sem=3"); await ne.hasta("!!document.querySelector('.barra-pasos .p')", 90);
-      await ne.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.title==='Cómo os fue'})[0].click(); 1");
+      await ne.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.title==='Cómo os fue'})[0]; if(b) b.click(); return 1; })()");
       await ne.hasta("!/Leyendo vuestras respuestas/.test((document.getElementById('ses-tk')||document.body).innerText)", 60);
       const comofue = await ne.js("(document.getElementById('ses-tk')||document.body).innerText");
       c("🔴 escuela · y la sesión proyecta «Cómo os fue» con esas mismas respuestas",
