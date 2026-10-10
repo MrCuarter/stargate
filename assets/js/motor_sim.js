@@ -5,6 +5,7 @@ const localStorage = (() => { const L = window.localStorage, NO = /^sgEs(Docente
            removeItem: (k) => { if (!NO.test(k)) L.removeItem(k); } }; })();
 /**
  * STARGATE · LA CENTRALITA
+ * (10-oct · otra huella: la CDN guardó un 404 para la de 8822390741, pedida mientras se subía la web)
  *
  * Lo único de todo el sistema que habla con Firebase. Entra, lee, escribe y llama a las funciones
  * del servidor de GamificaPro. Nada más: la aritmética del tablero está en motor/tablero.js, que es
