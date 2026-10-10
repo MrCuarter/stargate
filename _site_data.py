@@ -250,6 +250,14 @@ INVESTIGACION_TEXTO = [
     + PRIVACIDAD_CONTACTO + ".",
 ]
 INVESTIGACION_ACEPTO = "Acepto que mis tickets de salida lleven un seudónimo para esta investigación, en estas condiciones."
+# 10-oct · LA PIEL de la pieza común (GamificaPro sdk/investigacion.js, que el build copia como assets/js/investigacion.js; hasta
+# hoy era de esta web): lo que ya se veía, tal cual. `visto`, la clave de lo ya ofrecido en el navegador (la de siempre: nadie ve
+# la tarjeta otra vez); `alias`, el nombre que usan recluta.js y ticket.js (SG.INV); las clases y los dos textos de STARGATE.
+INVESTIGACION_PIEL = {
+    "visto": "sgInvVisto:", "alias": ["SG", "INV"],
+    "clases": {"capa": "sgp-capa", "caja": "sgp-caja", "pie": "sgp-bot", "boton": "btn min", "primario": "primary"},
+    "textos": {"alcance": "en todos tus grupos de STARGATE", "donde": "en tu Nave y en la página del ticket"},
+}
 
 # ---------- Geniallys (rellenar cuando haya enlaces) ----------
 # 15-sep · el paquete del equipo en Drive (mutecdgami): se comparte SOLO LECTURA con cada docente que se añade a un

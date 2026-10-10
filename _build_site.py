@@ -17,7 +17,7 @@ from _site_data import (GOOGLE_CLIENT_ID, RUTA, SALA_JORAN, DIRECTO, ASEDIO, JUE
                         HITOS_A_BORDO, CUBIERTAS_A_BORDO, HEROES_A_BORDO, CARTA_A_BORDO, BATALLA, SIN_PUA, VOTACION,
                         PLANETA_FIN, TRIPULANTES,
                         PRIVACIDAD_V, PRIVACIDAD_FECHA, PRIVACIDAD_CONTACTO, CONSENTIMIENTO_TEXTO,
-                        INVESTIGACION_V, INVESTIGACION_TITULO, INVESTIGACION_TEXTO, INVESTIGACION_ACEPTO)
+                        INVESTIGACION_V, INVESTIGACION_TITULO, INVESTIGACION_TEXTO, INVESTIGACION_ACEPTO, INVESTIGACION_PIEL)
 # Los logros de a bordo, tal y como los lee el navegador (un dato, un sitio: _site_data.py)
 _A_BORDO = {
     "cubiertas": [{"clave": c[0], "nombre": c[1], "sub": c[2], "premio": c[3]} for c in CUBIERTAS_A_BORDO],
@@ -154,6 +154,9 @@ GB.copiar_pieza(HERE, "cuenta.js", os.path.join(HERE, "assets", "js", "cuenta.js
 # 11-oct · EL PARTE DEL TICKET, EN LÍNEAS (GamificaPro sdk/parte.js, `GP.parte`): la raya, la barra y las líneas de cada escuadrón son
 # del motor (las mismas que DPG); tkcomun.js solo les pone la piel («tkp»). Se copia igual y se carga antes que tkcomun.js.
 GB.copiar_pieza(HERE, "parte.js", os.path.join(HERE, "assets", "js", "parte.js"), decir=print)
+# 10-oct · LA INVESTIGACIÓN DEL TICKET, EN LA WEB (GamificaPro sdk/investigacion.js, `GP.investigacion`; aquí también `SG.INV`): hasta
+# hoy era de esta web y DPG1 la necesita igual. Se copia tal cual y NO se edita aquí; lo de STARGATE, en _site_data.py → INVESTIGACION_PIEL
+GB.copiar_pieza(HERE, "investigacion.js", os.path.join(HERE, "assets", "js", "investigacion.js"), decir=print)
 # 10-oct · ORDENAR ARRASTRANDO (GamificaPro sdk/ordena.js, `GP.ordena`): la rueda «Configurar las diapositivas» reordena las secciones
 # y la sesión las proyecta en ese orden. Se copia igual y se carga con defer donde están la rueda y la sesión (consola y sesión).
 GB.copiar_pieza(HERE, "ordena.js", os.path.join(HERE, "assets", "js", "ordena.js"), decir=print)
@@ -3380,9 +3383,10 @@ borradores.</p>
 _CONTACTO_A = '<a href="mailto:' + PRIVACIDAD_CONTACTO + '">' + PRIVACIDAD_CONTACTO + '</a>'
 _CONSENT_JSON = json.dumps({"v": PRIVACIDAD_V, "texto": CONSENTIMIENTO_TEXTO, "contacto": PRIVACIDAD_CONTACTO}, ensure_ascii=False)
 # 7-oct · LA INVESTIGACIÓN DEL TICKET (voluntaria y aparte): su texto y su versión, para la Nave y el ticket
-# (assets/js/investigacion.js). «</» se escapa: va dentro de un <script>.
+# (assets/js/investigacion.js). «</» se escapa: va dentro de un <script>. 10-oct · la pieza es del motor (GamificaPro
+# sdk/investigacion.js) y lee `window.GP_INVESTIGACION`, con la piel de STARGATE.
 _INVESTIGACION_JSON = json.dumps({"v": INVESTIGACION_V, "titulo": INVESTIGACION_TITULO, "texto": INVESTIGACION_TEXTO,
-                                  "acepto": INVESTIGACION_ACEPTO, "contacto": PRIVACIDAD_CONTACTO},
+                                  "acepto": INVESTIGACION_ACEPTO, "contacto": PRIVACIDAD_CONTACTO, "piel": INVESTIGACION_PIEL},
                                  ensure_ascii=False).replace("</", "<\\/")
 PRIVACIDAD = head("STARGATE · Política de privacidad",
   "Qué datos recoge STARGATE, para qué, quién los ve y cómo pedir que se borren.",
@@ -4246,7 +4250,7 @@ tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <script src="assets/js/nebula-faq.js" defer></script>
 <script src="assets/js/nebula-chat.js" defer></script>
 <script src="assets/js/tkcomun.js" defer></script>
-<script>window.SG_INVESTIGACION={_INVESTIGACION_JSON};</script><script src="assets/js/investigacion.js" defer></script>
+<script>window.GP_INVESTIGACION={_INVESTIGACION_JSON};</script><script src="assets/js/investigacion.js" defer></script>
 <script src="assets/js/recluta.js" defer></script>
 </div></section>
 <section id="nave-ranking"><div class="wrap">
@@ -4912,7 +4916,7 @@ _html = head("STARGATE · Ticket de salida",
 <main id="tk-main"><div id="ticket-app"><p class="muted">Cargando…</p></div></main>
 ''' + '<script src="' + _v("assets/js/tkcomun.js") + '" defer></script>' \
      + '<script src="' + _v("assets/js/capsula.js") + '" defer></script>' \
-     + '<script>window.SG_INVESTIGACION=' + _INVESTIGACION_JSON + ';</script>' \
+     + '<script>window.GP_INVESTIGACION=' + _INVESTIGACION_JSON + ';</script>' \
      + '<script src="' + _v("assets/js/investigacion.js") + '" defer></script>' \
      + '<script src="' + _v("assets/js/ticket.js") + '" defer></script>' + FOOT
 open(os.path.join(HERE, "ticket.html"), "w", encoding="utf-8").write(_ver_assets(_html))

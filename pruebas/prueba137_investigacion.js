@@ -8,6 +8,9 @@
  *     aparece si ya se respondió; nunca bloquea, nunca a un fantasma ni en la demo o la Nave incrustada;
  *   · que si el servidor no contesta (sin desplegar, sin la pieza), no se ve nada y todo sigue como antes.
  * Se EJECUTAN assets/js/investigacion.js y los trozos de recluta.js y ticket.js con un DOM de mentira mínimo.
+ * 10-oct · assets/js/investigacion.js es ya la pieza común del motor (GamificaPro sdk/investigacion.js, copiada por el build), con la
+ *   piel de STARGATE (_site_data.py → INVESTIGACION_PIEL) en `window.GP_INVESTIGACION`; GamificaPro tests/sdk/investigacion.test.ts
+ *   comprueba que pinta letra por letra lo de antes.
  */
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const R = path.join(__dirname, "..");
@@ -17,7 +20,7 @@ const c = (cond, txt, dato) => { if (cond) ok++; else fallos.push(txt); console.
 
 const DATOS = L("_site_data.py"), INVJS = L("assets/js/investigacion.js"), REC = L("assets/js/recluta.js"), TK = L("assets/js/ticket.js");
 const NAVE = L("recluta.html"), TKH = L("ticket.html"), PRIV = L("privacidad.html");
-const sacar = (html) => JSON.parse(html.match(/window\.SG_INVESTIGACION=(\{.*?\});<\/script>/)[1]);
+const sacar = (html) => JSON.parse(html.match(/window\.GP_INVESTIGACION=(\{.*?\});<\/script>/)[1]);
 const sinEtiquetas = (t) => t.replace(/<[^>]+>/g, "");
 
 console.log("\n  · El texto aprobado, un dato y un sitio");
@@ -39,7 +42,7 @@ const todo = sinEtiquetas(C.texto.join(" "));
 ].forEach((f) => c(todo.indexOf(f) >= 0, "   dice: «" + f.slice(0, 70) + (f.length > 70 ? "…" : "") + "»"));
 c(C.acepto === "Acepto que mis tickets de salida lleven un seudónimo para esta investigación, en estas condiciones.", "   y la casilla dice lo aprobado");
 c(C.titulo === "Investigación sobre el ticket de salida · voluntaria", "   con su título");
-c(/<script>window\.SG_INVESTIGACION=\{.*?\};<\/script><script src="assets\/js\/investigacion\.js(\?v=\w+)?" defer><\/script>\s*<script src="assets\/js\/recluta\.js/.test(NAVE),
+c(/<script>window\.GP_INVESTIGACION=\{.*?\};<\/script><script src="assets\/js\/investigacion\.js(\?v=\w+)?" defer><\/script>\s*<script src="assets\/js\/recluta\.js/.test(NAVE),
   "la Nave carga investigacion.js antes que recluta.js");
 c(TKH.indexOf("assets/js/investigacion.js") > 0 && TKH.indexOf("assets/js/investigacion.js") < TKH.indexOf("assets/js/ticket.js"), "   y el ticket, antes que ticket.js");
 
@@ -86,11 +89,11 @@ function Caja() {
 }
 function cargarINV(conTexto) {
   const almacen = {};
-  const win = { SG_INVESTIGACION: conTexto === false ? undefined : C };
+  const win = { GP_INVESTIGACION: conTexto === false ? undefined : C };
   const ctx = { window: win, localStorage: { getItem: (k) => (k in almacen ? almacen[k] : null), setItem: (k, v) => { almacen[k] = String(v); } },
     setTimeout, Promise, Date, Array, Object, String, Number, isNaN, document: {} };
   vm.runInNewContext(INVJS, ctx);
-  return { I: win.SG.INV, almacen };
+  return { I: (win.SG && win.SG.INV) || win.GP.investigacion, almacen };   // (sin texto no hay piel, ni alias: la de GP)
 }
 const espera = () => new Promise((r) => setTimeout(r, 15));
 function motorQue(responde) {
