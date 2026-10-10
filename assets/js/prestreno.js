@@ -836,7 +836,7 @@
         'Conceder no cambia ninguna nota: te dice que se la ha ganado, y la aplicas tú donde calificas, como siempre.'),
       rx("tickets", "Tickets de salida", "Tu Nave → Puente → Ticket de salida", "Lo que dijeron al cerrar cada tema",
         ['<b>Fijar</b> un comentario: sale seguro en la sesión.', 'Las notas, repartidas, y los comentarios del <b>último tema cerrado</b> (el desplegable abre los anteriores).'],
-        'Se rellena al acabar un <b>tema</b>, en la última diapositiva de su última sesión. Al abrir el siguiente, «Cómo os fue» y «Vuestras dudas».'),
+        'Se rellena al acabar un <b>tema</b>, en la última diapositiva de su última sesión. Al abrir el siguiente, «Cómo os fue» y «Lo que escribisteis».'),
       rx("rankings", "Rankings", "Tu Nave → Rankings", "Seis rankings: casi todos brillan en alguno",
         ['<b>De quién</b>: todo el grupo o un escuadrón.', '<b>Qué se mide</b>: más xp, esta semana, constancia, coleccionistas, el Simulador y escuadrones.', '<b>El podio</b> y la tabla, con el emblema de cada escuadrón.'],
         'Para ensalzar, no para señalar: proyecta uno y nombra a quien destaca.'),

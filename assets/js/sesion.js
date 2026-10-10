@@ -1290,9 +1290,10 @@
        montar: function(el){ return montarTicket(el, lista, ant, 'notas'); }},
       diaTicketEscuadron(function(v){ return esDelTema(v, lista, ant); },
         'el ticket de '+String((lista[ant]&&lista[ant].tema)||'el tema anterior').replace(/\s*\(cont\.\)/,'')),
-      {k:'ticket_dudas', sec:'ticket', rot:'Vuestras dudas', html:
+      // 10-oct · con las preguntas nuevas («Algo positivo» y «Algo a mejorar») ya no son solo dudas: «Lo que escribisteis»
+      {k:'ticket_dudas', sec:'ticket', rot:'Lo que escribisteis', html:
         '<div class="dia ticket"><img class="tk-neb" src="assets/img/personajes/nebula.png" alt="">'
-        +'<div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/mensaje.png alt> Lo que escribisteis</div><h2>Vuestras dudas y comentarios</h2>'
+        +'<div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/mensaje.png alt> El ticket del tema anterior</div><h2>Lo que escribisteis</h2>'
         +'<div id="ses-tk"><p class="sub">Leyendo vuestras respuestas…</p></div></div></div>',
        montar: function(el){ return montarTicket(el, lista, ant, 'textos'); }}
     ];
@@ -1454,7 +1455,7 @@
         var CABEN=6, salen=fijas.concat(resto).slice(0, Math.max(CABEN, fijas.length));
         if(!salen.length) return nada(A.textos.length
           ? 'Has ocultado todo lo que escribieron sobre <b>'+esc(tema)+'</b>: aquí no sale nada.'
-          : 'Nadie escribió ninguna duda sobre <b>'+esc(tema)+'</b>. Animadles a hacerlo en el ticket del tema que empieza hoy: lo que preguntéis ahí se responde en clase.');
+          : 'Nadie escribió nada sobre <b>'+esc(tema)+'</b>. Animadles a hacerlo en el ticket del tema que empieza hoy: lo que preguntéis ahí se responde en clase.');
         caja.innerHTML='<div class="tk-ecos">'+salen.map(function(x,i){
             return '<blockquote style="--i:'+i+'"'+(m.fijadas.indexOf(x.id)>=0?' class="fijada"':'')+'><span class="tk-de">'+esc(corto(x.c))+'</span>'+esc(x.v.length>240?x.v.slice(0,237)+'…':x.v)+'</blockquote>'; }).join('')+'</div>'
           +(visibles.length>salen.length?'<p class="small muted">Y '+(visibles.length-salen.length)+' más.</p>':'');

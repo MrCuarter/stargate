@@ -208,6 +208,9 @@ c(/\.ses-aula-b\{display:flex/.test(CSS) && !/\.ses-aula-b\{position:absolute/.t
 c(/\.tk-nota\{display:grid/.test(CSS) && /\.tk-n-b \.v1/.test(CSS), "   y el resumen del ticket tiene su barra de colores");
 c(/\.tk-nada\{/.test(CSS), "   y el «¡No hay comentarios!», su recuadro");
 
+// 10-oct · con «Algo positivo» y «Algo a mejorar» ya no son solo dudas: la diapositiva es «Lo que escribisteis»
+c(/rot:'Lo que escribisteis'/.test(SES) && /<h2>Lo que escribisteis<\/h2>/.test(SES) && /'Nadie escribió nada sobre <b>'/.test(SES) && !/Vuestras dudas|ninguna duda/.test(SES),
+  "🔴 la diapositiva de los textos: «Lo que escribisteis» (y «Nadie escribió nada sobre…»)");
 console.log("\n  Batería 99 · el ticket por tema y las herramientas de clase (20-sep)");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);
