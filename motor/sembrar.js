@@ -9,13 +9,17 @@
  * 🔴 Escribe en el Firestore de VERDAD. Solo crea documentos nuevos bajo el identificador que se le
  * pasa y no toca ningún otro proyecto, pero conviene saber lo que se está pulsando.
  *
- *   node motor/sembrar.js <id> "<Nombre>" <REGULAR|PUA> <AAAA-MM-DD> [--reclutas]
+ *   node motor/sembrar.js <id> "<Nombre>" <REGULAR|PUA> <AAAA-MM-DD> [--reclutas] [--version=1|2]
+ *
+ * 10-oct · el grupo sale del plan de `crearGrupoMod` (motor/plan_grupo.js): lo mismo que escribe el servidor cuando se crea
+ * desde crear.html, en la versión de `versiones.nacen` de GamificaPro o en la de `--version`.
  */
 const path = require("path");
 const GP = "/Users/nor/Claude/vibewebs/gamificapro";
 const admin = require(path.join(GP, "node_modules", "firebase-admin"));
 const { catalogo } = require("./catalogo.js");
 const { paquete } = require("./paquete.js");
+const GRUPO = require("./plan_grupo.js");
 
 admin.initializeApp({ credential: admin.credential.cert(require(path.join(GP, "service-account.json"))) });
 const db = admin.firestore();
@@ -38,32 +42,10 @@ const SIEMBRA = [
   { alias: "Talia", nombre: "Talia", apellidos: "Vuelo",    profe: "Comandante Orion", retos: ["A0","L1","B1","X1","L2","B2","L3","B3","X2"] }
 ];
 
-// La misma traducción que hace assets/js/motor.js al sembrar desde el navegador. Los dos caminos
-// tienen que escribir EXACTAMENTE lo mismo, y eso lo vigila la batería 55.
-function conIdsDeDocumento(per, x) {
-  // 🔴 `id: undefined` NO es un capricho. GamificaPro lee sus documentos con
-  // `{ id: doc.id, ...doc.data() }`, así que un campo `id` DENTRO del documento pisa el
-  // identificador real y todo el motor empieza a hablar de «A1» donde el documento se llama
-  // «grupo__A1». El síntoma fue de los peores: la misión se registraba bien y a continuación la
-  // función reventaba con un «INTERNAL» mudo al cerrar la campaña del planeta.
-  const out = { projectId: per, stargateId: x.id };
-  const doc_ = s => per + "__" + s;
-  if (Array.isArray(x.missionIds)) out.missionIds = x.missionIds.map(doc_);
-  if (Array.isArray(x.optionalMissionIds)) out.optionalMissionIds = x.optionalMissionIds.map(doc_);
-  if (Array.isArray(x.rewardItemIds)) out.rewardItemIds = x.rewardItemIds.map(doc_);
-  if (x.consumeEffects && x.consumeEffects.lootBox)
-    out.consumeEffects = Object.assign({}, x.consumeEffects, { lootBox: { items:
-      x.consumeEffects.lootBox.items.map(i => Object.assign({}, i, { rewardId: doc_(i.rewardId) })) } });
-  if (x.campaignId) out.campaignId = doc_(x.campaignId);
-  if (x.unlockWhenCampaignComplete) out.unlockWhenCampaignComplete = doc_(x.unlockWhenCampaignComplete);
-  // 14-sep · la participación de un sorteo apunta al documento de su premio
-  if (x.linkedItemId) out.linkedItemId = doc_(x.linkedItemId);
-  return out;
-}
-
 async function main() {
   const [id, nombre, tipo, inicio] = process.argv.slice(2);
   const conReclutas = process.argv.indexOf("--reclutas") >= 0;
+  const version = GRUPO.versionPedida();
   if (!id || !nombre || !inicio) {
     console.error('Uso: node motor/sembrar.js <id> "<Nombre>" <REGULAR|PUA> <AAAA-MM-DD> [--reclutas]');
     process.exit(1);
@@ -78,28 +60,14 @@ async function main() {
     process.exit(1);
   }
 
-  // 🔴 El proyecto, solo y primero. Con reglas de cliente es obligatorio (la regla que deja crear
-  // misiones necesita leer el proyecto); aquí las reglas no aplican, pero se hace igual: el orden
-  // de escritura es el mismo en los dos caminos y así lo que se prueba aquí vale allí.
-  await db.collection("projects").doc(id).set(Object.assign({}, paq.proyecto, {
-    teacherId: "SEMBRADO", ownerId: "SEMBRADO",
-    teacherEmail: "mutecdgami@gmail.com", ownerEmail: "mutecdgami@gmail.com",
-    createdAt: Date.now(), isOnboardingComplete: true
-  }));
-  await db.collection("projects").doc(id).collection("privado").doc("stargate").set(paq.privado);
-  console.log("· grupo creado:", nombre);
-
-  for (const [col, lista] of [["missions", paq.misiones], ["campaigns", paq.campanas], ["rewards", paq.recompensas]]) {
-    for (let i = 0; i < lista.length; i += 400) {
-      const lote = db.batch();
-      lista.slice(i, i + 400).forEach(x => {
-        const { id: _fuera, ...resto } = x;   // ver conIdsDeDocumento: el `id` no entra en el documento
-        lote.set(db.collection(col).doc(id + "__" + x.id), Object.assign({}, resto, conIdsDeDocumento(id, x)));
-      });
-      await lote.commit();
-    }
-    console.log("· " + col + ":", lista.length);
-  }
+  // 10-oct · por el plan de crearGrupoMod (motor/plan_grupo.js): el proyecto, el equipo, los retos, las campañas y las
+  // recompensas, con sus ids de documento y sin el campo `id` dentro (documentoDelPaquete), en un lote. Lo «crea» SEMBRADO
+  // con el correo del referente de la demo, como antes.
+  const plan = await GRUPO.plan({ id, proyecto: paq.proyecto, privado: paq.privado, misiones: paq.misiones, campanas: paq.campanas,
+    recompensas: paq.recompensas }, { uid: "SEMBRADO", correo: "mutecdgami@gmail.com", nombre: "Mr Cuarter" }, version);
+  await GRUPO.escribir(db, plan);
+  console.log("· grupo creado:", nombre, "· versión", plan.version);
+  for (const [col, lista] of [["missions", paq.misiones], ["campaigns", paq.campanas], ["rewards", paq.recompensas]]) console.log("· " + col + ":", lista.length);
 
   if (conReclutas) {
     const porId = {}; paq.misiones.forEach(m => { porId[m.id] = m; });

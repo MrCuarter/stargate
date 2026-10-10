@@ -137,21 +137,33 @@ c(sembrar.indexOf("writeBatch") < 0 && sembrar.indexOf("setDoc(") < 0, "   y el 
 c(/getDoc\(doc\(db, "projects", id\)\)/.test(sembrar) && /already-exists/.test(sembrar),
   "   y si ya existe un grupo con ese nombre se dice antes (y si el servidor lo encuentra, también)");
 
-// ---------------------------------------------------------------- l) los dos sembradores, iguales
-// 🔴 Se siembra desde dos sitios —la consola del referente (navegador) y la línea de órdenes— y los
-// dos tienen que escribir EXACTAMENTE lo mismo. Si uno traduce los identificadores y el otro no, la
+// ---------------------------------------------------------------- l) los sembradores, por el mismo camino
+// 🔴 Se sembraba desde dos sitios —la consola del referente (navegador) y la línea de órdenes— y los
+// dos tenían que escribir EXACTAMENTE lo mismo. Si uno traduce los identificadores y el otro no, la
 // mitad de los grupos del curso quedan con el bonus de planeta roto y nadie se entera hasta que
 // alguien complete un planeta y no cobre.
+// 10-oct · ya no hay dos traducciones: la web crea con `crearGrupoMod` (GamificaPro) y los sembradores de la línea de órdenes
+// escriben su plan (motor/plan_grupo.js → planDelGrupo → documentoDelPaquete). Que el servidor traduce como la web lo prueba
+// GamificaPro (tests/functions/mod-grupos-stargate.test.ts); aquí, que nadie vuelve a llevar una copia propia.
 const SEMBRAR = fs.readFileSync(path.join(__dirname, "..", "motor", "sembrar.js"), "utf8");
-const trozo = t => {
-  const a = t.indexOf("function conIdsDeDocumento");
-  return t.slice(a, t.indexOf("\n}", a)).replace(/\s+/g, " ");
+const SEMBRAR_PRUEBA = fs.readFileSync(path.join(__dirname, "..", "motor", "sembrar_prueba.js"), "utf8");
+const PLAN_GRUPO = fs.readFileSync(path.join(__dirname, "..", "motor", "plan_grupo.js"), "utf8");
+const GP_GRUPOS = fs.readFileSync(path.join(process.env.GAMIFICAPRO_DIR || "/Users/nor/Claude/vibewebs/gamificapro", "functions", "modGrupos.js"), "utf8");
+[["motor/sembrar.js", SEMBRAR], ["motor/sembrar_prueba.js", SEMBRAR_PRUEBA]].forEach(function (par) {
+  c(/require\("\.\/plan_grupo\.js"\)/.test(par[1]) && /GRUPO\.plan\(/.test(par[1]) && /GRUPO\.escribir\(/.test(par[1]),
+    "🔴 " + par[0] + " siembra el grupo con el plan de crearGrupoMod");
+  c(!/function conIdsDeDocumento|lote\.set\(db\.collection\(col\)/.test(par[1]), "   sin una traducción de ids propia");
+});
+c(/planDelGrupo\(\{ mod: "stargate"/.test(PLAN_GRUPO), "   (motor/plan_grupo.js: el planDelGrupo de GamificaPro, para STARGATE)");
+const trozo = (t, f) => {
+  const a = t.indexOf("function " + f);
+  return t.slice(a, t.indexOf("\n}", a));
 };
-igual(trozo(MOTOR), trozo(SEMBRAR),
-  "🔴 los dos sembradores traducen los identificadores exactamente igual");
-["missionIds", "optionalMissionIds", "rewardItemIds", "campaignId", "unlockWhenCampaignComplete", "lootBox"]
+["missionIds", "optionalMissionIds", "rewardItemIds", "campaignId", "unlockWhenCampaignComplete", "lootBox", "linkedItemId"]
   .forEach(function (k) {
-    c(trozo(MOTOR).indexOf(k) >= 0, "   y traducen «" + k + "»");
+    // (las tres listas, en `REFERENCIAS` de modGrupos.js; lo demás, dentro de documentoDelPaquete)
+    const servidor = trozo(GP_GRUPOS, "documentoDelPaquete") + (GP_GRUPOS.match(/const REFERENCIAS = \[[^\]]*\]/) || [""])[0];
+    c(trozo(MOTOR, "conIdsDeDocumento").indexOf(k) >= 0 && servidor.indexOf(k) >= 0, "   la web (el sorteo) y el servidor traducen «" + k + "»");
   });
 // El que más duele si se olvida: el motor da una campaña por completa comparando sus `missionIds`
 // con los retos hechos del alumno, y ahí dentro hay identificadores de documento.
@@ -164,14 +176,11 @@ c(/if \(Array\.isArray\(x\.missionIds\)\)/.test(MOTOR),
 // identificador real y el motor entero empieza a hablar de «A1» donde el documento se llama
 // «grupo__A1». El síntoma fue de los peores que hay: la misión se registraba correctamente y, acto
 // seguido, la función reventaba con un «INTERNAL» mudo — al cerrar la campaña del planeta.
-// (10-oct · el grupo nuevo lo escribe el servidor, que hace lo mismo: GamificaPro, `documentoDelPaquete` de functions/modGrupos.js;
-// aquí quedan el sembrador de la línea de órdenes y el sorteo, que escribe sus dos recompensas desde el navegador)
-c(/const \{ id: _fuera, \.\.\.resto \} = x;/.test(SEMBRAR), "🔴 motor/sembrar.js quita el campo `id` antes de escribir el documento");
+// (10-oct · el grupo lo escribe el plan del servidor, también desde la línea de órdenes: `documentoDelPaquete` de GamificaPro;
+// aquí queda el sorteo, que escribe sus dos recompensas desde el navegador)
+c(/const \{ id, \.\.\.resto \} = x;/.test(trozo(GP_GRUPOS, "documentoDelPaquete")), "🔴 el plan de crearGrupoMod quita el campo `id` antes de escribir el documento");
 c(/const \{ id, \.\.\.resto \} = x;/.test(MOTOR.slice(MOTOR.indexOf("async function crearSorteo"))), "🔴 assets/js/motor.js (el sorteo) también");
-[["assets/js/motor.js", MOTOR], ["motor/sembrar.js", SEMBRAR]].forEach(function (par) {
-  c(par[1].indexOf("Object.assign({}, resto, conIdsDeDocumento") >= 0,
-    "   " + par[0] + " escribe el resto, nunca el objeto entero");
-});
+c(MOTOR.indexOf("Object.assign({}, resto, conIdsDeDocumento") >= 0, "   assets/js/motor.js escribe el resto, nunca el objeto entero");
 
 // El premio de una campaña se llama `xp_extra`, no `xp`. Con el nombre equivocado el bonus de
 // planeta se concedía... a cero: la campaña se cerraba, los créditos entraban y los 150 xp no.
