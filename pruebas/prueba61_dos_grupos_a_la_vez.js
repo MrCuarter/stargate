@@ -12,6 +12,8 @@ const E = require("./entorno.js");
 const { comprobar: c, contiene } = E;
 const fs = require("fs"), path = require("path");
 const raiz = f => fs.readFileSync(path.join(__dirname, "..", f), "utf8");
+// 10-oct (tanda 3) · misPERs lee con la pieza del motor SDK.grupos: lo que hacía aquí está ahora en el paquete fijado
+const SDKP = fs.readFileSync(path.join(__dirname, "..", "assets", "js", (fs.readFileSync(path.join(__dirname, "..", "_build_site.py"), "utf8").match(/SDK_FIJADO = "([^"]+)"/) || [])[1]), "utf8");
 console.log("\n▶ 61 · Un docente, dos grupos a la vez");
 
 const motor = raiz("assets/js/motor.js");
@@ -25,7 +27,7 @@ const clase = raiz("assets/js/clase.js");
 c(/function estadoDelPER/.test(motor), "🔴 el estado de un grupo se calcula en un solo sitio (motor.js)");
 c(/en marcha|por empezar/.test(motor) && /misPERs/.test(motor),
   "   y misPERs lo devuelve ya puesto, para que nadie lo recalcule a su manera");
-c(/ORDEN\s*=\s*\{[^}]*"en marcha"\s*:\s*0/.test(motor),
+c(/SDK\.grupos\.crear\(/.test(motor) && /estado: x => estadoDelPER\(x\.stargate\)/.test(motor) && /ORDEN\s*=\s*\{[^}]*"en marcha"\s*:\s*0/.test(SDKP),
   "🔴 y la lista llega ORDENADA: los vivos primero, los pasados al final");
 
 // ---------------------------------------------------------------- b) la llamada a filas

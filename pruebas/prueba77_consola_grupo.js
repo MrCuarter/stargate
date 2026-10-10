@@ -13,6 +13,8 @@ const RAIZ = path.resolve(__dirname, "..");
 let ok = 0; const fallos = [];
 function c(cierto, nombre, detalle) { if (cierto) { ok++; return; } fallos.push(nombre + (detalle ? " — " + detalle : "")); }
 const leer = f => fs.readFileSync(path.join(RAIZ, f), "utf8");
+// 10-oct (tanda 3) · misPERs lee con la pieza del motor SDK.grupos: lo que hacía aquí está ahora en el paquete fijado
+const SDKP = fs.readFileSync(path.join(__dirname, "..", "assets", "js", (fs.readFileSync(path.join(__dirname, "..", "_build_site.py"), "utf8").match(/SDK_FIJADO = "([^"]+)"/) || [])[1]), "utf8");
 const K = leer("assets/js/consola.js"), CSS = leer("assets/css/stargate.css"), M = leer("assets/js/motor.js");
 const trozo = (s, desde, n) => { const i = s.indexOf(desde); return i < 0 ? "" : s.slice(i, i + (n || 4000)); };
 
@@ -24,7 +26,7 @@ c(/pest-aviso/.test(K) && /class="pest-n"/.test(K) && /\.pest\.pest-aviso\{[^}]*
 c(/if \(!misTabs\(\)\.some\(function \(x\) \{ return x\[0\] === TAB; \}\)\) TAB = misTabs\(\)\[0\]\[0\];[\s\S]{0,200}?app\.innerHTML/.test(K),
   "   al resolver la última, se cae a la primera pestaña ANTES de pintarlas (la encendida es la que se ve)");
 // 20-sep · en la Nave del Comandante: «Reclutas» brilla con su número, y el desplegable de grupos lo dice de los otros
-c(/where\("status", "==", "pending"\)/.test(M) && /x\.cola = /.test(M) && /p\.cola \? ' · ' \+ p\.cola \+ ' pendiente'/.test(K) && /var n = x\[0\] === "gente" \? cola : 0/.test(K),
+c(/SDK\.grupos\.crear\(/.test(M) && /cola: true/.test(M) && /where\("status", "==", "pending"\)/.test(SDKP) && /x\.cola = /.test(SDKP) && /p\.cola \? ' · ' \+ p\.cola \+ ' pendiente'/.test(K) && /var n = x\[0\] === "gente" \? cola : 0/.test(K),
   "   «Reclutas» brilla con su número (dentro está la Cola) y el desplegable avisa de los demás grupos");
 
 // 2 · el Zoco con su fecha
@@ -56,7 +58,7 @@ c(/MOTOR\.pasarEscuadron\(PER, d\.nombre, sel\.value, dS\.correo\); \}\s*\n\s*aw
 // 28-sep · las sustituciones: pasar el escuadrón a cualquiera del equipo, dárselo a quien no tiene, y «¿Para qué entra?»
 c(/data-asumir-ir/.test(Q) && /name="e-para" value="sustituye"/.test(Q) && /value="apoya"/.test(Q) && /value="nuevo"/.test(Q) && /MOTOR\.apoyarEscuadron/.test(Q) && /MOTOR\.escuadronNuevo/.test(Q),
   "🔴 sustituciones: pasar/dar escuadrón en la tarjeta y, al añadir, «¿Para qué entra?» (sustituye, apoya, escuadrón nuevo, coordina)");
-c(/También en/.test(Q) && /x\.equipo = eq\.map/.test(M), "   y en qué otros de tus grupos está");
+c(/También en/.test(Q) && /x\.equipo = eq\.map/.test(SDKP), "   y en qué otros de tus grupos está");
 c(/async function quitarDocente\(perId, correo\)[\s\S]{0,200}quitar: true/.test(M) ||
   // (7-oct · por el SDK de GamificaPro: GP_SDK.equipo, paso 9)
   /async function quitarDocente\(perId, correo\) \{\n  return EQUIPO\.quitarDocente\(perId, correo\);/.test(M) && /llamar\("modEquipo", \{ projectId: grupo, persona: \{ correo: minus\(correo\) \}, quitar: true \}\)/.test(require("./sdk_pieza.js").pieza("equipo")), "el motor quita por el servidor (modEquipo con quitar)");

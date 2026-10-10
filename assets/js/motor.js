@@ -49,25 +49,19 @@ if (!SDK || SDK.version !== "v1") throw new Error("[STARGATE] falta el SDK de Ga
  * preguntó sin rodeos —«¿estás al 99 % de que no encontraré fallos tontos?»— y la respuesta honesta
  * era que no, precisamente por esto.
  */
-const EMU = window.SG_EMU === true && /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
-const CFG = EMU
-  ? Object.assign({}, window.SG_FIREBASE || {}, { projectId: "demo-stargate", apiKey: "demo-api-key",
-                                                  authDomain: "demo-stargate.firebaseapp.com" })
-  : (window.SG_FIREBASE || {});
-const app = initializeApp(CFG);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const fns = getFunctions(app);
-const google = new GoogleAuthProvider();
-// 🔴 El selector de cuentas SIEMPRE. Sin esto, Google entra en silencio con la última cuenta usada,
-// y quien tiene dos —el profesorado prueba con la suya de docente y con una de alumno— acaba dentro
-// con la equivocada sin saberlo. Norberto lo sufrió en su primera prueba.
-google.setCustomParameters({ prompt: "select_account" });
-if (EMU) {
-  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
-  connectFirestoreEmulator(db, "127.0.0.1", 8080);
-  connectFunctionsEmulator(fns, "127.0.0.1", 5001);
-}
+// 10-oct (tanda 3 de GamificaPro PLAN_CENTRALIZAR) · abrir Firebase, el selector de cuentas y el candado del laboratorio son la
+// pieza del motor `SDK.conectar` (GamificaPro sdk/conectar.js): hace exactamente lo de aquí (tests/sdk/conectar.test.ts, contra la
+// copia de estas líneas). 🔴 El selector de cuentas SIEMPRE (`select_account`): sin él, Google entra en silencio con la última
+// cuenta usada y quien tiene dos —el profesorado prueba con la suya de docente y con una de alumno— acaba dentro con la
+// equivocada sin saberlo. Norberto lo sufrió en su primera prueba. `conservarConfig`: en el laboratorio, la configuración de
+// verdad mezclada con lo de `demo-stargate`, como antes.
+const WEB = SDK.conectar({
+  mod: "stargate",
+  firebase: { initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, getFirestore, getFunctions,
+              connectAuthEmulator, connectFirestoreEmulator, connectFunctionsEmulator },
+  config: window.SG_FIREBASE, emu: window.SG_EMU === true, conservarConfig: true,
+});
+const { EMU, app, auth, db, fns } = WEB;
 
 // ------------------------------------------------------------------ la sesión
 // 🔴 `undefined` es «todavía no sé» y `null` es «no hay nadie». Son dos cosas distintas y
@@ -83,25 +77,17 @@ onAuthStateChanged(auth, u => {
 });
 const sesion = () => new Promise(ok => (quien !== undefined ? ok(quien) : esperando.push(ok)));
 
-async function entrar() { const r = await signInWithPopup(auth, google); return r.user; }
+const entrar = () => WEB.entrar();
 /**
- * Entrar como alguien, SIN ventana de Google: solo existe en el laboratorio. El emulador de Auth
- * acepta un «token de Google» que es un JSON sin firmar —en producción esto sería imposible, y por
- * eso esta función no se exporta fuera del laboratorio—. No hay contraseña ni cuenta real: la
- * identidad vive en la memoria del emulador y muere con él.
+ * Entrar como alguien, SIN ventana de Google: solo existe en el laboratorio (el SDK se niega fuera). El emulador de Auth acepta un
+ * «token de Google» que es un JSON sin firmar —en producción esto sería imposible, y por eso no se exporta fuera del laboratorio—.
  */
-async function entrarComo(correo, nombre) {
-  if (!EMU) throw new Error("solo en el laboratorio");
-  const sub = "emu-" + String(correo).toLowerCase().replace(/[^a-z0-9]/g, "");
-  const cred = GoogleAuthProvider.credential(JSON.stringify({ sub, email: correo, email_verified: true, name: nombre || correo }));
-  const r = await signInWithCredential(auth, cred);
-  return r.user;
-}
+const entrarComo = (correo, nombre) => WEB.entrarComo(correo, nombre);
 async function salir() {
   // La marca de docente se va con la sesión: si no, quien cierre sesión seguiría entrando en la
   // zona del profesorado desde ese navegador.
   try { localStorage.removeItem("sgEsDocente"); localStorage.removeItem("sgEsRecluta"); } catch (e) {}
-  await signOut(auth);
+  await WEB.salir();
 }
 
 // ------------------------------------------------------------------ leer
@@ -194,82 +180,27 @@ function estadoDelPER(S) {
   return { semana: semana, estado: estado, total: total, archivado: !!S.archivado, fase: fase, recuperacionHasta: rec, cierreTotal: total + GRACIA };
 }
 
+/**
+ * 10-oct (tanda 3) · LEER MIS GRUPOS es la pieza del motor `SDK.grupos` (GamificaPro sdk/grupos.js): los proyectos con mi correo en
+ * `coTeacherEmails` que son de STARGATE (`modDe`, la detección del servidor), en orden (en marcha, por empezar, sin fecha y pasados:
+ * así, cuando una pantalla elige un grupo por defecto, el primero ya es el correcto), con el equipo de cada uno, si soy referente
+ * (ante un fallo de lectura, NO: equivocarse hacia dar menos permisos), cómo me llamo en él, cuántos reclutas hay (sin las fichas
+ * fantasma) y las subidas de nota que esperan. Lo de STARGATE entra por opción: su calendario (`estadoDelPER`), la Academia (no es
+ * un grupo de clase: solo si se pide por su nombre), las facciones (la tarjeta pinta el emblema del escuadrón de quien mira) y los
+ * vitalicios. Da exactamente lo que daba esto antes (GamificaPro tests/sdk/grupos.test.ts, contra la copia del 10-oct).
+ */
+const GRUPOS = SDK.grupos.crear({ fs: { db, doc, getDoc, getDocs, collection, query, where, getCountFromServer } }, {
+  mod: "stargate", modDe: SDK.sitio.modDe, fantasmas: true, cola: true,
+  esVitalicio: c => REFERENTES_VITALICIOS.indexOf(c) >= 0,
+  estado: x => estadoDelPER(x.stargate),
+  filtro: (x, opc) => !x.stargate.academia || !!(opc && opc.academia),
+  extra: p => ({ factions: p.factions || [] }),
+});
+
 async function misPERs(correo, opc) {
   correo = String(correo || "").toLowerCase();
-  const r = await getDocs(query(collection(db, "projects"), where("coTeacherEmails", "array-contains", correo)));
-  // 🔴 Las facciones viajan con el grupo: la tarjeta necesita el EMBLEMA del escuadrón de quien mira
-  // —«a golpe de vista se debe ver el nombre, su emblema de escuadrón, número de estudiantes
-  // inscritos, semana»— y pedirlo aparte serían N lecturas más para pintar una lista.
-  const mios = r.docs.map(d => ({ id: d.id, nombre: d.data().name, factions: d.data().factions || [],
-                                  stargate: d.data().stargate || {}, codigo: d.data().joinCode || "",
-                                  // 19-sep · para «Archivar o borrar» desde Mis grupos: borrar es de quien lo creó (o un vitalicio)
-                                  ownerId: d.data().ownerId || "", teacherId: d.data().teacherId || "" }))
-                     .filter(x => x.stargate.version)
-                     // 🔴 29-sep (noche) · LA ACADEMIA NO ES UN GRUPO DE CLASE. Norberto: «debería ser una página en el menú de
-                     // arriba… así separamos docencia de aprendizaje». Su grupo no sale en «Mi nave», ni en el aula, la sesión o la
-                     // llamada: su organizador lo gestiona desde academia.html, y la consola solo lo abre si se le pide por su nombre.
-                     .filter(x => !x.stargate.academia || !!(opc && opc.academia))
-                     .map(x => Object.assign(x, estadoDelPER(x.stargate)));
-  // 🔴 EN QUÉ SEMANA VA CADA GRUPO, decidido UNA vez y aquí.
-  //
-  // Sin esto, cada pantalla elegía «el grupo del docente» a su manera: la sala buscaba el que
-  // estuviera en marcha, el aula y la llamada a filas cogían `GRUPOS[0]` —el primero que devolviera
-  // Firestore, que no tiene ningún orden prometido—. Y eso no es un detalle de conveniencia:
-  // en enero un docente tiene a la vez un grupo acabando y otro empezando, y abrir la llamada a
-  // filas en el grupo equivocado no da ningún error. Simplemente los que están delante no pueden
-  // fichar, y los que no están sí.
-  //
-  // Ordenados: primero los que están en marcha, luego los que van a empezar, y los pasados al
-  // final. Así, cuando haya que elegir por defecto, el primero ya es el correcto.
-  const ORDEN = { "en marcha": 0, "por empezar": 1, "sin fecha": 2, "pasado": 3 };
-  mios.sort((a, b) => (ORDEN[a.estado] - ORDEN[b.estado]) || String(a.nombre||"").localeCompare(String(b.nombre||"")));
-
-  /**
-   * 🔴 ¿SOY REFERENTE DE ESTE GRUPO? Hasta hoy nadie lo preguntaba, y se notó: `crear.html` no
-   * comprobaba nada, así que CUALQUIER docente podía sembrar grupos nuevos. Norberto lo pilló
-   * entrando como profe normal: «me permite crear GRUPO, NO puede ser. Solo referente».
-   *
-   * Va aquí y no en cada pantalla porque el dato vive en `privado/stargate` —los correos del equipo
-   * no son públicos— y esa lectura hay que hacerla una vez, no seis. Son como mucho ocho grupos.
-   *
-   * Ante un fallo de lectura se asume que NO eres referente: equivocarse hacia el lado de dar menos
-   * permisos deja a alguien sin un botón; equivocarse al revés le deja crear grupos que no debería.
-   */
+  const mios = await GRUPOS.misGrupos(correo, opc);
   await Promise.all(mios.map(async x => {
-    const vitalicio = REFERENTES_VITALICIOS.indexOf(correo) >= 0;
-    try {
-      const pv = await getDoc(doc(db, "projects", x.id, "privado", "stargate"));
-      const eq = (pv.exists() ? pv.data().docentes : null) || x.stargate.docentes || [];
-      const yo = eq.filter(d => String(d.correo || "").toLowerCase() === correo)[0];
-      x.soyReferente = vitalicio || !!(yo && yo.rol === "referente");
-      // 15-sep · el equipo de cada grupo (quién y con qué rol): «Equipo docente» dice en qué otros grupos está cada uno
-      x.equipo = eq.map(d => ({ nombre: d.nombre || "", correo: String(d.correo || "").toLowerCase(), rol: d.rol || "docente" }));
-      // 14-sep · cómo se llama en ESTE grupo (el nombre que llevan las fichas de su escuadrón en «profe»):
-      // la sesión proyectada lo usa para enseñar SU escuadrón y SUS tickets de salida
-      x.miNombre = (yo && yo.nombre) || "";
-    } catch (e) { x.soyReferente = vitalicio; x.miNombre = ""; }
-  }));
-  // 🔴 La marca que abre la puerta del profesorado. Se pone AQUÍ porque este es el único sitio donde
-  // el servidor ha dicho que sí: si devuelve grupos, esta cuenta es docente de alguno. No es una
-  // contraseña —no se puede teclear— y se borra al salir.
-  /**
-   * CUÁNTA GENTE HAY EN CADA GRUPO. Es el dato que más se mira de un vistazo —«¿se han alistado ya?»
-   * es LA pregunta de las dos primeras semanas— y no estaba en ninguna parte sin abrir el grupo.
-   * Se cuenta con `getCountFromServer`, que no se trae las fichas: devuelve el número y ya. Con
-   * doscientos alumnos por grupo, traerlas para contarlas sería absurdo.
-   */
-  // 5-oct · las tres cuentas de cada grupo, A LA VEZ (antes, una detrás de otra: con muchos grupos —el Mando está en todos—
-  // «Gestionar grupos» tardaba en abrir la primera vez)
-  await Promise.all(mios.map(async x => {
-    const [c, f, v] = await Promise.all([
-      getCountFromServer(query(collection(db, "student_profiles"), where("projectId", "==", x.id))).catch(() => null),
-      fantasmasEn(x.id),
-      // 15-sep · y las subidas de nota que esperan (Norberto: «que brille cuando hay algo pendiente»)
-      getCountFromServer(query(collection(db, "purchased_vouchers"),
-                               where("projectId", "==", x.id), where("status", "==", "pending"))).catch(() => null),
-    ]);
-    x.reclutas = c ? Math.max(0, c.data().count - f) : null;   // sin dato es mejor que un cero que parece verdad
-    x.cola = v ? v.data().count : 0;
     /**
      * 🔴 8-oct · «RECLUTAS A TU CARGO». Norberto: «a mi cargo son SOLO los escuadrones donde figuro como docente (además
      * de referente). No debes contar la clase fantasma ni los profesores de la academia». Ser referente de un grupo no
@@ -290,6 +221,9 @@ async function misPERs(correo, opc) {
     x.aMiCargo = porEsc.some(n => n == null) ? null : porEsc.reduce((a, n) => a + n, 0);
   }));
 
+  // 🔴 La marca que abre la puerta del profesorado. Se pone AQUÍ porque este es el único sitio donde
+  // el servidor ha dicho que sí: si devuelve grupos, esta cuenta es docente de alguno. No es una
+  // contraseña —no se puede teclear— y se borra al salir.
   try { if (mios.length) localStorage.setItem("sgEsDocente", "1"); } catch (e) {}
   // 🔴 Y la que enciende «Crear grupo» en el menú. Se escribe SIEMPRE —también a "0"— para que
   // quien deje de ser referente no arrastre el botón de la sesión anterior.

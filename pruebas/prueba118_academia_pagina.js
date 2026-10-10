@@ -12,6 +12,8 @@
 const fs = require("fs"), path = require("path");
 const R = path.join(__dirname, "..");
 const L = f => fs.readFileSync(path.join(R, f), "utf8");
+// 10-oct (tanda 3) · misPERs lee con la pieza del motor SDK.grupos: lo que hacía aquí está ahora en el paquete fijado
+const SDKP = fs.readFileSync(path.join(__dirname, "..", "assets", "js", (fs.readFileSync(path.join(__dirname, "..", "_build_site.py"), "utf8").match(/SDK_FIJADO = "([^"]+)"/) || [])[1]), "utf8");
 let ok = 0; const fallos = [];
 const c = (cond, txt, dato) => { if (cond) ok++; else fallos.push(txt); console.log("   " + (cond ? "✓" : "✗") + " " + txt + (cond || dato === undefined ? "" : "  →  " + dato)); };
 
@@ -27,7 +29,7 @@ c(/<a role="menuitem" tabindex="-1" href="academia\.html" data-solo-academia hid
 c(/<a role="menuitem" tabindex="-1" href="academia\.html" aria-current="page" data-solo-academia hidden>Academia</.test(OPC(ACA)) && /class="gpm gpm-derecha gpm-activo"/.test(ACA), "   y encendida en la propia Academia");
 
 // ── 2 · Su grupo, fuera de las listas de clase
-c(/async function misPERs\(correo, opc\)/.test(MOT) && /\.filter\(x => !x\.stargate\.academia \|\| !!\(opc && opc\.academia\)\)/.test(MOT),
+c(/async function misPERs\(correo, opc\)/.test(MOT) && /filtro: \(x, opc\) => !x\.stargate\.academia \|\| !!\(opc && opc\.academia\)/.test(MOT) && /SDK\.grupos\.crear\(/.test(MOT),
   "🔴 motor.js: misPERs no devuelve el grupo de la Academia (ni en «Mi nave», ni en el aula, la sesión o la llamada)");
 c(/var CON_ACADEMIA = \{ academia: !!window\.SG_PER_ACADEMIA && url\.get\("per"\) === window\.SG_PER_ACADEMIA \};/.test(CJS) &&
   (CJS.match(/MOTOR\.misPERs\(YO\.correo, CON_ACADEMIA\)/g) || []).length === 4 && !/MOTOR\.misPERs\(YO\.correo\)/.test(CJS),
