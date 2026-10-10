@@ -102,6 +102,8 @@
       ".sgav-escribe textarea{width:100%;min-height:72px;resize:vertical;background:var(--bg2,#0d1420);color:var(--ink,#e9f0f6);border:1px solid var(--line,#1c2c40);border-radius:10px;padding:8px 10px;font:inherit}" +
       ".sgav-escribe .btn{align-self:flex-start}" +
       ".sgav-hecho{margin:8px 0 0;color:var(--teal,#37e0ec);font-weight:700}.sgav-error{color:var(--amber,#f5b043)}" +
+      // 10-oct · lo resuelto se va de la ventana (no se borra: sigue en el buzón)
+      ".sgav-m.sgav-fuera{opacity:0;max-height:0!important;padding-top:0;padding-bottom:0;margin:0;border-color:transparent;overflow:hidden;transition:opacity .3s,max-height .35s,padding .35s}" +
       ".sgav-pie{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--line,#1c2c40);font-size:.85rem;color:var(--mut,#9fb2c2)}" +
       "@media (max-width:560px){.sgav-fondo{align-items:flex-end;padding:0}.sgav{border-radius:16px 16px 0 0;max-height:92vh}.sgav-cab h2{font-size:1.08rem}}";
     document.head.appendChild(s);
@@ -146,6 +148,29 @@
     caja.querySelector(".sgav-lista").scrollTop = 0;
   }
 
+  /**
+   * 10-oct · LO RESUELTO SE VA. Norberto: «cuando digo que sí está resuelta, me gustaría que desapareciese esa consulta, así da
+   * sensación de que ya está zanjado (no borrar, que desapareciera de la pantalla y quedarán las respuestas sin resolver)». Tras el
+   * «¡Gracias!», la tarjeta se desvanece; el título cuenta las que quedan y, si no queda ninguna, la ventana se cierra. El mensaje
+   * sigue entero en el buzón.
+   */
+  function retirar(art) {
+    setTimeout(function () {
+      if (!caja || !art.parentNode) return;
+      var quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      art.style.maxHeight = art.scrollHeight + "px"; void art.offsetHeight;   // desde su alto, para que la transición se vea
+      art.classList.add("sgav-fuera");
+      setTimeout(function () {
+        if (art.parentNode) art.parentNode.removeChild(art);
+        if (!caja) return;
+        var n = caja.querySelectorAll(".sgav-m").length;
+        if (!n) return quitar();
+        caja.querySelector("#sgav-t").textContent = n === 1 ? "Tienes una respuesta nueva" : "Tienes " + n + " respuestas nuevas";
+        var f = caja.querySelector(".sgav-m button:not([disabled])"); if (f) { try { f.focus({ preventScroll: true }); } catch (e) { f.focus(); } }
+      }, quieto ? 0 : 380);
+    }, 1300);
+  }
+
   /** La × (o Escape): no vuelve a salir en esta pestaña; en la próxima visita, sí, mientras no conteste. */
   function cerrarPorAhora() {
     var c = leer(sessionStorage, CERRADO, []) || [];
@@ -184,7 +209,7 @@
       apagar();
       M.buzonResponder(x.id, V.si || "✓ Me ha resuelto la duda.", { estado: "resuelto" })
         .then(function () { return M.buzonVisto(x.id); })
-        .then(function () { abierto(1); listo("¡Gracias, Comandante! Nos ayuda a saber que el buzón sirve."); }, fallo);
+        .then(function () { abierto(1); listo("¡Gracias, Comandante! Nos ayuda a saber que el buzón sirve."); retirar(art); }, fallo);
     };
     if (ok) ok.onclick = function () {
       if (x.fuente === "academia") { academiaLeida(); return listo("Anotado."); }

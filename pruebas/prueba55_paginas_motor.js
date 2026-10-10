@@ -124,14 +124,18 @@ c(/if \(!mias\.empty\) return location\.replace\(naveUrl\(\)\);/.test(ALTA),
 c(/function naveUrl\(\)/.test(ALTA) && /q\.get\("motor"\)/.test(ALTA),
   "   y el enlace de la Nave conserva el motor con el que se entró");
 
-// ---------------------------------------------------------------- k) el proyecto va solo, y primero
-// La regla que deja crear misiones pregunta «¿eres docente de ese proyecto?», y para contestar tiene
-// que poder leer el proyecto. En el mismo lote, aún no existiría y rechazaría las 90 escrituras
-// siguientes sin decir por qué.
+// ---------------------------------------------------------------- k) el grupo lo crea el servidor, entero y de una vez
+// Hasta el 10-oct se sembraba desde aquí en lotes, el proyecto el primero (la regla de las misiones necesita leerlo). Desde
+// entonces lo escribe GamificaPro (`crearGrupoMod`) en UNA escritura: o el grupo entero, o nada. El paquete lo sigue armando
+// esta web (motor/paquete.js) y tiene que ir COMPLETO: el proyecto, el equipo, los retos, los planetas y la tienda.
 const sembrar = MOTOR_LIMPIO.slice(MOTOR_LIMPIO.indexOf("async function sembrarPER"), MOTOR_LIMPIO.indexOf("async function alistar"));
-c(sembrar.indexOf('setDoc(doc(db, "projects", id)') < sembrar.indexOf("writeBatch"),
-  "🔴 el proyecto se crea solo y ANTES que sus misiones");
-c(/i \+= 200/.test(sembrar), "y lo demás en lotes, que Firestore admite 500 por tanda");
+c(/llamar\("crearGrupoMod", \{ mod: "stargate", paquete:/.test(sembrar),
+  "🔴 el grupo lo crea el servidor (crearGrupoMod), con el mod de STARGATE");
+c(["proyecto: paq.proyecto", "privado: paq.privado", "misiones: paq.misiones", "campanas: paq.campanas", "recompensas: paq.recompensas"]
+  .every(t => sembrar.indexOf(t) >= 0), "   y con el paquete entero: proyecto, equipo, retos, planetas y tienda");
+c(sembrar.indexOf("writeBatch") < 0 && sembrar.indexOf("setDoc(") < 0, "   y el navegador ya no escribe nada del grupo a mano");
+c(/getDoc\(doc\(db, "projects", id\)\)/.test(sembrar) && /already-exists/.test(sembrar),
+  "   y si ya existe un grupo con ese nombre se dice antes (y si el servidor lo encuentra, también)");
 
 // ---------------------------------------------------------------- l) los dos sembradores, iguales
 // 🔴 Se siembra desde dos sitios —la consola del referente (navegador) y la línea de órdenes— y los
@@ -160,11 +164,13 @@ c(/if \(Array\.isArray\(x\.missionIds\)\)/.test(MOTOR),
 // identificador real y el motor entero empieza a hablar de «A1» donde el documento se llama
 // «grupo__A1». El síntoma fue de los peores que hay: la misión se registraba correctamente y, acto
 // seguido, la función reventaba con un «INTERNAL» mudo — al cerrar la campaña del planeta.
+// (10-oct · el grupo nuevo lo escribe el servidor, que hace lo mismo: GamificaPro, `documentoDelPaquete` de functions/modGrupos.js;
+// aquí quedan el sembrador de la línea de órdenes y el sorteo, que escribe sus dos recompensas desde el navegador)
+c(/const \{ id: _fuera, \.\.\.resto \} = x;/.test(SEMBRAR), "🔴 motor/sembrar.js quita el campo `id` antes de escribir el documento");
+c(/const \{ id, \.\.\.resto \} = x;/.test(MOTOR.slice(MOTOR.indexOf("async function crearSorteo"))), "🔴 assets/js/motor.js (el sorteo) también");
 [["assets/js/motor.js", MOTOR], ["motor/sembrar.js", SEMBRAR]].forEach(function (par) {
-  c(/const \{ id: _fuera, \.\.\.resto \} = x;/.test(par[1]),
-    "🔴 " + par[0] + " quita el campo `id` antes de escribir el documento");
   c(par[1].indexOf("Object.assign({}, resto, conIdsDeDocumento") >= 0,
-    "   y escribe el resto, nunca el objeto entero");
+    "   " + par[0] + " escribe el resto, nunca el objeto entero");
 });
 
 // El premio de una campaña se llama `xp_extra`, no `xp`. Con el nombre equivocado el bonus de

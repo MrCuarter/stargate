@@ -1,5 +1,6 @@
 /**
  * STARGATE · LA CENTRALITA
+ * (10-oct · otra huella: la CDN guardó un 404 para la de 8822390741, pedida mientras se subía la web)
  *
  * Lo único de todo el sistema que habla con Firebase. Entra, lee, escribe y llama a las funciones
  * del servidor de GamificaPro. Nada más: la aritmética del tablero está en motor/tablero.js, que es
@@ -243,10 +244,15 @@ async function misPERs(correo, opc) {
 /**
  * SEMBRAR UN PER. Lo que antes hacía el menú de la hoja de cálculo: crear el grupo entero.
  *
- * 🔴 Se escribe en lotes y el PROYECTO VA EL PRIMERO, solo. No es manía: la regla de Firestore que
- * deja crear misiones pregunta «¿eres docente de ese proyecto?», y para contestarla tiene que poder
- * leer el proyecto. Si fuese todo en el mismo lote, el proyecto aún no existiría y Firestore
- * rechazaría las 90 escrituras siguientes sin decir por qué.
+ * 10-oct · LO CREA EL SERVIDOR DE GAMIFICAPRO (`crearGrupoMod`, functions/modGrupos.js; el V6 del §1d de su PLAN_CENTRALIZAR),
+ * como ya hace DPG. Esta web sigue armando el paquete con su catálogo (motor/paquete.js: es la piel) y el servidor lo escribe
+ * TODO en una sola escritura: el proyecto, el equipo (`privado`), los retos, los planetas y la tienda con el álbum, con los ids
+ * de siempre (`{grupo}__{id}` y las referencias entre documentos, como `conIdsDeDocumento`). Si el grupo ya existe, no escribe
+ * nada; si algo falla, no queda un grupo a medio sembrar (antes iba en lotes, el proyecto el primero, y un corte lo dejaba a
+ * medias). Y le pone la versión con la que nace (`modVersion`: la que diga la configuración de STARGATE, `versiones.nacen`).
+ * 🔴 Con `nacen: 1` el grupo es EXACTAMENTE el de antes (más la marca `modVersion: 1`, que es lo mismo que no llevarla):
+ * GamificaPro, tests/functions/mod-grupos-stargate.test.ts, con la copia de la función de antes contra esta.
+ * Quién puede: el Mando, los vitalicios o un referente dado de alta (la misma puerta que crear.js enseña).
  */
 async function sembrarPER(per, alAvanzar) {
   const yo = await sesion();
@@ -255,43 +261,24 @@ async function sembrarPER(per, alAvanzar) {
   const paq = window.SG.PAQUETE.paquete(per, cat);
   const id = per.id;
   const avisa = t => { if (alAvanzar) alAvanzar(t); };
+  const yaExiste = () => new Error("Ya existe un grupo con el identificador «" + id + "». Elige otro nombre.");
 
-  if ((await getDoc(doc(db, "projects", id))).exists())
-    throw new Error("Ya existe un grupo con el identificador «" + id + "». Elige otro nombre.");
+  if ((await getDoc(doc(db, "projects", id))).exists()) throw yaExiste();
 
-  avisa("Creando el grupo…");
-  // El equipo docente entra en coTeacherEmails: es lo que mira Firestore para dejarles entrar. Y
-  // quien lo crea se añade también, para no quedarse fuera de su propio grupo por un despiste.
-  const correos = Array.from(new Set(paq.proyecto.coTeacherEmails.concat([yo.correo]).filter(Boolean)));
-  await setDoc(doc(db, "projects", id), Object.assign({}, paq.proyecto, {
-    teacherId: yo.uid, ownerId: yo.uid, teacherEmail: yo.correo, ownerEmail: yo.correo,
-    coTeacherEmails: correos, createdAt: Date.now(), isOnboardingComplete: true
-  }));
-
-  // Los correos del profesorado y el enlace de edición, a su sitio: fuera del documento abierto.
-  await setDoc(doc(db, "projects", id, "privado", "stargate"), paq.privado);
-
-  const tandas = [
-    ["missions", paq.misiones, "misiones"],
-    ["campaigns", paq.campanas, "campañas"],
-    ["rewards", paq.recompensas, "recompensas y colección"]
-  ];
-  for (const [col, lista, nombre] of tandas) {
-    avisa("Sembrando " + lista.length + " " + nombre + "…");
-    // Firestore admite 500 escrituras por lote; vamos de 200 en 200 por prudencia.
-    for (let i = 0; i < lista.length; i += 200) {
-      const lote = writeBatch(db);
-      lista.slice(i, i + 200).forEach(x => {
-        const { id: _fuera, ...resto } = x;   // ver conIdsDeDocumento: el `id` no entra en el documento
-        lote.set(doc(db, col, id + "__" + x.id), Object.assign({}, resto, conIdsDeDocumento(id, x)));
-      });
-      await lote.commit();
-    }
+  avisa("Creando el grupo con sus " + paq.misiones.length + " retos, " + paq.campanas.length + " campañas y " +
+        paq.recompensas.length + " recompensas y colección…");
+  let r;
+  try {
+    r = await llamar("crearGrupoMod", { mod: "stargate", paquete: { id: id, proyecto: paq.proyecto, privado: paq.privado,
+      misiones: paq.misiones, campanas: paq.campanas, recompensas: paq.recompensas } });
+  } catch (e) {
+    if (e && e.codigo === "already-exists") throw yaExiste();
+    throw e;
   }
   avisa("Listo");
   // 🔴 Devuelve TAMBIÉN el código de acceso. Si solo devolviera el id, la consola daría el enlace de
   // alistamiento sin él y nadie podría entrar — el referente repartiría una puerta cerrada.
-  return { id: id, codigo: paq.proyecto.joinCode || "" };
+  return { id: id, codigo: (r && r.codigo) || paq.proyecto.joinCode || "" };
 }
 
 /**

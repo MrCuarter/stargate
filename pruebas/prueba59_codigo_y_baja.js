@@ -67,7 +67,7 @@ const CREAR = js("crear.js");
 c(/creado && creado\.codigo/.test(CREAR), "🔴 al crear un grupo se recoge su código");
 c(/'&codigo=' \+ esc\(codigo\)/.test(CREAR), "   y va DENTRO del enlace que se reparte");
 c(/codigo-grande/.test(CREAR), "   y se enseña en grande, para quien llegue sin el enlace");
-c(/return \{ id: id, codigo: paq\.proyecto\.joinCode \|\| "" \};/.test(MOTOR),
+c(/return \{ id: id, codigo: \(r && r\.codigo\) \|\| paq\.proyecto\.joinCode \|\| "" \};/.test(MOTOR),   // 10-oct · el que devuelve crearGrupoMod
   "🔴 `sembrarPER` devuelve el código: si solo devolviera el id, no habría de dónde sacarlo");
 const SEM = fs.readFileSync(path.join(__dirname, "..", "motor", "sembrar.js"), "utf8");
 c(/Código de acceso/.test(SEM),
