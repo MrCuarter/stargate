@@ -1475,7 +1475,8 @@ const REG = {};   // cifras que se apuntan para el informe
       const t3 = await nora3.js("[].slice.call(document.querySelectorAll('.nb-t')).map(function(b){return b.getAttribute('data-tab')})");
       c("semana 3 · ya están el Mercado y los rankings", t3.indexOf("mercado") >= 0 && t3.indexOf("rankings") >= 0, JSON.stringify(t3));
       await nora3.js("document.querySelector('.nb-t[data-tab=\"mercado\"]').click(); 1"); await dormir(1500);
-      const merc = await nora3.js("[].slice.call(document.querySelectorAll('.nave-rec .rec-card h3')).map(function(h){return h.textContent})");
+      // (6-oct · cada tarjeta lleva otro h3 en su ventana «Leer más…»: solo el de la tarjeta)
+      const merc = await nora3.js("[].slice.call(document.querySelectorAll('.nave-rec .rec-card .rec-cuerpo > h3')).map(function(h){return h.textContent})");
       const prox = await nora3.js("(document.querySelector('.rec-prox')||{}).textContent||''");
       c("🔴 semana 3 · el Mercado enseña sobre, cambio de repetidas y la cápsula de rescate; nada «clasificado»",
         merc.length === 3 && merc.some(x => /Cápsula de rescate/.test(x)) && !merc.some(x => /clasificada/i.test(x)), JSON.stringify(merc));
@@ -2459,8 +2460,8 @@ const REG = {};   // cifras que se apuntan para el informe
       await ana.ir("recluta.html?per=" + P); await ana.hasta("!!document.querySelector('.nb-t[data-tab=\"mercado\"]')", 30);
       c("calendario · la Nave de Tea sigue en la semana de hoy (congelar el futuro no mueve el presente)", new RegExp("Semana " + semHoy + " de").test(await ana.texto()));
       await ana.js("document.querySelector('.nb-t[data-tab=\"mercado\"]').click(); 1"); await dormir(1500);
-      c("🔴 calendario · y en su Mercado ya está el Arsenal (abierto antes de tiempo)", /Subir 0,5 en un entregable/.test(await ana.js("[].slice.call(document.querySelectorAll('.nave-rec .rec-card h3')).map(function(h){return h.textContent}).join(' | ')")),
-        await ana.js("[].slice.call(document.querySelectorAll('.nave-rec .rec-card h3')).map(function(h){return h.textContent}).join(' | ')"));
+      c("🔴 calendario · y en su Mercado ya está el Arsenal (abierto antes de tiempo)", /Subir 0,5 en un entregable/.test(await ana.js("[].slice.call(document.querySelectorAll('.nave-rec .rec-card .rec-cuerpo > h3')).map(function(h){return h.textContent}).join(' | ')")),
+        await ana.js("[].slice.call(document.querySelectorAll('.nave-rec .rec-card .rec-cuerpo > h3')).map(function(h){return h.textContent}).join(' | ')"));
       await ana.foto(FOTOS + "/23-tea-arsenal.png");
       await ana.cerrar();
       // una semana congelada HOY (se fuerza en la base de datos: desde la consola no se puede)
