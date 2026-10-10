@@ -450,6 +450,9 @@ async function anularReto(perId, fichaId, retoId, motivo) {
     // (7-oct · «sin desplegar» POR CÓDIGO, del SDK: un «no» con texto del servidor, aunque no lleve tildes —«No existe el
     // reto»—, ya no se toma por función sin desplegar ni manda al camino viejo)
     if (!SDK.errores.sinDesplegar(e)) throw e;
+    // 10-oct · un grupo de la versión definitiva (`economiaSoloServidor`, GamificaPro PLAN_CENTRALIZAR §1d) no tiene plan B: sus
+    // reglas no dejan al docente tocar la economía a mano. Los grupos de siempre (per-16450), como siempre.
+    if (SDK.sitio.tiene(await proyectoDe(perId), "economiaSoloServidor")) throw e;
     return anularRetoViejo(perId, fichaId, retoId, motivo);
   }
 }
@@ -1686,59 +1689,6 @@ async function premiar(perId, fichaId, { xp = 0, creditos = 0, motivo = "" } = {
 }
 
 /**
- * Regalar una carta.
- *
- * 🔴 Va al inventario con el identificador de DOCUMENTO («grupo__cromo_x»), que es lo que guarda el
- * motor. Escribir la clave corta dejaría una carta que el álbum no sabría leer — justamente el fallo
- * que se arregló el 12-sep.
- */
-/**
- * 🔴 AL AZAR, PERO RESPETANDO LAS RAREZAS. Regalar elegía con `Math.random()` uniforme: la
- * legendaria de Ander —una de cada cien en la tienda— caía igual de fácil que un tripulante común.
- * Eso no es un detalle: la rareza es TODO el valor de una colección, y un regalo que la ignora
- * devalúa las cartas que alguien lleva semanas persiguiendo.
- * El peso ya está en el catálogo; solo había que usarlo.
- */
-function alAzarPorPeso(lista) {
-  const total = lista.reduce((a, c) => a + (Number(c.peso) || 1), 0);
-  let n = Math.random() * total;
-  for (const c of lista) { n -= (Number(c.peso) || 1); if (n <= 0) return c; }
-  return lista[lista.length - 1];
-}
-
-/** Varias de golpe, para el regalo de la asistencia: un sobre son tres. */
-async function regalarSobre(perId, fichaId, cuantas) {
-  const f = await getDoc(doc(db, "student_profiles", fichaId));
-  if (!f.exists()) throw new Error("No encuentro la ficha");
-  const cromos = (window.SG_CATALOGO || {}).cromos || [];
-  if (!cromos.length) throw new Error("No tengo el catálogo de cartas");
-  const sacadas = [], inv = (f.data().inventory || []).slice();
-  for (let i = 0; i < (cuantas || 3); i++) {
-    const c = alAzarPorPeso(cromos);
-    inv.push(perId + "__cromo_" + c.clave);
-    sacadas.push({ clave: c.clave, nombre: c.nombre, rareza: c.rareza });
-  }
-  // 🔴 Una sola escritura con las tres dentro. Tres `updateDoc` seguidos sobre el mismo documento
-  // se pisan entre sí: se guardaría la última y se perderían dos cartas regaladas.
-  await updateDoc(doc(db, "student_profiles", fichaId), { inventory: inv });
-  return sacadas;
-}
-
-async function regalarCromo(perId, fichaId, clave) {
-  const f = await getDoc(doc(db, "student_profiles", fichaId));
-  if (!f.exists()) throw new Error("No encuentro la ficha");
-  const cat = window.SG_CATALOGO || {};
-  const cromos = cat.cromos || [];
-  if (!cromos.length) throw new Error("No tengo el catálogo de cartas");
-  const elegido = clave ? cromos.filter(c => c.clave === clave)[0] : alAzarPorPeso(cromos);
-  if (!elegido) throw new Error("Esa carta no existe");
-  const idDoc = perId + "__cromo_" + elegido.clave;
-  await updateDoc(doc(db, "student_profiles", fichaId),
-    { inventory: (f.data().inventory || []).concat([idDoc]) });
-  return { clave: elegido.clave, nombre: elegido.nombre, rareza: elegido.rareza };
-}
-
-/**
  * PREMIAR EN CLASE, a uno o a varios: una carta, un sobre, un héroe (al azar o elegido) o un adorno.
  * Lo hace el servidor (`stargateRegalar`), una transacción por estudiante. Devuelve, por ficha, qué
  * le ha tocado ya con nombre: [{ ficha, piezas: [{clave, nombre, rareza, tipo}], ya?, error? }].
@@ -2377,7 +2327,7 @@ if (EMU) window.SG.EMU = { entrarComo, cuenta };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, cambiarCuenta, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, vigilarMensajesDelSistema, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaInvitar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaBendecir, academiaResponder, buzonComprimir, buzonAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
-                    premiar, regalarCromo, regalarSobre, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,
+                    premiar, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo, esDelEquipoDe, pasarAFantasma,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias, cambiarMiComandante, guardarFrase,
                     zocoDatos, zocoTratosGrupo, zocoAnunciosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,

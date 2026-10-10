@@ -140,11 +140,13 @@ c(/yo_\.ficha = f\.id/.test(js("fuente.js")),
 });
 c(/noEresComandante/.test(LLAMADA),
   "🔴 el Genially se PROYECTA: a quien no es docente se le explica, no se le da un error");
-["premiar", "regalarCromo"].forEach(function (f) {
+["premiar", "regalarEnClase"].forEach(function (f) {
   c(new RegExp("async function " + f).test(MOTOR), "el motor sabe «" + f + "»");
 });
-c(/perId \+ "__cromo_"/.test(MOTOR),
-  "🔴 y la carta regalada se guarda con el identificador de DOCUMENTO, o el álbum no sabría leerla");
+// 10-oct · la carta regalada la escribe el servidor (`stargateRegalar`), con el identificador de DOCUMENTO del cofre del grupo
+// (el que el álbum sabe leer); el `regalarCromo` del navegador, que nadie llamaba, se ha quitado
+c(/llamar\("stargateRegalar"/.test(MOTOR) && !/async function regalarCromo/.test(MOTOR),
+  "🔴 y la carta regalada la guarda el servidor, con el identificador de DOCUMENTO, o el álbum no sabría leerla");
 
 // ---------------------------------------------------------------- h) los rankings ordenan de verdad
 // 🔴 `planetas_completos` es un ARRAY con los temas cerrados, no un contador. El ranking «Explorador»

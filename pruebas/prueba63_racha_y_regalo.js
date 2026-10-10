@@ -64,11 +64,18 @@ c(!/regalar.*(xp|cr[ée]ditos)/i.test(llam.slice(llam.indexOf("ll-regalo"), llam
 // 🔴 Regalar elegía con un `Math.random()` uniforme: la legendaria de Ander —una de cada cien en la
 // tienda— caía igual de fácil que un tripulante común. La rareza es TODO el valor de una colección:
 // un regalo que la ignora devalúa las cartas que alguien lleva semanas persiguiendo.
-c(/function alAzarPorPeso/.test(motor), "🔴 los regalos respetan el peso de cada carta");
-c(/alAzarPorPeso\(cromos\)/.test(motor), "   tanto al regalar una suelta…");
-c(/regalarSobre/.test(motor), "   …como el sobre entero de la asistencia");
-c(/await updateDoc\(doc\(db, "student_profiles", fichaId\), \{ inventory: inv \}\)/.test(motor),
-  "🔴 y las tres cartas van en UNA escritura: tres updateDoc seguidos se pisan y se perderían dos");
+// 10-oct · y el regalo lo sortea y lo guarda EL SERVIDOR (`stargateRegalar`): el cofre del propio grupo, con los pesos del
+// Mercado, y una transacción por estudiante. Las dos de antes (`regalarCromo`, `regalarSobre`), que escribían el inventario
+// desde el navegador del docente, nadie las llamaba y se han quitado: en un grupo de la versión definitiva
+// (`economiaSoloServidor`) las reglas ya no dejan al docente escribir la economía.
+c(/eligeBotin\(normalizaLootItems\(items\)\)/.test(SERVIDOR.slice(SERVIDOR.indexOf("export const stargateRegalar"))),
+  "🔴 los regalos respetan el peso de cada carta: los sortea el servidor con el cofre del grupo");
+c(/llamar\("stargateRegalar", \{ projectId: perId, fichas: fichas, regalo: regalo \}\)/.test(motor),
+  "   y el navegador solo los pide (`regalarEnClase`)…");
+c(!/async function regalar(Cromo|Sobre)|function alAzarPorPeso/.test(motor),
+  "   …sin el camino viejo, que sorteaba y escribía en el navegador");
+c(!/updateDoc\(doc\(db, "student_profiles", fichaId\), \{ inventory/.test(motor),
+  "🔴 y ningún docente escribe ya un inventario desde el navegador");
 
 // ---------------------------------------------------------------- f) el sobre, tres cartas
 const paq = raiz("motor/paquete.js");

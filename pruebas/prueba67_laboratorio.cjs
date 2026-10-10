@@ -25,7 +25,11 @@ const REG = {};   // cifras que se apuntan para el informe
   }
   await L.cargarMapa();   // 7-oct · dónde está cada colección del servidor (L.sitio): vale antes y después de pasarlas a mod_*
   const CODIGO = await L.reiniciar();
-  process.stderr.write("  laboratorio sembrado · código de clase " + CODIGO + "\n");
+  process.stderr.write("  laboratorio sembrado · código de clase " + CODIGO + " · versión " + L.version() + "\n");
+  // 10-oct · lab-clase nace por el plan de crearGrupoMod, en la versión de su GamificaPro o la de SG_LAB_VERSION (laboratorio.cjs)
+  c("el grupo del laboratorio nace en su versión (" + L.version() + ")",
+    Number(((await leerDoc("projects/lab-clase")) || {}).modVersion) === L.version()
+    && (!process.env.SG_LAB_VERSION || L.version() === Number(process.env.SG_LAB_VERSION)));
   await L.arrancar(VER);
   const vivas = [];
   const nueva = async n => { const p = await persona(n); vivas.push(p); return p; };
@@ -5759,6 +5763,75 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.js("document.getElementById('ses-directo').click(); 1"); await dormir(1000);
       c("descubrir · sin errores con dos personas", !rita.errores.concat(ana.errores).filter(e => !/Failed to load resource/.test(e)).length, rita.errores.concat(ana.errores)[0] || "");
       await rita.cerrar(); await ana.cerrar();
+    }
+    // ============================================================ 53 · LAS DOS VERSIONES: LO DE CADA DÍA (10-oct)
+    /**
+     * GamificaPro PLAN_CENTRALIZAR §1d (V8 de STARGATE): los grupos nuevos de STARGATE nacen en la versión definitiva
+     * (`versiones.nacen: 2`) y per-16450 sigue en la de siempre. Esta sección se pasa con lab-clase en cada versión
+     * (SG_LAB_VERSION=1 y =2, laboratorio.cjs) y en las dos tiene que salir lo mismo: alistarse, el ticket de salida, que el
+     * docente dé y anule un reto, un regalo en clase. Lo único que cambia, a propósito: en la 2 (`economiaSoloServidor`) el
+     * docente ya no puede escribir la economía a mano (las reglas se lo niegan); en la 1, como siempre. El Zoco, en la 22.
+     */
+    if (hacer(53)) {
+      const P = "lab-clase", V = L.version(), A = admin(), fsA = A.firestore();
+      const DORA = ["dora@lab.test", "Dora Prueba", "Dora Dual", 0];
+      for (let i = 0; i < 2 && !(await fichaDe(DORA[0], P)); i++) { const a = await nueva("Alta Dora"); await alistar(a, DORA[0], DORA[1], DORA[2], DORA[3]); await dormir(800); await a.cerrar(); }
+      let fD = await fichaDe(DORA[0], P);
+      c("versiones (" + V + ") · Dora se alista: su ficha, en su grupo", !!fD && fD.projectId === P && fD.displayName === DORA[2]);
+      const reserva = fD && await consultar("mod_alias", "uid", fD._uid);
+      c("   y su alias, reservado en mod_alias con su mod", !!reserva && reserva.length === 1 && reserva[0].projectId === P && reserva[0].mod === "stargate", JSON.stringify(reserva));
+      if (!fD) throw new Error("versiones: Dora no tiene ficha");
+
+      // el ticket de salida, por su página (modTicket)
+      const tk0 = (await consultar("mod_tickets", "projectId", P)).length;
+      const dora = await nueva("Dora rellena el ticket");
+      await dora.ir("entrar.html"); await dora.entrarComo(DORA[0], DORA[1]);
+      await dora.ir("ticket.html?per=" + P + "&tema=1");
+      const form = await dora.hasta("!!document.getElementById('tk-f')", 40);
+      await dora.js("[].forEach.call(document.querySelectorAll('#tk-f .tk-q'),function(q){ var b=q.querySelector('.tk-v'); if(b) b.click(); var t=q.querySelector('.tk-t'); if(t){ t.value='Prueba de las dos versiones'; t.oninput&&t.oninput(); } }); document.querySelector('#tk-f button[type=submit]').click(); 1");
+      const enviado = form && await dora.hasta("!document.getElementById('tk-f')", 40);
+      const tk1 = await consultar("mod_tickets", "projectId", P);
+      c("🔴 versiones (" + V + ") · el ticket de salida se envía y queda en mod_tickets, sin nombre", enviado && tk1.length === tk0 + 1
+        && !JSON.stringify(tk1).includes(DORA[0]) && !JSON.stringify(tk1).includes(fD._uid), tk0 + " → " + tk1.length + " · " + (await dora.texto()).slice(0, 160));
+      await dora.cerrar();
+
+      // el docente da un reto y lo anula (modOtorgarReto, stargateAnularReto)
+      const rita = await nueva("Rita da, anula y regala");
+      await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
+      const llama = (fn, args) => rita.js(`window.SG.MOTOR.${fn}(${args.map(a => JSON.stringify(a)).join(",")}).then(function(r){return JSON.stringify(r||null)},function(e){return "ERROR " + e.message})`, 60000);
+      fD = await fichaDe(DORA[0], P);
+      const reto = ["L1", "B1", "L2", "B2"].filter(r => (fD.completedMissionIds || []).indexOf(P + "__" + r) < 0)[0];
+      const dado = await llama("otorgarReto", [P, fD._id, reto]);
+      const fDado = await fichaDe(DORA[0], P);
+      c("versiones (" + V + ") · la docente le da el reto " + reto + " (lo paga el servidor)", !/^ERROR/.test(dado)
+        && (fDado.completedMissionIds || []).indexOf(P + "__" + reto) >= 0 && fDado.totalPoints > fD.totalPoints, dado + " · xp " + fD.totalPoints + " → " + fDado.totalPoints);
+      const anulado = await llama("anularReto", [P, fD._id, reto, "prueba de las dos versiones"]);
+      const fAnul = await fichaDe(DORA[0], P);
+      c("🔴 versiones (" + V + ") · y lo anula: el reto fuera y la xp y los créditos, como antes", !/^ERROR/.test(anulado)
+        && (fAnul.completedMissionIds || []).indexOf(P + "__" + reto) < 0 && fAnul.totalPoints === fD.totalPoints && Number(fAnul.coins || 0) === Number(fD.coins || 0),
+        anulado + " · xp " + fDado.totalPoints + " → " + fAnul.totalPoints + " (tenía " + fD.totalPoints + ")");
+      const aud = (await consultar(L.sitio("stargate_anulaciones"), "projectId", P)).filter(x => x.retoId === reto && x.por === "docente");
+      c("   con su registro en " + L.sitio("stargate_anulaciones"), aud.length >= 1 && aud.every(x => x.mod === "stargate"), JSON.stringify(aud.map(x => [x.retoId, x.por, x.mod])));
+
+      // un regalo en clase (stargateRegalar)
+      const inv0 = (fAnul.inventory || []).length;
+      const regalo = await llama("regalarEnClase", [P, [fD._id], { tipo: "carta" }]);
+      const fReg = await fichaDe(DORA[0], P);
+      const nuevas = (fReg.inventory || []).slice(inv0);
+      c("🔴 versiones (" + V + ") · un regalo en clase: una carta del cofre del grupo, con su id de documento", !/^ERROR/.test(regalo)
+        && nuevas.length === 1 && nuevas[0].indexOf(P + "__cromo_") === 0, regalo + " · " + JSON.stringify(nuevas));
+
+      // la economía a mano: en la 1, como siempre; en la 2, solo por el servidor
+      const aMano = await rita.js(`(function(){ var M=window.SG.MOTOR; return M.updateDoc(M.doc(M.db,"student_profiles",${JSON.stringify(fD._id)}),{coins:${Number(fReg.coins || 0) + 1}})
+        .then(function(){return "PASÓ"},function(e){return "ERROR " + (e.code||"") + " " + e.message}); })()`, 30000);
+      if (V >= 2) c("🔴 versiones (2) · el docente ya NO escribe la economía a mano (economiaSoloServidor): las reglas lo niegan", /permission/i.test(aMano), aMano);
+      else c("versiones (1) · el docente aún puede escribirla a mano, como en per-16450", aMano === "PASÓ", aMano);
+      const otro = await rita.js(`(function(){ var M=window.SG.MOTOR; return M.updateDoc(M.doc(M.db,"student_profiles",${JSON.stringify(fD._id)}),{stargateProfe:${JSON.stringify(fReg.stargateProfe || "")}})
+        .then(function(){return "PASÓ"},function(e){return "ERROR " + e.message}); })()`, 30000);
+      c("   y lo que no es economía (su Comandante), en las dos", otro === "PASÓ", otro);
+      if (aMano === "PASÓ") await fsA.collection("student_profiles").doc(fD._id).update({ coins: Number(fReg.coins || 0) });
+      c("versiones (" + V + ") · sin errores en la página", !rita.errores.filter(e => !/Failed to load resource|permission/i.test(e)).length, rita.errores[0] || "");
+      await rita.cerrar();
     }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);

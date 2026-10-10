@@ -40,22 +40,38 @@ const dormir = ms => new Promise(r => setTimeout(r, ms));
  *   L.sitio("stargate_asistencia")           → "stargate_asistencia" o "mod_asistencia"
  *   L.nueva("stargate_asistencia")           → true si ya está pasada
  *   L.idEn("stargate_asistencia", id)        → el id donde esté (los 'suelto' llevan delante su mod; estas tres son 'azar')
+ *
+ * 10-oct · Y LA VERSIÓN DEL GRUPO DEL LABORATORIO (§1d del PLAN_CENTRALIZAR de GamificaPro). `lab-clase` nace por el plan de
+ * `crearGrupoMod` (motor/sembrar_prueba.js), con la versión de `versiones.nacen` del GamificaPro de sus emuladores, o la que se
+ * fuerce con SG_LAB_VERSION=1|2 (así se ensayan las dos: la de siempre, como per-16450, y la definitiva). L.version() la dice
+ * después de sembrar, y L.sitio/L.nueva cuentan con ella y con lo que el mapa ya ha pasado para STARGATE (`pasadaPara`), con la
+ * misma regla que el servidor (functions/modColeccion.js → faseDe) y que GP_SDK.sitio.
  */
 const GP = process.env.GAMIFICAPRO_DIR || "/Users/nor/Claude/vibewebs/gamificapro";
 let _mapa;   // undefined: sin cargar · null: GamificaPro de antes del mapa
+let _versiones = null;   // functions/mods/versiones.js de ese GamificaPro (si lo tiene)
+let VERSION = null;      // la del grupo del laboratorio, al sembrarlo
 async function cargarMapa() {
   if (_mapa !== undefined) return _mapa;
   const f = path.join(GP, "functions", "mods", "colecciones.js");
   _mapa = fs.existsSync(f) ? (await import(require("url").pathToFileURL(f).href)).COLECCIONES : null;
+  const fv = path.join(GP, "functions", "mods", "versiones.js");
+  _versiones = fs.existsSync(fv) ? await import(require("url").pathToFileURL(fv).href) : null;
   return _mapa;
 }
+const versionTiene = n => { try { return !!_versiones && VERSION >= 2 && _versiones.versionTiene(VERSION, n); } catch (e) { return false; } };
 function entradaDe(v) {
   if (_mapa === undefined) throw new Error("laboratorio: falta `await L.cargarMapa()` antes de preguntar dónde está «" + v + "»");
   if (_mapa === null) return null;
   if (!_mapa[v]) throw new Error("«" + v + "» no está en el mapa de colecciones de GamificaPro (" + GP + "/functions/mods/colecciones.js)");
   return _mapa[v];
 }
-const nueva = v => { const e = entradaDe(v); return !!e && e.fase === "nueva"; };
+const nueva = v => {
+  const e = entradaDe(v); if (!e) return false;
+  const porGrupo = !!e.grupoEn && e.porGrupo !== false, paraSG = Array.isArray(e.pasadaPara) && e.pasadaPara.includes("stargate");
+  return e.fase === "nueva" || (!porGrupo && paraSG && e.mod === "stargate")
+    || (porGrupo && (paraSG || versionTiene("coleccionesMod")));
+};
 const sitio = v => nueva(v) ? entradaDe(v).nueva : v;
 const idEn = (v, id) => nueva(v) && entradaDe(v).ids === "suelto" ? entradaDe(v).mod + "__" + id : String(id);
 
@@ -75,10 +91,12 @@ async function emuladoresVivos() {
 async function reiniciar() {
   await fetch(`http://127.0.0.1:${EMU.firestore}/emulator/v1/projects/${PROYECTO}/databases/(default)/documents`, { method: "DELETE" });
   await fetch(`http://127.0.0.1:${EMU.auth}/emulator/v1/projects/${PROYECTO}/accounts`, { method: "DELETE" });
-  const r = spawnSync(process.execPath, [path.join(RAIZ, "motor", "sembrar_prueba.js"), "--lab"],
-    { encoding: "utf8", env: Object.assign({}, process.env, { FIRESTORE_EMULATOR_HOST: `127.0.0.1:${EMU.firestore}` }) });
+  const forzada = process.env.SG_LAB_VERSION ? ["--version=" + process.env.SG_LAB_VERSION] : [];
+  const r = spawnSync(process.execPath, [path.join(RAIZ, "motor", "sembrar_prueba.js"), "--lab"].concat(forzada),
+    { encoding: "utf8", env: Object.assign({}, process.env, { FIRESTORE_EMULATOR_HOST: `127.0.0.1:${EMU.firestore}`, GAMIFICAPRO_DIR: GP }) });
   const codigo = ((r.stdout || "").match(/código de acceso:\s*(\w+)/) || [])[1];
   if (!codigo) throw new Error("no se pudo sembrar el laboratorio: " + (r.stderr || r.stdout || "").slice(0, 300));
+  VERSION = Number(((r.stdout || "").match(/· versión (\d+)/) || [])[1]) || 1;
   return codigo;
 }
 
@@ -393,5 +411,5 @@ function comprobar(nombre, cierto, detalle) {
   fallos.push(t); process.stderr.write("   ✗ " + t + "\n"); return false;
 }
 
-module.exports = { cargarMapa, sitio, nueva, idEn, emuladoresVivos, reiniciar, leerDoc, consultar, arrancar, parar, persona, comprobar, dormir, admin, fichaDe,
+module.exports = { cargarMapa, sitio, nueva, idEn, version: () => VERSION, emuladoresVivos, reiniciar, leerDoc, consultar, arrancar, parar, persona, comprobar, dormir, admin, fichaDe,
                    marcador: () => ({ ok, fallos }), BASE, P_WEB2, PUBLICA, RAIZ };

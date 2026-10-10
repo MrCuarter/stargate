@@ -14,6 +14,10 @@
  *          ya están abiertos esa semana (catálogo de hoy: relámpago y simulacro incluidos), colección, logros de a bordo
  *          y el Simulador. Con `--real`, el primero es esa cuenta DE VERDAD (su uid de Firebase Auth) con casi todo hecho,
  *          para entrar con ella. No pisa un grupo que ya exista.
+ *   … --version=1|2   → 10-oct · el grupo NACE POR EL MISMO CAMINO QUE LOS DE VERDAD: el proyecto, su equipo, los retos, las
+ *          campañas y las recompensas salen del plan de `crearGrupoMod` (motor/plan_grupo.js), con la versión que diga la
+ *          configuración del mod (`versiones.nacen`) o la que se fuerce aquí. Lo de cada recluta (alias, Zoco, tratos) ya va a `mod_*` en las dos versiones. Como
+ *          `sembrar_grupos_prueba.cjs` de DPG.
  *
  * LA DEMO ES OTRO GRUPO, Y A PROPÓSITO. La clase de prueba es para tocarla: Norberto se aliste en
  * ella, completa retos, abre llamadas. El escaparate público no puede cambiar cada vez que alguien
@@ -22,6 +26,7 @@
  */
 const path = require("path");
 const GP = "/Users/nor/Claude/vibewebs/gamificapro";
+const GRUPO = require("./plan_grupo.js");   // 10-oct · el plan de crearGrupoMod (GamificaPro), con su versión
 const admin = require(path.join(GP, "node_modules", "firebase-admin"));
 const { catalogo } = require("./catalogo.js");
 const { paquete } = require("./paquete.js");
@@ -60,6 +65,7 @@ const A_ID = ESCUELA ? "nave-escuela" : (!LAB && !DEMO ? arg("id") : null);
 // dice «Curso terminado»—, y lo que hace falta es un grupo VIVO con todo abierto. En la 15 está el viaje entero.
 const A_SEMANA = ESCUELA ? 15 : Number(arg("semana") || 0), A_REAL = ESCUELA ? null : arg("real");
 const CUSTOM = !!A_ID;
+const VERSION = GRUPO.versionPedida();
 if (CUSTOM && !/^[a-z0-9-]{3,40}$/.test(A_ID)) { console.error("✗ --id: minúsculas, números y guiones"); process.exit(2); }
 if (CUSTOM && !(A_SEMANA >= 1 && A_SEMANA <= 16)) { console.error("✗ --semana: de 1 a 16"); process.exit(2); }
 const ID = LAB ? "lab-clase" : DEMO ? "demo-stargate" : CUSTOM ? A_ID : "prueba-humana";
@@ -152,38 +158,21 @@ async function main() {
   const paq = paquete({ id: ID, nombre: NOMBRE, tipo: "REGULAR", inicio: INICIO,
                         docentes: DOCENTES, referente: DOCENTES[0].correo }, cat);
 
-  const proyecto = Object.assign({}, paq.proyecto, {
-    ownerId: "sembrado", createdAt: Date.now(), isOnboardingComplete: true
-  });
+  const proyecto = Object.assign({}, paq.proyecto);
   if (DEMO) proyecto.stargate = Object.assign({}, proyecto.stargate, { demoSemana: 10 });
   // 🔴 `escuela`: la web deja elegir en qué semana se mira este grupo (y no escribe nada al hacerlo). Ver motor/tablero.js.
   if (ESCUELA) proyecto.stargate = Object.assign({}, proyecto.stargate, { escuela: true });
-  await db.collection("projects").doc(ID).set(proyecto);
-  await db.collection("projects").doc(ID).collection("privado").doc("stargate").set(paq.privado);
-
+  /**
+   * 10-oct · POR EL PLAN DE `crearGrupoMod` (GamificaPro, functions/modGrupos.js → planDelGrupo): lo mismo que escribe el servidor
+   * cuando un referente crea un grupo desde crear.html —el proyecto con su versión (`modVersion`), el equipo con los vitalicios,
+   * los retos, las campañas y las recompensas con sus ids de documento—, aquí con la cuenta de servicio o en el emulador. Quien
+   * lo «crea» es `sembrado` (como siempre: nadie es su dueño por uid) con el correo de su primer docente.
+   */
+  const plan = await GRUPO.plan({ id: ID, proyecto, privado: paq.privado, misiones: paq.misiones, campanas: paq.campanas,
+    recompensas: paq.recompensas }, { uid: "sembrado", correo: DOCENTES[0].correo, nombre: DOCENTES[0].nombre }, VERSION);
+  await GRUPO.escribir(db, plan);
   const porId = {};
-  for (const col of ["missions", "campaigns", "rewards"]) {
-    const lista = col === "missions" ? paq.misiones : col === "campaigns" ? paq.campanas : paq.recompensas;
-    for (let i = 0; i < lista.length; i += 400) {
-      const lote = db.batch();
-      lista.slice(i, i + 400).forEach(x => {
-        const { id: _fuera, ...resto } = x;
-        if (col === "missions") porId[x.id] = x;
-        lote.set(db.collection(col).doc(ID + "__" + x.id), Object.assign({}, resto, {
-          projectId: ID, stargateId: x.id,
-          ...(Array.isArray(x.missionIds) ? { missionIds: x.missionIds.map(s => ID + "__" + s) } : {}),
-          ...(Array.isArray(x.optionalMissionIds) ? { optionalMissionIds: x.optionalMissionIds.map(s => ID + "__" + s) } : {}),
-          ...(Array.isArray(x.rewardItemIds) ? { rewardItemIds: x.rewardItemIds.map(s => ID + "__" + s) } : {}),
-          ...(x.campaignId ? { campaignId: ID + "__" + x.campaignId } : {}),
-          ...(x.unlockWhenCampaignComplete ? { unlockWhenCampaignComplete: ID + "__" + x.unlockWhenCampaignComplete } : {}),
-          ...(x.linkedItemId ? { linkedItemId: ID + "__" + x.linkedItemId } : {}),
-          ...(x.consumeEffects && x.consumeEffects.lootBox ? { consumeEffects: Object.assign({}, x.consumeEffects,
-              { lootBox: { items: x.consumeEffects.lootBox.items.map(i => Object.assign({}, i, { rewardId: ID + "__" + i.rewardId })) } }) } : {})
-        }));
-      });
-      await lote.commit();
-    }
-  }
+  paq.misiones.forEach(x => { porId[x.id] = x; });
 
   const ini = new Date(INICIO + "T09:00:00").getTime();
   const GENTE = [];   // quién ha quedado sembrado: lo necesitan el Zoco y los tickets, que van después
@@ -323,7 +312,7 @@ async function main() {
     await lote.commit();
   }
 
-  console.log("✓ sembrado:", ID);
+  console.log("✓ sembrado:", ID, "· versión", plan.version);
   console.log("  semana 1:", INICIO, DEMO ? "· congelada en la semana 10 para siempre" : "· hoy debería ser la semana " + (A_SEMANA || 10));
   if (CUSTOM) console.log("  retos abiertos esa semana:", DISPONIBLES.length, REAL ? "· " + A_REAL + " (uid " + REAL.uid + ") con " + Math.max(0, DISPONIBLES.length - 3) : "");
   console.log("  reclutas:", ALIAS.length, "· escondites:", huevos.length);
