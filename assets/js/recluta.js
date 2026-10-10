@@ -2189,7 +2189,8 @@
     if(docenteMirado||SIMULACRO||!st.yo||!motorNuevo()) return;
     var M=window.SG&&window.SG.MOTOR; if(!M||!M.getDoc||!M.esDelEquipoDe||!M.sesion) return;
     docenteMirado=true;
-    Promise.all([M.sesion(), M.getDoc(M.doc(M.db,'projects',per))]).then(function(x){
+    // (10-oct, noche · «TODO ES TODO»: el grupo entero solo lo lee su equipo docente; el resto, su tarjeta, sin correos)
+    Promise.all([M.sesion(), (M.leerGrupo?M.leerGrupo(per):M.getDoc(M.doc(M.db,'projects',per)))]).then(function(x){
       var aqui=!!(x[1].exists()&&M.esDelEquipoDe(x[1].data(),x[0])), otro=false;
       try{ otro=localStorage.getItem('sgEsDocente')==='1'; }catch(e){}
       var antes=st.docente; st.docente=aqui?'aqui':(otro?'otro':'');

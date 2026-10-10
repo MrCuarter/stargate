@@ -22,7 +22,9 @@ const RAIZ = path.resolve(__dirname, "..");
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const P_CDP = 9555, P_WEB = 8765, P_WEB2 = 8766;
 const PROYECTO = "demo-stargate";
-const EMU = { auth: 9099, firestore: 8080, functions: 5001 };
+// (10-oct, noche · SG_LAB_PUERTOS='{"auth":9419,"firestore":8480,"functions":5401}': otros puertos, para no chocar con las
+// pruebas del despliegue en el 8080; la web los recibe con window.SG_EMU_PUERTOS)
+const EMU = Object.assign({ auth: 9099, firestore: 8080, functions: 5001 }, JSON.parse(process.env.SG_LAB_PUERTOS || "{}"));
 const PUBLICA = `http://127.0.0.1:${EMU.functions}/${PROYECTO}/us-central1/tableroStargate`;
 const BASE = `http://127.0.0.1:${P_WEB}/`;
 const dormir = ms => new Promise(r => setTimeout(r, ms));
@@ -225,6 +227,7 @@ async function persona(nombre) {
   });
   const env = (m, p) => NAV.enviar(m, p, sessionId);
   const INYECCION = `window.SG_EMU = true; window.SG_API_PUBLICA = ${JSON.stringify(PUBLICA)};` +
+    `window.SG_EMU_PUERTOS = ${JSON.stringify(EMU)};` +
     `window.__dialogos = []; window.alert = function(m){ window.__dialogos.push(String(m)); };`;
   /**
    * 🔴 LOS IFRAMES DE OTRO SITIO SON OTRO PROCESO. Un escondite pegado en una presentación vive en
@@ -411,5 +414,5 @@ function comprobar(nombre, cierto, detalle) {
   fallos.push(t); process.stderr.write("   ✗ " + t + "\n"); return false;
 }
 
-module.exports = { cargarMapa, sitio, nueva, idEn, version: () => VERSION, emuladoresVivos, reiniciar, leerDoc, consultar, arrancar, parar, persona, comprobar, dormir, admin, fichaDe,
+module.exports = { EMU, cargarMapa, sitio, nueva, idEn, version: () => VERSION, emuladoresVivos, reiniciar, leerDoc, consultar, arrancar, parar, persona, comprobar, dormir, admin, fichaDe,
                    marcador: () => ({ ok, fallos }), BASE, P_WEB2, PUBLICA, RAIZ };

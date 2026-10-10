@@ -95,7 +95,8 @@
     // plataforma, y ese no tiene nada que ver con este botón.
     var grupos = [];
     for (var i = 0; i < fichas.length; i++) {
-      var p = await M.getDoc(M.doc(M.db, "projects", fichas[i].projectId));
+      // (10-oct, noche · el alumnado lee la tarjeta de su grupo: el grupo entero solo lo lee su equipo docente)
+      var p = await M.leerGrupo(fichas[i].projectId);
       if (p.exists() && (p.data().stargate || {}).version)
         grupos.push({ ficha: fichas[i], id: p.id, nombre: p.data().name });
     }

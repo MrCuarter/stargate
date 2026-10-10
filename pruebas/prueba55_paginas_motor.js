@@ -113,7 +113,8 @@ c(/grupos\.length > 1/.test(VALIDAR),
 // Firestore no deja leer NADA sin sesión, ni el nombre del grupo. Preguntar antes de entrar
 // devolvía «permisos insuficientes» y la página moría con un error que no era culpa de nadie.
 const arranca = ALTA.slice(ALTA.indexOf("async function arrancar"));
-c(arranca.indexOf("if (!YO) return puerta();") < arranca.indexOf('"projects", PER'),
+// (10-oct, noche · «todo es todo»: el grupo se lee con MOTOR.leerGrupo —el entero o su tarjeta—, no con "projects" a pelo)
+c(arranca.indexOf("if (!YO) return puerta();") >= 0 && arranca.indexOf("if (!YO) return puerta();") < arranca.indexOf("MOTOR.leerGrupo(PER)"),
   "🔴 el alistamiento comprueba la sesión ANTES de leer el grupo");
 
 // ---------------------------------------------------------------- j) alistarse dos veces, no

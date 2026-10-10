@@ -326,6 +326,16 @@ var alistarse = pieza(function (module, exports) {
  *       - `sitio`   (opcional, 7-oct) (vieja, grupo) → el `GP_SDK.sitio(vieja, datos del grupo)` de ese grupo (o una promesa de
  *                   él): dónde va la reserva de ESE grupo. Sin él, la colección de siempre, exactamente como antes.
  *
+ * 10-oct (noche) · «TODO ES TODO» (firestore.rules): el grupo entero (`projects/{id}`, con los correos del equipo docente y el
+ * código) ya solo lo lee su equipo docente, el Mando y los vitalicios de su mod y el dueño. Para todo lo demás:
+ *   · `leerGrupo(id)`  → promesa de algo como un `getDoc`: { id, exists(), data(), tarjeta }. El grupo entero si las reglas lo
+ *                       dejan; si dicen que no, su TARJETA (`mod_grupos/{id}`: lo mismo sin correos ni código, la escribe el
+ *                       servidor), con `tarjeta: true`. Lo que pinta el alumnado y quien se va a alistar sale de aquí.
+ *   · `porCodigo(c)`   → promesa del id del grupo de ese código (o null): `mod_codigos/{CÓDIGO}`, solo por el código exacto.
+ *   · `codigoEs(id, c)`→ promesa de true/false: ¿es ese el código de ese grupo? (sin leer el código del grupo).
+ *   · la reserva de un alias de OTRA persona ya no se deja leer a quien no es del grupo: un «no» de las reglas al mirarla es
+ *     «ocupado» (antes se leía y se veía de quién era).
+ *
  * Los textos de los errores son de la web (cada mod habla con su voz): van en `textos`, con unos por defecto neutros. Lo que se
  * puede hacer lo deciden las reglas; esto solo lo prepara bien y lo cuenta con palabras.
  */
@@ -336,6 +346,13 @@ var alistarse = pieza(function (module, exports) {
   var COLECCION = "stargate_alias";
   // 10-oct · quién es de cada grupo (functions/modMiembros.js): `mod_miembros/{grupo}__{uid}`
   var MIEMBROS = "mod_miembros";
+  // 10-oct (noche) · la tarjeta del grupo y a qué grupo lleva cada código (functions/modGrupoPublico.js)
+  var GRUPOS = "mod_grupos", CODIGOS = "mod_codigos";
+  /** El código como se busca: sin espacios, en mayúsculas ('' si no vale: corto o con «/»). Lo mismo que el servidor. */
+  function normalizarCodigo(c) {
+    var x = String(c == null ? "" : c).trim().toUpperCase();
+    return (x.length < 4 || x.length > 40 || x.indexOf("/") >= 0 || x === "." || x === ".." || x.indexOf("__") === 0) ? "" : x;
+  }
 
   function plano(t) {
     return String(t || "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ");
@@ -378,6 +395,38 @@ var alistarse = pieza(function (module, exports) {
     var sesion = ctx.sesion || function () { return Promise.resolve(null); };
 
     function ref(grupo, alias) { return fs.doc(db, COLECCION, grupo + "__" + clave(alias)); }
+
+    // 10-oct (noche) · los grupos que las reglas no me dejan leer enteros (no soy de su equipo): ya no se pregunta otra vez
+    var soloTarjeta = {};
+    /** El grupo entero o, si las reglas dicen que no, su tarjeta (sin correos ni código). Ver arriba. */
+    function leerGrupo(id) {
+      id = String(id);
+      var tarjeta = function () {
+        return fs.getDoc(fs.doc(db, GRUPOS, id)).then(function (t) {
+          var d = t.exists() ? Object.assign({}, t.data()) : null;
+          if (d) delete d.modGrupo;
+          return { id: id, ref: t.ref, tarjeta: true, exists: function () { return !!d; }, data: function () { return d ? Object.assign({}, d) : undefined; } };
+        });
+      };
+      if (soloTarjeta[id]) return tarjeta();
+      return fs.getDoc(fs.doc(db, "projects", id)).then(function (p) { return p; }, function (e) {
+        if (!denegado(e)) throw e;
+        soloTarjeta[id] = true;
+        return tarjeta();
+      });
+    }
+    /** El id del grupo de un código (o null), sin poder recorrerlos: solo el código exacto. */
+    function porCodigo(c) {
+      var k = normalizarCodigo(c);
+      if (!k) return Promise.resolve(null);
+      return fs.getDoc(fs.doc(db, CODIGOS, k)).then(function (r) {
+        return r.exists() && r.data().projectId ? String(r.data().projectId) : null;
+      });
+    }
+    /** ¿Es `c` el código del grupo `id`? */
+    function codigoEs(id, c) {
+      return porCodigo(c).then(function (g) { return !!g && g === String(id); });
+    }
     /**
      * 7-oct · LA RESERVA DE ESTE GRUPO (§1d de docs/PLAN_CENTRALIZAR.md): → promesa de { ref, datos(d) }. Con `ctx.sitio`, donde
      * diga `sitio` para el grupo (en `mod_alias`, con su `mod`, si es de la definitiva); sin él, `ref` y los datos tal cual.
@@ -402,7 +451,9 @@ var alistarse = pieza(function (module, exports) {
       var e = excepto || {};
       var suya = (e.uid || !e.ficha)
         ? reserva(grupo, alias).then(function (x) { return fs.getDoc(x.ref); })
-          .then(function (r) { return r && r.exists() && r.data().uid !== e.uid ? String(r.data().alias || alias) : null; }, function () { return null; })
+          .then(function (r) { return r && r.exists() && r.data().uid !== e.uid ? String(r.data().alias || alias) : null; },
+            // 10-oct (noche) · la reserva de otra persona ya no se deja leer a quien no es del grupo: ese «no» es «ocupado»
+            function (err) { return denegado(err) ? String(alias) : null; })
         : Promise.resolve(null);
       return suya.then(function (deOtro) {
         if (deOtro) return deOtro;
@@ -423,7 +474,11 @@ var alistarse = pieza(function (module, exports) {
     /** Reserva el alias para `uid` DENTRO del lote que escribe la ficha. Si ya es suyo, nada; si es de otro, para con palabras. */
     function reservar(lote, grupo, uid, alias, textos) {
       return reserva(grupo, alias).then(function (x) {
-        return fs.getDoc(x.ref).catch(function () { return null; }).then(function (r) {
+        return fs.getDoc(x.ref).catch(function (e) {
+          // 10-oct (noche) · la de otra persona no se deja leer a quien no es del grupo: ocupada
+          if (denegado(e)) throw new Error(texto(textos, "ocupado", alias));
+          return null;
+        }).then(function (r) {
           if (r && r.exists()) {
             if (r.data().uid === uid) return false;
             throw new Error(texto(textos, "ocupado", alias));
@@ -456,7 +511,8 @@ var alistarse = pieza(function (module, exports) {
         yo = s;
         if (!yo || !yo.uid) throw new Error(texto(T, "sinSesion"));
         avisa("grupo");
-        return fs.getDoc(fs.doc(db, "projects", grupo));
+        // 10-oct (noche) · quien se alista aún no es del grupo: lee su tarjeta (su equipo docente, el grupo entero)
+        return leerGrupo(grupo);
       }).then(function (p) {
         if (!p.exists()) throw new Error(texto(T, "sinGrupo"));
         proyecto = Object.assign({ id: p.id }, p.data());
@@ -544,10 +600,12 @@ var alistarse = pieza(function (module, exports) {
       });
     }
 
-    return { ref: ref, reserva: reserva, ocupado: ocupado, reservar: reservar, alistar: alistar, cambiarAlias: cambiarAlias };
+    return { ref: ref, reserva: reserva, ocupado: ocupado, reservar: reservar, alistar: alistar, cambiarAlias: cambiarAlias,
+      leerGrupo: leerGrupo, porCodigo: porCodigo, codigoEs: codigoEs };
   }
 
-  return { COLECCION: COLECCION, plano: plano, clave: clave, fichaNueva: fichaNueva, TEXTOS: TEXTOS, crear: crear };
+  return { COLECCION: COLECCION, GRUPOS: GRUPOS, CODIGOS: CODIGOS, plano: plano, clave: clave, normalizarCodigo: normalizarCodigo,
+    fichaNueva: fichaNueva, TEXTOS: TEXTOS, crear: crear };
 });
 // ─── fin de la pieza «alistarse» ───
 });
@@ -2083,6 +2141,11 @@ var grupos = pieza(function (module, exports) {
  * revés, deja crear grupos que no tocan) y `equipo` queda en []. Un fallo al contar deja `reclutas` en null: «sin dato» es
  * mejor que un cero que parece verdad.
  * Lo que la web hace con la lista (la marca de docente en localStorage, «Crear grupo», anotar la conexión) es de la web.
+ *
+ * 10-oct (noche) · `todos(modGrupo)` → [{ id, datos }]: TODOS los grupos de un mod (profesores.html, la consola del Mando y de los
+ * vitalicios). Las reglas ya no dejan listar `projects` entero (solo al dueño): se listan las tarjetas de ese mod
+ * (`mod_grupos`, `where('modGrupo', '==', …)`: el Mando y los vitalicios de ESE mod) y se abre cada grupo por su id (eso sí lo
+ * pueden). Si alguno no se deja abrir, va su tarjeta.
  */
 (function (raiz, fabrica) {
   if (typeof module === "object" && module.exports) module.exports = fabrica();
@@ -2160,7 +2223,18 @@ var grupos = pieza(function (module, exports) {
       }));
       return mios;
     }
-    return { misGrupos: misGrupos };
+    /** Todos los grupos de un mod (ver arriba), en el orden en que llegan. */
+    async function todos(modGrupo) {
+      var r = await fs.getDocs(fs.query(fs.collection(db, "mod_grupos"), fs.where("modGrupo", "==", String(modGrupo))));
+      return Promise.all(r.docs.map(async function (t) {
+        var tarjeta = Object.assign({}, t.data()); delete tarjeta.modGrupo;
+        try {
+          var p = await fs.getDoc(fs.doc(db, "projects", t.id));
+          return { id: t.id, datos: p.exists() ? p.data() : tarjeta };
+        } catch (e) { return { id: t.id, datos: tarjeta }; }
+      }));
+    }
+    return { misGrupos: misGrupos, todos: todos };
   }
 
   return { crear: crear, ORDEN: ORDEN };

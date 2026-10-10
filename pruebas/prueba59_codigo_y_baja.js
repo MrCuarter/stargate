@@ -29,8 +29,10 @@ c(P.paquete(Object.assign({}, datos, { codigo: "MIOMIO" }), cat).proyecto.joinCo
   "y se puede imponer uno, para no cambiárselo a un grupo que ya lo tenía");
 
 // ---------------------------------------------------------------- b) alistarse lo pide
-c(/function codigoCorrecto\(\)/.test(ALTA), "el alistamiento comprueba el código");
-c(/if \(!esperado\) return true;/.test(ALTA),
+// 10-oct (noche) · «todo es todo»: quien se alista lee la tarjeta del grupo, sin el código (solo si lo tiene: `modConCodigo`), y el
+// que trae se comprueba contra el servidor sin saber el bueno (MOTOR.codigoEs → mod_codigos); su profesorado lo compara como siempre
+c(/function codigoCorrecto\(dado\)/.test(ALTA) && /MOTOR\.codigoEs\(PER, c\)/.test(ALTA), "el alistamiento comprueba el código (con la tarjeta, contra el servidor)");
+c(/if \(!tieneCodigo\(\)\) return Promise\.resolve\(true\);/.test(ALTA) && /PROY\.modConCodigo === true/.test(ALTA),
   "🔴 y si el grupo NO tiene código se entra como siempre: los sembrados antes no pueden quedarse sin poder alistar a nadie");
 c(/\.toUpperCase\(\)\.replace\(\/\[\^A-Z0-9\]\/g, ""\)/.test(ALTA),
   "   se normaliza: minúsculas, espacios y guiones no pueden dejar fuera a nadie");
