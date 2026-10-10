@@ -68,7 +68,11 @@ c(!/regalar.*(xp|cr[ée]ditos)/i.test(llam.slice(llam.indexOf("ll-regalo"), llam
 // Mercado, y una transacción por estudiante. Las dos de antes (`regalarCromo`, `regalarSobre`), que escribían el inventario
 // desde el navegador del docente, nadie las llamaba y se han quitado: en un grupo de la versión definitiva
 // (`economiaSoloServidor`) las reglas ya no dejan al docente escribir la economía.
-c(/eligeBotin\(normalizaLootItems\(items\)\)/.test(SERVIDOR.slice(SERVIDOR.indexOf("export const stargateRegalar"))),
+// 10-oct (noche) · el cuerpo de `stargateRegalar` vive ya en GamificaPro functions/modRegalar.js (pieza `regalos`, la de todos
+// los mods): en stargate.js queda la línea que delega en `regalar`
+const REGALAR = require("fs").readFileSync("/Users/nor/Claude/vibewebs/gamificapro/functions/modRegalar.js", "utf8");
+c(/export const stargateRegalar = [^\n]*regalar\(request\.auth, request\.data\)/.test(SERVIDOR)
+  && /eligeBotin\(normalizaLootItems\(items\)\)/.test(REGALAR),
   "🔴 los regalos respetan el peso de cada carta: los sortea el servidor con el cofre del grupo");
 c(/llamar\("stargateRegalar", \{ projectId: perId, fichas: fichas, regalo: regalo \}\)/.test(motor),
   "   y el navegador solo los pide (`regalarEnClase`)…");
