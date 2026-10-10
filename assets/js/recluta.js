@@ -4327,76 +4327,23 @@
    *     visita no se le insiste, y se le vuelve a preguntar la próxima vez que entre.
    * Nunca en la Nave proyectada o incrustada, el simulacro, la demo ni a quien es del equipo docente (ni a un fantasma, ni a
    * una cuenta congelada, que no puede escribir en su ficha): a esos, lo de siempre sin pregunta.
+
+   * 🔴 10-oct · LA VENTANA Y EL REGISTRO SON DEL MOTOR (GamificaPro sdk/consentimiento.js → assets/js/consentimiento.js,
+   * `GP.consentimiento`; DPG1 la lleva igual). Lo que decía NEBULA, tal cual, en _site_data.py → CONSENTIMIENTO_PIEL. Aquí
+   * queda lo de STARGATE: a quién NO se le pregunta y dónde se guarda (su privado/datos). Letra por letra lo de antes:
+   * GamificaPro tests/sdk/consentimiento.test.ts (el dorado) y la batería 134.
    */
-  var consPreguntando=false;
   function pedirConsentimiento(seguir){
-    var C=window.SG_CONSENTIMIENTO||{}, M=window.SG&&window.SG.MOTOR, docente=false, dicho=false;
-    try{ docente=localStorage.getItem('sgEsDocente')==='1'; dicho=sessionStorage.getItem('sgConsNo_'+per)===C.v; }catch(e){}
-    if(!C.v||!motorNuevo()||DEMO||SIMULACRO||q.get('embed')==='1'||window.top!==window.self||docente
-       ||!st.yo||!st.yo.ficha||st.yo.congelado||st.yo.fantasma||!M||!M.getDoc||!M.setDoc) return seguir();
-    if(dicho) return;              // ya dijo que no en esta visita: ni pregunta ni bienvenidas encima
-    if(consPreguntando) return;    // (la sesión avisa dos veces al cargar: una sola ventana)
-    consPreguntando=true;
-    var ref=M.doc(M.db,'student_profiles',st.yo.ficha,'privado','datos');
-    M.getDoc(ref).then(function(d){
-      var dat=(d&&d.exists()&&d.data())||{};
+    var G=window.GP&&window.GP.consentimiento, M=window.SG&&window.SG.MOTOR, docente=false;
+    try{ docente=localStorage.getItem('sgEsDocente')==='1'; }catch(e){}
+    if(!G) return seguir();
+    var ref=function(){ return M.doc(M.db,'student_profiles',st.yo.ficha,'privado','datos'); };
+    G.pedir({ per:per, ficha:st.yo&&st.yo.ficha, seguir:seguir, aviso:aviso,
+      excluir:!motorNuevo()||DEMO||SIMULACRO||q.get('embed')==='1'||docente||!st.yo||!st.yo.ficha||st.yo.congelado||st.yo.fantasma||!M||!M.getDoc||!M.setDoc,
+      leer:function(){ return M.getDoc(ref()).then(function(d){ return (d&&d.exists()&&d.data())||{}; }); },
+      guardar:function(f){ return M.setDoc(ref(),{consentimiento:f},{merge:true}); },
       // (y de paso, su Bitácora: es el mismo documento)
-      if(st.bit===undefined){ st.bit=String(dat.bitacora||'').trim(); pintarBitacora(); }
-      if(dat.consentimiento&&dat.consentimiento.v===C.v){ consPreguntando=false; return seguir(); }
-      ventanaConsentimiento(ref, C, seguir);
-    },function(){ consPreguntando=false; seguir(); });
-  }
-  function ventanaConsentimiento(ref, C, seguir){
-    var M=window.SG.MOTOR;
-    var texto=esc(C.texto||'').replace('política de privacidad','<a href="privacidad.html" target="_blank" rel="noopener">política de privacidad</a>');
-    var contacto=esc(C.contacto||'');
-    var capa=document.createElement('div'); capa.className='sgp-capa cons-capa';
-    capa.innerHTML='<div class="sgp-caja cons-caja" role="dialog" aria-modal="true" aria-labelledby="cons-t"></div>';
-    var caja=capa.firstChild;
-    function pregunta(){
-      caja.innerHTML='<p class="sgp-quien"><img class=ico src=assets/img/iconos/p/envivo.png alt> NEBULA</p>'
-        +'<h3 id="cons-t">Antes de seguir, una cosa importante</h3>'
-        +'<div class="sgp-txt"><p>Hemos puesto al día la política de privacidad de STARGATE. Para seguir a bordo necesito que me confirmes esto:</p></div>'
-        +'<p class="cons-texto">'+texto+'</p>'
-        +'<div class="sgp-bot"><button type="button" class="btn min" data-cons-no>No quiero participar</button>'
-        +'<button type="button" class="btn min primary" data-cons-si>Acepto</button></div>';
-      caja.querySelector('[data-cons-si]').onclick=function(){
-        var b=this; b.disabled=true; b.textContent='Guardando…';
-        M.setDoc(ref,{consentimiento:{v:C.v, t:Date.now()}},{merge:true}).then(function(){
-          cerrar(); aviso('<b>Gracias, recluta.</b> Seguimos a bordo.'); seguir();
-        },function(){
-          // si no se ha podido guardar (sin red), se cierra igual y se le vuelve a preguntar la próxima vez
-          cerrar(); aviso('No he podido guardar tu respuesta. Te lo volveré a preguntar la próxima vez que entres.', true); seguir();
-        });
-      };
-      caja.querySelector('[data-cons-no]').onclick=salida;
-      setTimeout(function(){ var f=caja.querySelector('[data-cons-si]'); try{ f.focus({preventScroll:true}); }catch(e){} }, 30);
-    }
-    function salida(){
-      caja.innerHTML='<p class="sgp-quien"><img class=ico src=assets/img/iconos/p/envivo.png alt> NEBULA</p>'
-        +'<h3 id="cons-t">Sin problema: participar es voluntario</h3>'
-        +'<div class="sgp-txt"><p>Puedes dejar STARGATE y seguir la asignatura de otra forma. Para darte de baja y que se borren tus datos, '
-        +'<b>díselo a tu Comandante</b> (tu docente) o escribe a <a href="mailto:'+contacto+'">'+contacto+'</a>.</p>'
-        +'<p>Mientras no lo pidas, tu ficha se queda como está: <b>no se borra nada por sí solo</b>. Si cambias de idea, te lo volveré a preguntar la próxima vez que entres.</p></div>'
-        +'<div class="sgp-bot"><button type="button" class="btn min" data-cons-volver>Volver</button>'
-        +'<button type="button" class="btn min primary" data-cons-ok>Entendido</button></div>';
-      caja.querySelector('[data-cons-volver]').onclick=pregunta;
-      caja.querySelector('[data-cons-ok]').onclick=function(){
-        try{ sessionStorage.setItem('sgConsNo_'+per, C.v); }catch(e){}
-        cerrar();
-      };
-      setTimeout(function(){ var f=caja.querySelector('[data-cons-ok]'); try{ f.focus({preventScroll:true}); }catch(e){} }, 30);
-    }
-    function cerrar(){ consPreguntando=false; capa.classList.add('cerrando'); setTimeout(function(){ if(capa.parentNode) capa.parentNode.removeChild(capa); }, 130); }
-    // 🔴 no se cierra pulsando fuera ni con Escape: es una respuesta, no un aviso (cerrarla sin querer sería un «no» que no ha dicho)
-    capa.addEventListener('keydown',function(ev){
-      if(ev.key==='Escape'){ ev.preventDefault(); ev.stopPropagation(); return; }
-      if(ev.key!=='Tab') return;
-      var fs=[].slice.call(caja.querySelectorAll('button:not([disabled]), a[href]')), i=fs.indexOf(document.activeElement);
-      ev.preventDefault(); fs[(i+(ev.shiftKey?-1:1)+fs.length)%fs.length].focus();
-    });
-    pregunta();
-    document.body.appendChild(capa);
+      alLeer:function(dat){ if(st.bit===undefined){ st.bit=String(dat.bitacora||'').trim(); pintarBitacora(); } } });
   }
   // Con sesión iniciada no hace falta preguntar nada: quien pide la ficha ES quien ha entrado.
   function identificarPorSesion(){

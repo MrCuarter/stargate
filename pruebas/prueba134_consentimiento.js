@@ -37,36 +37,55 @@ c(!/const datosFicha = \{[^}]*consentimiento/.test(alta), "   y NO en la ficha p
 c(/consentimiento/.test(L("assets/js/motor_sim.js")), "   la consola de ensayo (motor_sim.js) va igual");
 c(/esDelEquipoDe/.test(ALI), "   convive con el modo fantasma (el aviso del equipo docente sigue ahí)");
 
-console.log("\n  · La Nave: a quién se le pregunta (se ejecuta)");
-const trozo = REC.match(/  var consPreguntando=false;\n[\s\S]*?\n(?=  \/\/ Con sesión iniciada)/)[0];
-c(/function pedirConsentimiento\(seguir\)\{/.test(trozo) && /function ventanaConsentimiento\(ref, C, seguir\)\{/.test(trozo), "las dos funciones están en recluta.js");
-// (la ventana se sustituye por una marca: aquí se mira la decisión, no el dibujo)
-const trozoPrueba = trozo.replace("function ventanaConsentimiento(ref, C, seguir){", "function ventanaConsentimiento(ref, C, seguir){ __v(ref, C, seguir); return;");
+console.log("\n  · La Nave: a quién se le pregunta (se ejecuta, con la pieza del motor)");
+// 10-oct · la ventana y el registro son de GamificaPro (sdk/consentimiento.js → assets/js/consentimiento.js, `GP.consentimiento`);
+// en recluta.js queda el pegamento: a quién NO se le pregunta y dónde se guarda. Se ejecutan los dos juntos, como en la Nave.
+const PIEZA = L("assets/js/consentimiento.js");
+const enPieza = JSON.parse(L("recluta.html").match(/window\.GP_CONSENTIMIENTO=(\{.*?\});<\/script>/)[1]);
+c(enPieza.v === V && enPieza.texto === TEXTO && enPieza.contacto === enAli.contacto, "🔴 la pieza de la Nave lleva la MISMA versión, el mismo texto y el mismo contacto");
+{ const R = L("recluta.html"), i = R.indexOf("assets/js/consentimiento.js"); c(i > 0 && i < R.indexOf("assets/js/recluta.js"), "   y se carga antes que recluta.js"); }
+const trozo = REC.match(/  function pedirConsentimiento\(seguir\)\{\n[\s\S]*?\n  \}\n(?=  \/\/ Con sesión iniciada)/)[0];
+c(/G\.pedir\(/.test(trozo) && !/function ventanaConsentimiento/.test(REC), "recluta.js llama a la pieza común (sin su copia de la ventana)");
 async function prueba(o) {
-  const ventanas = [], ss = Object.assign({}, o.ss || {});
+  const ventanas = [], ss = Object.assign({}, o.ss || {}), guardado = [];
   const M = { db: {}, doc: (...a) => a.slice(1).join("/"),
-    getDoc: () => Promise.resolve({ exists: () => !!o.datos, data: () => o.datos }), setDoc: () => Promise.resolve() };
-  const win = { SG_CONSENTIMIENTO: enNave, SG: { MOTOR: M } };
+    getDoc: (ref) => { ventanas.lee = ref; return Promise.resolve({ exists: () => !!o.datos, data: () => o.datos }); },
+    setDoc: (ref, d, op) => { guardado.push([ref, d, op]); return Promise.resolve(); } };
+  const win = { GP_CONSENTIMIENTO: enPieza, SG: { MOTOR: M } };
   win.self = win; win.top = o.incrustada ? {} : win;
+  const cuerpo = { appendChild: (n) => { ventanas.push(n); n.parentNode = cuerpo; }, removeChild: (n) => { n.parentNode = null; } };
+  const nodo = () => { const n = { className: "", classList: { add() {} }, addEventListener() {}, botones: {} };
+    Object.defineProperty(n, "innerHTML", { get: () => n._h, set: (v) => { n._h = v; n.botones = {};
+      if (/^<div /.test(v)) { n.firstChild = nodo(); return; }
+      (v.match(/data-cons-[\w-]+/g) || []).forEach((d) => { n.botones[d] = { focus() {}, disabled: false }; }); } });
+    n.querySelector = (s) => n.botones[s.slice(1, -1)] || null; n.querySelectorAll = () => [];
+    return n; };
+  const documento = { body: cuerpo, createElement: nodo, activeElement: null };
+  const sesion = { getItem: (k) => (k in ss ? ss[k] : null), setItem: (k, v) => { ss[k] = v; } };
+  require("vm").runInNewContext(PIEZA, { window: win, document: documento, sessionStorage: sesion, setTimeout, Date });
   const ctx = {
-    window: win, __v: (ref, C) => ventanas.push([ref, C.v]),
-    localStorage: { getItem: (k) => (k === "sgEsDocente" && o.docente ? "1" : null) },
-    sessionStorage: { getItem: (k) => ss[k] || null, setItem: (k, v) => { ss[k] = v; } },
+    window: win, localStorage: { getItem: (k) => (k === "sgEsDocente" && o.docente ? "1" : null) },
     q: new URLSearchParams(o.embed ? "embed=1" : ""), per: "PERX", DEMO: !!o.demo, SIMULACRO: !!o.simulacro,
     st: { yo: o.yo === undefined ? { ficha: "F1" } : o.yo }, motorNuevo: () => o.motor !== false,
-    pintarBitacora: () => {}, esc: (t) => t, aviso: () => {}, document: {}
+    pintarBitacora: () => {}, aviso: () => {}
   };
-  const pedir = new Function(...Object.keys(ctx), trozoPrueba + "\nreturn pedirConsentimiento;")(...Object.values(ctx));
+  const pedir = new Function(...Object.keys(ctx), trozo + "\nreturn pedirConsentimiento;")(...Object.values(ctx));
   let siguio = 0;
   pedir(() => { siguio++; });
   await new Promise((r) => setTimeout(r, 5));
-  return { ventanas, siguio };
+  return { ventanas, get siguio() { return siguio; }, ss, guardado, lee: ventanas.lee };   // (siguio, al momento: «Acepto» sigue después)
 }
 
 (async () => {
   let r = await prueba({ datos: { firstName: "Ana", email: "a@x.es" } });
-  c(r.ventanas.length === 1 && r.ventanas[0][0] === "student_profiles/F1/privado/datos" && r.siguio === 0,
+  c(r.ventanas.length === 1 && r.lee === "student_profiles/F1/privado/datos" && r.siguio === 0,
     "🔴 recluta sin consentimiento: se le pregunta (en SU privado/datos) y lo de siempre espera", r);
+  const caja = r.ventanas[0] && r.ventanas[0].firstChild;
+  caja.querySelector("[data-cons-si]").onclick.call({});
+  await new Promise((res) => setTimeout(res, 5));
+  c(r.guardado.length === 1 && r.guardado[0][0] === "student_profiles/F1/privado/datos" && r.guardado[0][1].consentimiento.v === V
+    && typeof r.guardado[0][1].consentimiento.t === "number" && r.guardado[0][2].merge === true && r.siguio === 1,
+    "🔴 «Acepto» guarda { v, t } en SU privado/datos con merge (no pisa nombre, correo ni Bitácora) y sigue", r.guardado);
   r = await prueba({ datos: { consentimiento: { v: V, t: 1 } } });
   c(r.ventanas.length === 0 && r.siguio === 1, "🔴 ya aceptó esta versión: ni pregunta, y sus bienvenidas salen como siempre", r);
   r = await prueba({ datos: { consentimiento: { v: "2026-01-01", t: 1 } } });
@@ -90,15 +109,15 @@ async function prueba(o) {
   r = await prueba({ datos: {}, ss: { sgConsNo_PERX: V } });
   c(r.ventanas.length === 0 && r.siguio === 0, "   dijo «No quiero participar» en esta visita: no se le insiste (ni bienvenidas encima)", r);
 
-  console.log("\n  · La ventana");
-  const ven = trozo.slice(trozo.indexOf("function ventanaConsentimiento"));
-  const salida = ven.slice(ven.indexOf("function salida"), ven.indexOf("function cerrar"));
-  c(/data-cons-si>Acepto</.test(ven) && /data-cons-no>No quiero participar</.test(ven), "🔴 «Acepto» y «No quiero participar»");
-  c(/setDoc\(ref,\{consentimiento:\{v:C\.v, t:Date\.now\(\)\}\},\{merge:true\}\)/.test(ven), "   «Acepto» guarda { v, t } con merge (no pisa nombre, correo ni Bitácora)");
-  c(/díselo a tu Comandante/.test(salida) && /mailto:'\+contacto/.test(salida) && /no se borra nada por sí solo/.test(salida), "   «No quiero participar» explica cómo dejarlo (su Comandante o el contacto) y que no se borra nada solo");
-  c(salida.length > 0 && !/setDoc|deleteDoc|borrar/.test(salida), "   y decir que no NO escribe ni borra nada");
-  c(/ev\.key==='Escape'\)\{ ev\.preventDefault\(\)/.test(ven) && !/mousedown/.test(ven), "   no se cierra con Escape ni pulsando fuera (cerrarla sin querer no es un «no»)");
-  c(!/Claude/.test(trozo) && /NEBULA/.test(ven), "   habla NEBULA, y ni una vez «Claude»");
+  console.log("\n  · La ventana (la pieza del motor con la piel de STARGATE)");
+  const PIEL = enPieza.piel, TX = PIEL.textos;
+  const salida = PIEZA.slice(PIEZA.indexOf("function salida"), PIEZA.indexOf("function cerrar"));
+  c(TX.si === "Acepto" && TX.no === "No quiero participar" && /boton\("no", T\.no\) \+ boton\("si", T\.si, true\)/.test(PIEZA), "🔴 «Acepto» y «No quiero participar»");
+  c(/o\.guardar\(firma\(\)\)/.test(PIEZA) && /guardar:function\(f\)\{ return M\.setDoc\(ref\(\),\{consentimiento:f\},\{merge:true\}\); \}/.test(trozo), "   «Acepto» guarda { v, t } con merge (no pisa nombre, correo ni Bitácora)");
+  c(/díselo a tu Comandante/.test(TX.salida) && /\{contacto\}/.test(TX.salida) && /no se borra nada por sí solo/.test(TX.salida) && /mailto:/.test(salida), "   «No quiero participar» explica cómo dejarlo (su Comandante o el contacto) y que no se borra nada solo");
+  c(salida.length > 0 && !/guardar|setDoc|deleteDoc|borrar/.test(salida), "   y decir que no NO escribe ni borra nada");
+  c(/ev\.key === "Escape"\) \{ ev\.preventDefault\(\)/.test(PIEZA) && !/mousedown|"click"/.test(PIEZA), "   no se cierra con Escape ni pulsando fuera (cerrarla sin querer no es un «no»)");
+  c(PIEL.no === "sgConsNo_" && /NEBULA/.test(TX.quien) && !/Claude/.test(JSON.stringify(PIEL) + trozo), "   habla NEBULA, y ni una vez «Claude» (y la clave de «dijo que no», la de siempre)");
 
   console.log("\n  · La política de privacidad");
   const P = L("privacidad.html");
