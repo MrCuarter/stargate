@@ -33,8 +33,8 @@ const todo = sinEtiquetas(C.texto.join(" "));
   "Nada nuevo: tus respuestas al ticket se guardan como hasta ahora.",
   "no se puede deshacer sin una clave secreta que custodia el investigador",
   "Nunca con tu nombre ni con nada que te identifique.",
-  "Solo las personas referentes de tu grupo y el investigador, con la clave.",
-  "Cada vez que alguien la usa queda registrado: quién, cuándo y de qué grupo.",
+  "Solo el investigador, con la clave.",
+  "Cada vez que la usa queda registrado: cuándo y de qué grupo.",
   "No afecta a tu nota, ni a tu xp, ni a tus créditos, ni al premio del ticket: la cápsula te toca igual.",
   "Puedes retirarlo cuando quieras, en tu Nave o en la página del ticket.",
   "pulsa «Borrar mi código» en el mismo sitio: se quita de todos tus tickets de STARGATE.",
@@ -225,8 +225,8 @@ const errorFirebase = (code, message) => Object.assign(new Error(message), { cod
     "🔴 no participa: «Sin tu nombre y en dos minutos: tu Comandante ve lo que dice la clase, nunca quién lo dijo…»");
   c(ent(null) === ent({ investigacion: null }) && ent({ investigacion: { acepta: false } }) === ent(null), "   igual sin servidor o retirado");
   const si = sinEtiquetas(ent({ investigacion: { acepta: true } }));
-  c(si === "Sin tu nombre y en dos minutos. Participas en la investigación: tu ticket lleva tu seudónimo, y solo tus referentes y el investigador pueden saber que es tuyo. Cambiar Al enviarlo te llega una cápsula de suministros con un premio al azar.",
-    "🔴 participa: «…tu ticket lleva tu seudónimo, y solo tus referentes y el investigador pueden saber que es tuyo. [Cambiar]…»", si);
+  c(si === "Sin tu nombre y en dos minutos. Participas en la investigación: tu ticket lleva tu seudónimo, y solo el investigador puede saber que es tuyo. Cambiar Al enviarlo te llega una cápsula de suministros con un premio al azar.",
+    "🔴 participa: «…tu ticket lleva tu seudónimo, y solo el investigador puede saber que es tuyo. [Cambiar]…»", si);
   c(/var inv = investigacion\(YO\);[\s\S]{0,300}return inv\.then\(function \(x\) \{ INV = x; formulario\(\); \}\);/.test(TK), "   se pregunta a la vez que el estado del ticket, y sin respuesta, el formulario de siempre");
   c(/\(d\.data\(\) \|\| \{\}\)\.fantasma === true\) return null/.test(TK), "   a un fantasma, nada");
   c(/I\.marcarVisto\(INV\.ficha\); pintarInvestigacion\(\);/.test(TK) && /Leer y decidir/.test(TK), "   la tarjeta «¿Nos ayudas a investigar?» se cierra y no vuelve; el formulario se envía sin decidir nada");

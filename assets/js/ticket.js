@@ -57,8 +57,8 @@
   var CAPSULA_TXT = 'Al enviarlo te llega una <b>cápsula de suministros</b> con un premio al azar.';
   function entradilla() {
     if (INV && window.SG.INV.participa(INV.estado)) {
-      return '<b>Sin tu nombre</b> y en dos minutos. Participas en la investigación: tu ticket lleva tu seudónimo, y solo tus '
-        + 'referentes y el investigador pueden saber que es tuyo. <button type="button" class="tk-cambiar" data-tk-inv>Cambiar</button> ' + CAPSULA_TXT;
+      return '<b>Sin tu nombre</b> y en dos minutos. Participas en la investigación: tu ticket lleva tu seudónimo, y solo el '
+        + 'investigador puede saber que es tuyo. <button type="button" class="tk-cambiar" data-tk-inv>Cambiar</button> ' + CAPSULA_TXT;
     }
     return '<b>Sin tu nombre</b> y en dos minutos: tu Comandante ve lo que dice la clase, nunca quién lo dijo. ' + CAPSULA_TXT;
   }
