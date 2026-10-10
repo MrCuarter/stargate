@@ -60,6 +60,14 @@ c(/data-val-si/.test(BZ) && /data-val-mas/.test(BZ) && /¿Te ha resuelto la duda
 c(/art\.getAttribute\("data-mas"\)\) t = \(V\.mas/.test(BZ), "y «Necesito algo más» sale con su frase delante");
 c(/\.bz-valora\{/.test(leer("assets/css/stargate.css")), "con su estilo");
 
+// 4b · 10-oct · lo resuelto se va de la ventana (Norberto: «que desapareciese esa consulta… y quedarán las respuestas sin resolver»)
+c(/listo\("¡Gracias, Comandante! Nos ayuda a saber que el buzón sirve\."\); retirar\(art\);/.test(AV), "🔴 «Sí, resuelta»: tras el gracias, su tarjeta se retira de la ventana");
+c(/function retirar\(art\)/.test(AV) && /\.sgav-m\.sgav-fuera\{opacity:0;max-height:0/.test(AV), "   desvaneciéndose (sgav-fuera), no a golpe");
+c(/if \(!n\) return quitar\(\);/.test(AV) && /#sgav-t"\)\.textContent = n === 1 \? "Tienes una respuesta nueva" : "Tienes " \+ n \+ " respuestas nuevas"/.test(AV),
+  "   el título cuenta las que quedan y, sin ninguna, la ventana se cierra");
+c(/prefers-reduced-motion: reduce/.test(AV), "   y sin animación para quien la tiene quitada");
+c((AV.match(/ retirar\(art\);/g) || []).length === 1, "   solo «Sí, resuelta» retira: «Entendido» y «Necesito algo más» se quedan con su aviso");
+
 // 5 · las reglas ya lo dejan (nada que desplegar)
 const REGLAS = path.join(RAIZ, "..", "..", "gamificapro", "firestore.rules");
 if (fs.existsSync(REGLAS)) {
