@@ -5096,6 +5096,55 @@ const REG = {};   // cifras que se apuntan para el informe
       const gTodo = await rp.hasta("/^✓ Guardado$/.test(((document.querySelector('.cfg-capa #m-sec-msg')||{}).textContent||'').trim())", 25);
       const sesTodo = ((((await leerDoc("projects/" + P)) || {}).stargate || {}).sesiones) || {};
       c("   «Marcar todo» lo devuelve a completo", gTodo && Object.values(sesTodo).every(v => (v || []).every(k => k.charAt(0) === "+")), JSON.stringify(sesTodo));
+      /**
+       * 🔴 10-oct · Y SU ORDEN, ARRASTRANDO. Norberto: «además de que el docente pueda marcar las diapositivas que quiere ver,
+       * estaría genial que las pudiera reorganizar de forma sencilla arrastrando» (eligió secciones: GamificaPro sdk/ordena.js).
+       */
+      const filas = await rp.js("(function(){ var r=document.querySelector('.cfg-capa .m-secciones.m-ordena'); if(!r) return ''; return [].slice.call(r.children).map(function(f){ return f.getAttribute('data-ordena')||('#'+(f.getAttribute('data-fija')||'?')); }).join(','); })()");
+      c("🔴 orden · la rueda va en el orden de la clase, con un asa ⠿ en cada sección; la portada y «En directo», quietas",
+        /^#portada,unete,embarque,llamada,pregunta,ticket,mensaje,videos,/.test(filas) && /,ruta,#directo$/.test(filas)
+        && await rp.js("document.querySelectorAll('.cfg-capa [data-ordena] > button[data-ordena-asa]').length===23"), filas);
+      // con el teclado: la llamada, un puesto abajo (detrás de la pregunta)
+      await rp.js("var b=document.querySelector('.cfg-capa [data-ordena=\"llamada\"] [data-ordena-asa]'); b.focus(); b.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true})); 1");
+      const gO = await rp.hasta("/Guardado el orden/.test(((document.querySelector('.cfg-capa #m-sec-msg')||{}).textContent||''))", 25);
+      const ord1 = ((((await leerDoc("projects/" + P)) || {}).stargate || {}).modOrdenSesion) || {};
+      const suyo1 = Object.values(ord1)[0] || [];
+      c("🔴 orden · con las flechas se guarda solo (y lo dice), en su grupo: la llamada, detrás de la pregunta",
+        gO && suyo1.indexOf("llamada") === suyo1.indexOf("pregunta") + 1 && suyo1.indexOf("portada") < 0 && suyo1.indexOf("directo") < 0, JSON.stringify(ord1).slice(0, 220));
+      // arrastrando con el puntero (como el dedo): «El despegue», encima de «Mensaje de la semana»
+      const arr = await rp.js(`(function(){
+        var r=document.querySelector('.cfg-capa .m-secciones.m-ordena'), a=r.querySelector('[data-ordena="despegue"] [data-ordena-asa]'), m=r.querySelector('[data-ordena="mensaje"]');
+        m.scrollIntoView({block:'center'});   // (el asa no hace falta verla para cogerla; el sitio donde se suelta, sí)
+        var ra=a.getBoundingClientRect(), rm=m.getBoundingClientRect(), o={bubbles:true,cancelable:true,pointerId:9,isPrimary:true,button:0,pointerType:'touch'};
+        a.dispatchEvent(new PointerEvent('pointerdown', Object.assign({clientX:ra.left+5, clientY:ra.top+5}, o)));
+        rm=m.getBoundingClientRect();
+        a.dispatchEvent(new PointerEvent('pointermove', Object.assign({clientX:rm.left+4, clientY:rm.top+4}, o)));
+        a.dispatchEvent(new PointerEvent('pointerup', Object.assign({clientX:rm.left+4, clientY:rm.top+4}, o)));
+        return [].slice.call(r.querySelectorAll('[data-ordena]')).map(function(f){ return f.getAttribute('data-ordena'); }).join(','); })()`);
+      await dormir(1500);
+      const suyo2 = Object.values(((((await leerDoc("projects/" + P)) || {}).stargate || {}).modOrdenSesion) || {})[0] || [];
+      c("🔴 orden · y arrastrando por el asa (con el dedo): «El despegue» pasa delante del mensaje, y se guarda",
+        suyo2.indexOf("despegue") >= 0 && suyo2.indexOf("despegue") < suyo2.indexOf("mensaje") && arr.indexOf("despegue") < arr.indexOf("mensaje"), arr + " · " + suyo2.join(","));
+      await rp.foto(FOTOS + "/46-rueda-orden.png");
+      // (norma del 9-oct: cualquier móvil; el asa, de 40 px como mínimo; y en la tableta, igual)
+      for (const [w, h, movil] of [[360, 740, true], [320, 640, true], [768, 1024, true]]) {
+        await rp.tamano(w, h, movil); await dormir(500);
+        const m = await rp.js(`(function(){ var W=innerWidth+1, a=document.querySelector('.cfg-capa [data-ordena] [data-ordena-asa]').getBoundingClientRect();
+          return [document.documentElement.scrollWidth<=W, document.querySelector('.cfg-capa .cfg-caja').getBoundingClientRect().right<=W, a.width>=40&&a.height>=40,
+            [].slice.call(document.querySelectorAll('.cfg-capa .m-sec-fila')).every(function(f){ var r=f.getBoundingClientRect(); return r.right<=W && r.left>=-1; })].join(','); })()`);
+        c(`   orden · a ${w}×${h}: las asas de 40 px y nada se sale de la pantalla`, m === "true,true,true,true", m);
+        if (w !== 320) await rp.foto(FOTOS + "/46-rueda-orden-" + w + ".png");
+      }
+      await rp.tamano(1280, 800, false); await dormir(300);
+      // «Orden de serie»: vuelve y se quita lo suyo (la clase, como siempre)
+      await rp.js("document.querySelector('.cfg-capa [data-cfg-orden]').click(); 1");
+      const gS = await rp.hasta("/orden de serie/.test(((document.querySelector('.cfg-capa #m-sec-msg')||{}).textContent||''))", 25);
+      const ord3 = ((((await leerDoc("projects/" + P)) || {}).stargate || {}).modOrdenSesion) || {};
+      c("   «Orden de serie» lo devuelve (y no guarda nada: la clase sale como siempre)", gS && !Object.keys(ord3).length
+        && /^#portada,unete,embarque,llamada,pregunta,ticket,mensaje,videos,/.test(await rp.js("[].slice.call(document.querySelector('.cfg-capa .m-secciones').children).map(function(f){ return f.getAttribute('data-ordena')||('#'+f.getAttribute('data-fija')); }).join(',')")), JSON.stringify(ord3));
+      // y otra vez la llamada detrás de la pregunta, para verla en la sesión (abajo)
+      await rp.js("var b=document.querySelector('.cfg-capa [data-ordena=\"llamada\"] [data-ordena-asa]'); b.focus(); b.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true})); 1");
+      await rp.hasta("/Guardado el orden/.test(((document.querySelector('.cfg-capa #m-sec-msg')||{}).textContent||''))", 25);
       await rp.js("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); 1");
       c("   y Escape la cierra", await rp.hasta("!document.querySelector('.cfg-capa')", 5));
       // 🔴 20-sep · en su lugar, TU mensaje del foro: se escribe aquí y vale para TODOS tus grupos (ficha del docente)
@@ -5137,6 +5186,16 @@ const REG = {};   // cifras que se apuntan para el informe
       const d2 = await rp.js("getComputedStyle(document.getElementById('ses-aula')).display");
       c("🔴 el aula de la presentación: sale cerrada, se abre y «Cerrar» la cierra de verdad", d0 === "none" && d1 !== "none" && d2 === "none", [d0, d1, d2].join(" → "));
       c("   y dentro, sin cabecera de más: el aula sabe que va en el panel", /panel=1/.test(await rp.js("document.querySelector('#ses-aula iframe').src")));
+      // 🔴 10-oct · la sesión, en SU orden (la llamada, detrás de la pregunta) y con la portada delante y el cierre al final
+      await rp.ir("sesion.html?per=" + P + "&sem=10"); await rp.hasta("document.querySelectorAll('.barra-pasos .p').length>3", 60);
+      // (el orden llega con la lectura del grupo, que con el emulador lento tarda: se rehace el mazo al llegar, en la portada)
+      await rp.hasta("(function(){ var t=[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.title}); return t.indexOf('La pregunta')>=0 && t.indexOf('La pregunta')<t.indexOf('Llamada a filas'); })()", 30);
+      const rO = await rp.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.title})");
+      c("🔴 orden · la sesión sale en el orden de Rita: la pregunta antes de la llamada; la portada, la primera; «En directo», lo último",
+        rO[0] === "Portada" && rO.indexOf("La pregunta") > 0 && rO.indexOf("La pregunta") < rO.indexOf("Llamada a filas") && rO[rO.length - 1] === "En directo", JSON.stringify(rO.slice(0, 6)) + " … " + rO.slice(-2).join(", ")
+        + " · guardado: " + JSON.stringify(((((await leerDoc("projects/" + P)) || {}).stargate || {}).modOrdenSesion) || {}).slice(0, 160)
+        + " · pieza: " + await rp.js("!!(window.GP&&window.GP.ordena)"));
+      await admin().firestore().doc("projects/" + P).update({ "stargate.modOrdenSesion": {} });   // (y se deja como estaba)
       await rp.cerrar();
     }
 

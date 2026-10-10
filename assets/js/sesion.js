@@ -1812,6 +1812,23 @@
   }
   function apagadasEn(s){ return window.SG&&SG.seccionesApagadas ? SG.seccionesApagadas(apagadas(), empiezaTema(s)) : apagadas(); }
   /**
+   * 🔴 10-oct · Y EN SU ORDEN. Cada docente reordena las secciones arrastrando en la rueda (GamificaPro sdk/ordena.js; se guarda en
+   * `stargate.modOrdenSesion`, por nombre, y su alumnado lo recibe por el tablero). Sin orden guardado, la clase sale EXACTAMENTE
+   * como siempre. Con él, las diapositivas de cada sección van juntas en ese orden; la portada, al principio, y el ticket de salida,
+   * «En directo» y «Hasta pronto», al final. Dentro del Genially en dos tramos (?tramo=), cada tramo ordena lo suyo.
+   */
+  function ordenGuardado(){
+    var S=st.ordenDelGrupo||(st.d&&st.d.modOrdenSesion)||{}, quien=String((!st.alumno&&st.miNombre)||st.profeMio||'').trim();
+    return (quien&&Array.isArray(S[quien]))?S[quien]:[];
+  }
+  var FIJAS_SESION=['portada','embarque_portada','ticket_form','directo','hasta'];
+  function enSuOrden(todo){
+    var O=window.GP&&window.GP.ordena, o=ordenGuardado();
+    if(!O||!o.length) return todo;
+    return O.aplicar(todo, secDe, o, { base:(window.SG_SECCIONES_SESION||[]).map(function(x){ return x[0]; }),
+      fijo:function(x){ return FIJAS_SESION.indexOf(x.k)>=0; } });
+  }
+  /**
    * ════════ 🔴 23-sep · LA SEMANA 1: EL EMBARQUE ════════
    *
    * Norberto: «esa primera semana es la presentación de la asignatura junto con la primera parte del tema 1… Debes
@@ -2102,7 +2119,7 @@
     if(DIFERIDO) todo=todo.filter(function(x){ return SOLO_EN_DIRECTO.indexOf(x.k)<0; });   // (en diferido no se ficha ni se alista)
     var off=apagadasEn(s);
     if(off.length){ var quedan=todo.filter(function(x){ return off.indexOf(secDe(x))<0; }); todo=quedan.length?quedan:[todo[0]]; }
-    return todo.length?todo:[diaEmbarque(s)];
+    return todo.length?enSuOrden(todo):[diaEmbarque(s)];
   }
   /**
    * 🔴 26-sep · LA SESIÓN DE CADA ACTIVIDAD (sesion.html?act=1 / ?act=2). Norberto: «en la semana que toquen, quiero una sesión
@@ -2568,7 +2585,7 @@
      */
     var off=apagadasEn(s);
     if(off.length){ var quedan=todo.filter(function(x){ return off.indexOf(secDe(x))<0; }); todo=quedan.length?quedan:[todo[0]]; }
-    return todo;
+    return enSuOrden(todo);
   }
 
   // ---------- pintado ----------
@@ -3174,7 +3191,11 @@
     Array.prototype.forEach.call(root.querySelectorAll('[data-ses-ventana]'),function(b){ b.onclick=function(){ abrirEnVentana(); }; });
     var bCfg=document.getElementById('prep-cfg');
     if(bCfg) bCfg.onclick=function(){
-      window.SG.CFGSESION.abrir({ per:st.per, grupo:st.nombre||st.per, nombre:st.miNombre, off:apagadas(), verSesion:false,
+      window.SG.CFGSESION.abrir({ per:st.per, grupo:st.nombre||st.per, nombre:st.miNombre, off:apagadas(), orden:ordenGuardado(), verSesion:false,
+        // 10-oct · y al reordenar, igual
+        alOrdenar:function(o){ var S=Object.assign({}, st.ordenDelGrupo||(st.d&&st.d.modOrdenSesion)||{});
+          if(o.length) S[st.miNombre]=o; else delete S[st.miNombre];
+          st.ordenDelGrupo=S; pintar(); },
         // al guardar, el mazo se rehace con lo que has elegido, sin recargar (y sin moverte si estabas a mitad)
         alGuardar:function(off){ var S=Object.assign({}, st.sesionesDelGrupo||(st.d&&st.d.sesiones)||{});
           if(off.length) S[st.miNombre]=off; else delete S[st.miNombre];
@@ -3401,9 +3422,10 @@
     var M=window.SG&&window.SG.MOTOR; if(!M||!M.getDoc||st.alumno) return;
     M.getDoc(M.doc(M.db,'projects',per)).then(function(pd){
       if(per!==st.per) return;
-      var antes=JSON.stringify(apagadas());
-      st.sesionesDelGrupo=(((pd&&pd.exists()?pd.data():{})||{}).stargate||{}).sesiones||{};
-      if(st.slides && st.slides.length && st.i===0 && JSON.stringify(apagadas())!==antes) pintar();
+      var antes=JSON.stringify([apagadas(), ordenGuardado()]), S=(((pd&&pd.exists()?pd.data():{})||{}).stargate||{});
+      st.sesionesDelGrupo=S.sesiones||{};
+      st.ordenDelGrupo=S.modOrdenSesion||{};   // 10-oct · y su orden (la rueda, arrastrando)
+      if(st.slides && st.slides.length && st.i===0 && JSON.stringify([apagadas(), ordenGuardado()])!==antes) pintar();
     }).catch(function(){});
   }
   function miNombreDe(per, listo){

@@ -1886,8 +1886,14 @@
     var p = PERS.filter(function (x) { return x.id === per; })[0] || {};
     var nombre = p.miNombre || miNombreEn(p);
     var dentro = per === PER && DATOS;
-    var ses = (dentro ? ((window.SG.TABLERO.tablero(DATOS, true) || {}).sesiones) : ((p.stargate || {}).sesiones)) || {};
-    window.SG.CFGSESION.abrir({ per: per, grupo: p.nombre || per, nombre: nombre, off: ses[nombre] || [], demo: url.get("demo") === "1",
+    var T = dentro ? (window.SG.TABLERO.tablero(DATOS, true) || {}) : (p.stargate || {});
+    var ses = T.sesiones || {}, ord = T.modOrdenSesion || {};   // (10-oct · y su orden, arrastrando)
+    window.SG.CFGSESION.abrir({ per: per, grupo: p.nombre || per, nombre: nombre, off: ses[nombre] || [], orden: ord[nombre] || [], demo: url.get("demo") === "1",
+      alOrdenar: function (o) {
+        p.stargate = p.stargate || {}; var m = p.stargate.modOrdenSesion = Object.assign({}, p.stargate.modOrdenSesion || {});
+        if (o.length) m[nombre] = o; else delete m[nombre];
+        if (dentro && DATOS.proyecto) { var S = DATOS.proyecto.stargate = DATOS.proyecto.stargate || {}; S.modOrdenSesion = Object.assign({}, m); }
+      },
       alGuardar: function (off) {
         p.stargate = p.stargate || {}; p.stargate.sesiones = p.stargate.sesiones || {};
         if (off.length) p.stargate.sesiones[nombre] = off; else delete p.stargate.sesiones[nombre];

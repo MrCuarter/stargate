@@ -1373,6 +1373,9 @@ TRIPULANTES = {
 # "tema" = solo en la primera clase de cada tema (o en todas, si la marca así). Lo que el docente quite, no sale nunca.
 # Y después, con su sí: el mensaje de la semana, apagado (ya le sale a cada recluta en su Nave); la oferta, al empezar tema.
 SESION_SECCIONES = [
+    # 🔴 10-oct · EN EL ORDEN EN QUE SALEN EN LA CLASE (sesion.js, construir): la rueda «Configurar las diapositivas» las enseña así y
+    # cada docente las reordena arrastrando (GamificaPro sdk/ordena.js; su orden, en stargate.modOrdenSesion). La primera (la portada)
+    # y la última («En directo») no se mueven: con el ticket de salida y «Hasta pronto», van siempre al principio y al final.
     ("portada", "Portada", "El planeta de la semana y el capítulo de la historia."),
     ("unete", "Únete a la clase", "Semanas 1 y 2: el código y el enlace para alistarse, y «Copiar invitación» para el chat."),
     # 23-sep · solo en la semana 1: la presentación de la asignatura dentro de la historia
@@ -1380,6 +1383,7 @@ SESION_SECCIONES = [
     ("llamada", "Llamada a filas", "Fichar la asistencia al empezar."),
     # 23-sep · la pregunta de la clase (calendario oficial): el comandante del docente y la pregunta en grande (24-sep: tras la llamada)
     ("pregunta", "La pregunta de la clase", "La pregunta del calendario oficial, con tu comandante. La resuelves tú en clase."),
+    ("ticket", "Ticket de salida", "Lo que dijisteis al salir (o el ticket para rellenar)."),
     ("mensaje", "Mensaje de la semana", "La transmisión con el logo de STARGATE (a cada recluta ya le sale en su Nave).", "off"),
     ("videos", "Vídeos de apertura", "La sinopsis, la Bitácora o la entrada al planeta."),
     ("repaso", "Repaso de la semana anterior", "Quién hizo cada misión la semana pasada.", "tema"),
@@ -1387,26 +1391,25 @@ SESION_SECCIONES = [
     ("coleccion", "Coleccionistas", "Quién va más avanzado en su colección.", "tema"),
     ("simulador", "La sala de Joran", "Los récords de la clase en las máquinas de Joran.", "tema"),
     ("votacion", "Votación", "La votación de la semana, si la hay."),
-    # 27-sep · la misión de nave al cerrar cada tema (y tras la presentación, y Vaeon en la última clase) · borrador
-    ("ruta", "La Ruta de la Estática", "Al cerrar cada tema: la misión de nave hasta el planeta siguiente (unos 5 minutos, una decena de preguntas). Tras la presentación, el primer vuelo; en la última clase, Vaeon."),
-    ("ticket", "Ticket de salida", "Lo que dijisteis al salir (o el ticket para rellenar)."),
-    # 27-sep · el juego del final de cada clase: tú lo configuras y lo lanzas; la clase, desde el móvil (borrador)
-    ("directo", "En directo", "El juego del final: cada recluta desde su móvil, con su personaje. Tras el ticket."),
-    # 27-sep · el reto entre escuadrones: semana 11, el lanzamiento; semana 12, el resultado (borrador)
-    ("asedio", "El Asedio", "Semana 11: el reto entre escuadrones. Semana 12: el podio y el salón de héroes y heroínas."),
     ("oferta", "Oferta de la semana", "La rebaja de esta semana en el Mercado (si la hay).", "tema"),
     ("novedades", "Novedades de la semana", "Lo que se abre en la Nave esta semana."),
     # 5-oct · la Nave de un recluta de mentira, en simulacro, dentro de la clase: aparte de las novedades y apagada de serie
     ("naveejemplo", "La Nave de ejemplo", "La Nave de un recluta de mentira, para enseñarla en clase (lo que compras o registras ahí no cuenta).", "off"),
+    # 27-sep · el reto entre escuadrones: semana 11, el lanzamiento; semana 12, el resultado (borrador)
+    ("asedio", "El Asedio", "Semana 11: el reto entre escuadrones. Semana 12: el podio y el salón de héroes y heroínas."),
     ("despegue", "El despegue", "Tu Genially: la teoría y la práctica guiada."),
+    ("misiones", "Misiones", "El vídeo del planeta, la misión y los retos que se lanzan."),
     # 21-sep · solo en las semanas que lanzan una actividad (la 2 y la 6): qué pide y qué retos la construyen
     ("actividad", "La misión mayor", "La actividad que puntúa y los retos que ya le han hecho un trozo; y su entrega, las semanas antes."),
-    ("misiones", "Misiones", "El vídeo del planeta, la misión y los retos que se lanzan."),
     # 24-sep · Norberto: «haz hincapié en el fragmento: dedica una página entera al personaje, su misión, y haz referencia
     # al fragmento prohibido para que lo desbloqueen»
     ("tripulante", "El tripulante", "Quién es el tripulante que se recupera esta semana, su historia y cómo se desbloquea su fragmento."),
     ("recompensa", "Recompensa", "Las insignias que se entregan esta semana."),
     ("cierre", "Cierre del planeta", "El vídeo de cierre y la recompensa del bloque."),
+    # 27-sep · la misión de nave al cerrar cada tema (y tras la presentación, y Vaeon en la última clase) · borrador
+    ("ruta", "La Ruta de la Estática", "Al cerrar cada tema: la misión de nave hasta el planeta siguiente (unos 5 minutos, una decena de preguntas). Tras la presentación, el primer vuelo; en la última clase, Vaeon."),
+    # 27-sep · el juego del final de cada clase: tú lo configuras y lo lanzas; la clase, desde el móvil (borrador)
+    ("directo", "En directo", "El juego del final: cada recluta desde su móvil, con su personaje. Tras el ticket."),
 ]
 
 # 15-sep · UN EJEMPLO POR RETO (Norberto: «es lo que más les ayuda»).

@@ -495,6 +495,8 @@
       pausas: SEM().limpias(inicio, pausas), pausa: SEM().pausaDe(inicio, pausas, ahora || Date.now()),
       capitulosAbiertos: S.capitulosAbiertos || {},
       panel: S.panelVer || "", paneles: S.paneles || {}, sesiones: S.sesiones || {},
+      // 10-oct · y el orden en que cada docente quiere sus diapositivas (la rueda, arrastrando): su alumnado le sigue en ese orden
+      modOrdenSesion: S.modOrdenSesion || {},
       // 23-sep · el comandante que eligió cada docente (su clave cN), para su rótulo: su alumnado también le ve
       avatares: S.avatares || {},
       citas: S.citas || {},   // 28-sep · la cita de cada Comandante (su rótulo)

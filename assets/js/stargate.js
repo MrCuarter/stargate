@@ -522,23 +522,44 @@ window.SG.CFGSESION = (function () {
   function ico(k, grande){ return '<img class="ico'+(grande?' grande':'')+'" src="assets/img/iconos/'+(grande?'':'p/')+k+'.png" alt="" width="20" height="20">'; }
   var SIN_CAPTURA = { pregunta: ["pregunta", "Sale en las clases que tienen pregunta en el calendario oficial"], tripulante: ["gente", "Sale la semana del relámpago que recupera a un tripulante"], simulador: ["diana", "Sale cuando alguien ha jugado al Simulador"], votacion: ["rayo", "Sale si hay una votación esta semana"],
                       oferta: ["monedas", "Sale si hay oferta en el Mercado"], directo: ["rayo", "Al final de cada clase, tras el ticket: el juego de todos desde el móvil"], asedio: ["escudo", "Semana 11: el Asedio entre escuadrones; semana 12, su resultado"], unete: ["gente", "Sale en las semanas 1 y 2: el código y la invitación"] };
-  function casillas(off) {
+  /**
+   * 🔴 10-oct · Y SU ORDEN, ARRASTRANDO. Norberto: «además de que el docente pueda marcar las diapositivas que quiere ver, estaría
+   * genial que las pudiera reorganizar de forma sencilla arrastrando». Eligió mover SECCIONES, con un orden para todas las semanas
+   * y por docente, como lo de marcar. La pieza es del motor (GamificaPro sdk/ordena.js, `GP.ordena`); el orden, en
+   * `stargate.modOrdenSesion` (por nombre, como `sesiones`); sin tocar nada, la clase sale exactamente como antes. No se mueven
+   * la portada (la primera) ni «En directo» (con el ticket de salida y «Hasta pronto», lo último).
+   */
+  var FIJAS = { portada: "Va siempre la primera", directo: "Va siempre al final, con el ticket de salida y «Hasta pronto»" };
+  function base() { return (window.SG_SECCIONES_SESION || []).map(function (x) { return x[0]; }); }
+  function enOrden(orden) {
+    var S = window.SG_SECCIONES_SESION || [], de = {}, O = window.GP && window.GP.ordena;
+    S.forEach(function (x) { de[x[0]] = x; });
+    var medio = (O ? O.fusionar(orden || [], base()) : base()).filter(function (k) { return !FIJAS[k]; });
+    return S.filter(function (x) { return x[0] === "portada"; }).concat(medio.map(function (k) { return de[k]; }), S.filter(function (x) { return x[0] === "directo"; }));
+  }
+  function casillas(off, orden, asas) {
     var hay = window.SG_CAPTURAS_SESION || [];
-    return '<div class="m-secciones">' + (window.SG_SECCIONES_SESION || []).map(function (x) {
+    return '<div class="m-secciones' + (asas ? ' m-ordena' : '') + '">' + enOrden(orden).map(function (x) {
       var k = x[0], modo = x[3] || "", sc = SIN_CAPTURA[k] || ["video", "Sale cuando esa semana tiene algo que enseñar"], L = off || [];
       var marcada = modo === "off" ? L.indexOf("+" + k) >= 0 : L.indexOf(k) < 0;
       // (las de serie, con su nota; y las «al empezar tema», con su casilla para tenerlas en todas las clases)
       var nota = modo === "off" ? '<i class="m-sec-def">Apagada de serie: márcala si la quieres</i>'
                : modo === "tema" ? '<i class="m-sec-def">De serie, solo en la primera clase de cada tema · <span class="m-sec-todas"><input type="checkbox" data-todas="' + e(k) + '"' + (L.indexOf("+" + k) >= 0 ? " checked" : "") + '> en todas</span></i>' : "";
-      return '<label class="m-sec"><input type="checkbox" data-sec="' + e(k) + '" data-modo="' + e(modo) + '"' + (marcada ? " checked" : "") + '>' +
+      var etiqueta = '<label class="m-sec"><input type="checkbox" data-sec="' + e(k) + '" data-modo="' + e(modo) + '"' + (marcada ? " checked" : "") + '>' +
         (hay.indexOf(k) >= 0 ? '<img class="m-sec-img" src="assets/img/sesion/' + e(k) + '.jpg" alt="" loading="lazy" width="480" height="270">'
                              : '<span class="m-sec-img sin">' + ico(sc[0]) + '<small>' + e(sc[1]) + '</small></span>') +
-        '<span><b>' + e(x[1]) + '</b><em>' + e(x[2]) + '</em>' + nota + '</span></label>'; }).join("") + '</div>';
+        '<span><b>' + e(x[1]) + '</b><em>' + e(x[2]) + '</em>' + nota + '</span></label>';
+      if (!asas) return etiqueta;
+      return FIJAS[k] ? '<div class="m-sec-fila fija" data-fija="' + e(k) + '"><span class="m-sec-asa" title="' + e(FIJAS[k]) + '">' + ico("candado") + '</span>' + etiqueta + '</div>'
+        : '<div class="m-sec-fila" data-ordena="' + e(k) + '"><button type="button" class="m-sec-asa" data-ordena-asa title="Arrástrala para cambiar su orden" aria-label="Mover «' + e(x[1]) + '»: arrástrala o usa las flechas">⠿</button>' + etiqueta + '</div>';
+    }).join("") + '</div>';
   }
-  function bloque(off) {
+  function bloque(off, orden, asas) {
     return '<div class="card m-sesion"><h3>Tu sesión en directo</h3>' +
       '<p class="small muted">Marca lo que quieres en tu presentación. De serie sale lo esencial: la Nave de ejemplo y el mensaje de la semana van apagados, y el ranking, quién hizo los retos y la oferta salen en la primera clase de cada tema. Lo que quites tampoco lo ve tu alumnado cuando te sigue. ' +
-      'Cada semana solo aparece lo que ese día tiene algo que enseñar.</p>' + casillas(off) +
+      'Cada semana solo aparece lo que ese día tiene algo que enseñar.' +
+      (asas ? ' <b>Para cambiar el orden, arrastra cada sección por ⠿</b> (o usa las flechas del teclado): vale para todas las semanas, y tu alumnado te sigue en ese orden. La portada y «En directo» no se mueven.' : '') +
+      '</p>' + casillas(off, orden, asas) +
       '<p class="small m-sec-msg" id="m-sec-msg" aria-live="polite"></p></div>';
   }
   /** Lo tuyo dentro del mapa `stargate.sesiones` del grupo, leído y escrito al momento (otro docente puede haber tocado lo suyo). */
@@ -550,14 +571,25 @@ window.SG.CFGSESION = (function () {
     if (off && off.length) m[nombre] = off; else delete m[nombre];
     await M.updateDoc(ref, { "stargate.sesiones": m });
   }
+  /** Tu orden dentro de `stargate.modOrdenSesion`, igual: leído y escrito al momento. Vacío = el de serie (se quita tu entrada). */
+  async function guardarOrden(per, nombre, orden) {
+    var M = window.SG && window.SG.MOTOR; nombre = String(nombre || "").trim();
+    if (!M || !per || !nombre) throw new Error("No sé quién eres en este grupo.");
+    var ref = M.doc(M.db, "projects", per), pd = await M.getDoc(ref);
+    var m = Object.assign({}, ((((pd.exists() ? pd.data() : {}) || {}).stargate) || {}).modOrdenSesion || {});
+    if (orden && orden.length) m[nombre] = orden; else delete m[nombre];
+    await M.updateDoc(ref, { "stargate.modOrdenSesion": m });
+  }
   function abrir(o) {
     o = o || {};
+    var ASAS = !!(window.GP && window.GP.ordena && o.nombre);
     var capa = document.createElement("div");
     capa.className = "cfg-capa"; capa.setAttribute("role", "dialog"); capa.setAttribute("aria-modal", "true");
     capa.innerHTML = '<div class="cfg-caja">' +
       '<div class="cfg-cab">' + ico("ajustes", true) + '<div><b>Configurar las diapositivas</b><span>' + e(o.grupo || o.per || "") + '</span></div>' +
         '<button type="button" class="btn min" data-cfg-x>Cerrar</button></div>' +
-      (o.nombre ? bloque(o.off || []) + '<p class="cfg-pie"><button type="button" class="btn min" data-cfg-todo>Marcar todo</button>' +
+      (o.nombre ? bloque(o.off || [], o.orden || [], ASAS) + '<p class="cfg-pie"><button type="button" class="btn min" data-cfg-todo>Marcar todo</button>' +
+                  (ASAS ? ' <button type="button" class="btn min" data-cfg-orden>Orden de serie</button>' : '') +
                   (o.verSesion === false ? '' : ' <a class="btn min" href="sesion.html?per=' + encodeURIComponent(o.per || "") + '" target="_blank" rel="noopener">Ver la sesión ↗</a>') + '</p>'
                 : '<p class="muted">No te encuentro en el equipo docente de este grupo.</p>') +
       '</div>';
@@ -592,10 +624,32 @@ window.SG.CFGSESION = (function () {
       c.onchange = function () { guarda(function () { c.checked = !c.checked; }); }; });
     var todo = capa.querySelector("[data-cfg-todo]");
     if (todo) todo.onclick = function () { cajas().forEach(function (c) { c.checked = true; }); guarda(); };
+    // 10-oct · el orden: al soltar se guarda solo (y lo dice); el de serie no se guarda (se quita lo tuyo)
+    var rej = capa.querySelector(".m-secciones.m-ordena");
+    var deSerie = base().filter(function (k) { return !FIJAS[k]; }).join("\n");
+    var ordena = async function (orden) {
+      var msg = capa.querySelector("#m-sec-msg"), suyo = orden.join("\n") === deSerie ? [] : orden;
+      msg.textContent = "Guardando el orden…";
+      if (o.demo) { msg.textContent = "✓ Anotado. En la consola de ensayo no se guarda: en tu grupo, tu clase saldría en este orden."; return; }
+      try {
+        await guardarOrden(o.per, o.nombre, suyo);
+        if (typeof o.alOrdenar === "function") o.alOrdenar(suyo);
+        msg.textContent = suyo.length ? "✓ Guardado el orden: tu clase sale así" : "✓ Guardado: el orden de serie";
+      } catch (err) { msg.textContent = "No se ha podido guardar el orden: " + (err.message || err); }
+    };
+    if (ASAS && rej) {
+      window.GP.ordena.lista(rej, { alCambiar: ordena });
+      var serie = capa.querySelector("[data-cfg-orden]");
+      if (serie) serie.onclick = function () {
+        var fin = rej.querySelector('[data-fija="directo"]');
+        base().forEach(function (k) { var f = rej.querySelector('[data-ordena="' + k + '"]'); if (f) rej.insertBefore(f, fin); });
+        ordena([]);
+      };
+    }
     var primera = capa.querySelector(".m-sec input"); if (primera) primera.focus();
     return capa;
   }
-  return { casillas: casillas, bloque: bloque, guardar: guardar, abrir: abrir };
+  return { casillas: casillas, bloque: bloque, guardar: guardar, guardarOrden: guardarOrden, abrir: abrir };
 })();
 window.SG.avatarImg = function(av, alias, cls, xp, tipoPer){ var r = window.SG.avatarSrc(av, alias, xp, tipoPer);
   var ea = function(x){ return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); };
