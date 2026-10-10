@@ -1674,13 +1674,16 @@ const REG = {};   // cifras que se apuntan para el informe
       await rita.foto(FOTOS + "/21-embarque-nota.png");
       // (y de vuelta a la semana 2, que es la que miran las comprobaciones de «Lo nuevo» que vienen detrás)
       await rita.ir("sesion.html?per=lab-clase&sem=2");
-      await rita.hasta("document.querySelectorAll('.barra-pasos .p').length>0", 25);
+      // (10-oct · la sesión sale primero de serie y se repinta con la rueda de Rita al llegar, solo si sigue en la portada: con el
+      // emulador lento, se espera a «Enséñalo» antes de moverse; si no, se queda sin él)
+      await rita.hasta("[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Enséñalo'})", 90);
       await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Novedades'})[0]; if(b) b.click(); return 1; })()"); await dormir(700);
       c("sesión · «🔓 Se abre esta semana en STARGATE: El Mercado Estelar», con lo que se puede hacer", /Se abre esta semana/i.test(await rita.texto()) && /sobres de cromos/i.test(await rita.texto()));
       await rita.foto(FOTOS + "/21-sesion-lo-nuevo.png");
       await rita.js("(function(){ var b=[].slice.call(document.querySelectorAll('.barra-pasos .p')).filter(function(b){return b.getAttribute('title')==='Enséñalo'})[0]; if(b) b.click(); return 1; })()"); await dormir(700);
       const src = await rita.js("(document.querySelector('.dia.simulacro iframe')||{}).getAttribute ? document.querySelector('.dia.simulacro iframe').getAttribute('src') : ''");
-      c("🔴 sesión · «Enséñalo» incrusta la Nave del Comandante en ESA semana, con NEBULA", /simulacro=1/.test(src) && /semana=2/.test(src) && /per=lab-clase/.test(src) && /nebula=1/.test(src), src);
+      c("🔴 sesión · «Enséñalo» incrusta la Nave del Comandante en ESA semana, con NEBULA", /simulacro=1/.test(src) && /semana=2/.test(src) && /per=lab-clase/.test(src) && /nebula=1/.test(src),
+        src || await rita.js("JSON.stringify([].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.getAttribute('title')}))"));
       // (el marco es de la misma web: se mira por dentro desde la página)
       const dentro = await rita.hasta("(function(){ var f=document.querySelector('.dia.simulacro iframe'); var d=f&&f.contentDocument; return !!(d&&d.querySelector('.sim-barra')&&d.querySelectorAll('.nb-t').length>0); })()", 30);
       c("sesión · y dentro se puede usar (la barra del simulacro y las pestañas de la semana 2)", dentro);
@@ -4957,6 +4960,13 @@ const REG = {};   // cifras que se apuntan para el informe
      */
     if (hacer(45)) {
       const P = "lab-clase";
+      // (10-oct · la rueda de Rita, de serie: otras secciones le encienden diapositivas apagadas, como «+mensaje» en la 34, y
+      // con eso «todas menos las apagadas» sale con una de más. Al acabar se deja como estaba)
+      const A45 = admin(), ref45 = A45.firestore().doc("projects/" + P);
+      const nom45 = ((((await leerDoc("projects/" + P + "/privado/stargate")) || {}).docentes || []).filter(d => d.correo === "rita@lab.test")[0] || {}).nombre || "Rita Referente";
+      const ruta45 = new A45.firestore.FieldPath("stargate", "sesiones", nom45);
+      const antes45 = ((((await leerDoc("projects/" + P)) || {}).stargate || {}).sesiones || {})[nom45];
+      await ref45.update(ruta45, A45.firestore.FieldValue.delete());
       const rs = await nueva("Rita elige su sesión");
       // (tras otras secciones el emulador se atasca a veces 25-55 s en su canal de escucha: si no llega, se recarga una vez)
       // 19-sep · ya no está en «Mis enlaces» (Norberto: «no tiene ningún sentido»): es la rueda de al lado de «Proyectar la clase»
@@ -4997,7 +5007,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await aMisEnlaces();
       c("   la casilla recuerda que estaba quitada", await rs.js("!document.querySelector('.m-sec input[data-sec=\"clasificacion\"]').checked"));
       await rs.js("var x=document.querySelector('.m-sec input[data-sec=\"clasificacion\"]'); x.checked=true; x.dispatchEvent(new Event('change')); 1");
-      await rs.hasta("/sale todo/.test((document.getElementById('m-sec-msg')||{}).textContent||'')", 25);
+      await rs.hasta("/Guardado/.test((document.getElementById('m-sec-msg')||{}).textContent||'')", 25);
       const otraVez = await rotsDe();
       c("sesión a medida · al volver a marcarla, vuelve", ["Han movido ficha", "Top 5"].every(r => otraVez.indexOf(r) >= 0), JSON.stringify(otraVez));
       // 🔴 y el «Guardar» de «Tu panel de Genially», que en la consola nunca había funcionado (llamaba a un módulo que
@@ -5009,13 +5019,18 @@ const REG = {};   // cifras que se apuntan para el informe
         await rs.ir("consola.html?per=" + P + "&tab=mios"); await rs.hasta("!!document.getElementById('m-panel')", 75);
       }
       c("   y en «Mis enlaces» ya no está (solo la rueda)", await rs.js("!document.querySelector('#c-cuerpo .m-sec')"));
-      await rs.js("document.getElementById('m-panel').value='https://view.genially.com/lab-panel-propio'; document.getElementById('m-guardar').click(); 1");
-      await dormir(2500);
-      const pan = (((await leerDoc("projects/" + P)) || {}).stargate || {}).paneles || {};
+      // (con el canal del emulador atascado, unos 57 s como en la 35, la escritura espera sin aviso: se mira hasta 90 s, y a la
+      // mitad se pulsa otra vez solo si el botón no se quedó esperando)
+      const guardaPanel = () => rs.js("document.getElementById('m-panel').value='https://view.genially.com/lab-panel-propio'; document.getElementById('m-guardar').click(); 1");
+      const panDe = async () => (((await leerDoc("projects/" + P)) || {}).stargate || {}).paneles || {};
+      await guardaPanel();
+      let pan = {};
+      for (let k = 0; k < 90; k++) { await dormir(1000); pan = await panDe(); if (Object.values(pan).indexOf("https://view.genially.com/lab-panel-propio") >= 0) break; if (k === 45 && !(await rs.js("document.getElementById('m-guardar').disabled"))) await guardaPanel(); }
       c("🔴 Mis enlaces · «Guardar» tu Genially propio funciona (antes fallaba en silencio)", Object.values(pan).indexOf("https://view.genially.com/lab-panel-propio") >= 0,
-        JSON.stringify(pan) + " · " + JSON.stringify(((await rs.texto()).match(/.{0,60}(Guardado|No se ha|No puedo|error|permiso)[^.]{0,100}/i) || [""])[0]) + " · " + await rs.js("location.search + ' · panel:' + !!document.getElementById('m-panel')"));
+        JSON.stringify(pan) + " · " + JSON.stringify(((await rs.texto()).match(/.{0,60}(Guardado|No se ha|No puedo|error|permiso)[^.]{0,100}/i) || [""])[0]) + " · " + await rs.js("location.search + ' · panel:' + !!document.getElementById('m-panel') + ' · aviso:' + [].slice.call(document.querySelectorAll('.aviso')).map(function(e){return e.textContent}).join(' | ') + ' · valor:' + (document.getElementById('m-panel')||{}).value"));
       c("sesión a medida · sin errores", !rs.errores.filter(e => !/Failed to load resource/.test(e)).length, rs.errores[0] || "");
       await rs.cerrar();
+      await ref45.update(ruta45, antes45 ? antes45 : A45.firestore.FieldValue.delete());
     }
 
     // ============================================================ 46 · LA PORTADA DEL GRUPO Y LO DEL 19-SEP
@@ -5191,7 +5206,7 @@ const REG = {};   // cifras que se apuntan para el informe
       // 🔴 10-oct · la sesión, en SU orden (la llamada, detrás de la pregunta) y con la portada delante y el cierre al final
       await rp.ir("sesion.html?per=" + P + "&sem=10"); await rp.hasta("document.querySelectorAll('.barra-pasos .p').length>3", 60);
       // (el orden llega con la lectura del grupo, que con el emulador lento tarda: se rehace el mazo al llegar, en la portada)
-      await rp.hasta("(function(){ var t=[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.title}); return t.indexOf('La pregunta')>=0 && t.indexOf('La pregunta')<t.indexOf('Llamada a filas'); })()", 30);
+      await rp.hasta("(function(){ var t=[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.title}); return t.indexOf('La pregunta')>=0 && t.indexOf('La pregunta')<t.indexOf('Llamada a filas'); })()", 90);
       const rO = await rp.js("[].slice.call(document.querySelectorAll('.barra-pasos .p')).map(function(b){return b.title})");
       c("🔴 orden · la sesión sale en el orden de Rita: la pregunta antes de la llamada; la portada, la primera; «En directo», lo último",
         rO[0] === "Portada" && rO.indexOf("La pregunta") > 0 && rO.indexOf("La pregunta") < rO.indexOf("Llamada a filas") && rO[rO.length - 1] === "En directo", JSON.stringify(rO.slice(0, 6)) + " … " + rO.slice(-2).join(", ")

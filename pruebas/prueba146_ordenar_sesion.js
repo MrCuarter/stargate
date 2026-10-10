@@ -46,6 +46,8 @@ c(/var FIJAS_SESION=\['portada','embarque_portada','ticket_form','directo','hast
 c(/st\.ordenDelGrupo\|\|\(st\.d&&st\.d\.modOrdenSesion\)/.test(SES) && /st\.profeMio/.test((SES.match(/function ordenGuardado\(\)\{[\s\S]*?\n  \}/) || [""])[0]),
   "   el docente lee el suyo del grupo; el recluta, el de SU Comandante (por el tablero)");
 c(/modOrdenSesion: S\.modOrdenSesion \|\| \{\}/.test(TAB), "   el tablero lo pasa (motor/tablero.js)");
+c(/configFresca\(per, hecho && !!st\.miNombre\)/.test(SES) && /st\.i===0 && \(tarde \|\|/.test(SES),
+  "🔴 si su nombre llega tarde (la sesión ya salió de serie), se repinta con su rueda y su orden, si sigue en la portada");
 c(/orden: ord\[nombre\] \|\| \[\]/.test(CONS) && /alOrdenar:/.test(CONS) && /orden:ordenGuardado\(\)/.test(SES) && /alOrdenar:function\(o\)/.test(SES),
   "   la rueda se abre con su orden desde la consola y desde la sesión, y al reordenar se pone al día sin recargar");
 

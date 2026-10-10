@@ -3418,14 +3418,16 @@
    * grupo directamente, así que se lee aquí; y si llega cuando la sesión ya arrancó, se rehace el mazo mientras siga en
    * la portada (con una red lenta no se pierde; más adelante no se mueve nada de lo que se está viendo).
    */
-  function configFresca(per){
+  // (10-oct · tarde = el nombre llegó cuando la sesión ya se había pintado sin él, de serie: se repinta aunque no cambie nada
+  // de lo leído, que «antes» ya se calcula con el nombre puesto)
+  function configFresca(per, tarde){
     var M=window.SG&&window.SG.MOTOR; if(!M||!M.getDoc||st.alumno) return;
     M.getDoc(M.doc(M.db,'projects',per)).then(function(pd){
       if(per!==st.per) return;
       var antes=JSON.stringify([apagadas(), ordenGuardado()]), S=(((pd&&pd.exists()?pd.data():{})||{}).stargate||{});
       st.sesionesDelGrupo=S.sesiones||{};
       st.ordenDelGrupo=S.modOrdenSesion||{};   // 10-oct · y su orden (la rueda, arrastrando)
-      if(st.slides && st.slides.length && st.i===0 && JSON.stringify([apagadas(), ordenGuardado()])!==antes) pintar();
+      if(st.slides && st.slides.length && st.i===0 && (tarde || JSON.stringify([apagadas(), ordenGuardado()])!==antes)) pintar();
     }).catch(function(){});
   }
   function miNombreDe(per, listo){
@@ -3442,7 +3444,7 @@
           st.miNombre=(x&&x.miNombre)||'';
           if(x && !st.alumno) st.yo=st.yo||yo;   // es docente de este grupo: puede emitir en directo
           if(!st.grupos) st.grupos=(ps||[]).filter(function(y){ return y.estado==='en marcha'; });
-          if(x && !st.alumno) configFresca(per);
+          if(x && !st.alumno) configFresca(per, hecho && !!st.miNombre);   // (pasados los 4 s, la sesión ya salió sin su nombre)
           fin();
         });
       }).catch(fin);
