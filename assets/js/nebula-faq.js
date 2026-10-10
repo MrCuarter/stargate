@@ -602,7 +602,7 @@ window.SG_NEBULA_FAQ = [
   // ───────────────────────────── PRIVACIDAD ─────────────────────────────
   { id: "privacidad", p: ["qué datos guardáis", "política de privacidad", "quién ve mis datos", "borrar mis datos"],
     claves: ["privacidad", "datos", "borrar", "proteccion", "rgpd"],
-    r: "Solo lo necesario: tu correo y nombre de Google, tu ficha y lo que haces en el juego. Lo ve el profesorado de tu asignatura; la clase solo ve tu alias. No se ceden ni hay rastreo. Puedes pedir verlos o borrarlos. <a href=\"privacidad.html\" target=\"_blank\" rel=\"noopener\">Privacidad</a>." },
+    r: "Solo lo necesario: tu correo y nombre de Google, tu ficha y lo que haces en el juego. Lo ve el profesorado de tu asignatura; la clase solo ve tu alias. No se ceden ni hay rastreo. Se conservan mientras sirvan a la investigación educativa del docente (sin tu nombre), y puedes pedir verlos o borrarlos cuando quieras. <a href=\"privacidad.html\" target=\"_blank\" rel=\"noopener\">Privacidad</a>." },
   { id: "permisos_google", p: ["qué permisos pide google", "tenéis acceso a mi drive", "por qué me pide permiso google"],
     claves: ["permisos", "google", "drive", "gmail", "acceso"],
     r: "Solo «ver tu dirección de correo electrónico». No hay acceso a tu Drive, tu Gmail, tus contactos ni tus documentos, y nunca se pide tu contraseña." },

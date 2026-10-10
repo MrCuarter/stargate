@@ -14,7 +14,8 @@ const c = (cond, txt, dato) => { if (cond) ok++; else fallos.push(txt); console.
 
 const DATOS = L("_site_data.py"), ALI = L("assets/js/alistarse.js"), MOT = L("assets/js/motor.js"), REC = L("assets/js/recluta.js");
 const V = DATOS.match(/^PRIVACIDAD_V = "([^"]+)"/m)[1];
-const TEXTO = "He leído la política de privacidad y acepto participar en STARGATE. Es voluntario: puedo dejarlo y pedir que se borren mis datos cuando quiera.";
+// 10-oct (Norberto): la casilla dice también que los datos se usan, sin nombre, para investigación educativa.
+const TEXTO = "He leído la política de privacidad y acepto participar en STARGATE y que mis datos se usen, sin mi nombre, para investigación educativa. Es voluntario: puedo dejarlo y pedir que se borren mis datos cuando quiera.";
 const sacar = (html) => JSON.parse(html.match(/window\.SG_CONSENTIMIENTO=(\{.*?\});/)[1]);
 
 console.log("\n  · Un dato, un sitio");
