@@ -239,8 +239,8 @@ INVESTIGACION_TEXTO = [
     "<b>Para qué.</b> Solo para investigación educativa: estudiar cómo cambian las respuestas a lo largo del curso y publicar "
     "resultados de conjunto o con seudónimo. <b>Nunca</b> con tu nombre ni con nada que te identifique. Si alguna vez se citara "
     "una frase tuya, se quitaría antes lo que pudiera reconocerte.",
-    "<b>Quién puede saber que un código es tuyo.</b> Solo las personas referentes de tu grupo y el investigador, con la clave. "
-    "Cada vez que alguien la usa queda registrado: quién, cuándo y de qué grupo. Tu Comandante y el resto del profesorado "
+    "<b>Quién puede saber que un código es tuyo.</b> Solo el investigador, con la clave. "
+    "Cada vez que la usa queda registrado: cuándo y de qué grupo. Tu Comandante y el resto del profesorado "
     "siguen viendo las respuestas sin nombre, como siempre. Tus compañeros, nunca.",
     "<b>Es voluntario.</b> Si no aceptas, tu ticket se guarda igual que siempre, sin código. <b>No afecta a tu nota</b>, ni a tu "
     "xp, ni a tus créditos, ni al premio del ticket: la cápsula te toca igual.",

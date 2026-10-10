@@ -3446,8 +3446,8 @@ actividades en directo; tus compras en el Bazar, lo que intercambias en el Zoco 
 participaciones en los sorteos. Y la constancia de tu consentimiento (punto 2).</p>
 
 <h3>Los tickets de salida</h3>
-<p><b>No llevan tu nombre.</b> Si aceptas la investigación (voluntaria), llevan un seudónimo: solo tus
-referentes y el investigador pueden saber que es tuyo, y cada consulta queda registrada (punto 8). Sirven
+<p><b>No llevan tu nombre.</b> Si aceptas la investigación (voluntaria), llevan un seudónimo: solo el
+investigador puede saber que es tuyo, y cada consulta queda registrada (punto 8). Sirven
 para que el docente sepa qué ha quedado flojo en clase, no para saber quién lo dijo.</p>
 
 <h3>En tu navegador</h3>
@@ -3480,7 +3480,7 @@ automáticos al alumnado.</p>
   la ficha de otra persona.</li>
 <li>Los <b>tickets de salida</b> no llevan tu nombre y se guardan en la propia plataforma: solo tus
   respuestas y el nombre de tu Comandante, para que cada docente vea lo de su escuadrón. Si aceptas la
-  investigación (voluntaria), llevan un seudónimo: solo tus referentes y el investigador pueden saber que es
+  investigación (voluntaria), llevan un seudónimo: solo el investigador puede saber que es
   tuyo, y cada consulta queda registrada (punto 8). (Los de grupos anteriores
   al 5 de octubre de 2026 se recogieron con un formulario y una hoja de cálculo de Google.)
   El correo de bienvenida sale por Google Apps Script (punto 4).</li>
@@ -3500,8 +3500,8 @@ automáticos al alumnado.</p>
 <li><img class=ico src=assets/img/iconos/p/candado.png alt> <b>El tablero público de clase enseña SOLO tu alias</b>, tu avatar y tus puntos. Nunca tu
   correo ni tu nombre real, ni siquiera si el docente comparte pantalla. Está construido así a
   propósito: esos datos no salen del servidor.</li>
-<li><b>Si participas en la investigación del ticket</b>, las personas referentes de tu grupo y el
-  investigador pueden saber qué seudónimo es tuyo (punto 8).</li>
+<li><b>Si participas en la investigación del ticket</b>, solo el investigador puede saber qué seudónimo
+  es tuyo (punto 8).</li>
 <li><b>Nadie más</b>, fuera de los proveedores de servicio de los puntos 5 y 6. No se venden, no se ceden,
   no se usan para publicidad y no hay analítica ni rastreo de terceros en esta web.</li>
 </ul>
@@ -3519,9 +3519,8 @@ científicas cómo evoluciona la opinión del alumnado a lo largo de un curso ga
   reconocerte.</li>
 <li><b>Por qué se puede.</b> Por tu consentimiento para esto (artículo 6.1.a del RGPD), distinto del de usar
   STARGATE (punto 2). Se guarda que aceptaste, cuándo y la versión del texto; y también cuándo lo retiras.</li>
-<li><b>Quién.</b> Solo las personas referentes de tu grupo y el investigador pueden saber que un código es
-  tuyo, con la clave. Cada vez que alguien la usa queda registrado: quién, cuándo y de qué grupo. El resto
-  del profesorado sigue viendo las respuestas sin nombre; tus compañeros, nunca.</li>
+<li><b>Quién.</b> Solo el investigador puede saber que un código es tuyo, con la clave. Cada vez que la
+  usa queda registrado: cuándo y de qué grupo. El profesorado sigue viendo las respuestas sin nombre; tus compañeros, nunca.</li>
 <li><b>Cuánto tiempo.</b> Mientras dure la investigación y, como mucho, cinco años después de la última
   publicación (o lo que indique el comité de ética). Si se borra tu grupo, se borran sus seudónimos y
   consentimientos.</li>
