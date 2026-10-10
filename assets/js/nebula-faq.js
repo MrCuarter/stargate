@@ -572,6 +572,13 @@ window.SG_NEBULA_FAQ = [
     claves: ["pendiente", "aprueban", "denegaron", "subida", "solicitud"],
     r: "Las subidas quedan pendientes hasta que tu docente las revisa (suele hacerlo en bloque). Si la deniega, los créditos vuelven a tu bolsillo." },
 
+  // 10-oct · Norberto: «probablemente 1 de cada 10 quiera saber más sobre cómo se ha hecho STARGATE… el cómo está hecho se puede
+  // añadir a su menú de ayuda. Si alguno pregunta, le puedes derivar allí». Para quien quiera, no en la cara de todos.
+  { id: "como_se_hizo", p: ["cómo se ha hecho STARGATE", "cómo está hecho esto", "quiero montar algo así en mi clase", "cómo puedo hacer una gamificación parecida",
+      "qué herramientas habéis usado para hacer la web", "cómo funciona STARGATE por dentro", "quién ha hecho STARGATE"],
+    claves: ["hecho", "hizo", "montar", "replicar", "parecido", "parecida", "dentro", "construido", "programado"],
+    r: "¡Buena pregunta, recluta! Todo lo de detrás —la historia, los personajes, la economía de créditos y cromos y las herramientas— está en <a href=\"comosehizo.html\" target=\"_blank\" rel=\"noopener\">Cómo se hizo STARGATE</a>, también en el menú <b>Ayuda</b>. Y si quieres montar algo así en tu aula, el tema 7, Gamificación, va justo de eso." },
+
   // ───────────────────────────── PROBLEMAS TÉCNICOS ─────────────────────────────
   { id: "congelado", p: ["se me ha congelado la nave", "la página no responde", "se queda cargando", "va muy lenta"],
     claves: ["congelado", "congela", "responde", "cargando", "lenta", "bloqueado"],

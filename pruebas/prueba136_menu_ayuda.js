@@ -76,11 +76,12 @@ console.log("  El alumnado: SU ayuda, nunca la del profesorado");
 c(reclutas.indexOf("recluta.html") >= 0 && reclutas.indexOf("guia-recluta.html") >= 0 && reclutas.indexOf("ayuda.html") >= 0, "la Nave, la guía del recluta y «Cómo comparto mi evidencia»", reclutas);
 const malRec = reclutas.filter(f => {
   const o = opciones(barra(L(f)));
-  return !(JSON.stringify(enlaces(o)) === JSON.stringify(["guia-recluta.html", "ayuda.html"])
+  // 10-oct · y «Cómo se hizo STARGATE», para quien quiera saber más (Norberto: «se puede añadir a su menú de ayuda»)
+  return !(JSON.stringify(enlaces(o)) === JSON.stringify(["guia-recluta.html", "ayuda.html", "comosehizo.html"])
     && /<button type="button" role="menuitem" tabindex="-1" data-gpm-pulsa="#neb-ayuda-b" hidden>Pregunta a NEBULA<span class="gpm-sub">/.test(o)
     && !/(academia|guias|guia|en-claro|buzon|consola|gestion)\.html/.test(barra(L(f))));
 });
-c(!malRec.length, "🔴 «Ayuda ▾»: la Guía del recluta, Cómo comparto mi evidencia y Pregunta a NEBULA; ni una página del profesorado", malRec);
+c(!malRec.length, "🔴 «Ayuda ▾»: la Guía del recluta, Cómo comparto mi evidencia, Pregunta a NEBULA y Cómo se hizo; ni una página del profesorado", malRec);
 c(/b\.id='neb-ayuda-b'/.test(REC), "   «Pregunta a NEBULA» pulsa el botón flotante de la Nave (#neb-ayuda-b), que sigue llamándose así");
 c(/data-gpm-pulsa/.test(MENU) && /o\.hidden = !seVe\(t\)/.test(MENU), "   y fuera de la Nave (o sin su chat) la opción no sale: lo decide la pieza al abrir");
 c(/"ayuda", alumno=True\)/.test(B) && !/classList\.add\("cerrado"\)/.test(L("ayuda.html")),

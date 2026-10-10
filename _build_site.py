@@ -119,6 +119,8 @@ AYUDA_RECLUTA = [
     dict(href="guia-recluta.html", texto="Guía del recluta", clave="guiarec", sub="Cómo funciona todo"),
     dict(href="ayuda.html", texto="Cómo comparto mi evidencia", clave="ayuda", sub="Que tu enlace abra lo tuyo"),
     dict(pulsa="#neb-ayuda-b", texto="Pregunta a NEBULA", sub="Te contesta al momento"),
+    # 10-oct · «el cómo está hecho se puede añadir a su menú de ayuda»: para quien quiera saber más, sin ponérselo delante a nadie
+    dict(href="comosehizo.html", texto="Cómo se hizo STARGATE", clave="comosehizo", sub="Por dentro, por si quieres montar el tuyo"),
 ]
 def _menu_ayuda(opciones, active):
     """El desplegable «Ayuda ▾» con el marcado de GamificaPro sdk/menu.js (el mismo que da GP.menu.marcado). La opción de la

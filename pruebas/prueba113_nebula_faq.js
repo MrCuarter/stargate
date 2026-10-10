@@ -94,6 +94,7 @@ const CASOS = [
   ["regsitrar reto", "reto_registrar"], ["cromos repetdos", "repetidos"], ["que es la bitacroa", "bitacora_que"],
   ["donde estan las diapositivas de clase", "sesiones"], ["que es el relampago", "relampago"],
   ["cuales son los temas de la asignatura", "temas"], ["dnd se entregan las actividades", "entregar_donde"],
+  ["como habeis hecho stargate", "como_se_hizo"], ["quiero montar algo parecido en mi aula", "como_se_hizo"],
 ];
 const mal = [];
 CASOS.forEach(([q, id]) => {
