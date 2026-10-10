@@ -93,7 +93,7 @@ c(/tkp-n"><b>La clase<\/b>/.test(TK.lineasParte([{ firma: null, respuestas: 5, f
 
   c(/TK\.parte\(st\.per, clave\)\.then\(function\(E\)\{ var F=E&&escuadronesDelParte\(E\);/.test(SES) && /else aMano\(\);/.test(SES),
     "🔴 la diapositiva del escuadrón, con el parte del servidor; si no contesta, la cuenta de antes");
-  c(/'el ticket de '\+String\([^\n]*String\(Number\(lista\[ant\]&&lista\[ant\]\.tema_n\)\|\|0\)\)/.test(SES) && /diaTicketEscuadron\(op\.filtro, 'el ticket del embarque', 'p'\)/.test(SES),
+  c(/diaTicketEscuadron\(function\(v\)\{ return esDelTema\(v, lista, ant\); \}, String\(Number\(lista\[ant\]&&lista\[ant\]\.tema_n\)\|\|0\),/.test(SES) && /diaTicketEscuadron\(op\.filtro, 'p', 'el ticket del embarque'\)/.test(SES) && /function diaTicketEscuadron\(filtro, clave, tema\)/.test(SES),
     "   con la clave de su ticket (el del tema anterior o «p»)");
   c(/raya:Math\.min\(100, umbral\*100\/fichas\[c\]\)/.test(SES) && /Math\.min\(100, Math\.round\(f\.raya\*100\/max\)\)/.test(SES), "   la raya, en su umbral (la juzgada, si ya se cobró)");
   c(/'¿Os falta '\+\(clave==='p'\?'el del embarque':'el ticket de '\+esc\(window\.SG\.TK\.nombreTicket\(clave\)\)\)\+'\? Sigue abierto en vuestra Nave: cuenta para la raya de vuestro escuadrón\.<\/p>'/.test(SES),

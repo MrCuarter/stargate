@@ -1288,8 +1288,8 @@
         +'<div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/notas.png alt> El ticket del tema anterior</div><h2>Cómo os fue</h2>'
         +'<div id="ses-tk"><p class="sub">Leyendo vuestras respuestas…</p></div></div></div>',
        montar: function(el){ return montarTicket(el, lista, ant, 'notas'); }},
-      diaTicketEscuadron(function(v){ return esDelTema(v, lista, ant); },
-        'el ticket de '+String((lista[ant]&&lista[ant].tema)||'el tema anterior').replace(/\s*\(cont\.\)/,''), String(Number(lista[ant]&&lista[ant].tema_n)||0)),
+      diaTicketEscuadron(function(v){ return esDelTema(v, lista, ant); }, String(Number(lista[ant]&&lista[ant].tema_n)||0),
+        'el ticket de '+String((lista[ant]&&lista[ant].tema)||'el tema anterior').replace(/\s*\(cont\.\)/,'')),
       {k:'ticket_dudas', sec:'ticket', rot:'Vuestras dudas', html:
         '<div class="dia ticket"><img class="tk-neb" src="assets/img/personajes/nebula.png" alt="">'
         +'<div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/mensaje.png alt> Lo que escribisteis</div><h2>Vuestras dudas y comentarios</h2>'
@@ -1327,7 +1327,7 @@
     if(!window.SG_TICKETS_API||!st.per) return [];
     var op={ filtro:function(v){ return /^Presentaci/i.test(String(v||'').trim()); }, tema:'la presentación de la asignatura' };
     return diasTicket([{sem:0}], 1).map(function(x){
-      if(x.k==='ticket_escuadron') return diaTicketEscuadron(op.filtro, 'el ticket del embarque', 'p');
+      if(x.k==='ticket_escuadron') return diaTicketEscuadron(op.filtro, 'p', 'el ticket del embarque');
       var q=x.k==='ticket'?'notas':'textos';
       x.html=x.html.replace('El ticket del tema anterior','El ticket del embarque').replace('Cómo os fue','Cómo os fue el embarque');
       x.montar=function(el){ return montarTicket(el, [], 0, q, op); };
@@ -1353,7 +1353,7 @@
    * tema 1»): «¿Os falta el ticket de <ese tema>? Sigue abierto en vuestra Nave» (en el del embarque, «el del embarque»).
    */
   var PARTE={ fraccion:0.25, minimo:3 };   // la meta de partida del `BONUS` del servidor: si cambia allí, aquí
-  function diaTicketEscuadron(filtro, tema, clave){
+  function diaTicketEscuadron(filtro, clave, tema){
     return {k:'ticket_escuadron', sec:'ticket', rot:'El escuadrón del ticket', html:
       '<div class="dia tk-esc"><div class="tke-caja"><p class="sub">Contando los tickets de cada escuadrón…</p></div></div>',
       montar: function(el){ return montarTicketEscuadron(el, filtro, tema, clave); }};
