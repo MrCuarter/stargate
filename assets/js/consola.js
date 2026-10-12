@@ -1532,14 +1532,17 @@
    */
   function temasDeLaFicha(r, retos) {
     var suyas = r.insignias || [], N = window.SG_BADGE_NAMES || {}, cat = window.SG_CATALOGO || {}, vistas = {};
+    // 12-oct · los relámpago son voluntarios: sin hacer, «disponible», no «pendiente» (Norberto, tras Anita)
+    var insRel = {};
+    retos.forEach(function (mi) { if (/^L\d/.test(mi.id)) (mi.stargateBadges || []).forEach(function (k) { insRel[k] = 1; }); });
     var chip = function (mi) {
-      var tiene = !!(r.retos || {})[mi.id];
-      return '<button type="button" class="reto' + (tiene ? " hecho" : "") + (/^L\d/.test(mi.id) ? " rel" : "") + '" data-reto="' + esc(mi.id) + '" data-tiene="' + (tiene ? 1 : 0) +
-        '" title="' + esc(mi.title) + '">' + esc(mi.id) + (tiene ? " ✓" : "") + "</button>";
+      var tiene = !!(r.retos || {})[mi.id], rel = /^L\d/.test(mi.id);
+      return '<button type="button" class="reto' + (tiene ? " hecho" : "") + (rel ? " rel" : "") + '" data-reto="' + esc(mi.id) + '" data-tiene="' + (tiene ? 1 : 0) +
+        '" title="' + esc(mi.title) + (rel && !tiene ? " · disponible (voluntario)" : "") + '">' + esc(mi.id) + (tiene ? " ✓" : "") + "</button>";
     };
     var ins = function (k) {
       vistas[k] = 1; var on = suyas.indexOf(k) >= 0;
-      return '<img class="fi-in' + (on ? "" : " no") + '" src="assets/img/insignias/' + esc(k) + '.webp" alt="' + esc(N[k] || k) + '" title="' + esc(N[k] || k) + (on ? "" : " · pendiente") + '" loading="lazy" width="44" height="44">';
+      return '<img class="fi-in' + (on ? "" : " no") + '" src="assets/img/insignias/' + esc(k) + '.webp" alt="' + esc(N[k] || k) + '" title="' + esc(N[k] || k) + (on ? "" : insRel[k] ? " · disponible" : " · pendiente") + '" loading="lazy" width="44" height="44">';
     };
     var fila = function (tit, sub, ks, mis) {
       var hechos = mis.filter(function (mi) { return (r.retos || {})[mi.id]; }).length;

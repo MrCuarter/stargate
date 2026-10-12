@@ -777,8 +777,9 @@
   function botin(){
     var r=st.yo, d=st.d; if(!r) return '';
     var tieneIns=function(kk){ return (r.insignias||[]).indexOf(kk)>=0; };
-    var celdaIns=function(kk){var tiene=tieneIns(kk);
-      return '<div class="b'+(tiene?'':' no')+'" data-key="'+kk+'" role="button" tabindex="0" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':' · pendiente')+' — pulsa para ver cómo se gana"><img loading="lazy" src="assets/img/insignias/'+kk+'.webp" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';};
+    // 12-oct · la de un relámpago (voluntario) está «disponible», no «pendiente» (Norberto, tras Anita)
+    var celdaIns=function(kk){var tiene=tieneIns(kk), t=tiene?null:retoDeInsignia(kk), rel=!!(t&&String(t[0]).charAt(0)==='L');
+      return '<div class="b'+(tiene?'':' no')+'" data-key="'+kk+'" role="button" tabindex="0" title="'+esc(NOMBRES[kk]||kk)+(tiene?'':rel?' · disponible':' · pendiente')+' — pulsa para ver cómo se gana"><img loading="lazy" src="assets/img/insignias/'+kk+'.webp" alt=""><span>'+esc(NOMBRES[kk]||kk)+'</span></div>';};
     /**
      * 15-sep · LAS INSIGNIAS, POR TEMAS. Norberto: «¿qué opinas de organizarlas por temas? ¿es posible?».
      * Sí, y encaja con el viaje: cada planeta trae su tripulante (P) y su reto (R), así que de un vistazo
@@ -1196,8 +1197,9 @@
      * abierto igual — no se castiga a quien esa noche trabajaba—, pero quien viene sale con él hecho.
      */
     var rel = t[0].charAt(0) === 'L';
-    var cab='<div class="rs-cab"><span class="chip '+(ya?'ok':'pend')+'">'
-        +(ya?'✓ Registrado'+cuando:'Pendiente')+'</span>'
+    // 12-oct · el relámpago es voluntario: sin hacer, está «Disponible», no «Pendiente» (Norberto, tras Anita)
+    var cab='<div class="rs-cab"><span class="chip '+(ya?'ok':rel?'disp':'pend')+'">'
+        +(ya?'✓ Registrado'+cuando:rel?'Disponible':'Pendiente')+'</span>'
         // 26-sep · y la aclaración (Norberto: «en clase… o después, cuando tú quieras»): no hace falta haber venido
         +(rel?'<span class="chip rel"><img class=ico src=assets/img/iconos/p/rayo.png alt> En clase · 10-15 min <em class="gpt-solo-ventana">o después, cuando tú quieras</em></span>':'')
         +cuantosLoLlevan(t[0])
@@ -1769,8 +1771,9 @@
     var R=retosDeActividad(a); if(!R.length) return '';
     var n=R.filter(function(r){ return r.hecho; }).length;
     var cuenta=n===R.length?'Los tienes todos: <b>media entrega hecha</b>':n?'llevas <b>'+n+' de '+R.length+'</b>':'cada uno te deja hecho un trozo';
-    var boton=function(r){ return '<button type="button" class="re-r'+(r.hecho?' hecho':'')+'" data-ir-reto="'+esc(r.id)+'" title="'+esc(r.hecho?'Hecho · ver el reto':'Pendiente · ver qué pide')+'">'
-      +(r.hecho?'<img class=ico src=assets/img/iconos/p/hecho.png alt="Hecho">':'<span class="re-r-o" aria-label="Pendiente"></span>')
+    var boton=function(r){ var sin=String(r.id).charAt(0)==='L'?'Disponible':'Pendiente';
+      return '<button type="button" class="re-r'+(r.hecho?' hecho':'')+'" data-ir-reto="'+esc(r.id)+'" title="'+esc(r.hecho?'Hecho · ver el reto':sin+' · ver qué pide')+'">'
+      +(r.hecho?'<img class=ico src=assets/img/iconos/p/hecho.png alt="Hecho">':'<span class="re-r-o" aria-label="'+sin+'"></span>')
       +'<span><b>'+esc(r.nombre)+'</b>'+(corto?'':'<small>'+esc(r.aporta)+'</small>')+'</span></button>'; };
     return '<div class="re-rel'+(corto?' corto':'')+'"><p class="re-rel-t"><b>Retos relacionados</b> · '+cuenta
       +(corto&&per&&!SIMULACRO&&actividadAbierta(a)?' · <a href="'+esc(urlActividad(a.n))+'" target="_blank" rel="noopener">La sesión de la actividad ↗</a>':'')+'</p>'

@@ -102,8 +102,13 @@ const REGLAS = fs.existsSync(path.join(GP, "firestore.rules")) ? fs.readFileSync
 c(/reto\.matches\('\^\(\[AB\]\[1-8\]\|L\[1-8\]\)\$'\)/.test(REGLAS),
   "🔴 las reglas del servidor dejan guardar la reflexión de un relámpago (L2, L3 y L6 se responden en la caja)");
 // (17-sep · «Lo que ha entregado» ya no existe: lo entregado se ve pulsando cada reto, relámpago y simulacro incluidos)
-c(/\(\/\^L\\d\/\.test\(mi\.id\) \? " rel" : ""\)/.test(leer("assets/js/consola.js")),
+c(/rel = \/\^L\\d\/\.test\(mi\.id\)/.test(leer("assets/js/consola.js")) && /\(rel \? " rel" : ""\)/.test(leer("assets/js/consola.js")),
   "🔴 en la ficha del docente, los relámpago salen entre sus retos (con su borde) y se pulsan como los demás");
+// 12-oct · Norberto, tras Anita: el relámpago es voluntario; sin hacer, «disponible», nunca «pendiente»
+c(/rel && !tiene \? " · disponible \(voluntario\)"/.test(leer("assets/js/consola.js")) && /insRel\[k\] \? " · disponible" : " · pendiente"/.test(leer("assets/js/consola.js")),
+  "🔴 en la ficha del docente, un relámpago sin hacer (y su insignia) sale «disponible», no «pendiente»");
+c(/rel\?'Disponible':'Pendiente'/.test(leer("assets/js/recluta.js")) && /rel\?' · disponible':' · pendiente'/.test(leer("assets/js/recluta.js")) && /charAt\(0\)==='L'\?'Disponible':'Pendiente'/.test(leer("assets/js/recluta.js")),
+  "🔴 en la Nave, un relámpago sin hacer sale «Disponible» (su tarjeta, su insignia y los retos de cada actividad)");
 c(/\/\^\(\?:\[ABXSL\]\\d\|XS\$\)\/\.test\(k\)/.test(N), "   y la cifra de retos de la Nave los cuenta");
 c(/los relámpago \(L…\) tampoco cuentan, A PROPÓSITO/.test(N), "   (el tope de tres por semana no los cuenta, a propósito: se hacen en clase)");
 const DIP = leer("assets/js/diploma.js");
