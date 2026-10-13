@@ -1988,7 +1988,8 @@
     var vis = G.filter(function (p) { return FILTRO_G === "todos" || estadoG(p) === FILTRO_G; });
     app.innerHTML = avisoBorrado() +
       '<div class="card gs-cab">' + ico("ajustes", "grande") + '<div class="gs-cab-t"><div class="eyebrow amber">Solo referentes</div><h2>Gestionar grupos</h2>' +
-        '<p class="small muted">Lo que se hace una o dos veces por curso: crear, el equipo docente, los escuadrones, los ajustes y el calendario de cada grupo, mover reclutas, graduar y borrar. Nada de esto sale en tu Nave.</p></div>' +
+        '<p class="small muted">Lo que se hace una o dos veces por curso: crear, el equipo docente, los escuadrones, los ajustes y el calendario de cada grupo, mover reclutas, graduar y borrar. Nada de esto sale en tu Nave.</p>' +
+        '<p id="gs-estad" hidden></p></div>' +
         '<a class="btn primary" href="crear.html">+ Crear un grupo</a></div>' +
       /**
        * 🔴 20-sep · LA PRESENTACIÓN PARA EL EQUIPO, AQUÍ. Norberto: «esta presentación está disponible si eres
@@ -2007,6 +2008,7 @@
         return '<button type="button" class="chip' + (FILTRO_G === x[0] ? " on" : "") + '" data-gfiltro="' + x[0] + '" aria-pressed="' + (FILTRO_G === x[0]) + '">' + x[1] + ' · ' + (cuenta[x[0]] || 0) + '</button>'; }).join("") + '</div>' +
       '<div class="gs-tabla">' + (vis.length ? vis.map(fila).join("") : '<p class="muted">Ningún grupo aquí.</p>') + '</div>';
     Array.prototype.forEach.call(app.querySelectorAll("[data-gfiltro]"), function (b) { b.onclick = function () { FILTRO_G = b.getAttribute("data-gfiltro"); pintarGestion(); }; });
+    botonEstadisticas();
     Array.prototype.forEach.call(app.querySelectorAll("[data-gabrir]"), function (b) { b.onclick = function () { abrirG(b.getAttribute("data-gabrir")); }; });
     Array.prototype.forEach.call(app.querySelectorAll(".gs-panel [data-tab]"), function (b) { b.onclick = function () { TAB = b.getAttribute("data-tab"); pintarGestion(); }; });
     cablearCopiar(app);
@@ -4594,6 +4596,22 @@
    */
   function correoYo() { var u = YO || {}; return String(u.correo || u.email || "").toLowerCase(); }
   function esVitalicio() { return VITALICIOS_WEB.indexOf(correoYo()) >= 0; }
+  /**
+   * 13-oct · «ESTADÍSTICAS» (estadisticas.html; la página es del motor: GamificaPro sdk/estadisticas.js). Norberto: «desde mi cuenta
+   * debo tener un botón de Estadísticas». Quién la ve lo dice el servidor (`modEstadisticas`, accion «puedo»; hoy, solo él): aquí
+   * solo se pregunta, una vez, y a los vitalicios (el resto no podría). El hueco está escondido para todos los demás.
+   */
+  var PUEDO_ESTAD = null;
+  function botonEstadisticas() {
+    if (!esVitalicio()) return;
+    var poner = function () {
+      var h = document.getElementById("gs-estad");
+      if (h && PUEDO_ESTAD) { h.innerHTML = '<a class="btn" href="estadisticas.html">' + ico("rankings") + ' Estadísticas</a>'; h.hidden = false; }
+    };
+    if (PUEDO_ESTAD !== null) return poner();
+    PUEDO_ESTAD = false;
+    MOTOR.llamar("modEstadisticas", { accion: "puedo", mod: "stargate" }).then(function (r) { PUEDO_ESTAD = !!(r && r.puede); poner(); }, function () {});
+  }
   function puedoBorrar() {
     var P = DATOS.proyecto || {}, u = YO || {};
     return !!u.uid && (P.ownerId === u.uid || P.teacherId === u.uid || esVitalicio());

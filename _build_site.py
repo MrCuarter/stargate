@@ -160,6 +160,9 @@ GB.copiar_pieza(HERE, "investigacion.js", os.path.join(HERE, "assets", "js", "in
 # 10-oct · ORDENAR ARRASTRANDO (GamificaPro sdk/ordena.js, `GP.ordena`): la rueda «Configurar las diapositivas» reordena las secciones
 # y la sesión las proyecta en ese orden. Se copia igual y se carga con defer donde están la rueda y la sesión (consola y sesión).
 GB.copiar_pieza(HERE, "ordena.js", os.path.join(HERE, "assets", "js", "ordena.js"), decir=print)
+# 13-oct · LA PÁGINA «ESTADÍSTICAS» (GamificaPro sdk/estadisticas.js, `GP.estadisticas`): filtros, pestañas, gráficas, horarios de
+# clase detectados y CSV, para todos los mods; las cifras, de `modEstadisticas`. Se copia igual y la carga solo estadisticas.html.
+GB.copiar_pieza(HERE, "estadisticas.js", os.path.join(HERE, "assets", "js", "estadisticas.js"), decir=print)
 # 🔴 19-sep · «Mis grupos» es ahora la NAVE DEL COMANDANTE (se entra directo en tu grupo) y «Crear grupo» vive dentro de
 # «Gestionar grupos», con todo lo que se hace una o dos veces por curso (Norberto: «simplicidad máxima en la página
 # principal… no queremos info que se usará una o dos veces en todo el curso»). Solo el referente la ve.
@@ -5281,6 +5284,22 @@ se hace o se quita, y se añade a alguien a un grupo.</p></header>
 ''' + FOOT
 open(os.path.join(HERE, "profesores.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: profesores.html  (solo el Mando)")
+
+# ---------------------------------------------------------------- 13-oct · ESTADÍSTICAS (solo el Mando: lo decide el servidor)
+# Norberto: «desde mi cuenta debo tener un botón de Estadísticas y desde allí poder ver la info total de todo STARGATE, filtrar
+# por grupos, escuadrones, rango de fechas, retos…». La página es del motor (assets/js/estadisticas.js, copia de GamificaPro);
+# aquí, la piel (stargate.css, «13-oct · ESTADÍSTICAS») y la puerta (assets/js/estadisticas-pagina.js). El botón, en «Gestionar grupos».
+_html = head("STARGATE · Estadísticas", "Las cifras de STARGATE: grupos, escuadrones, retos, horas y horarios de clase.", "grp").replace(
+    "</head>", _cabeza_motor() + '<meta name="robots" content="noindex,nofollow">\n'
+    + '<script src="' + _v("assets/js/tarjetas.js") + '"></script>\n'
+    + '<script src="' + _v("assets/js/estadisticas.js") + '" defer></script>\n</head>') + '''
+<section id="estadisticas"><div class="wrap"><p class="es-volver"><a href="gestion.html">← Gestionar grupos</a></p>
+<div id="es-app"><p class="muted">Cargando…</p></div>
+''' + '<script src="' + _v("assets/js/estadisticas-pagina.js") + '" defer></script>' + '''
+</div></section>
+''' + FOOT
+open(os.path.join(HERE, "estadisticas.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: estadisticas.html  (solo el Mando)")
 
 # ---------------------------------------------------------------- 29-sep · LA ACADEMIA DE LA CERO (el curso del profesorado)
 # El recorrido de los docentes, en asíncrono y a lo grande (assets/js/academia.js con el contenido de _site_data.py → ACADEMIA).
