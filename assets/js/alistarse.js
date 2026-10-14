@@ -88,10 +88,18 @@
    */
   function codigoDelGrupo() { return String((PROY && PROY.joinCode) || "").trim().toUpperCase(); }
   function normaliza(c) { return String(c || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, ""); }
-  function codigoCorrecto() {
-    var esperado = codigoDelGrupo();
-    if (!esperado) return true;
-    return normaliza(new URLSearchParams(location.search).get("codigo")) === esperado;
+  /*
+   * 🔴 10-oct (noche) · «TODO ES TODO» (GamificaPro): quien se alista ya no lee el grupo entero, sino su tarjeta, que no lleva el
+   * código (ni los correos del profesorado): solo si lo tiene (`modConCodigo`). El código que trae se comprueba contra el servidor
+   * sin saber el bueno (MOTOR.codigoEs → `mod_codigos/{CÓDIGO}`). Su profesorado sí lee el grupo entero: como siempre.
+   */
+  function tieneCodigo() { return !!codigoDelGrupo() || !!(PROY && PROY.modConCodigo === true); }
+  function codigoCorrecto(dado) {
+    if (!tieneCodigo()) return Promise.resolve(true);
+    var c = normaliza(dado);
+    if (!c) return Promise.resolve(false);
+    if (codigoDelGrupo()) return Promise.resolve(c === codigoDelGrupo());
+    return MOTOR.codigoEs(PER, c).catch(function () { return false; });
   }
 
   function pedirCodigo(aviso) {
@@ -105,13 +113,16 @@
       + '<p><button class="btn grande" id="a-codigo-ok">Entrar</button></p>');
     var inp = document.querySelector("#a-codigo");
     var mete = function () {
-      if (normaliza(inp.value) !== codigoDelGrupo()) return pedirCodigo("Ese código no es el de este grupo.");
-      // Se mete en la dirección para que un F5 no vuelva a preguntarlo.
-      try {
-        var u = new URL(location.href); u.searchParams.set("codigo", normaliza(inp.value));
-        history.replaceState(null, "", u);
-      } catch (e) {}
-      formulario();
+      var dado = inp.value;
+      codigoCorrecto(dado).then(function (ok) {
+        if (!ok) return pedirCodigo("Ese código no es el de este grupo.");
+        // Se mete en la dirección para que un F5 no vuelva a preguntarlo.
+        try {
+          var u = new URL(location.href); u.searchParams.set("codigo", normaliza(dado));
+          history.replaceState(null, "", u);
+        } catch (e) {}
+        formulario();
+      });
     };
     document.querySelector("#a-codigo-ok").onclick = mete;
     inp.addEventListener("keydown", function (e) { if (e.key === "Enter") mete(); });
@@ -424,7 +435,7 @@
       if (!YO) return puerta();
       tarjeta("<h3>Un momento…</h3><p>Buscando tu grupo.</p>");
       try {
-        var p = await MOTOR.getDoc(MOTOR.doc(MOTOR.db, "projects", PER));
+        var p = await MOTOR.leerGrupo(PER);
         if (!p.exists()) return fallo("No existe el grupo «" + PER + "». Comprueba el enlace que te dieron.");
         PROY = Object.assign({ id: p.id }, p.data());
       } catch (e) { return fallo("No he podido leer tu grupo. Prueba a recargar la página."); }
@@ -433,7 +444,7 @@
       var mias = await MOTOR.getDocs(MOTOR.query(MOTOR.collection(MOTOR.db, "student_profiles"),
         MOTOR.where("projectId", "==", PER), MOTOR.where("userId", "==", YO.uid)));
       if (!mias.empty) return location.replace(naveUrl());
-      if (!codigoCorrecto()) return pedirCodigo();
+      if (!(await codigoCorrecto(new URLSearchParams(location.search).get("codigo")))) return pedirCodigo();
       formulario();
     };
     /**

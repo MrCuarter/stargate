@@ -5468,7 +5468,7 @@ const REG = {};   // cifras que se apuntan para el informe
     if (hacer(50)) {
       const { spawnSync } = require("child_process");
       const r = spawnSync(process.execPath, [path.join(L.RAIZ, "motor", "sembrar_prueba.js"), "--escuela"],
-        { encoding: "utf8", env: Object.assign({}, process.env, { FIRESTORE_EMULATOR_HOST: "127.0.0.1:8080" }) });
+        { encoding: "utf8", env: Object.assign({}, process.env, { FIRESTORE_EMULATOR_HOST: "127.0.0.1:" + L.EMU.firestore }) });
       c("🔴 escuela · el grupo se siembra entero de una vez", /sembrado: nave-escuela/.test(r.stdout || ""),
         ((r.stderr || "") + (r.stdout || "")).slice(-260));
       const gente = await consultar("student_profiles", "projectId", "nave-escuela");

@@ -52,11 +52,14 @@ c(desc === "El ticket de salida de cada tema: sin tu nombre y en dos minutos." &
 c(!/an[óo]nim/i.test(TKH.replace(/<script[\s\S]*?<\/script>/g, "")) && !/an[óo]nim/i.test(TK.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "")),
   "🔴 ni ticket.html ni ticket.js dicen ya «anónimo» al alumnado");
 c(/Tu nombre no se guarda con lo que contestes\. ' *\n?\s*\+ 'Si participas en la investigación \(voluntaria\), tu ticket lleva un seudónimo\./.test(TK), "   la puerta del ticket: «Tu nombre no se guarda… Si participas…, un seudónimo»");
-c(/PRIVACIDAD_V = "2026-10-07"/.test(DATOS) && PRIV.indexOf("Versión 2026-10-07") > 0, "🔴 la política sube de versión (se vuelve a preguntar una vez el consentimiento general)");
-c(JSON.parse(NAVE.match(/window\.SG_CONSENTIMIENTO=(\{.*?\});/)[1]).v === "2026-10-07", "   y la Nave pregunta por la nueva");
+// 7-oct subió a 2026-10-07 con la investigación; 10-oct (Norberto: los datos se conservan para su investigación educativa) vuelve a subir,
+// a 2026-10-11, y se vuelve a preguntar una vez: lo que se comprueba es la versión vigente, no la de entonces.
+c(/PRIVACIDAD_V = "2026-10-11"/.test(DATOS) && PRIV.indexOf("Versión 2026-10-11") > 0, "🔴 la política sube de versión (se vuelve a preguntar una vez el consentimiento general)");
+c(JSON.parse(NAVE.match(/window\.SG_CONSENTIMIENTO=(\{.*?\});/)[1]).v === "2026-10-11", "   y la Nave pregunta por la nueva");
+c(/no se borran al terminar el curso: se conservan mientras sirvan a esa investigación/.test(PRIV.replace(/<\/?b>/g, "").replace(/\s+/g, " ")) && !/se archiva, y se borra/.test(PRIV.replace(/\s+/g, " ")), "🔴 punto 9: los datos se conservan mientras sirvan a la investigación (ya no se borran al acabar el curso)");
 c(!/Son anónimos/.test(PRIV) && /No llevan tu nombre\.<\/b> Si aceptas la investigación \(voluntaria\), llevan un seudónimo/.test(PRIV), "   los tickets en la política: «No llevan tu nombre. Si aceptas…, un seudónimo»");
 c(!/son anónimos y se guardan/.test(PRIV) && /no llevan tu nombre y se guardan en la propia plataforma/.test(PRIV), "   y en la lista de proveedores, lo mismo");
-c(/<h2>8 · La investigación del ticket de salida \(voluntaria\)<\/h2>/.test(PRIV) && /6\.1\.a del RGPD/.test(PRIV) && /cinco años después de la última\s+publicación/.test(PRIV)
+c(/<h2>8 · La investigación del ticket de salida \(voluntaria\)<\/h2>/.test(PRIV) && /6\.1\.a del RGPD/.test(PRIV) && /se\s+conservan mientras sirvan a la investigación/.test(PRIV) && !/cinco años/.test(PRIV)
   && /«Borrar mi código»/.test(PRIV), "🔴 la política tiene su apartado: finalidad, base, quién, cuánto tiempo y cómo retirarlo");
 c(/<h2>9 · Cuánto tiempo<\/h2>/.test(PRIV) && /<h2>10 · Tus derechos/.test(PRIV) && /<h2>11 · Si esto cambia/.test(PRIV) && /cuando quieras \(punto 10\)/.test(PRIV), "   y la numeración (y su «punto 10») sigue cuadrando");
 c(/el <b>ticket de salida<\/b>: sin tu nombre, para decir algo positivo que te llevas/.test(L("guia-recluta.html")), "   la guía del recluta: «sin tu nombre»");

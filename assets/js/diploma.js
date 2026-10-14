@@ -304,7 +304,7 @@
         FICHA = Object.assign({ __id: r.docs[0].id }, r.docs[0].data());
         return Promise.all([
           M.getDoc(M.doc(M.db, "student_profiles", r.docs[0].id, "privado", "datos")).then(function (p) { PRIV = p.exists() ? p.data() : {}; }, function () { PRIV = {}; }),
-          M.getDoc(M.doc(M.db, "projects", PER)).then(function (p) {
+          M.leerGrupo(PER).then(function (p) {
             var x = p.exists() ? p.data() : {};
             TIPO = ((x.stargate || {}).tipo === "PUA") ? "PUA" : "REGULAR";
             D = { nombre: x.name || PER, escuadrones: (x.factions || []).map(function (f) { return { id: f.id, nombre: f.name, comandante: f.teacherName }; }) };

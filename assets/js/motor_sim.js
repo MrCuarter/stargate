@@ -66,6 +66,9 @@ const WEB = SDK.conectar({
   firebase: { initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, getFirestore, getFunctions,
               connectAuthEmulator, connectFirestoreEmulator, connectFunctionsEmulator },
   config: window.SG_FIREBASE, emu: window.SG_EMU === true, conservarConfig: true,
+  // (10-oct, noche · solo en el laboratorio: otros puertos de los emuladores si la batería los pone, para no quitarle el 8080 a
+  // las pruebas del despliegue; fuera del laboratorio no cuenta, porque `emu` exige SG_EMU y 127.0.0.1)
+  puertos: window.SG_EMU === true && window.SG_EMU_PUERTOS ? window.SG_EMU_PUERTOS : undefined,
 });
 const { EMU, app, auth, db, fns } = WEB;
 
@@ -117,7 +120,8 @@ const docs = async (col, campo, valor) => {
  * página, es una regla del servidor.
  */
 async function leerPER(perId, conPrivados) {
-  const p = await getDoc(doc(db, "projects", perId));
+  // 10-oct (noche) · «TODO ES TODO» (GamificaPro): el grupo entero, su equipo docente; el alumnado, su tarjeta (sin correos ni código)
+  const p = await leerGrupo(perId);
   if (!p.exists()) throw new Error("No existe el grupo «" + perId + "»");
   const [misiones, campanas, recompensas, perfiles] = await Promise.all([
     docs("missions", "projectId", perId), docs("campaigns", "projectId", perId),
@@ -268,7 +272,8 @@ async function sembrarPER(per, alAvanzar) {
   const avisa = t => { if (alAvanzar) alAvanzar(t); };
   const yaExiste = () => new Error("Ya existe un grupo con el identificador «" + id + "». Elige otro nombre.");
 
-  if ((await getDoc(doc(db, "projects", id))).exists()) throw yaExiste();
+  // (10-oct, noche · un grupo de otro equipo ya no se deja leer: ese «no» también es «ya existe»)
+  if (await getDoc(doc(db, "projects", id)).then((d) => d.exists(), (e) => { if (/permission|insufficient/i.test(String(e && (e.code || e.message)))) return true; throw e; })) throw yaExiste();
 
   avisa("Creando el grupo con sus " + paq.misiones.length + " retos, " + paq.campanas.length + " campañas y " +
         paq.recompensas.length + " recompensas y colección…");
@@ -330,7 +335,8 @@ const pasarAFantasma = (perId) => llamar("stargateFantasma", { projectId: perId 
 async function alistar(perId, datos, alAvanzar) {
   const yo = await sesion();
   if (!yo) throw new Error(TEXTOS_ALIAS.sinSesion);
-  const p = await getDoc(doc(db, "projects", perId));
+  // (10-oct, noche · quien se alista lee la tarjeta del grupo; si es de su equipo docente, el grupo entero: `esDelEquipoDe`)
+  const p = await leerGrupo(perId);
   if (!p.exists()) throw new Error("No existe el grupo «" + perId + "»");
   const proy = p.data();
 
@@ -728,7 +734,7 @@ const PROYECTOS = new Map();
 function proyectoDe(perId) {
   const id = String(perId);
   if (!PROYECTOS.has(id)) {
-    PROYECTOS.set(id, getDoc(doc(db, "projects", id)).then((p) => (p.exists() ? p.data() : null))
+    PROYECTOS.set(id, leerGrupo(id).then((p) => (p.exists() ? p.data() : null))
       .catch((e) => { PROYECTOS.delete(id); throw e; }));
   }
   return PROYECTOS.get(id);
@@ -744,6 +750,14 @@ async function subirImagen(ruta, blob) {
 const CTX = { fs: { db, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, writeBatch, onSnapshot, deleteField },
               llamar, sesion, sitio: sitioDe, subir: subirImagen };
 const ALISTARSE = SDK.alistarse.crear(CTX);
+/**
+ * 🔴 10-oct (noche) · «TODO ES TODO» (GamificaPro, firestore.rules): el grupo entero (`projects/{id}`, con los correos del equipo
+ * docente y el código de clase) ya solo lo lee su equipo docente, el Mando y los vitalicios. El alumnado y quien se va a alistar
+ * leen su TARJETA (`mod_grupos/{id}`: lo mismo sin correos ni código, la escribe el servidor). `leerGrupo` da uno u otro, con la
+ * forma de un `getDoc` (GP_SDK.alistarse.leerGrupo); el código se comprueba sin leerlo (`codigoEs`, `porCodigo`).
+ */
+function leerGrupo(id) { return ALISTARSE.leerGrupo(id); }
+const codigoEs = (perId, codigo) => ALISTARSE.codigoEs(perId, codigo);
 /*
  * Los retos (GP_SDK.retos, paso 8): otorgar (`modOtorgarReto`) y anular (`stargateAnularReto`) por el servidor, el aviso al
  * recluta en la bandeja de GamificaPro (`notifications`, con la marca `stargate`), las reflexiones y los comentarios.
@@ -1354,7 +1368,7 @@ async function misGruposDeAlumno(uid) {
   // «prueba-humana». Son una o dos lecturas: nadie está alistado en diez grupos a la vez.
   // Y solo grupos de STARGATE: una ficha de GamificaPro en otro proyecto no es una Nave.
   // 19-sep · y la fecha de inicio (semana 1), en la misma lectura: la puerta la enseña bajo el nombre del grupo
-  const grupos = await Promise.all(fichas.map(f => getDoc(doc(db, "projects", f.per))
+  const grupos = await Promise.all(fichas.map(f => leerGrupo(f.per)
     .then(p => (p.exists() && (p.data().stargate || {}).version) ? { nombre: p.data().name || f.per, inicio: p.data().stargate.inicio || "",
       estado: estadoDelPER(p.data().stargate).estado } : null)
     .catch(() => null)));
@@ -1384,14 +1398,17 @@ async function misGruposDeAlumno(uid) {
 async function grupoPorCodigo(codigo) {
   const c = String(codigo || "").trim().toUpperCase();
   if (!c) return null;
-  const r = await getDocs(query(collection(db, "projects"), where("joinCode", "==", c)));
-  const g = r.docs.map(d => ({ id: d.id, nombre: d.data().name, stargate: d.data().stargate || {} }))
-                  .filter(x => x.stargate.version)[0];
-  return g || null;
+  // 10-oct (noche) · «TODO ES TODO»: el código ya no se busca entre los grupos (no se pueden leer), sino por sí mismo
+  // (`mod_codigos/{CÓDIGO}`, solo el exacto); y el grupo, por su tarjeta
+  const id = await ALISTARSE.porCodigo(c);
+  if (!id) return null;
+  const p = await leerGrupo(id);
+  const g = p.exists() ? { id: id, nombre: p.data().name, stargate: p.data().stargate || {} } : null;
+  return g && g.stargate.version ? g : null;
 }
 
 async function huevosDe(perId) {
-  const p = await getDoc(doc(db, "projects", perId));
+  const p = await leerGrupo(perId);
   return ((p.exists() ? p.data().stargate : null) || {}).huevos || [];
 }
 
@@ -2209,8 +2226,10 @@ async function cambiarMiNombre(nombre) {
 
 /** Solo el Mando: TODOS los grupos de STARGATE (con su equipo, si se deja leer) y cuántos alistados tiene cada uno. */
 async function todosLosGrupos() {
-  const r = await getDocs(collection(db, "projects"));
-  const gs = r.docs.map(d => ({ id: d.id, nombre: d.data().name, stargate: d.data().stargate || {}, coTeacherEmails: d.data().coTeacherEmails || [] }))
+  // 10-oct (noche) · «TODO ES TODO»: listar todos los grupos ya solo puede el dueño; el Mando y los vitalicios, los de STARGATE por
+  // sus tarjetas, y cada uno entero por su id (GP_SDK.grupos.todos)
+  const r = await GRUPOS.todos("stargate");
+  const gs = r.map(d => ({ id: d.id, nombre: d.datos.name, stargate: d.datos.stargate || {}, coTeacherEmails: d.datos.coTeacherEmails || [] }))
     .filter(x => x.stargate.version).map(x => Object.assign(x, estadoDelPER(x.stargate)));
   await Promise.all(gs.map(async x => {
     try { const pv = await getDoc(doc(db, "projects", x.id, "privado", "stargate")); x.equipo = (pv.exists() ? pv.data().docentes : null) || x.stargate.docentes || []; }
@@ -2319,7 +2338,7 @@ function cuenta() {
   if (!CUENTA) CUENTA = window.GP.cuenta.crear({
     firebase: { initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, signOut, reauthenticateWithPopup, connectAuthEmulator,
                 signInWithCredential, deleteApp },
-    app, auth, llamar, emu: EMU ? "http://127.0.0.1:9099" : null,
+    app, auth, llamar, emu: EMU ? "http://127.0.0.1:" + ((window.SG_EMU_PUERTOS && window.SG_EMU_PUERTOS.auth) || 9099) : null,
     clases: { boton: "btn", secundario: "btn ghost" },
   });
   return CUENTA;
@@ -2333,7 +2352,7 @@ window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, cambiarCuenta, l
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, vigilarMensajesDelSistema, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaInvitar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaBendecir, academiaResponder, buzonComprimir, buzonAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,
-                    huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo, esDelEquipoDe, pasarAFantasma,
+                    huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo, codigoEs, leerGrupo, esDelEquipoDe, pasarAFantasma,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias, cambiarMiComandante, guardarFrase,
                     zocoDatos, zocoTratosGrupo, zocoAnunciosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,
                     crearSorteo, guardarSorteo, sortear, sorteosPendientes, oferta, sorteosDeGrupos, sorteoEnGrupos, retirarSorteo, participacionesEn,

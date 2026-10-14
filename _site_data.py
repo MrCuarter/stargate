@@ -216,11 +216,36 @@ PLANTILLA_EPORTFOLIO = "https://view.genially.com/695f825d05cc22f3f7fac45b"
 # aceptar, se cambia aquí (y la fecha de la página va con ella).
 # 7-oct · sube con la investigación del ticket (abajo): la política cuenta qué se recoge si se acepta, así que se vuelve a
 # preguntar el consentimiento general una vez (GamificaPro, docs/INVESTIGACION_TICKET.md, §7).
-PRIVACIDAD_V = "2026-10-07"
-PRIVACIDAD_FECHA = "7 de octubre de 2026"
+# 11-oct · sube otra vez (Norberto, 10-oct): los datos NO se borran al terminar el curso, se conservan mientras sirvan a su
+# investigación educativa (tesis y artículos), y la casilla lo dice. Como cambia lo que se acepta, a cada recluta le sale UNA vez la
+# ventana de aceptar (la pieza común, GamificaPro sdk/consentimiento.js).
+PRIVACIDAD_V = "2026-10-11"
+PRIVACIDAD_FECHA = "11 de octubre de 2026"
 PRIVACIDAD_CONTACTO = "n.cuartero.10@gmail.com"
-CONSENTIMIENTO_TEXTO = ("He leído la política de privacidad y acepto participar en STARGATE. Es voluntario: "
-                        "puedo dejarlo y pedir que se borren mis datos cuando quiera.")
+CONSENTIMIENTO_TEXTO = ("He leído la política de privacidad y acepto participar en STARGATE y que mis datos se usen, sin mi nombre, "
+                        "para investigación educativa. Es voluntario: puedo dejarlo y pedir que se borren mis datos cuando quiera.")
+# 10-oct · LA PIEL de la pieza común (GamificaPro sdk/consentimiento.js, que el build copia como assets/js/consentimiento.js; hasta
+# hoy, `pedirConsentimiento` y `ventanaConsentimiento` de recluta.js): lo que ya decía NEBULA en la Nave, tal cual. `no`, la clave
+# de «ya dijo que no en esta visita» (la de siempre); las clases de las ventanas de NEBULA. «{contacto}» = el enlace al correo.
+CONSENTIMIENTO_PIEL = {
+    "no": "sgConsNo_",
+    "clases": {"capa": "sgp-capa", "caja": "sgp-caja", "quien": "sgp-quien", "txt": "sgp-txt", "pie": "sgp-bot", "boton": "btn min",
+               "primario": "primary"},
+    "textos": {
+        "quien": "<img class=ico src=assets/img/iconos/p/envivo.png alt> NEBULA",
+        "titulo": "Antes de seguir, una cosa importante",
+        "intro": "<p>Hemos puesto al día la política de privacidad de STARGATE. Para seguir a bordo necesito que me confirmes esto:</p>",
+        "no": "No quiero participar", "si": "Acepto",
+        "gracias": "<b>Gracias, recluta.</b> Seguimos a bordo.",
+        "sinGuardar": "No he podido guardar tu respuesta. Te lo volveré a preguntar la próxima vez que entres.",
+        "salidaTitulo": "Sin problema: participar es voluntario",
+        "salida": "<p>Puedes dejar STARGATE y seguir la asignatura de otra forma. Para darte de baja y que se borren tus datos, "
+                  "<b>díselo a tu Comandante</b> (tu docente) o escribe a {contacto}.</p>"
+                  "<p>Mientras no lo pidas, tu ficha se queda como está: <b>no se borra nada por sí solo</b>. Si cambias de idea, te lo "
+                  "volveré a preguntar la próxima vez que entres.</p>",
+        "volver": "Volver", "ok": "Entendido",
+    },
+}
 
 # ---------- 7-oct-2026 · LA INVESTIGACIÓN DEL TICKET (texto aprobado por Norberto: «Me parece genial») ----------
 # 🔴 Voluntaria de verdad y APARTE del consentimiento de arriba: nunca obliga, nunca bloquea, no cambia la nota, ni la xp,

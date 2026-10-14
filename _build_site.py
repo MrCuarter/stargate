@@ -16,7 +16,7 @@ from _site_data import (GOOGLE_CLIENT_ID, RUTA, SALA_JORAN, DIRECTO, ASEDIO, JUE
                         ALIAS_SUGERIDOS, CAPITULOS, SORTEOS, COFRES,
                         HITOS_A_BORDO, CUBIERTAS_A_BORDO, HEROES_A_BORDO, CARTA_A_BORDO, BATALLA, SIN_PUA, VOTACION,
                         PLANETA_FIN, TRIPULANTES,
-                        PRIVACIDAD_V, PRIVACIDAD_FECHA, PRIVACIDAD_CONTACTO, CONSENTIMIENTO_TEXTO,
+                        PRIVACIDAD_V, PRIVACIDAD_FECHA, PRIVACIDAD_CONTACTO, CONSENTIMIENTO_TEXTO, CONSENTIMIENTO_PIEL,
                         INVESTIGACION_V, INVESTIGACION_TITULO, INVESTIGACION_TEXTO, INVESTIGACION_ACEPTO, INVESTIGACION_PIEL)
 # Los logros de a bordo, tal y como los lee el navegador (un dato, un sitio: _site_data.py)
 _A_BORDO = {
@@ -157,6 +157,10 @@ GB.copiar_pieza(HERE, "parte.js", os.path.join(HERE, "assets", "js", "parte.js")
 # 10-oct · LA INVESTIGACIÓN DEL TICKET, EN LA WEB (GamificaPro sdk/investigacion.js, `GP.investigacion`; aquí también `SG.INV`): hasta
 # hoy era de esta web y DPG1 la necesita igual. Se copia tal cual y NO se edita aquí; lo de STARGATE, en _site_data.py → INVESTIGACION_PIEL
 GB.copiar_pieza(HERE, "investigacion.js", os.path.join(HERE, "assets", "js", "investigacion.js"), decir=print)
+# 10-oct · EL CONSENTIMIENTO GENERAL AL ENTRAR (GamificaPro sdk/consentimiento.js, `GP.consentimiento`): la ventana de NEBULA y el
+# registro en privado/datos.consentimiento eran de recluta.js y DPG1 los necesita igual. Se copia tal cual y NO se edita aquí; lo de
+# STARGATE, en _site_data.py → CONSENTIMIENTO_PIEL. En recluta.js queda a quién no se le pregunta y dónde se guarda.
+GB.copiar_pieza(HERE, "consentimiento.js", os.path.join(HERE, "assets", "js", "consentimiento.js"), decir=print)
 # 10-oct · ORDENAR ARRASTRANDO (GamificaPro sdk/ordena.js, `GP.ordena`): la rueda «Configurar las diapositivas» reordena las secciones
 # y la sesión las proyecta en ese orden. Se copia igual y se carga con defer donde están la rueda y la sesión (consola y sesión).
 GB.copiar_pieza(HERE, "ordena.js", os.path.join(HERE, "assets", "js", "ordena.js"), decir=print)
@@ -3385,6 +3389,10 @@ borradores.</p>
 # 🔴 Aquí no se nombra ninguna herramienta concreta de inteligencia artificial: «herramientas de inteligencia artificial».
 _CONTACTO_A = '<a href="mailto:' + PRIVACIDAD_CONTACTO + '">' + PRIVACIDAD_CONTACTO + '</a>'
 _CONSENT_JSON = json.dumps({"v": PRIVACIDAD_V, "texto": CONSENTIMIENTO_TEXTO, "contacto": PRIVACIDAD_CONTACTO}, ensure_ascii=False)
+# 10-oct · y lo mismo con la piel, para la pieza común de la Nave (assets/js/consentimiento.js lee `window.GP_CONSENTIMIENTO`).
+# «</» se escapa: va dentro de un <script>.
+_CONSENT_PIEZA_JSON = json.dumps({"v": PRIVACIDAD_V, "texto": CONSENTIMIENTO_TEXTO, "contacto": PRIVACIDAD_CONTACTO, "enlace": "privacidad.html",
+                                  "piel": CONSENTIMIENTO_PIEL}, ensure_ascii=False).replace("</", "<\\/")
 # 7-oct · LA INVESTIGACIÓN DEL TICKET (voluntaria y aparte): su texto y su versión, para la Nave y el ticket
 # (assets/js/investigacion.js). «</» se escapa: va dentro de un <script>. 10-oct · la pieza es del motor (GamificaPro
 # sdk/investigacion.js) y lee `window.GP_INVESTIGACION`, con la piel de STARGATE.
@@ -3403,8 +3411,8 @@ verlos y cómo pedir que se borren. <b>Participar es voluntario</b> y se hace co
 <section><div class="wrap">
 
 <h2>1 · Quién trata los datos</h2>
-<p>El equipo docente del máster, encabezado por <b>Norberto Cuartero</b>, con fines exclusivamente
-docentes dentro de la asignatura. Para cualquier cosa relacionada con tus datos: ''' + _CONTACTO_A + '''.</p>
+<p>El equipo docente del máster, encabezado por <b>Norberto Cuartero</b>, con fines docentes y de
+<b>investigación educativa</b> (su tesis doctoral y artículos científicos; punto 9). Para cualquier cosa relacionada con tus datos: ''' + _CONTACTO_A + '''.</p>
 <p>También puedes dirigirte a la <b>Delegación de Protección de Datos de la UNIR</b> por los cauces que la
 universidad ofrece a su alumnado.</p>
 
@@ -3412,6 +3420,7 @@ universidad ofrece a su alumnado.</p>
 <p>Los datos se tratan porque <b>tú das tu consentimiento</b> (artículo 6.1.a del Reglamento General de
 Protección de Datos). Al alistarte marcas una casilla que dice:</p>
 <p class="small"><i>«''' + CONSENTIMIENTO_TEXTO + '''»</i></p>
+<p>Ese consentimiento cubre usar STARGATE y que tus datos se usen, sin tu nombre, en la investigación del punto 9.</p>
 <p>Se guarda que lo aceptaste, cuándo y la versión de esta página que aceptaste. Quien ya estaba
 alistado antes de esta versión lo confirma una vez, la próxima vez que entra en su Nave.</p>
 <p><b>Es voluntario:</b> si prefieres no usar STARGATE, díselo a tu docente y se acuerda otra forma de
@@ -3477,9 +3486,9 @@ automáticos al alumnado.</p>
 
 <h2>6 · Dónde se guardan y quién presta el servicio</h2>
 <ul>
-<li><b>Google</b> (Firebase y Google Cloud) es el proveedor de la infraestructura: la base de datos, el
-  inicio de sesión y el almacenamiento de archivos, dentro de un proyecto gestionado por el equipo
-  docente del máster. La conexión va cifrada y las reglas de la base de datos impiden que nadie lea
+<li><b>Google</b> (Firebase y Google Cloud) es el proveedor de la infraestructura: el inicio de sesión, la
+  base de datos (<b>que está en Europa</b>), el almacenamiento de imágenes y las funciones del servidor
+  (<b>que están en Estados Unidos</b>), dentro de un proyecto gestionado por el equipo docente del máster. La conexión va cifrada y las reglas de la base de datos impiden que nadie lea
   la ficha de otra persona.</li>
 <li>Los <b>tickets de salida</b> no llevan tu nombre y se guardan en la propia plataforma: solo tus
   respuestas y el nombre de tu Comandante, para que cada docente vea lo de su escuadrón. Si aceptas la
@@ -3524,9 +3533,9 @@ científicas cómo evoluciona la opinión del alumnado a lo largo de un curso ga
   STARGATE (punto 2). Se guarda que aceptaste, cuándo y la versión del texto; y también cuándo lo retiras.</li>
 <li><b>Quién.</b> Solo el investigador puede saber que un código es tuyo, con la clave. Cada vez que la
   usa queda registrado: cuándo y de qué grupo. El profesorado sigue viendo las respuestas sin nombre; tus compañeros, nunca.</li>
-<li><b>Cuánto tiempo.</b> Mientras dure la investigación y, como mucho, cinco años después de la última
-  publicación (o lo que indique el comité de ética). Si se borra tu grupo, se borran sus seudónimos y
-  consentimientos.</li>
+<li><b>Cuánto tiempo.</b> Como el resto de tus datos (punto 9): no se borran al terminar el curso, se
+  conservan mientras sirvan a la investigación. Si pides que se borre lo tuyo, se borran también tu
+  seudónimo y tu consentimiento.</li>
 <li><b>Cómo retirarlo.</b> Cuando quieras y sin dar explicaciones, en tu Nave o en la página del ticket:
   desde ese momento tus tickets dejan de llevar el código. Con <b>«Borrar mi código»</b> se quita también de
   todo lo que ya enviaste, en todos tus grupos de STARGATE.</li>
@@ -3535,8 +3544,12 @@ científicas cómo evoluciona la opinión del alumnado a lo largo de un curso ga
 </ul>
 
 <h2>9 · Cuánto tiempo</h2>
-<p>Durante el curso y el periodo de evaluación. Después el grupo se archiva, y se borra cuando ya no
-hace falta para justificar las calificaciones. Puedes pedir que se borre lo tuyo antes.</p>
+<p>Además de para la asignatura, tus datos sirven para la <b>investigación educativa</b> del docente (su
+tesis doctoral y artículos científicos), que compara cursos y grupos a lo largo de los años. Por eso
+<b>no se borran al terminar el curso: se conservan mientras sirvan a esa investigación</b>. En ella se usan
+siempre de forma agregada o con seudónimo, <b>nunca con tu nombre ni tu correo</b>, y tu nombre solo lo ve el
+equipo docente. <b>No se borra nada por sí solo</b>, pero <b>puedes pedir que se borre todo lo tuyo cuando
+quieras</b> (punto 10), también años después.</p>
 
 <h2>10 · Tus derechos y cómo dejarlo</h2>
 <p>Puedes pedir <b>ver, corregir o borrar</b> tus datos, <b>oponerte</b> a su uso, <b>limitarlo</b> o
@@ -4214,7 +4227,7 @@ GB.copiar_pieza(HERE, "tarjetas.js", os.path.join(HERE, "assets", "js", "tarjeta
 # nombre: un paquete nuevo en GamificaPro no cambia esta web hasta que se cambie esta línea y se publique. De él sale también
 # motor/semanas.js, la receta TAL CUAL (la cargan las páginas y las pruebas). Desde un worktree de GamificaPro:
 # GAMIFICAPRO_DIR=<ruta> python3 _build_site.py
-SDK_FIJADO = "mod-sdk.v1.3dc8a5eeb5.js"
+SDK_FIJADO = "mod-sdk.v1.f6acae6644.js"
 def _traer_sdk():
     GB.traer_sdk(HERE, SDK_FIJADO, os.path.join(HERE, "assets", "js"), sacar={"semanas": os.path.join(HERE, "motor", "semanas.js")})
 _traer_sdk()
@@ -4252,6 +4265,7 @@ tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <script src="assets/js/nebula-faq.js" defer></script>
 <script src="assets/js/nebula-chat.js" defer></script>
 <script src="assets/js/tkcomun.js" defer></script>
+<script>window.GP_CONSENTIMIENTO={_CONSENT_PIEZA_JSON};</script><script src="assets/js/consentimiento.js" defer></script>
 <script>window.GP_INVESTIGACION={_INVESTIGACION_JSON};</script><script src="assets/js/investigacion.js" defer></script>
 <script src="assets/js/recluta.js" defer></script>
 </div></section>
