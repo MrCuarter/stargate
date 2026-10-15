@@ -285,7 +285,7 @@
       '<p class="small muted">Para pegar esta semana en el foro de la plataforma de UNIR, ya firmado por ti.</p>' +
       cartaForo(sem, texto, esc7) +
       '<div class="ht-foro-caja" id="ht-foro-caja" hidden><label>Tu mensaje para la semana ' + sem + '<textarea id="ht-foro-in" rows="8" maxlength="4000">' + esc(texto) + '</textarea></label>' +
-        '<p class="small muted">Se guarda en <b>tu ficha</b>, no en este grupo: lo verás en todos tus grupos y en los que crees más adelante. Si lo borras, vuelve el oficial.</p>' +
+        '<p class="small muted">Se guarda en <b>tu ficha</b>, no en este grupo: lo verás en todos tus grupos y en los que crees más adelante. Si lo borras, vuelve el oficial. Es para pegar en el foro: <b>no cambia</b> la orden de la semana que ve tu alumnado en su Nave.</p>' +
         '<p class="pt-fila"><button type="button" class="btn primary" id="ht-foro-ok">Guardar para todos mis grupos</button>' +
         (propio ? ' <button type="button" class="btn min" id="ht-foro-of">Volver al oficial</button>' : '') +
         '<span class="small m-sec-msg" id="ht-foro-msg" aria-live="polite"></span></p></div>' +

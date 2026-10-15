@@ -55,7 +55,9 @@
     + ".gpm{position:relative;display:inline-flex;align-items:center}"
     + ".gpm-boton{font:inherit;color:inherit;background:none;border:0;margin:0;cursor:pointer;display:inline-flex;"
     +   "align-items:center;gap:.35em;padding:var(--gpm-boton-relleno,.4em .7em);border-radius:var(--gpm-radio-boton,8px)}"
-    + ".gpm-flecha{display:inline-block;font-size:.75em;line-height:1;transition:transform .15s}"
+    // 15-oct · la flecha, nunca por debajo de 12 px: a .75em de un botón de 14,4 px (DPG) salía de 10,8 y el barrido de «grises»
+    // del laboratorio (nada por debajo de 11,5 px) la daba por mala
+    + ".gpm-flecha{display:inline-block;font-size:max(.85em,12px);line-height:1;transition:transform .15s}"
     + ".gpm.gpm-abierto .gpm-flecha{transform:rotate(180deg)}"
     + ".gpm-lista{position:absolute;top:100%;left:0;z-index:var(--gpm-capa,70);margin-top:var(--gpm-separa,6px);"
     +   "min-width:var(--gpm-ancho,220px);max-width:calc(100vw - 16px);box-sizing:border-box;display:flex;"
