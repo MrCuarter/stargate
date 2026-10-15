@@ -1,11 +1,11 @@
-/* GamificaPro · mod-sdk v1 — GENERADO por scripts/build-sdk.mjs (npm run build:sdk) desde sdk/semanas.js, sdk/llamar.js, sdk/papel.js, sdk/alistarse.js, sdk/premios.js, sdk/asistencia.js, sdk/votacion.js, sdk/retos.js, sdk/equipo.js, sdk/buzon.js, sdk/economia.js, sdk/sitio.js, sdk/conectar.js, sdk/grupos.js.
+/* GamificaPro · mod-sdk v1 — GENERADO por scripts/build-sdk.mjs (npm run build:sdk) desde sdk/semanas.js, sdk/llamar.js, sdk/papel.js, sdk/alistarse.js, sdk/premios.js, sdk/asistencia.js, sdk/votacion.js, sdk/retos.js, sdk/equipo.js, sdk/buzon.js, sdk/economia.js, sdk/efigie.js, sdk/mantenimiento.js, sdk/sitio.js, sdk/conectar.js, sdk/grupos.js, sdk/llave.js, sdk/niveles.js.
  * No se edita a mano ni en las webs: se cambian las piezas en GamificaPro y se genera otro paquete (otra huella).
  * Sin claves, sin textos y sin colores de ningún mod. Deja window.GP_SDK (o module.exports en Node):
  *   GP_SDK.semanas                         la receta de las semanas (la de window.SGSEMANAS)
  *   GP_SDK.llamador(nombre => callable)    → llamar(nombre, datos), con los errores marcados por código
  *   GP_SDK.errores                         { codigo, delServidor, sinDesplegar, es, CODIGOS }
  *   GP_SDK.papel(llamar)                   → { miPapel(uid), olvidar() };  GP_SDK.papelDe(respuesta, mod) → { vitalicio, mando }
- *   GP_SDK.<pieza>.crear({ fs, llamar, sesion })   las piezas con ctx: alistarse, premios, asistencia, votacion, retos, equipo, buzon, economia, grupos
+ *   GP_SDK.<pieza>.crear({ fs, llamar, sesion })   las piezas con ctx: alistarse, premios, asistencia, votacion, retos, equipo, buzon, economia, efigie, mantenimiento, grupos
  *   GP_SDK.sitio(vieja, proyecto)          → { coleccion, nueva, id(), datos(), mod }: dónde van los datos de ese grupo
  *   GP_SDK.conectar({ mod, firebase, … })  → { EMU, app, auth, db, fns, google, entrar, entrarComo, salir }: Firebase, la entrada con Google
  *                                            y el candado del emulador (demo-<mod>); recibe las funciones de Firebase de la web
@@ -879,10 +879,25 @@ var asistencia = pieza(function (module, exports) {
     /** A la escucha de la llamada del grupo, en directo: alCambiar(la elegida o null, todas las vivas). → dejar de escuchar. */
     function vigilar(grupo, alCambiar, elegir) {
       if (!fs.onSnapshot) throw new Error("GP_SDK.asistencia: falta ctx.fs.onSnapshot");
-      return fs.onSnapshot(consulta(grupo), function (r) {
-        var v = vivas(r.docs, Date.now());
-        alCambiar((typeof elegir === "function" ? v.filter(elegir) : v)[0] || null, v);
-      }, function () { alCambiar(null, []); });
+      /*
+       * 🔴 15-oct (mensaje yMpOY2GJZq7YPpAbTajk, PER 16450) · si la escucha falla (sesión caducada, red, permisos un instante), Firestore
+       * la CIERRA y no vuelve sola: la pantalla se quedaba sin «Presente» (o sin la llamada abierta) hasta recargar. Ahora, tras
+       * el aviso de «no hay llamada», se vuelve a escuchar (2 s, 4 s, 8 s… hasta 30 s) y se avisa en cuanto haya datos.
+       */
+      var parado = false, baja = null, espera = null, fallos = 0;
+      function escuchar() {
+        baja = fs.onSnapshot(consulta(grupo), function (r) {
+          fallos = 0;
+          var v = vivas(r.docs, Date.now());
+          alCambiar((typeof elegir === "function" ? v.filter(elegir) : v)[0] || null, v);
+        }, function () {
+          alCambiar(null, []);
+          if (parado) return;
+          espera = setTimeout(escuchar, Math.min(30000, 2000 * Math.pow(2, fallos++)));
+        });
+      }
+      escuchar();
+      return function () { parado = true; if (espera) clearTimeout(espera); if (typeof baja === "function") baja(); };
     }
     /**
      * Abrir la llamada. o = { minutos (30 si no), xp, creditos (lo que paga: va en la sesión), nombre (quien la toca; si no, el
@@ -1275,6 +1290,17 @@ var retos = pieza(function (module, exports) {
         return llamar("completeMission", datos);
       });
     }
+    /**
+     * 14-oct · Registrar un reto DESDE UNA DIAPOSITIVA de la sesión (el relámpago, en clase o en diferido). Lo mismo que `registrar`,
+     * con la sesión y si es en directo apuntadas en la entrega. Hacerlo dos veces no paga dos veces: la segunda vuelve con
+     * `yaCompletada: true` (la web dice «ya lo entregaste»).
+     */
+    function desdeLaSesion(grupo, fichaId, retoId, entregas, origen, textos) {
+      var e = {}, k;
+      for (k in (entregas || {})) if (Object.prototype.hasOwnProperty.call(entregas, k)) e[k] = entregas[k];
+      e.origen = { sesion: String((origen && origen.sesion) || ""), directo: !!(origen && origen.directo) };
+      return registrar(grupo, fichaId, retoId, e, textos);
+    }
     /** Deshacer un reto (su dueño o su docente): el servidor devuelve lo que dio y quita la entrega. */
     function anular(grupo, fichaId, retoId, motivo) {
       return llamar("modAnularReto", { projectId: grupo, studentProfileId: fichaId, retoId: retoId, motivo: String(motivo || "").slice(0, TOPES.motivo) });
@@ -1418,7 +1444,7 @@ var retos = pieza(function (module, exports) {
       return en(COMENT, grupo).then(function (S) { return borrarEnLosDos(S, String(id || "")); });
     }
 
-    return { idMision: idMision, registrar: registrar, anular: anular, otorgar: otorgar,
+    return { idMision: idMision, registrar: registrar, desdeLaSesion: desdeLaSesion, anular: anular, otorgar: otorgar,
              avisar: avisar, misAvisos: misAvisos, vigilarAvisos: vigilarAvisos, avisoLeido: avisoLeido,
              avisosDelSistema: avisosDelSistema, vigilarAvisosDelSistema: vigilarAvisosDelSistema,
              guardarReflexion: guardarReflexion, enlaceDeReflexion: enlaceDeReflexion, reflexionesDe: reflexionesDe,
@@ -1653,15 +1679,19 @@ var buzon = pieza(function (module, exports) {
  *     estudiante, sin reglas nuevas; y la guardia (`buzon.cjs capturas <id>`) baja las de nuestro Storage, vengan de donde vengan.
  *   · Sin índices compuestos: se ordena aquí, lo último tocado arriba.
  *
- * Puro: `TOPES`, `TEXTOS`, `adjuntos(lista)`, `rutaCaptura(uid, ms)`; en el navegador, `comprimir(fichero)`. Con
- * `crear(ctx, coleccion)` (ctx = { fs, sesion, subir }; la colección, por defecto `stargate_buzon`): `enviar(m, textos)`,
- * `mios()`, `todos()`, `responder(id, texto, opciones, textos)`, `visto(id)` y `adjuntar(blob)` (con `ctx.subir(ruta, blob)` →
+ * Puro: `TOPES`, `TEXTOS`, `adjuntos(lista)`, `rutaCaptura(uid, ms, tipo)`; en el navegador, `comprimir(fichero)`. Con
+ * `crear(ctx, coleccion)` (ctx = { fs, sesion, subir, mod }; la colección, por defecto `stargate_buzon`): `enviar(m, textos)`,
+ * `mios()`, `todos()`, `responder(id, texto, opciones, textos)`, `visto(id)`, `escuchar(fn)` (lo mío, en directo: 8-oct,
+ * para el Correo de DPG) y `adjuntar(blob)` (con `ctx.subir(ruta, blob)` →
  * su dirección, que pone la web con su Storage). Los textos (y cómo se llama el estudiante sin alias) y las frases para valorar
  * una respuesta son de cada web.
  * 8-oct (tanda 2c de «adelantar lo de Navidad») · la colección, por su nombre (lo de siempre) o por su SITIO
  * (`GP_SDK.sitio("stargate_buzon", null)`, sdk/sitio.js): si está en `mod_*` (el mapa la ha pasado entera), lo escrito lleva su
  * `mod`, lo que se cambia quita lo del espejo (`ctx.fs.deleteField`) y lo leído vuelve como lo daba la vieja (sin `mod` ni lo del
  * espejo). Los ids son los de siempre. Quien llama ve lo mismo.
+ * 9-oct (tanda 2d) · EL BUZÓN ES DE TODOS (el mapa lo marca `comun`): cada mensaje lleva el mod DESDE EL QUE SE ESCRIBE, que da la web
+ * (`ctx.mod`, o `m.mod` en un mensaje), nunca el mapa: STARGATE `stargate` (también desde la Academia), DPG `ceniza` (desde un grupo o
+ * desde su formación). Lo comprueban las reglas (`buzonAltaValida`). Sin él, en el común, `enviar` no escribe (error claro).
  */
 (function (raiz, fabrica) {
   if (typeof module === "object" && module.exports) module.exports = fabrica();
@@ -1681,11 +1711,14 @@ var buzon = pieza(function (module, exports) {
       .slice(0, TOPES.adjuntos);
   }
 
-  /** Dónde va una captura: la carpeta de quien la sube, como en la app (lo que deja storage.rules a su dueño). */
-  function rutaCaptura(uid, ms) {
-    var u = String(uid || "");
+  /**
+   * Dónde va una captura: la carpeta de quien la sube, como en la app (lo que deja storage.rules a su dueño). JPEG (la app, STARGATE)
+   * o, si la web la comprime en otro formato (DPG: webp), con su extensión.
+   */
+  function rutaCaptura(uid, ms, tipo) {
+    var u = String(uid || ""), ext = { "image/webp": "webp", "image/png": "png" }[String(tipo || "")] || "jpg";
     if (!/^[A-Za-z0-9]{1,128}$/.test(u)) throw new Error("No sé dónde guardar la captura.");
-    return "teacher_profiles/" + u + "/buzon/" + Math.floor(Number(ms) || 0) + ".jpg";
+    return "teacher_profiles/" + u + "/buzon/" + Math.floor(Number(ms) || 0) + "." + ext;
   }
   /** En el navegador: una imagen → JPEG con el lado mayor ≤ 1600 px y fondo blanco (una captura de móvil, de ~3 MB a ~250 KB). */
   function comprimir(f) {
@@ -1744,6 +1777,11 @@ var buzon = pieza(function (module, exports) {
         };
         var adj = adjuntos(m.adjuntos);
         if (adj.length) d.adjuntos = adj;
+        if (S.comun) {
+          var mod = m.mod || ctx.mod;
+          if (!(typeof mod === "string" && /^[a-z][a-z0-9]*$/.test(mod))) throw new Error("GP_SDK.buzon: el buzón es de todos; falta ctx.mod (el mod de la web)");
+          d.mod = mod;
+        }
         return fs.addDoc(fs.collection(db, B), S.datos(d)).then(function (r) { return r.id; });
       });
     }
@@ -1785,11 +1823,22 @@ var buzon = pieza(function (module, exports) {
         if (!ctx.subir) throw new Error("GP_SDK.buzon: falta ctx.subir (el Storage de la web)");
         var ms = Math.max(Date.now(), ultimoMs + 1);   // dos en el mismo milisegundo, con nombres distintos
         ultimoMs = ms;
-        return ctx.subir(rutaCaptura(yo.uid, ms), blob);
+        return ctx.subir(rutaCaptura(yo.uid, ms, blob && blob.type), blob);
+      });
+    }
+    /**
+     * 8-oct · Lo mío, EN DIRECTO (lo último tocado arriba): `fn(lista)` cada vez que cambia (una respuesta nueva, un estado). → promesa
+     * de la función que deja de escuchar (sin sesión, una que no hace nada). Necesita `ctx.fs.onSnapshot`.
+     */
+    function escuchar(fn) {
+      return Promise.resolve(sesion()).then(function (yo) {
+        if (!yo) return function () {};
+        if (!fs.onSnapshot) throw new Error("GP_SDK.buzon: falta ctx.fs.onSnapshot");
+        return fs.onSnapshot(fs.query(fs.collection(db, B), fs.where("uid", "==", yo.uid)), function (r) { fn(recientes(r)); }, function () {});
       });
     }
 
-    return { coleccion: B, enviar: enviar, mios: mios, todos: todos, responder: responder, visto: visto, adjuntar: adjuntar };
+    return { coleccion: B, enviar: enviar, mios: mios, todos: todos, responder: responder, visto: visto, adjuntar: adjuntar, escuchar: escuchar };
   }
 
   return { COLECCION: COLECCION, TOPES: TOPES, TEXTOS: TEXTOS, adjuntos: adjuntos, rutaCaptura: rutaCaptura, comprimir: comprimir, crear: crear };
@@ -1831,6 +1880,18 @@ var economia = pieza(function (module, exports) {
     function resolverVale(valeId, aprobar, mensaje) {
       return llamar("modVale", { voucherId: String(valeId), decision: aprobar ? "aprobar" : "rechazar", mensaje: mensaje || "" });
     }
+    /**
+     * 15-oct · VARIOS VALES A LA VEZ (la cola de notas del mercado, «en bloque»): uno tras otro, para que el oro vuelva y el suceso quede en
+     * el libro de cada uno por separado. → { hechos: [id…], fallos: [{ id, error }] } (no se corta si uno falla).
+     */
+    function resolverVales(valeIds, aprobar, mensaje) {
+      var hechos = [], fallos = [];
+      return (valeIds || []).reduce(function (p, id) {
+        return p.then(function () {
+          return resolverVale(id, aprobar, mensaje).then(function () { hechos.push(id); }, function (e) { fallos.push({ id: id, error: String((e && e.message) || e) }); });
+        });
+      }, Promise.resolve()).then(function () { return { hechos: hechos, fallos: fallos }; });
+    }
     /** Sortear ya (`ticketId`: el documento de la participación). */
     function sortear(grupo, ticketId) { return llamar("modSortear", { projectId: grupo, ticketId: ticketId }); }
     function sorteosPendientes(grupo) { return llamar("modSorteosPendientes", { projectId: grupo }); }
@@ -1838,12 +1899,179 @@ var economia = pieza(function (module, exports) {
     function oferta(grupo, accion, datos) {
       return llamar("modOferta", Object.assign({ projectId: grupo, accion: accion }, datos || {}));
     }
-    return { resolverVale: resolverVale, sortear: sortear, sorteosPendientes: sorteosPendientes, oferta: oferta };
+    return { resolverVale: resolverVale, resolverVales: resolverVales, sortear: sortear, sorteosPendientes: sorteosPendientes, oferta: oferta };
   }
 
   return { ACCIONES_OFERTA: ACCIONES_OFERTA, crear: crear };
 });
 // ─── fin de la pieza «economia» ───
+});
+var efigie = pieza(function (module, exports) {
+// ─── GP_SDK pieza «efigie» (sdk/efigie.js), tal cual ───
+'use strict';
+/**
+ * GAMIFICAPRO · LA EFIGIE PROPIA (15-oct-2026, plan DPG1, carril A2) — pieza del SDK v1. Solo peticiones a `modEfigie`
+ * (functions/modEfigie.js); quién puede, el camino de la imagen y lo que ven las reglas, en functions/modEfigieLogica.js.
+ *
+ *   · `estado(grupo)`: ¿puedo subir mi propio personaje? → { puede, porque: 'taller' | 'concedida' | 'compra' | null, puedeSubir, estado:
+ *     'sin' | 'pendiente' | 'aprobada' | 'devuelta', subidas, max, motivo, ruta: { grande, mini, carpeta } }. Si puede, el servidor abre la
+ *     subida (lo que miran las reglas de Storage); la web sube sus dos imágenes (grande y mini, cuadradas) a esas rutas.
+ *   · `enviar(grupo)`: ya subidas, la manda a su docente (queda pendiente; una subida y una resubida, no más). 15-oct (noche) · en un
+ *     mod sin aprobación (`aprobacion: false`), es su personaje desde ya → { ok, estado: 'aprobada', avatar }.
+ *   · Del equipo docente, en bloque: `aprobar(grupo, fichas)`, `devolver(grupo, fichas, motivo)`, `conceder(grupo, ficha)` y (15-oct,
+ *     noche) `anular(grupo, fichas, motivo)`: quita la que ya lleva y vuelve el personaje de antes.
+ *   · `idDe(ficha)` / `esEfigie(id)`: el id de personaje de una efigie (`v_efigie_<ficha>`; funciona con cualquier lugar que pinte
+ *     personajes) y `rutaDe(ficha, mini)`: dónde está su imagen en Storage.
+ *   · 15-oct · LA EFIGIE DEL RETO («Forja tu efigie», T3·R2 de DPG1): `estadoDelReto(grupo)` abre su subida (sin aprobación: al
+ *     registrar el reto, el servidor la pone como personaje) → { ok, reto, hecho, puedeSubir, motivo?, ruta }. Va en su propia RANURA
+ *     (`RANURA_RETO`, '_r'): el id `v_efigie_<ficha>_r` (`idDe(ficha, RANURA_RETO)`) y las imágenes `grande_r.webp` y `mini_r.webp`
+ *     (`rutaDe(ficha, mini, RANURA_RETO)`). `partes(id)` → { ficha, ranura } de cualquier efigie.
+ * Con `crear(ctx)` (ctx = { llamar }: no lee Firestore ni Storage).
+ */
+(function (raiz, fabrica) {
+  if (typeof module === "object" && module.exports) module.exports = fabrica();
+  else raiz.GPEFIGIE = fabrica();
+})(typeof self !== "undefined" ? self : this, function () {
+  var PREFIJO = "v_efigie_", CARPETA = "mod_efigies/", RANURA_RETO = "_r";
+  function ranura(r) { return r === RANURA_RETO ? RANURA_RETO : ""; }
+  function idDe(ficha, r) { return PREFIJO + String(ficha) + ranura(r); }
+  function esEfigie(id) { return /^v_efigie_[A-Za-z0-9_-]{8,40}$/.test(String(id || "")); }
+  /** La ficha a la que pertenece una efigie (su id de personaje), tal cual (con la ranura, si la lleva: `partes` la separa). */
+  function fichaDe(id) { return esEfigie(id) ? String(id).slice(PREFIJO.length) : null; }
+  /** 15-oct · { ficha, ranura } de una efigie (las fichas son ids de Firestore, sin «_»: un final «_r» es la ranura del reto). */
+  function partes(id) {
+    var f = fichaDe(id);
+    if (f == null) return null;
+    return f.length > RANURA_RETO.length + 7 && f.slice(-RANURA_RETO.length) === RANURA_RETO ? { ficha: f.slice(0, -RANURA_RETO.length), ranura: RANURA_RETO } : { ficha: f, ranura: "" };
+  }
+  function rutaDe(ficha, mini, r) { return CARPETA + String(ficha) + "/" + (mini ? "mini" : "grande") + ranura(r) + ".webp"; }
+
+  function crear(ctx) {
+    function llamar(d) {
+      if (!ctx || !ctx.llamar) return Promise.reject(new Error("GP_SDK.efigie: falta ctx.llamar"));
+      return ctx.llamar("modEfigie", d);
+    }
+    return {
+      estado: function (grupo) { return llamar({ projectId: grupo, accion: "estado" }); },
+      estadoDelReto: function (grupo) { return llamar({ projectId: grupo, accion: "estado", para: "reto" }); },
+      enviar: function (grupo) { return llamar({ projectId: grupo, accion: "enviar" }); },
+      aprobar: function (grupo, fichas) { return llamar({ projectId: grupo, accion: "aprobar", fichas: fichas }); },
+      devolver: function (grupo, fichas, motivo) { return llamar({ projectId: grupo, accion: "devolver", fichas: fichas, motivo: motivo || "" }); },
+      conceder: function (grupo, ficha) { return llamar({ projectId: grupo, accion: "conceder", ficha: ficha }); },
+      anular: function (grupo, fichas, motivo) { return llamar({ projectId: grupo, accion: "anular", fichas: fichas, motivo: motivo || "" }); },
+    };
+  }
+
+  return { PREFIJO: PREFIJO, CARPETA: CARPETA, RANURA_RETO: RANURA_RETO, idDe: idDe, esEfigie: esEfigie, fichaDe: fichaDe, partes: partes, rutaDe: rutaDe, crear: crear };
+});
+// ─── fin de la pieza «efigie» ───
+});
+var mantenimiento = pieza(function (module, exports) {
+// ─── GP_SDK pieza «mantenimiento» (sdk/mantenimiento.js), tal cual ───
+'use strict';
+/**
+ * GAMIFICAPRO · EL AVISO DE «ACTUALIZANDO SERVIDORES» (15-oct-2026) — pieza del SDK v1, para cualquier mod.
+ *
+ * Norberto: «¿No se puede cambiar temporalmente la pantalla de STARGATE cuando haya un despliegue poniendo ACTUALIZANDO
+ * SERVIDORES DE LA NAVE, vuelve en 30 minutos o algo parecido?» (mensajes del buzón yMpOY2GJZq7YPpAbTajk y r5ez4xYhv43MmlgF23Wr).
+ * Mientras se suben las funciones y las reglas, una página abierta puede fallar un instante («permisos», «no se pudo»). Esta
+ * pieza pone encima de la web una pantalla que lo explica, y se quita sola.
+ *
+ *   · El estado vive en UN documento, `mod_mantenimiento/estado` = { activo: true, hasta: <ms>, minutos, desde: <ms> }. Lo escribe
+ *     solo el servidor (reglas: lectura pública, escritura nunca): `scripts/mantenimiento.mjs poner|quitar`, que llama
+ *     scripts/desplegar.sh al empezar y al acabar cada subida de funciones o reglas.
+ *   · 🔴 Caduca sola: el aviso solo se ve mientras `activo` y `hasta` > ahora. Si un despliegue muere a medias y nadie lo quita, a la
+ *     hora marcada la pantalla vuelve sola. Y quien lo ve puede pulsar «Seguir de todos modos» (se acuerda hasta cerrar la pestaña).
+ *   · Se ESCUCHA (onSnapshot): un solo documento, una lectura por cambio y por persona conectada.
+ *
+ * Con `crear(ctx)` (ctx = { fs: { db, doc, onSnapshot }, documento? }) → { activar(opciones), vista(estado, ahora), CAMPOS, TEXTOS }.
+ *   activar({ textos: { titulo, detalle }, alCambiar }) → función para dejar de escuchar. `textos.detalle` puede llevar «{min}»
+ *   (minutos que faltan, redondeados hacia arriba). Los colores van en variables CSS (--gpm-fondo, --gpm-texto, --gpm-acento).
+ *   `vista(estado, ahora)` → { visible, minutos } es pura (la usan las pruebas y quien quiera pintarlo a su manera).
+ * Sin textos, imágenes ni colores de ningún mod: los de la web se pasan en `textos` y en las variables CSS.
+ */
+(function (raiz, fabrica) {
+  if (typeof module === "object" && module.exports) module.exports = fabrica();
+  else raiz.GPMANTENIMIENTO = fabrica();
+})(typeof self !== "undefined" ? self : this, function () {
+  var COLECCION = "mod_mantenimiento", DOC = "estado", CLAVE_SESION = "gpm-seguir";
+  var TEXTOS = {
+    titulo: "Actualizando servidores",
+    detalle: "Estamos mejorando la web. Vuelve en unos {min} minutos: no pierdes nada de lo que ya tienes.",
+    seguir: "Seguir de todos modos",
+  };
+  var CAMPOS = { activo: "activo", hasta: "hasta", minutos: "minutos", desde: "desde" };
+
+  function ms(x) {
+    if (x && typeof x.toMillis === "function") return x.toMillis();
+    if (x && typeof x.toDate === "function") return x.toDate().getTime();
+    var n = typeof x === "number" ? x : Date.parse(x);
+    return isFinite(n) ? n : 0;
+  }
+  /** ¿Se ve el aviso ahora, y cuántos minutos faltan (hacia arriba)? Pura. */
+  function vista(estado, ahora) {
+    if (!estado || estado.activo !== true) return { visible: false, minutos: 0 };
+    var falta = ms(estado.hasta) - ahora;
+    if (!(falta > 0)) return { visible: false, minutos: 0 };
+    return { visible: true, minutos: Math.max(1, Math.ceil(falta / 60000)) };
+  }
+
+  function crear(ctx) {
+    var fs = ctx && ctx.fs;
+    if (!fs || !fs.db || !fs.doc || !fs.onSnapshot) throw new Error("GP_SDK.mantenimiento: falta ctx.fs (db, doc, onSnapshot)");
+    var documento = ctx.documento || (typeof document !== "undefined" ? document : null);
+
+    function seguirYa() { try { return window.sessionStorage.getItem(CLAVE_SESION) === "1"; } catch (e) { return false; } }
+    function recordarSeguir() { try { window.sessionStorage.setItem(CLAVE_SESION, "1"); } catch (e) { /* sin memoria: vale igual */ } }
+
+    function activar(opciones) {
+      var o = opciones || {}, t = Object.assign({}, TEXTOS, o.textos || {});
+      var estado = null, capa = null, parar = null, reloj = null, descartado = seguirYa();
+
+      function quitar() { if (capa && capa.remove) capa.remove(); capa = null; }
+      function pinta() {
+        var v = vista(estado, Date.now());
+        if (!v.visible || descartado || !documento) { quitar(); if (o.alCambiar) o.alCambiar(v); return; }
+        if (!capa) {
+          capa = documento.createElement("div");
+          capa.id = "gpm-capa";
+          capa.setAttribute("role", "alert");
+          capa.style.cssText = "position:fixed;top:0;left:0;right:0;bottom:0;height:100dvh;z-index:2147483000;display:flex;" +
+            "align-items:center;justify-content:center;box-sizing:border-box;text-align:center;overflow:auto;" +
+            "padding:16px max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));" +
+            "background:var(--gpm-fondo,rgba(8,10,22,.97));color:var(--gpm-texto,#fff);font-family:inherit;";
+          var caja = documento.createElement("div");
+          caja.style.cssText = "max-width:420px;min-width:0;width:100%;";
+          var h = documento.createElement("h1");
+          h.style.cssText = "font-size:clamp(20px,6vw,30px);line-height:1.2;margin:0 0 12px;overflow-wrap:anywhere;color:var(--gpm-acento,#ffd166);";
+          h.textContent = t.titulo;
+          var p = documento.createElement("p");
+          p.id = "gpm-detalle"; p.style.cssText = "font-size:16px;line-height:1.5;margin:0 0 20px;overflow-wrap:anywhere;";
+          var b = documento.createElement("button");
+          b.type = "button"; b.textContent = t.seguir;
+          b.style.cssText = "min-height:44px;padding:8px 16px;border-radius:10px;border:1px solid currentColor;background:transparent;color:inherit;font:inherit;cursor:pointer;max-width:100%;";
+          b.onclick = function () { descartado = true; recordarSeguir(); quitar(); };
+          caja.appendChild(h); caja.appendChild(p); caja.appendChild(b); capa.appendChild(caja);
+          (documento.body || documento.documentElement).appendChild(capa);
+        }
+        var d = capa.querySelector ? capa.querySelector("#gpm-detalle") : null;
+        if (d) d.textContent = String(t.detalle).replace("{min}", String(v.minutos));
+        if (o.alCambiar) o.alCambiar(v);
+      }
+
+      parar = fs.onSnapshot(fs.doc(fs.db, COLECCION, DOC), function (s) {
+        estado = s && s.exists && s.exists() ? s.data() : null;
+        pinta();
+      }, function () { /* sin el documento no hay aviso: la web sigue como siempre */ });
+      reloj = setInterval(pinta, 30000);   // el reloj: baja los minutos y, al llegar `hasta`, quita el aviso aunque no cambie nada
+      return function () { if (typeof parar === "function") parar(); clearInterval(reloj); quitar(); };
+    }
+    return { activar: activar, vista: vista, CAMPOS: CAMPOS, TEXTOS: TEXTOS };
+  }
+
+  return { COLECCION: COLECCION, DOC: DOC, vista: vista, crear: crear, CAMPOS: CAMPOS, TEXTOS: TEXTOS };
+});
+// ─── fin de la pieza «mantenimiento» ───
 });
 var sitio = pieza(function (module, exports) {
 // ─── GP_SDK pieza «sitio» (sdk/sitio.js), tal cual ───
@@ -1875,6 +2103,8 @@ var sitio = pieza(function (module, exports) {
  *   s.antes            8-oct · la vieja, si lo de este grupo pudo quedarse también allí (pasada para su mod, hasta contraer): lo
  *                      que se borra, se borra en las dos; null en lo demás
  *   sitio(vieja, null) lo suelto (sin grupo): en mod_* si el mapa la ha pasado entera (8-oct, tanda 2b: `pasadaPara` con su mod)
+ *   s.comun            9-oct (tanda 2d) · true en la de todos los mods (el buzón): `s.mod` es null y `s.datos` exige el `mod` de
+ *                      quien escribe (el de su web), nunca el de la colección vieja
  *   sitio.modDe(proyecto)              el mod del grupo (la detección del servidor: modWebDe) o null
  *   sitio.version(proyecto)            su versión (1 sin marca o si no es de un mod)
  *   sitio.tiene(proyecto, novedad)     ¿tiene esa novedad? (modVersionTiene); una novedad que no existe, error
@@ -1922,14 +2152,16 @@ var sitio = pieza(function (module, exports) {
       var e = mapa[vieja], grupo = proyecto || null;
       // 8-oct · o el mapa la ha pasado para el mod del grupo (`pasadaPara`), sea de la versión que sea (como faseDe)
       // 8-oct (tanda 2b) · o es una suelta que el mapa ha pasado entera (`pasadaPara` con su propio mod: `pasadaEntera`), de su mod
-      var entera = !!(!e.porGrupo && e.pasadaPara && e.pasadaPara.indexOf(e.mod) >= 0);
+      // 9-oct (tanda 2d) · o es común, de todos los mods (el buzón: `comun`): entera, y cada documento con el mod desde el que se escribe
+      var comun = !e.porGrupo && e.comun === true;
+      var entera = comun || !!(!e.porGrupo && e.pasadaPara && e.pasadaPara.indexOf(e.mod) >= 0);
       var pasada = entera || !!(grupo && e.porGrupo && e.pasadaPara && e.pasadaPara.indexOf(modDe(grupo)) >= 0);
       var nueva = e.fase === 'nueva' || pasada || !!(grupo && e.porGrupo && tiene(grupo, 'coleccionesMod'));
-      var mod = nueva ? ((!entera && grupo && modDe(grupo)) || e.mod) : null;
+      var mod = nueva && !comun ? ((!entera && grupo && modDe(grupo)) || e.mod) : null;
       // 8-oct · lo de antes de pasar sigue también en la vieja (el espejo lo copió) hasta contraer: lo que se BORRA, en los dos
       var antes = pasada && e.fase !== 'nueva' ? vieja : null;
       var s = {
-        vieja: vieja, coleccion: nueva ? e.nueva : vieja, nueva: nueva, mod: mod, antes: antes,
+        vieja: vieja, coleccion: nueva ? e.nueva : vieja, nueva: nueva, mod: mod, antes: antes, comun: comun,
         id: function (id) { return nueva && e.ids === 'suelto' ? e.mod + '__' + id : String(id); },
         // 8-oct (tanda 2b) · y al revés: el id de siempre de un documento leído (en mod_* y suelto, sin su mod delante)
         idViejo: function (id) {
@@ -1941,7 +2173,11 @@ var sitio = pieza(function (module, exports) {
           if (!nueva) return d;
           var x = {};
           for (var k in d) if (propio(d, k) && ESPEJO.indexOf(k) < 0) x[k] = d[k];
-          if (!(typeof x.mod === 'string' && x.mod)) x.mod = mod;
+          if (!(typeof x.mod === 'string' && x.mod)) {
+            // 9-oct (tanda 2d) · en la común no hay uno por defecto: el de la colección vieja no dice desde dónde se escribe
+            if (comun) throw new Error('«' + vieja + '» es de todos los mods: di desde cuál se escribe (`mod`).');
+            x.mod = mod;
+          }
           return x;
         },
         // 8-oct (tanda 2b) · lo que se cambia o se mezcla encima de lo que pudo copiar el espejo: sin lo del espejo (como el servidor)
@@ -2241,10 +2477,265 @@ var grupos = pieza(function (module, exports) {
 });
 // ─── fin de la pieza «grupos» ───
 });
+var llave = pieza(function (module, exports) {
+// ─── GP_SDK pieza «llave» (sdk/llave.js), tal cual ───
+'use strict';
+/**
+ * GAMIFICAPRO · LA LLAVE DE LA SEMANA (14-oct-2026, plan DPG1) — pieza del SDK v1. La gemela del navegador de
+ * functions/modLlaveLogica.js (la misma cuenta: tests/sdk/llave.test.ts las compara en cientos de instantes).
+ *
+ * Norberto: «una sesión NO se puede ver en diferido hasta que su docente la da en directo (por columna); lo mismo la
+ * retaguardia y los minijuegos de esa semana. El viernes de esa semana a las 20:00 (Madrid) se abre todo».
+ *
+ * La web lee `mod_llaves/{grupo}` (lo escribe solo el servidor: `modLlave` «dar», al cerrar la clase en directo) y pregunta aquí:
+ *
+ *   GP_SDK.llave.abierta(cosa, columna, ahora, { llaves, cal, cfg }) → { abierta, por, red }
+ *       cosa = { tipo: 'sesion', id, semana } | { tipo: 'semana', semana } (la retaguardia y los minijuegos de esa semana)
+ *       columna = la `modColumna` de la ficha ('' sin columnas) · cal = el bloque del grupo (inicio, pausas, semanaForzada)
+ *       cfg = la `llave` de la configuración de su mod (el paquete la lleva: GP_SDK.mods[mod].llave), o null: todo abierto
+ *       por: 'pieza' | 'sin-semana' | 'dada' | 'red' | null (cerrada) · red: el instante del viernes a las 20:00 (ms) o null
+ *   GP_SDK.llave.redDeLaSemana(cal, semana, ahora, cfg) → ms | null
+ *   GP_SDK.llave.aperturaDeSemana(cal, semana, ahora) → { lunes, texto }: un reto cerrado, «Se abre el lunes 26 de octubre.»
+ *   GP_SDK.llave.textoCerrado(que, red) → «Esta sesión se abre cuando tu docente dé la clase en directo, o el viernes 23 de octubre a las 20:00.»
+ *
+ * Las horas, en Madrid (Intl), sea cual sea la zona del navegador: el alumnado de Latinoamérica ve la misma llave. El equipo
+ * docente lo ve todo siempre (eso lo decide la web: aquí no se sabe quién mira). Sin textos de ningún mod más que el de cerrado.
+ */
+(function (raiz, fabrica) {
+  if (typeof module === "object" && module.exports) module.exports = fabrica();
+  else raiz.GPLLAVE = fabrica();
+})(typeof self !== "undefined" ? self : this, function () {
+  var DIA = 864e5, ZONA = "Europe/Madrid", SIN_COLUMNA = "_";
+  var FMT = new Intl.DateTimeFormat("en-CA", { timeZone: ZONA, year: "numeric", month: "2-digit", day: "2-digit" });
+  var FMT_HORA = new Intl.DateTimeFormat("en-GB", { timeZone: ZONA, hour: "2-digit", hour12: false });
+  function plano(x) { return !!x && typeof x === "object" && !Array.isArray(x); }
+  function dos(n) { return (n < 10 ? "0" : "") + n; }
+  function esDia(x) { return typeof x === "string" && /^\d{4}-\d\d-\d\d$/.test(x); }
+  function utc(dia) { return Date.UTC(Number(dia.slice(0, 4)), Number(dia.slice(5, 7)) - 1, Number(dia.slice(8, 10))); }
+  function deUtc(ms) { var d = new Date(ms); return d.getUTCFullYear() + "-" + dos(d.getUTCMonth() + 1) + "-" + dos(d.getUTCDate()); }
+  function masDias(dia, n) { return deUtc(utc(dia) + n * DIA); }
+  function diasEntre(a, b) { return Math.round((utc(b) - utc(a)) / DIA); }
+  function hoyEnMadrid(ahora) { return FMT.format(new Date(ahora)); }
+  function lunesDe(dia) { return masDias(dia, -((new Date(utc(dia)).getUTCDay() + 6) % 7)); }
+  function pausasLimpias(inicio, pausas) {
+    if (!esDia(inicio) || !Array.isArray(pausas)) return [];
+    var vistas = {};
+    return pausas.map(function (p) { return String(p || "").slice(0, 10); }).filter(function (p) {
+      if (!esDia(p) || vistas[p]) return false;
+      vistas[p] = true;
+      var d = diasEntre(inicio, p);
+      return d >= 0 && d % 7 === 0;
+    }).sort();
+  }
+  function inicioDeSemana(inicio, n, pausas) {
+    n = Math.max(1, Math.floor(Number(n) || 1));
+    var ps = pausasLimpias(inicio, pausas), cuenta = 0;
+    for (var i = 0; i < 1000; i++) {
+      var dia = masDias(inicio, i * 7);
+      if (ps.indexOf(dia) >= 0) continue;
+      if (++cuenta === n) return dia;
+    }
+    return masDias(inicio, (n - 1) * 7);
+  }
+  function medianocheMadrid(iso) {
+    var base = Date.parse(iso + "T00:00:00Z");
+    for (var h = 1; h <= 2; h++) {
+      var t = base - h * 3600e3, hora = Number(FMT_HORA.format(new Date(t)));
+      if (hora === 0 || hora === 24) return t;
+    }
+    return base - 2 * 3600e3;
+  }
+  function semanaValida(n) { var x = Number(n); return Number.isInteger(x) && x >= 1 && x <= 60 ? x : null; }
+  function claveColumna(c) { return typeof c === "string" && /^[a-z0-9_-]{1,40}$/.test(c) ? c : SIN_COLUMNA; }
+
+  function lunesDeSemanaN(cal, semana, ahora) {
+    var n = semanaValida(semana);
+    if (!n) return null;
+    var c = cal || {}, forzada = Number(c.semanaForzada);
+    if (isFinite(forzada) && forzada > 0) return masDias(lunesDe(hoyEnMadrid(ahora)), 7 * (n - forzada));
+    if (esDia(c.inicio)) return inicioDeSemana(c.inicio, n, c.pausas);
+    return null;
+  }
+  function redDeLaSemana(cal, semana, ahora, cfg) {
+    var lunes = cfg ? lunesDeSemanaN(cal, semana, ahora) : null;
+    return lunes ? medianocheMadrid(masDias(lunes, cfg.dia)) + cfg.hora * 3600e3 : null;
+  }
+  var MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  function textoApertura(lunes) { return esDia(lunes) ? "Se abre el lunes " + Number(lunes.slice(8, 10)) + " de " + MESES[Number(lunes.slice(5, 7)) - 1] + "." : null; }
+  /** 14-oct · el lunes en que se abre lo de la semana N (un reto cerrado: «Se abre el lunes 26 de octubre.») → { lunes, texto } */
+  function aperturaDeSemana(cal, semana, ahora) { var l = lunesDeSemanaN(cal, semana, ahora); return { lunes: l, texto: textoApertura(l) }; }
+  function deLaColumna(llaves, columna) {
+    var c = llaves && plano(llaves.columnas) ? llaves.columnas[claveColumna(columna)] : null;
+    return { sesiones: c && plano(c.sesiones) ? c.sesiones : {}, semanas: c && plano(c.semanas) ? c.semanas : {} };
+  }
+  function abierta(cosa, columna, ahora, o) {
+    o = o || {};
+    if (!o.cfg) return { abierta: true, por: "pieza", red: null };
+    var semana = semanaValida(cosa && cosa.semana);
+    var red = semana ? redDeLaSemana(o.cal, semana, ahora, o.cfg) : null;
+    var L = deLaColumna(o.llaves, columna), esSesion = !!cosa && cosa.tipo === "sesion";
+    var dada = esSesion ? !!L.sesiones[String(cosa.id)] : !!(semana && L.semanas[String(semana)]);
+    if (dada) return { abierta: true, por: "dada", red: red };
+    if (!semana) return { abierta: !!cosa && !esSesion, por: !!cosa && !esSesion ? "sin-semana" : null, red: red };
+    if (red != null && ahora >= red) return { abierta: true, por: "red", red: red };
+    return { abierta: false, por: null, red: red };
+  }
+  function textoCerrado(que, red) {
+    if (red == null) return que + " se abre cuando tu docente dé la clase en directo.";
+    var partes = new Intl.DateTimeFormat("es-ES", { timeZone: ZONA, weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })
+      .formatToParts(new Date(red)), p = {};
+    partes.forEach(function (x) { p[x.type] = x.value; });
+    return que + " se abre cuando tu docente dé la clase en directo, o el " + p.weekday + " " + p.day + " de " + p.month + " a las " + p.hour + ":" + p.minute + ".";
+  }
+  return { abierta: abierta, redDeLaSemana: redDeLaSemana, textoCerrado: textoCerrado, aperturaDeSemana: aperturaDeSemana,
+    claveColumna: claveColumna, SIN_COLUMNA: SIN_COLUMNA };
+});
+// ─── fin de la pieza «llave» ───
+});
+var niveles = pieza(function (module, exports) {
+// ─── GP_SDK pieza «niveles» (sdk/niveles.js), tal cual ───
+'use strict';
+/**
+ * GAMIFICAPRO · LOS NIVELES (14-oct-2026, plan DPG1, carril «Niveles») — pieza del SDK v1. La gemela del navegador de
+ * functions/modNivelesLogica.js (la misma cuenta: tests/sdk/niveles.test.ts las compara en miles de leguas y columnas).
+ *
+ * Norberto: «los niveles sustituyen a los rangos». Las leguas (o la XP de cada mod) dan un NIVEL y un TÍTULO por tramos, en
+ * femenino o masculino según el personaje («/a» si no se sabe); pasada la cima, un sello de maestría cada `maestria.cada`. Se ven
+ * desde la semana 1; las VENTAJAS se abren en `ventajas.semana`. Lo que mueve oro o leguas lo decide el servidor (modNiveles y
+ * completeMission); aquí, solo lo que pinta la web:
+ *
+ *   GP_SDK.niveles.nivelDe(leguas, cfg)             → { nivel, desde, hasta, cima, sellos, faltan, titulo: { f, m, n } }
+ *   GP_SDK.niveles.tituloDe(info | nivel, sexo, cfg) → «Porteadora» · «Porteador» · «Porteador/a» (sexo 'f' | 'm' | otro)
+ *   GP_SDK.niveles.ventajasAbiertas(cfg, semana) · ventajasDe(nivel, cfg) · tieneVentaja(cfg, clave, nivel, semana)
+ *   GP_SDK.niveles.mediana(lista) · conVientoAFavor({ cfg, nivel, columna, semana, usado }) («Viento a favor» esta semana)
+ *   GP_SDK.niveles.guias(fichas, cfg, semana, columna?)       → las fichas con la insignia «Guía» (de su columna, si se dice)
+ *   GP_SDK.niveles.estandartes(fichas, cfg, semana)            → { <columna>: ficha } quien lleva el estandarte de cada columna
+ *       fichas = [{ id, leguas, columna, … }] (lo de cada web; `columna` '' sin columnas)
+ *   GP_SDK.niveles.porMod[mod]                                 → la `niveles` de cada mod que tiene la pieza (functions/mods/<mod>.js)
+ *   GP_SDK.niveles.cfg(mod | crudo)                            → la configuración normalizada (la que piden las demás), o null
+ * Sin textos de ningún mod más que los títulos de su tabla.
+ */
+(function (raiz, fabrica) {
+  if (typeof module === "object" && module.exports) module.exports = fabrica();
+  else raiz.GPNIVELES = fabrica();
+})(typeof self !== "undefined" ? self : this, function () {
+  var VENTAJAS = ["marco", "mano", "guia", "pregunta", "estandarte", "reto"];
+  function plano(x) { return !!x && typeof x === "object" && !Array.isArray(x); }
+  function texto(x) { return typeof x === "string" ? x.replace(/\s+/g, " ").trim() : ""; }
+  function entero(x, def) { return typeof x === "number" && x >= 0 && Math.floor(x) === x ? x : def; }
+  function num(x) { var n = Number(x); return isFinite(n) ? n : 0; }
+
+  /** La configuración normalizada (la misma que nivelesDelMod del servidor), de la `niveles` cruda de un mod. null si no vale. */
+  function normalizar(n) {
+    if (!plano(n) || !Array.isArray(n.tabla) || !n.tabla.length) return null;
+    var tabla = n.tabla.map(function (f) {
+      var t = f.titulo || {};
+      return { nivel: Number(f.nivel), desde: Number(f.desde), titulo: { f: texto(t.f), m: texto(t.m), n: texto(t.n) } };
+    }).sort(function (a, b) { return a.desde - b.desde; });
+    for (var i = 0; i < tabla.length; i++) {
+      var f = tabla[i];
+      if (Math.floor(f.nivel) !== f.nivel || !isFinite(f.desde)) return null;
+      if (i && (f.desde <= tabla[i - 1].desde || f.nivel <= tabla[i - 1].nivel)) return null;
+    }
+    var V = plano(n.ventajas) ? n.ventajas : {};
+    function v(k, extra) {
+      if (!plano(V[k])) return null;
+      var o = { nivel: entero(V[k].nivel, 0) }, e = extra ? extra(V[k]) : {};
+      for (var c in e) o[c] = e[c];
+      return o;
+    }
+    return {
+      tabla: tabla,
+      maestria: { cada: entero(n.maestria && n.maestria.cada, 0) },
+      ventajas: {
+        semana: entero(V.semana, 1),
+        marco: v("marco", function (x) { return { colores: plano(x.colores) ? x.colores : {} }; }),
+        mano: v("mano", function (x) { return { oro: entero(x.oro, 0), porSemana: entero(x.porSemana, 1), recibirPorSemana: entero(x.recibirPorSemana, 1) }; }),
+        guia: v("guia"),
+        pregunta: v("pregunta", function (x) { return { porSemana: entero(x.porSemana, 1) }; }),
+        estandarte: v("estandarte"),
+        reto: v("reto", function (x) { return { max: entero(x.max, 1) }; }),
+        viento: plano(V.viento) ? { debajo: entero(V.viento.debajo, 3), extra: Number(V.viento.extra) > 0 ? Number(V.viento.extra) : 0, porSemana: entero(V.viento.porSemana, 1) } : null
+      },
+      asientos: { mano: texto(n.asientos && n.asientos.mano) || "mod_niveles_mano", viento: texto(n.asientos && n.asientos.viento) || "mod_niveles_viento" }
+    };
+  }
+
+  function nivelDe(leguas, cfg) {
+    var xp = Math.max(0, num(leguas)), T = cfg.tabla, i = 0;
+    for (var k = 0; k < T.length; k++) if (xp >= T[k].desde) i = k;
+    var f = T[i], sig = T[i + 1] || null, cada = cfg.maestria.cada, cima = !sig;
+    var sellos = cima && cada > 0 ? Math.floor((xp - f.desde) / cada) : 0;
+    var faltan = sig ? sig.desde - xp : cada > 0 ? cada - ((xp - f.desde) % cada) : 0;
+    return { nivel: f.nivel, desde: f.desde, hasta: sig ? sig.desde : null, cima: cima, sellos: sellos, faltan: faltan, titulo: f.titulo };
+  }
+  function tituloDe(info, sexo, cfg) {
+    var t;
+    if (typeof info === "number") { var f = cfg.tabla.filter(function (x) { return x.nivel === info; })[0] || cfg.tabla[0]; t = f.titulo; }
+    else t = info.titulo;
+    return (sexo === "f" ? t.f : sexo === "m" ? t.m : "") || t.n || t.m || t.f;
+  }
+  function rangosDe(cfg) {
+    var out = [];
+    cfg.tabla.forEach(function (f) { if (!out.length || out[out.length - 1].titulo !== f.titulo.n) out.push({ leguas: f.desde, titulo: f.titulo.n }); });
+    return out;
+  }
+  function ventajasAbiertas(cfg, semana) { return semana != null && isFinite(Number(semana)) && Number(semana) >= cfg.ventajas.semana; }
+  function ventajasDe(nivel, cfg) { return VENTAJAS.filter(function (k) { return cfg.ventajas[k] && nivel >= cfg.ventajas[k].nivel; }); }
+  function tieneVentaja(cfg, k, nivel, semana) { return !!cfg.ventajas[k] && ventajasAbiertas(cfg, semana) && nivel >= cfg.ventajas[k].nivel; }
+  function mediana(lista) {
+    var l = (lista || []).map(Number).filter(function (x) { return isFinite(x); }).sort(function (a, b) { return a - b; });
+    if (!l.length) return null;
+    var m = l.length >> 1;
+    return l.length % 2 ? l[m] : (l[m - 1] + l[m]) / 2;
+  }
+  /** El extra del viento (lo mismo que `viento` del servidor): → { extra, mediana } */
+  function viento(o) {
+    var cfg = o.cfg, V = cfg.ventajas.viento, nada = { extra: 0, mediana: null };
+    if (!V || !(V.extra > 0) || !(num(o.leguas) > 0) || !ventajasAbiertas(cfg, o.semana)) return nada;
+    var u = o.usado;
+    if (u && Number(u.semana) === Number(o.semana) && (Number(u.n) || 1) >= V.porSemana) return nada;
+    var med = mediana(o.columna);
+    if (med == null || !(med - o.nivel >= V.debajo)) return nada;
+    return { extra: Math.round(num(o.leguas) * V.extra), mediana: med };
+  }
+  function conVientoAFavor(o) { return viento({ cfg: o.cfg, nivel: o.nivel, columna: o.columna, leguas: 100, semana: o.semana, usado: o.usado }).extra > 0; }
+
+  /** Las fichas con la insignia «Guía» esa semana (de su columna, si se dice), de más a menos leguas. */
+  function guias(fichas, cfg, semana, columna) {
+    var G = cfg.ventajas.guia;
+    if (!G || !ventajasAbiertas(cfg, semana)) return [];
+    return (fichas || []).filter(function (r) {
+      return (columna == null || String(r.columna || "") === String(columna || "")) && nivelDe(r.leguas, cfg).nivel >= G.nivel;
+    }).sort(function (a, b) { return num(b.leguas) - num(a.leguas); });
+  }
+  /** Quién lleva el estandarte de cada columna: el de más nivel con la ventaja (a igual nivel, más leguas). → { columna: ficha } */
+  function estandartes(fichas, cfg, semana) {
+    var E = cfg.ventajas.estandarte, out = {};
+    if (!E || !ventajasAbiertas(cfg, semana)) return out;
+    (fichas || []).forEach(function (r) {
+      if (nivelDe(r.leguas, cfg).nivel < E.nivel) return;
+      var c = String(r.columna || ""), ya = out[c];
+      if (!ya || num(r.leguas) > num(ya.leguas)) out[c] = r;
+    });
+    return out;
+  }
+
+  var API = {
+    VENTAJAS: VENTAJAS, normalizar: normalizar, nivelDe: nivelDe, tituloDe: tituloDe, rangosDe: rangosDe, ventajasAbiertas: ventajasAbiertas,
+    ventajasDe: ventajasDe, tieneVentaja: tieneVentaja, mediana: mediana, viento: viento, conVientoAFavor: conVientoAFavor,
+    guias: guias, estandartes: estandartes, porMod: {}
+  };
+  /** La configuración normalizada de un mod (por su nombre, de `porMod`) o de una `niveles` cruda. */
+  API.cfg = function (x) { return normalizar(typeof x === "string" ? API.porMod[x] : x); };
+  return API;
+});
+// ─── fin de la pieza «niveles» ───
+});
 
 var SDK = {
   version: "v1",
-  piezas: ["semanas","llamar","papel","alistarse","premios","asistencia","votacion","retos","equipo","buzon","economia","sitio","conectar","grupos"],
+  piezas: ["semanas","llamar","papel","alistarse","premios","asistencia","votacion","retos","equipo","buzon","economia","efigie","mantenimiento","sitio","conectar","grupos","llave","niveles"],
   semanas: semanas,
   llamador: llamar.llamador,
   errores: { codigo: llamar.codigo, delServidor: llamar.delServidor, sinDesplegar: llamar.sinDesplegar, es: llamar.es, CODIGOS: llamar.CODIGOS },
@@ -2259,8 +2750,12 @@ var SDK = {
   equipo: equipo,
   buzon: buzon,
   economia: economia,
+  efigie: efigie,
+  mantenimiento: mantenimiento,
   grupos: grupos,
-  sitio: sitio.crear({"mapa":{"stargate_alias":{"nueva":"mod_alias","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_anulaciones":{"nueva":"mod_anulaciones","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_asistencia":{"nueva":"mod_asistencia","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_batallas":{"nueva":"mod_batallas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_buzon":{"nueva":"mod_buzon","mod":"stargate","ids":"azar","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_comentarios":{"nueva":"mod_comentarios","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_congelados":{"nueva":"mod_congelados","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_directo":{"nueva":"mod_directo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_envivo":{"nueva":"mod_envivo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_formacion":{"nueva":"mod_formacion","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_invitaciones":{"nueva":"mod_invitaciones","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_profes":{"nueva":"mod_profes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_referentes":{"nueva":"mod_referentes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_reflexiones":{"nueva":"mod_reflexiones","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_respuestas":{"nueva":"mod_respuestas","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_rutas":{"nueva":"mod_rutas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_tratos":{"nueva":"mod_tratos","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_zoco":{"nueva":"mod_zoco","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_asedio":{"nueva":"mod_asedio","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_asedio_ataques":{"nueva":"mod_asedio_ataques","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_galeria":{"nueva":"mod_galeria","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_fama":{"nueva":"mod_fama","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"nueva"},"ceniza_clase":{"nueva":"mod_clase","mod":"ceniza","ids":"grupo","porGrupo":true,"fase":"vieja"},"ceniza_formacion":{"nueva":"mod_formacion","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_invitaciones":{"nueva":"mod_invitaciones","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_referentes":{"nueva":"mod_referentes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_juegos":{"nueva":"mod_juegos","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_mesa":{"nueva":"mod_mesa","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_respuestas":{"nueva":"mod_repaso","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardia_partidas":{"nueva":"mod_retaguardia_partidas","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardias":{"nueva":"mod_retaguardias","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_publico":{"nueva":"mod_publico","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_publico_opiniones":{"nueva":"mod_publico_opiniones","mod":"ceniza","ids":"azar","porGrupo":false,"fase":"vieja"}},"novedades":{"2":["coleccionesMod","economiaSoloServidor","ticketMotor","medianocheUnica","bancoMotor","retaguardiaMotor"]},"mods":[{"mod":"stargate","reconocer":"bloque"},{"mod":"ceniza","reconocer":null}]})
+  sitio: sitio.crear({"mapa":{"stargate_alias":{"nueva":"mod_alias","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_anulaciones":{"nueva":"mod_anulaciones","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_asistencia":{"nueva":"mod_asistencia","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_batallas":{"nueva":"mod_batallas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_buzon":{"nueva":"mod_buzon","mod":"stargate","ids":"azar","porGrupo":false,"fase":"vieja","comun":true},"stargate_comentarios":{"nueva":"mod_comentarios","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_congelados":{"nueva":"mod_congelados","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_directo":{"nueva":"mod_directo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_envivo":{"nueva":"mod_envivo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_formacion":{"nueva":"mod_formacion","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_invitaciones":{"nueva":"mod_invitaciones","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_profes":{"nueva":"mod_profes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_referentes":{"nueva":"mod_referentes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_reflexiones":{"nueva":"mod_reflexiones","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_respuestas":{"nueva":"mod_respuestas","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_rutas":{"nueva":"mod_rutas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_tratos":{"nueva":"mod_tratos","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_zoco":{"nueva":"mod_zoco","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_asedio":{"nueva":"mod_asedio","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_asedio_ataques":{"nueva":"mod_asedio_ataques","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_galeria":{"nueva":"mod_galeria","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_fama":{"nueva":"mod_fama","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"nueva"},"ceniza_clase":{"nueva":"mod_clase","mod":"ceniza","ids":"grupo","porGrupo":true,"fase":"vieja"},"ceniza_formacion":{"nueva":"mod_formacion","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_invitaciones":{"nueva":"mod_invitaciones","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_referentes":{"nueva":"mod_referentes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_juegos":{"nueva":"mod_juegos","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_mesa":{"nueva":"mod_mesa","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_respuestas":{"nueva":"mod_repaso","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardia_partidas":{"nueva":"mod_retaguardia_partidas","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardias":{"nueva":"mod_retaguardias","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_publico":{"nueva":"mod_publico","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_publico_opiniones":{"nueva":"mod_publico_opiniones","mod":"ceniza","ids":"azar","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]}},"novedades":{"2":["coleccionesMod","economiaSoloServidor","ticketMotor","medianocheUnica","bancoMotor","retaguardiaMotor"]},"mods":[{"mod":"stargate","reconocer":"bloque"},{"mod":"ceniza","reconocer":null}]}),
+  llave: Object.assign({}, llave, { porMod: {"ceniza":{"dia":4,"hora":20}} }),
+  niveles: (function () { niveles.porMod = {"ceniza":{"tabla":[{"nivel":0,"desde":0,"titulo":{"f":"Vagabunda","m":"Vagabundo","n":"Vagabundo/a"}},{"nivel":1,"desde":30,"titulo":{"f":"Vagabunda","m":"Vagabundo","n":"Vagabundo/a"}},{"nivel":2,"desde":70,"titulo":{"f":"Vagabunda","m":"Vagabundo","n":"Vagabundo/a"}},{"nivel":3,"desde":120,"titulo":{"f":"Caminante","m":"Caminante","n":"Caminante"}},{"nivel":4,"desde":180,"titulo":{"f":"Caminante","m":"Caminante","n":"Caminante"}},{"nivel":5,"desde":260,"titulo":{"f":"Porteadora","m":"Porteador","n":"Porteador/a"}},{"nivel":6,"desde":350,"titulo":{"f":"Porteadora","m":"Porteador","n":"Porteador/a"}},{"nivel":7,"desde":460,"titulo":{"f":"Rastreadora","m":"Rastreador","n":"Rastreador/a"}},{"nivel":8,"desde":590,"titulo":{"f":"Rastreadora","m":"Rastreador","n":"Rastreador/a"}},{"nivel":9,"desde":740,"titulo":{"f":"Guía de familia","m":"Guía de familia","n":"Guía de familia"}},{"nivel":10,"desde":910,"titulo":{"f":"Guía de familia","m":"Guía de familia","n":"Guía de familia"}},{"nivel":11,"desde":1100,"titulo":{"f":"Cartógrafa","m":"Cartógrafo","n":"Cartógrafo/a"}},{"nivel":12,"desde":1320,"titulo":{"f":"Cartógrafa","m":"Cartógrafo","n":"Cartógrafo/a"}},{"nivel":13,"desde":1570,"titulo":{"f":"Abanderada","m":"Abanderado","n":"Abanderado/a"}},{"nivel":14,"desde":1860,"titulo":{"f":"Abanderada","m":"Abanderado","n":"Abanderado/a"}},{"nivel":15,"desde":2200,"titulo":{"f":"Maestra de obras","m":"Maestro de obras","n":"Maestro/a de obras"}},{"nivel":16,"desde":2600,"titulo":{"f":"Arquitecta del Camino","m":"Arquitecto del Camino","n":"Arquitecto/a del Camino"}}],"maestria":{"cada":150},"ventajas":{"semana":9,"marco":{"nivel":3,"colores":{"ambar":"#d39b2a","burdeos":"#8e2f3c","pizarra":"#4a6378","musgo":"#5f7a3a","cobre":"#b5653a","hueso":"#e8dcc0","noche":"#2c2f4a","ceniza":"#8a8580"}},"mano":{"nivel":5,"oro":5,"porSemana":1,"recibirPorSemana":2},"guia":{"nivel":9},"pregunta":{"nivel":11,"porSemana":1},"estandarte":{"nivel":13},"reto":{"nivel":16,"max":2},"viento":{"debajo":3,"extra":0.5,"porSemana":1}},"asientos":{"mano":"mod_niveles_mano","viento":"mod_niveles_viento"}}}; return niveles; })()
 };
 if (typeof module === "object" && module.exports) module.exports = SDK;
 else raiz.GP_SDK = SDK;

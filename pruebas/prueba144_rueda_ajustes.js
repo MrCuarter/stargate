@@ -25,7 +25,7 @@ const { pieza, FIJADO } = require("./sdk_pieza.js");
 
 (async () => {
   console.log("  El SDK fijado");
-  c(FIJADO === "mod-sdk.v1.f6acae6644.js", "🔴 el paquete fijado es el que trae cambiarComandante (10-oct, noche, f6acae6644 = el fe31bea232 con «todo es todo»; fe31bea232 = el 3dc8a5eeb5 con mod_miembros en el alta; 3dc8a5eeb5: el 971e453a04, el sitio de la tanda 2a, tandas 2b y 2c, lo suelto entero en mod_*, y las capturas del buzón para todos)", FIJADO);
+  c(FIJADO === "mod-sdk.v1.7af5de65e2.js", "🔴 el paquete fijado es el que trae cambiarComandante (10-oct, noche, f6acae6644 = el fe31bea232 con «todo es todo»; fe31bea232 = el 3dc8a5eeb5 con mod_miembros en el alta; 3dc8a5eeb5: el 971e453a04, el sitio de la tanda 2a, tandas 2b y 2c, lo suelto entero en mod_*, y las capturas del buzón para todos)", FIJADO);
   const EQ = pieza("equipo");
   c(/function cambiarComandante\(grupo, comandante\) \{\s*return llamar\("modComandante", \{ projectId: grupo, comandante: String\(comandante \|\| ""\) \}\);/.test(EQ)
     && /cambiarComandante: cambiarComandante/.test(EQ), "   equipo.cambiarComandante → modComandante { projectId, comandante }, y la pieza la devuelve");

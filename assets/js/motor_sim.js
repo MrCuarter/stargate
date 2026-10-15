@@ -750,6 +750,8 @@ async function subirImagen(ruta, blob) {
 const CTX = { fs: { db, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, writeBatch, onSnapshot, deleteField },
               llamar, sesion, sitio: sitioDe, subir: subirImagen };
 const ALISTARSE = SDK.alistarse.crear(CTX);
+/** 15-oct · aviso «Actualizando servidores» durante los despliegues (pieza mantenimiento del motor; lee mod_mantenimiento/estado y caduca sola). */
+try { SDK.mantenimiento.crear(CTX).activar({ textos: { titulo: 'ACTUALIZANDO SERVIDORES DE LA NAVE', detalle: 'Vuelve en unos {min} minutos. No pierdes nada de lo que ya tienes.' } }); } catch (e) { console.warn('mantenimiento', e); }
 /**
  * 🔴 10-oct (noche) · «TODO ES TODO» (GamificaPro, firestore.rules): el grupo entero (`projects/{id}`, con los correos del equipo
  * docente y el código de clase) ya solo lo lee su equipo docente, el Mando y los vitalicios. El alumnado y quien se va a alistar
@@ -1017,7 +1019,7 @@ const BUZON = SDK.sitio("stargate_buzon", null);
  * del recluta con su alias y nunca urgente), lo mío, todo, contestar sin reescribir el hilo y «ya lo he leído». Aquí, la
  * colección y los textos de STARGATE.
  */
-const BUZON_SDK = SDK.buzon.crear(CTX, BUZON);
+const BUZON_SDK = SDK.buzon.crear(Object.assign({}, CTX, { mod: "stargate" }), BUZON);
 const TEXTOS_BUZON = { sinSesion: "Entra con tu cuenta para escribir al Mando.", sinMensaje: "Ese mensaje ya no existe.", estudiante: "Recluta" };
 async function buzonEnviar(m) {
   // 28-sep · la duda de un RECLUTA (la que NEBULA no sabe): va con su alias, nunca urgente (reglas: tipo 'recluta')
