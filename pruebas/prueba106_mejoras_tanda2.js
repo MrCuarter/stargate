@@ -111,7 +111,9 @@ if (fs.existsSync(FN)) {
   const com = fs.readFileSync(FN.replace("stargateEquipo.js", "comun.js"), "utf8"), k = com.indexOf("export function modWebDe"), k2 = com.indexOf("\n}\n", k) + 3;
   // 7-oct · modWebDe recorre la lista MODS (functions/mods/index.js): con sus dos ayudantes y STARGATE reconocido por su bloque
   const k0 = com.indexOf("const propio"), apoyo = k0 >= 0 && k0 < k ? com.slice(k0, k) + "const MODS = { stargate: { reconocer: 'bloque' }, ceniza: {} };\n" : "";
-  const plan = new Function(apoyo + com.slice(k, k2).replace("export function", "function") + src.slice(i, j).replace("export function", "function") + "; return planMiNombre;")();
+  const colf = fs.readFileSync(FN.replace("stargateEquipo.js", "modColumnasLogica.js"), "utf8"), c0 = colf.indexOf("export function columnasRenombradas"), c1 = colf.indexOf("\n}\n", c0) + 3;
+  const colRen = colf.replace(/^export /gm, "") + "\n";
+  const plan = new Function(colRen + apoyo + com.slice(k, k2).replace("export function", "function") + src.slice(i, j).replace("export function", "function") + "; return planMiNombre;")();
   const proyecto = { factions: [{ teacherName: "Ana" }, { teacherName: "Luis" }],
     stargate: { paneles: { Ana: "p-ana", Luis: "p-luis" }, sesiones: { Ana: ["zoco"] }, avatares: { Ana: "c7" } } };
   const docentes = [{ nombre: "Ana", correo: "ana@x.es" }, { nombre: "Luis", correo: "luis@x.es" }];

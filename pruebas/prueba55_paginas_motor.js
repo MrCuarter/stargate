@@ -149,7 +149,9 @@ c(/getDoc\(doc\(db, "projects", id\)\)/.test(sembrar) && /already-exists/.test(s
 const SEMBRAR = fs.readFileSync(path.join(__dirname, "..", "motor", "sembrar.js"), "utf8");
 const SEMBRAR_PRUEBA = fs.readFileSync(path.join(__dirname, "..", "motor", "sembrar_prueba.js"), "utf8");
 const PLAN_GRUPO = fs.readFileSync(path.join(__dirname, "..", "motor", "plan_grupo.js"), "utf8");
-const GP_GRUPOS = fs.readFileSync(path.join(process.env.GAMIFICAPRO_DIR || "/Users/nor/Claude/vibewebs/gamificapro", "functions", "modGrupos.js"), "utf8");
+const GP_FN = path.join(process.env.GAMIFICAPRO_DIR || "/Users/nor/Claude/vibewebs/gamificapro", "functions");
+// 15-oct · documentoDelPaquete vive ahora en modGruposPaquete.js (la usa también la línea de órdenes, sin Firebase)
+const GP_GRUPOS = fs.readFileSync(path.join(GP_FN, "modGrupos.js"), "utf8") + "\n" + fs.readFileSync(path.join(GP_FN, "modGruposPaquete.js"), "utf8");
 [["motor/sembrar.js", SEMBRAR], ["motor/sembrar_prueba.js", SEMBRAR_PRUEBA]].forEach(function (par) {
   c(/require\("\.\/plan_grupo\.js"\)/.test(par[1]) && /GRUPO\.plan\(/.test(par[1]) && /GRUPO\.escribir\(/.test(par[1]),
     "🔴 " + par[0] + " siembra el grupo con el plan de crearGrupoMod");
