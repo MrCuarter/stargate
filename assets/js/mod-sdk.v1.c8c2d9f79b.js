@@ -1,11 +1,11 @@
-/* GamificaPro · mod-sdk v1 — GENERADO por scripts/build-sdk.mjs (npm run build:sdk) desde sdk/semanas.js, sdk/llamar.js, sdk/papel.js, sdk/alistarse.js, sdk/premios.js, sdk/asistencia.js, sdk/votacion.js, sdk/retos.js, sdk/equipo.js, sdk/buzon.js, sdk/economia.js, sdk/efigie.js, sdk/mantenimiento.js, sdk/sitio.js, sdk/conectar.js, sdk/grupos.js, sdk/llave.js, sdk/niveles.js.
+/* GamificaPro · mod-sdk v1 — GENERADO por scripts/build-sdk.mjs (npm run build:sdk) desde sdk/semanas.js, sdk/llamar.js, sdk/papel.js, sdk/alistarse.js, sdk/premios.js, sdk/asistencia.js, sdk/votacion.js, sdk/retos.js, sdk/equipo.js, sdk/buzon.js, sdk/economia.js, sdk/efigie.js, sdk/mantenimiento.js, sdk/registro.js, sdk/sitio.js, sdk/conectar.js, sdk/grupos.js, sdk/llave.js, sdk/niveles.js.
  * No se edita a mano ni en las webs: se cambian las piezas en GamificaPro y se genera otro paquete (otra huella).
  * Sin claves, sin textos y sin colores de ningún mod. Deja window.GP_SDK (o module.exports en Node):
  *   GP_SDK.semanas                         la receta de las semanas (la de window.SGSEMANAS)
  *   GP_SDK.llamador(nombre => callable)    → llamar(nombre, datos), con los errores marcados por código
  *   GP_SDK.errores                         { codigo, delServidor, sinDesplegar, es, CODIGOS }
  *   GP_SDK.papel(llamar)                   → { miPapel(uid), olvidar() };  GP_SDK.papelDe(respuesta, mod) → { vitalicio, mando }
- *   GP_SDK.<pieza>.crear({ fs, llamar, sesion })   las piezas con ctx: alistarse, premios, asistencia, votacion, retos, equipo, buzon, economia, efigie, mantenimiento, grupos
+ *   GP_SDK.<pieza>.crear({ fs, llamar, sesion })   las piezas con ctx: alistarse, premios, asistencia, votacion, retos, equipo, buzon, economia, efigie, mantenimiento, registro, grupos
  *   GP_SDK.sitio(vieja, proyecto)          → { coleccion, nueva, id(), datos(), mod }: dónde van los datos de ese grupo
  *   GP_SDK.conectar({ mod, firebase, … })  → { EMU, app, auth, db, fns, google, entrar, entrarComo, salir }: Firebase, la entrada con Google
  *                                            y el candado del emulador (demo-<mod>); recibe las funciones de Firebase de la web
@@ -809,7 +809,7 @@ var asistencia = pieza(function (module, exports) {
  *
  * Puro: `ms(t)` (Timestamp, Date, cadena o número → milisegundos; 0 si no hay), `fin(sesion)`, `COLECCIONES`, `CAMPO_CLASE`,
  * `marcas(porUid, prefijo)` y `reparto(o)` (abajo, «el histórico»).
- * Con `crear(ctx)` (ctx = { fs, llamar, sesion }): `abierta(grupo, elegir)`, `vigilar(grupo, alCambiar, elegir)`,
+ * Con `crear(ctx)` (ctx = { fs, llamar, sesion, registro? }; `registro` = GP_SDK.registro.crear(…): si lo hay, `vigilar` apunta ahí sus fallos): `abierta(grupo, elegir)`, `vigilar(grupo, alCambiar, elegir)`,
  * `abrir(grupo, o)`, `cerrar(id)`, `fichajes(sesionId)` (en orden de llegada), `yaFiche(sesionId, uid)`,
  * `fichar(grupo, fichaId, { tz })` e `historial(grupo)`. Cuánto se paga, a quién va la llamada (`restrictedFactionId`) y el
  * regalo son de cada web.
@@ -890,7 +890,9 @@ var asistencia = pieza(function (module, exports) {
           fallos = 0;
           var v = vivas(r.docs, Date.now());
           alCambiar((typeof elegir === "function" ? v.filter(elegir) : v)[0] || null, v);
-        }, function () {
+        }, function (err) {
+          // 15-oct · lo apunta el registro de fallos de infraestructura (GP_SDK.registro; ctx.registro es opcional: sin él, igual que antes)
+          if (ctx.registro && typeof ctx.registro.apuntar === "function") { try { ctx.registro.apuntar(err, { pantalla: "asistencia" }); } catch (e) { /* nunca estorba */ } }
           alCambiar(null, []);
           if (parado) return;
           espera = setTimeout(escuchar, Math.min(30000, 2000 * Math.pow(2, fallos++)));
@@ -2073,6 +2075,140 @@ var mantenimiento = pieza(function (module, exports) {
 });
 // ─── fin de la pieza «mantenimiento» ───
 });
+var registro = pieza(function (module, exports) {
+// ─── GP_SDK pieza «registro» (sdk/registro.js), tal cual ───
+'use strict';
+/**
+ * GAMIFICAPRO · EL REGISTRO DE FALLOS DE INFRAESTRUCTURA (15-oct-2026) — pieza del SDK v1, para cualquier mod.
+ *
+ * PER 16450 (STARGATE) tuvo el 15-oct un error de permisos en la llamada a filas y estudiantes con error de acceso, y no quedó rastro
+ * (Firestore no registra las denegaciones de las reglas). Norberto: «saber de un fallo en directo a los minutos, sin depender de que
+ * la docente escriba». Esta pieza APUNTA en la web los fallos que son del sistema y los manda a la función `modErrores`
+ * (functions/modErrores.js → `mod_errores`); scripts/vigilar-errores.mjs los lee cada 5 minutos y avisa por correo, sin gastar tokens.
+ * (GP_SDK.errores ya es otra cosa —los códigos de las llamadas—: esta pieza se llama `registro`.)
+ *
+ *   · SOLO lo de infraestructura: permission-denied, unavailable, resource-exhausted, unauthenticated, deadline-exceeded y
+ *     failed-precondition (de Firestore o de una función), y `red` (una llamada a función que no llega: sin desplegar, sin red, caída
+ *     sin texto). Un «no» de nuestra función (con su texto), un fallo de la página o cualquier otra cosa: no se apunta.
+ *   · SIN DATOS PERSONALES: sale el código, la pantalla, el grupo (projectId), el navegador resumido (familia y versión mayor) y la
+ *     versión del SDK. NUNCA el texto del error (ni se lee), ni correo, ni uid: la cuenta, si la hay, la pone Firebase en la propia
+ *     llamada y el servidor solo la usa para el tope por hora, sin guardarla.
+ *   · TOPES en cada pestaña: 5 al minuto y 30 por sesión (lo que pase de ahí se descarta). Los repetidos (mismo código y pantalla) se
+ *     agrupan en un solo envío con su cuenta `n`. Se manda a los 5 s del primero, de una vez.
+ *   · Nunca estorba: si el envío falla, se descarta en silencio (un registro que da errores sería un círculo) y nada se lanza.
+ *
+ * Con `crear(ctx)` (ctx = { llamar, sesion, ventana?, sdk? }; `sesion` no se usa: la cuenta no se manda) → { instalar, apuntar, pendientes }.
+ *   instalar({ grupo, pantalla })   escucha window «error» y «unhandledrejection» (una sola vez) → función que lo desinstala.
+ *                                   `grupo` y `pantalla` pueden ser un texto o una función (el grupo se sabe al entrar).
+ *   apuntar(err, contexto)          para las piezas (el onError de asistencia.vigilar, abrir, cerrar…): contexto = { pantalla } o texto.
+ *                                   → true si lo ha apuntado, false si no es de infraestructura o ha pasado el tope.
+ * Puro y suelto: `clasificar(err)` → código o '', `navegadorDe(ua)` → { familia, mayor }, `TOPES`, `CODIGOS`.
+ */
+(function (raiz, fabrica) {
+  if (typeof module === "object" && module.exports) module.exports = fabrica();
+  else raiz.GPREGISTRO = fabrica();
+})(typeof self !== "undefined" ? self : this, function () {
+  /** Los códigos que se apuntan (los mismos que acepta el servidor: ERRORES.codigos en functions/mods/index.js) y los topes de cada pestaña. */
+  var CODIGOS = ["permission-denied", "unavailable", "resource-exhausted", "unauthenticated", "deadline-exceeded", "failed-precondition", "red"];
+  var TOPES = { alMinuto: 5, porSesion: 30, esperaMs: 5000, porEnvio: 10 };
+  var SIN_CONTESTAR = ["not-found", "unimplemented", "internal", "unknown"];
+
+  /** «functions/not-found» → «not-found». */
+  function codigoDe(e) { return String((e && e.code) || "").replace(/^[a-z-]+\//, ""); }
+  /** ¿El texto del error lo escribió NUESTRA función? (el cliente de Firebase pone de mensaje el propio código si no llegó a contestar) */
+  function delServidor(e, c) {
+    var m = String((e && e.message) || "");
+    return m !== "" && m !== c && m !== String(c).toUpperCase().replace(/-/g, "_");
+  }
+  /**
+   * El código de infraestructura de un error, o "" si no lo es. No lee NUNCA el mensaje salvo para saber si lo escribió nuestra función
+   * (y no lo guarda). Acepta un evento de «unhandledrejection» (su `reason`) y uno de «error» (su `error`).
+   */
+  function clasificar(err) {
+    var e = err && err.reason !== undefined && !err.code ? err.reason : err && err.error !== undefined && !err.code ? err.error : err;
+    if (!e || typeof e !== "object") return "";
+    var c = codigoDe(e), deFunciones = /^functions\//.test(String(e.code || ""));
+    if (deFunciones && SIN_CONTESTAR.indexOf(c) >= 0 && !delServidor(e, c)) return "red";   // la función no ha contestado
+    // un «no» de nuestra función, con su texto (permisos de la clase, cupo, estado del grupo…), es una decisión de la web, no un fallo del sistema;
+    // solo cuenta la sesión perdida (unauthenticated): la docente lo vive como «error de acceso»
+    if (deFunciones && delServidor(e, c) && c !== "unauthenticated") return "";
+    return CODIGOS.indexOf(c) >= 0 && c !== "red" ? c : "";
+  }
+
+  /** La familia del navegador y su versión mayor, del User-Agent (nada más). */
+  function navegadorDe(ua) {
+    var s = String(ua || ""), m;
+    var casos = [[/Edg(?:e|A|iOS)?\/(\d+)/, "Edge"], [/OPR\/(\d+)/, "Opera"], [/SamsungBrowser\/(\d+)/, "Samsung"],
+      [/(?:Firefox|FxiOS)\/(\d+)/, "Firefox"], [/(?:Chrome|CriOS)\/(\d+)/, "Chrome"], [/Version\/(\d+)[\d.]*.*Safari/, "Safari"]];
+    for (var i = 0; i < casos.length; i++) { m = casos[i][0].exec(s); if (m) return { familia: casos[i][1], mayor: parseInt(m[1], 10) || 0 }; }
+    return { familia: "otro", mayor: 0 };
+  }
+
+  function crear(ctx) {
+    if (!ctx || typeof ctx.llamar !== "function") throw new Error("GP_SDK.registro: falta ctx.llamar");
+    var llamar = ctx.llamar, sdk = ctx.sdk || "v1";
+    var ventana = ctx.ventana || (typeof window !== "undefined" ? window : null);
+    var cfg = { grupo: "", pantalla: "otra" };
+    var marcas = [], totalSesion = 0, cola = {}, temporizador = null, instalado = null;
+
+    function valor(x) { try { return typeof x === "function" ? x() : x; } catch (e) { return ""; } }
+    function agenda() { if (!temporizador) temporizador = setTimeout(enviar, TOPES.esperaMs); }
+
+    /** Manda lo apuntado, de una vez. Si no hay grupo todavía (sin entrar), se queda para la próxima. */
+    function enviar() {
+      temporizador = null;
+      var grupo = String(valor(cfg.grupo) || "");
+      var claves = Object.keys(cola);
+      if (!claves.length) return;
+      if (!grupo) { agenda(); return; }
+      var eventos = claves.slice(0, TOPES.porEnvio).map(function (k) { var x = cola[k]; delete cola[k]; return x; });
+      if (Object.keys(cola).length) agenda();
+      var ua = ventana && ventana.navigator ? ventana.navigator.userAgent : (typeof navigator !== "undefined" ? navigator.userAgent : "");
+      try {
+        Promise.resolve(llamar("modErrores", { grupo: grupo, navegador: navegadorDe(ua), sdk: sdk, eventos: eventos })).catch(function () { /* se descarta */ });
+      } catch (e) { /* se descarta */ }
+    }
+
+    function apuntar(err, contexto) {
+      try {
+        var codigo = clasificar(err);
+        if (!codigo) return false;
+        var ahora = Date.now();
+        marcas = marcas.filter(function (t) { return ahora - t < 60000; });
+        if (marcas.length >= TOPES.alMinuto || totalSesion >= TOPES.porSesion) return false;
+        marcas.push(ahora); totalSesion++;
+        var pantalla = String((contexto && contexto.pantalla) || (typeof contexto === "string" ? contexto : "") || valor(cfg.pantalla) || "otra");
+        var k = codigo + "|" + pantalla;
+        if (cola[k]) cola[k].n++; else cola[k] = { codigo: codigo, pantalla: pantalla, n: 1 };
+        agenda();
+        return true;
+      } catch (e) { return false; }
+    }
+
+    function instalar(o) {
+      if (instalado) return instalado;
+      var op = o || {};
+      cfg.grupo = op.grupo || ""; cfg.pantalla = op.pantalla || "otra";
+      var alError = function (ev) { apuntar(ev); };
+      var alRechazo = function (ev) { apuntar(ev); };
+      if (ventana && ventana.addEventListener) {
+        ventana.addEventListener("error", alError);
+        ventana.addEventListener("unhandledrejection", alRechazo);
+      }
+      instalado = function () {
+        if (ventana && ventana.removeEventListener) { ventana.removeEventListener("error", alError); ventana.removeEventListener("unhandledrejection", alRechazo); }
+        if (temporizador) { clearTimeout(temporizador); temporizador = null; }
+        instalado = null;
+      };
+      return instalado;
+    }
+    return { instalar: instalar, apuntar: apuntar, pendientes: function () { return Object.keys(cola).length; } };
+  }
+
+  return { crear: crear, clasificar: clasificar, navegadorDe: navegadorDe, CODIGOS: CODIGOS, TOPES: TOPES };
+});
+// ─── fin de la pieza «registro» ───
+});
 var sitio = pieza(function (module, exports) {
 // ─── GP_SDK pieza «sitio» (sdk/sitio.js), tal cual ───
 'use strict';
@@ -2735,7 +2871,7 @@ var niveles = pieza(function (module, exports) {
 
 var SDK = {
   version: "v1",
-  piezas: ["semanas","llamar","papel","alistarse","premios","asistencia","votacion","retos","equipo","buzon","economia","efigie","mantenimiento","sitio","conectar","grupos","llave","niveles"],
+  piezas: ["semanas","llamar","papel","alistarse","premios","asistencia","votacion","retos","equipo","buzon","economia","efigie","mantenimiento","registro","sitio","conectar","grupos","llave","niveles"],
   semanas: semanas,
   llamador: llamar.llamador,
   errores: { codigo: llamar.codigo, delServidor: llamar.delServidor, sinDesplegar: llamar.sinDesplegar, es: llamar.es, CODIGOS: llamar.CODIGOS },
@@ -2752,6 +2888,7 @@ var SDK = {
   economia: economia,
   efigie: efigie,
   mantenimiento: mantenimiento,
+  registro: registro,
   grupos: grupos,
   sitio: sitio.crear({"mapa":{"stargate_alias":{"nueva":"mod_alias","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_anulaciones":{"nueva":"mod_anulaciones","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_asistencia":{"nueva":"mod_asistencia","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_batallas":{"nueva":"mod_batallas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_buzon":{"nueva":"mod_buzon","mod":"stargate","ids":"azar","porGrupo":false,"fase":"vieja","comun":true},"stargate_comentarios":{"nueva":"mod_comentarios","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_congelados":{"nueva":"mod_congelados","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_directo":{"nueva":"mod_directo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_envivo":{"nueva":"mod_envivo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_formacion":{"nueva":"mod_formacion","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_invitaciones":{"nueva":"mod_invitaciones","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_profes":{"nueva":"mod_profes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_referentes":{"nueva":"mod_referentes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_reflexiones":{"nueva":"mod_reflexiones","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_respuestas":{"nueva":"mod_respuestas","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_rutas":{"nueva":"mod_rutas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_tratos":{"nueva":"mod_tratos","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_zoco":{"nueva":"mod_zoco","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_asedio":{"nueva":"mod_asedio","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_asedio_ataques":{"nueva":"mod_asedio_ataques","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_galeria":{"nueva":"mod_galeria","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_fama":{"nueva":"mod_fama","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"nueva"},"ceniza_clase":{"nueva":"mod_clase","mod":"ceniza","ids":"grupo","porGrupo":true,"fase":"vieja"},"ceniza_formacion":{"nueva":"mod_formacion","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_invitaciones":{"nueva":"mod_invitaciones","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_referentes":{"nueva":"mod_referentes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_juegos":{"nueva":"mod_juegos","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_mesa":{"nueva":"mod_mesa","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_respuestas":{"nueva":"mod_repaso","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardia_partidas":{"nueva":"mod_retaguardia_partidas","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardias":{"nueva":"mod_retaguardias","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_publico":{"nueva":"mod_publico","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_publico_opiniones":{"nueva":"mod_publico_opiniones","mod":"ceniza","ids":"azar","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]}},"novedades":{"2":["coleccionesMod","economiaSoloServidor","ticketMotor","medianocheUnica","bancoMotor","retaguardiaMotor"]},"mods":[{"mod":"stargate","reconocer":"bloque"},{"mod":"ceniza","reconocer":null}]}),
   llave: Object.assign({}, llave, { porMod: {"ceniza":{"dia":4,"hora":20}} }),

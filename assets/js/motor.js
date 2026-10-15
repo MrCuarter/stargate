@@ -748,6 +748,18 @@ const ALISTARSE = SDK.alistarse.crear(CTX);
 /** 15-oct · aviso «Actualizando servidores» durante los despliegues (pieza mantenimiento del motor; lee mod_mantenimiento/estado y caduca sola). */
 try { SDK.mantenimiento.crear(CTX).activar({ textos: { titulo: 'ACTUALIZANDO SERVIDORES DE LA NAVE', detalle: 'Vuelve en unos {min} minutos. No pierdes nada de lo que ya tienes.' } }); } catch (e) { console.warn('mantenimiento', e); }
 /**
+ * 15-oct (noche) · registro de fallos de infraestructura (pieza registro del motor → modErrores; lo vigila scripts/vigilar-errores.mjs de GamificaPro).
+ * Solo códigos, pantalla y grupo: nada personal. Sin grupo en la URL (?per=) espera; nunca estorba.
+ */
+let REGISTRO = null;
+try {
+  REGISTRO = SDK.registro.crear(CTX);
+  REGISTRO.instalar({
+    grupo: () => new URLSearchParams(location.search).get("per") || localStorage.getItem("sgClasePer") || "",
+    pantalla: () => (location.pathname.split("/").pop().replace(/\.html$/, "") || "inicio").replace(/[^A-Za-z0-9._-]/g, "").slice(0, 40) || "otra",
+  });
+} catch (e) { console.warn("registro", e); }
+/**
  * 🔴 10-oct (noche) · «TODO ES TODO» (GamificaPro, firestore.rules): el grupo entero (`projects/{id}`, con los correos del equipo
  * docente y el código de clase) ya solo lo lee su equipo docente, el Mando y los vitalicios. El alumnado y quien se va a alistar
  * leen su TARJETA (`mod_grupos/{id}`: lo mismo sin correos ni código, la escribe el servidor). `leerGrupo` da uno u otro, con la
@@ -817,7 +829,7 @@ const LLAMADA = "attendance_sessions", FICHAJES = "attendance_records";
  * fichado (en orden de llegada) y fichar por el servidor (`modFichar`). Aquí queda lo de STARGATE: lo que paga (15 xp y 30
  * créditos), para qué escuadrón es, el regalo y cómo se abre.
  */
-const ASISTENCIA = SDK.asistencia.crear(CTX);
+const ASISTENCIA = SDK.asistencia.crear(REGISTRO ? Object.assign({}, CTX, { registro: REGISTRO }) : CTX);
 
 /**
  * La llamada abierta de un grupo, si la hay. Devuelve null si no hay ninguna o ya ha caducado.
