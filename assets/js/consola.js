@@ -275,6 +275,23 @@
       '<footer class="fc-firma-r">' + window.SG.rotulo({ nombre: yoN, avatar: (FICHA && FICHA.avatar) || "", escuadron: emb.propio ? emb.nombre : "",
         emblema: emb.img || "", grupo: pAqui.nombre || "", clase: "carta", cita: miCita() }) + '</footer></article>';
   }
+  /**
+   * 🔴 16-oct · «EL MÍO / EL GENÉRICO», EN CADA GRUPO. Anita (per-16450): «si modifico el mensaje, a mis estudiantes no les cambia».
+   * Desde hoy su escuadrón lo recibe en su Nave y en el foro del grupo (GamificaPro: `modForoSemana`), y aquí se elige, grupo a
+   * grupo, cuál ven. Sin haber escrito ninguno no sale (no hay nada que elegir). Lo cuenta GP.foroSemanal.modoDe (sdk/foroSemanal.js).
+   */
+  function modoForo() {
+    var f = FICHA || {}, foros = f.foros || {};
+    if (!Object.keys(foros).some(function (k) { return String(foros[k] || "").trim(); })) return "sin";
+    return f.modForoGenerico && f.modForoGenerico[PER] === true ? "generico" : "mio";
+  }
+  function interruptorForo() {
+    var m = modoForo();
+    if (m === "sin") return "";
+    var b = function (v, txt) { return '<button type="button" class="btn min' + (m === v ? " primary" : "") + '" data-foro-modo="' + v + '" aria-pressed="' + (m === v) + '">' + txt + '</button>'; };
+    return '<div class="ht-foro-modo pt-fila" role="group" aria-label="Qué mensaje ve tu alumnado en este grupo"><span class="small"><b>Tu alumnado de este grupo ve:</b></span> ' +
+      b("mio", "El mío") + ' ' + b("generico", "El genérico") + '<span class="small m-sec-msg" id="ht-foro-modo-msg" aria-live="polite"></span></div>';
+  }
   function bloqueForo(sem, texto, propio, esc7) {
     if (!texto && !propio) return "";
     return '<div class="ht-foro" id="ht-foro"><div class="ht-foro-cab"><b class="ht-sub">' + ico("mensaje") + ' El mensaje del foro' +
@@ -282,12 +299,14 @@
       '<span class="ht-foro-b"><button type="button" class="btn min" id="ht-foro-ed" title="Escribir tu versión de este mensaje" aria-expanded="false">' + ico("editar") + ' Editar</button>' +
         '<button type="button" class="btn min" id="ht-foro-todos">Ver todos</button>' +
         '<button type="button" class="btn min" data-copiado="✓ Mensaje copiado" data-copiar="' + esc(texto) + '">Copiar</button></span></div>' +
-      '<p class="small muted">Para pegar esta semana en el foro de la plataforma de UNIR, ya firmado por ti.</p>' +
+      '<p class="small muted">Para pegar esta semana en el foro de la plataforma de UNIR, ya firmado por ti. Es también la orden de la semana que ve tu escuadrón en su Nave y en el foro del grupo.</p>' +
+      interruptorForo() +
       cartaForo(sem, texto, esc7) +
       '<div class="ht-foro-caja" id="ht-foro-caja" hidden><label>Tu mensaje para la semana ' + sem + '<textarea id="ht-foro-in" rows="8" maxlength="4000">' + esc(texto) + '</textarea></label>' +
-        '<p class="small muted">Se guarda en <b>tu ficha</b>, no en este grupo: lo verás en todos tus grupos y en los que crees más adelante. Si lo borras, vuelve el oficial. Es para pegar en el foro: <b>no cambia</b> la orden de la semana que ve tu alumnado en su Nave.</p>' +
+        '<p class="small muted">Se guarda en <b>tu ficha</b>, no en este grupo: vale para todos tus grupos y para los que crees más adelante. Tu escuadrón lo verá en su Nave y en el foro del grupo (salvo en los grupos donde elijas «El genérico»). «Volver al genérico» borra el tuyo de esta semana.</p>' +
+        '<p class="small"><b>Vista previa</b> (así lo verá tu alumnado):</p><div class="ht-foro-previa" id="ht-foro-previa"></div>' +
         '<p class="pt-fila"><button type="button" class="btn primary" id="ht-foro-ok">Guardar para todos mis grupos</button>' +
-        (propio ? ' <button type="button" class="btn min" id="ht-foro-of">Volver al oficial</button>' : '') +
+        (propio ? ' <button type="button" class="btn min" id="ht-foro-of">Volver al genérico</button>' : '') +
         '<span class="small m-sec-msg" id="ht-foro-msg" aria-live="polite"></span></p></div>' +
     '</div>';
   }
@@ -971,6 +990,12 @@
    * 28-sep · EL COMANDANTE DE MI ESCUADRÓN AQUÍ: yo, si lo llevo; o quien lo lleva, si lo COMPARTO (mi correo va en el
    * escuadrón). Con esto quien apoya a otro ve la gente de ese escuadrón como «la suya» (Reclutas, modo docente).
    */
+  /** 16-oct · `&esc=` de MI escuadrón en este grupo (el foro del grupo enseña el mensaje de su comandante); '' si no llevo ninguno. */
+  function escForo() {
+    var c = miComandanteAqui(), F = (DATOS && DATOS.proyecto && DATOS.proyecto.factions) || [];
+    var f = c ? F.filter(function (x) { return x.teacherName === c && x.id; })[0] : null;
+    return f ? "&esc=" + encodeURIComponent(f.id) : "";
+  }
   function miComandanteAqui() {
     var mio = miNombreAqui(), yoC = String((YO && YO.correo) || "").toLowerCase();
     var F = (DATOS && DATOS.proyecto && DATOS.proyecto.factions) || [];
@@ -2182,19 +2207,35 @@
    * El mensaje del foro: editarlo (y que valga para todos tus grupos), verlos todos y volver al oficial.
    * El oficial va firmado con tu nombre; el tuyo se guarda tal cual lo escribes.
    */
-  function cablearForo(sem, texto, mio) {
+  function cablearForo(sem, texto, mio, esc7) {
     var ed = document.getElementById("ht-foro-ed"), caja = document.getElementById("ht-foro-caja");
+    var inp = document.getElementById("ht-foro-in"), previa = document.getElementById("ht-foro-previa");
+    // 16-oct · la vista previa, con la misma carta que arriba, mientras escribe
+    var verPrevia = function () { if (previa && inp) previa.innerHTML = inp.value.trim() ? cartaForo(sem, inp.value, esc7).replace(' id="ht-foro-txt"', "") : '<p class="small muted">Vacío: se verá el genérico.</p>'; };
+    if (inp) inp.oninput = verPrevia;
     if (ed && caja) ed.onclick = function () {
       caja.hidden = !caja.hidden; ed.setAttribute("aria-expanded", String(!caja.hidden));
-      if (!caja.hidden) document.getElementById("ht-foro-in").focus();
+      if (!caja.hidden) { verPrevia(); inp.focus(); }
     };
+    Array.prototype.forEach.call(document.querySelectorAll("[data-foro-modo]"), function (b) {
+      b.onclick = function () {
+        var gen = b.getAttribute("data-foro-modo") === "generico", m = document.getElementById("ht-foro-modo-msg");
+        if (!MOTOR.guardarForoModo || gen === (modoForo() === "generico")) return;
+        if (m) m.textContent = "Guardando…";
+        MOTOR.guardarForoModo(PER, gen).then(function (mapa) {
+          if (FICHA) FICHA.modForoGenerico = mapa;
+          aviso(gen ? "Hecho: en este grupo tu alumnado ve el mensaje genérico." : "Hecho: en este grupo tu alumnado ve tus mensajes.", true);
+          pintar();
+        }, function (e) { if (m) m.textContent = "No se ha podido guardar: " + (e.message || e); });
+      };
+    });
     var msg = document.getElementById("ht-foro-msg");
     var guarda = function (v) {
       if (!MOTOR.guardarForo) return;
       msg.textContent = "Guardando…";
       MOTOR.guardarForo(sem, v).then(function (foros) {
         if (FICHA) FICHA.foros = foros;
-        aviso(v ? "Guardado: este mensaje es el tuyo en todos tus grupos." : "Quitado: vuelve el mensaje oficial.", true);
+        aviso(v ? "Guardado: este mensaje es el tuyo en todos tus grupos." : "Quitado: vuelve el mensaje genérico.", true);
         pintar();
       }, function (e) { msg.textContent = "No se ha podido guardar: " + (e.message || e); });
     };
@@ -2370,7 +2411,9 @@
     // «código de clase y copiar invitación muévelo a Mi gente; el espacio que libera, para el botón de empezar clase».
     // 🔴 20-sep · el mensaje del foro: el TUYO si lo has escrito (vale para todos tus grupos), si no el oficial firmado
     var mioForo = ((FICHA && FICHA.foros) || {})[String(sem)] || "";
-    var foroTxt = mioForo || foro;
+    // 🔴 16-oct · y en cada grupo, el interruptor «el mío / el genérico» (Anita): con «el genérico», aquí también el genérico
+    var foroGen = !!(FICHA && FICHA.modForoGenerico && FICHA.modForoGenerico[PER] === true);
+    var foroTxt = (!foroGen && mioForo) || foro;
     // 24-sep · al pie, «A bordo esta semana» con su escuadrón (gente): entra también en el texto que se copia al foro
     if (window.SG.foroAbordo && foroTxt && sem >= 1 && sem <= total) foroTxt = window.SG.foroConAbordo(foroTxt, window.SG.foroAbordo(gente, ""));
     // 🔴 20-sep (tarde) · Norberto: «pon el panel de control embebido justo debajo» del banner. Es lo primero que se
@@ -2394,7 +2437,7 @@
             '<p class="small m-sec-msg" id="pt-panel-msg" aria-live="polite"></p></div></div>' +
       resumenGrupo(t, gente, { lanzados: lanzados.length, retosSem: estos, consejos: consejos }) +
       (!s ? '<div class="card"><p class="muted">' + (sem < 1 ? 'El curso empieza el <b>' + esc(t.inicio || "—") + '</b>: aquí verás cada semana lo que toca.' : 'Sin semana que enseñar.') + '</p></div>' :
-        '<div class="card pt-hoy">' + bloqueHoyToca((DATOS.proyecto || {}).stargate || {}, sem, total, gente, bloqueForo(sem, foroTxt, !!mioForo, (t.escuadrones || []).filter(function (e) { return e.comandante === yoN; })[0])) + '</div>') +
+        '<div class="card pt-hoy">' + bloqueHoyToca((DATOS.proyecto || {}).stargate || {}, sem, total, gente, bloqueForo(sem, foroTxt, !!mioForo && !foroGen, (t.escuadrones || []).filter(function (e) { return e.comandante === yoN; })[0])) + '</div>') +
       cajaTickets(SEMS, Math.max(0, Math.min(sem, SEMS.length) - 1)) +
       (antes.length ? '<details class="card pt-ant pt-plega"><summary><span class="pt-plega-t">' + ico("retos") + ' Retos ya lanzados</span>' +
         '<span class="small muted">' + antes.length + ' en marcha · cuántos los han registrado</span></summary>' +
@@ -2417,7 +2460,7 @@
 
     // 🔴 20-sep · NEBULA vive DENTRO de la caja de cifras: su botón abre los consejos ahí mismo
     cablearBotonNebula();
-    cablearForo(sem, foroTxt, mioForo);
+    cablearForo(sem, foroTxt, mioForo, (t.escuadrones || []).filter(function (e) { return e.comandante === yoN; })[0]);
     pintarCajaTickets(SEMS, Math.max(0, Math.min(sem, SEMS.length) - 1));
     pintarParteConsola(t, sem);
     Array.prototype.forEach.call(document.querySelectorAll("#consola-app [data-tab-ir]"), function (b) {
@@ -2755,7 +2798,7 @@
          */
         mBloque("Para la plataforma de UNIR", "En abierto y en modo lectura: <b>no hace falta iniciar sesión</b>. El enlace y el código son de <b>este grupo</b>: cada grupo tiene los suyos.", [
           mFila({ ico: ico("notas"), tit: "El foro dinamizador", desc: "La orden de la semana en curso, con sus retos y sus vídeos; las semanas pasadas se releen y las que faltan salen con candado. Para enlazarlo o insertarlo en el aula virtual.",
-                  abrir: "foro.html?per=" + P, ventana: "foro_" + PER, embed: "foro", codigo: "foro.html?per=" + P + "&embed=1", deEsteGrupo: true })]) +
+                  abrir: "foro.html?per=" + P + escForo(), ventana: "foro_" + PER, embed: "foro", codigo: "foro.html?per=" + P + escForo() + "&embed=1", deEsteGrupo: true })]) +
       '</section>' +
       // (19-sep · «Tu sesión en directo» ya no vive aquí: es la rueda de al lado de «Empezar la clase»)
       '<div class="card"><h3>Tu panel de Genially</h3>' +

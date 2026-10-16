@@ -2223,6 +2223,19 @@ async function guardarForo(sem, texto) {
   await setDoc(fichaDocenteRef(yo.uid), fichaDocenteDatos({ uid: yo.uid, correo: yo.correo, foros: foros }), { merge: true });
   return foros;
 }
+/**
+ * 🔴 16-oct · Y QUE LO VEA SU ALUMNADO. Anita: «si modifica el mensaje, a los estudiantes no les cambia». Ahora su escuadrón lo
+ * recibe en la Nave y en el foro del grupo (`modForoSemana`, GamificaPro: functions/modForo.js). En cada grupo, un interruptor:
+ * «el mío» (lo de siempre si ha escrito el de esa semana) o «el genérico». Va en su ficha (`modForoGenerico: { <grupo>: true }`).
+ */
+async function guardarForoModo(perId, generico) {
+  const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
+  const g = String(perId || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 80); if (!g) throw new Error("No sé de qué grupo es");
+  await setDoc(fichaDocenteRef(yo.uid), fichaDocenteDatos({ uid: yo.uid, correo: yo.correo,
+    modForoGenerico: { [g]: generico ? true : deleteField() } }), { merge: true });
+  const d = await getDoc(fichaDocenteRef(yo.uid));
+  return (d.exists() ? d.data() : {}).modForoGenerico || {};
+}
 async function ponerAvatarDocente(clave) {
   const yo = await sesion(); if (!yo) throw new Error("Entra con tu cuenta");
   if (!/^[a-z0-9_-]{1,40}$/.test(String(clave || ""))) throw new Error("Ese avatar no existe");
@@ -2365,7 +2378,7 @@ if (EMU) window.SG.EMU = { entrarComo, cuenta };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, cambiarCuenta, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, vigilarMensajesDelSistema, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaInvitar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaBendecir, academiaResponder, buzonComprimir, buzonAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
-                    premiar, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,
+                    premiar, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, guardarForoModo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo, codigoEs, leerGrupo, esDelEquipoDe, pasarAFantasma,
                     anadirDocente, quitarDocente, referenteEnTodos, aliasOcupado, cambiarAlias, cambiarMiComandante, guardarFrase,
                     zocoDatos, zocoTratosGrupo, zocoAnunciosGrupo, zocoPoner, zocoRetirar, zocoOfertar, zocoResponder, zocoDeshacer,

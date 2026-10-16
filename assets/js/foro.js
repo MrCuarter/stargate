@@ -13,7 +13,14 @@
   function wire(){Array.prototype.forEach.call(root.querySelectorAll('.yt'),function(el){el.onclick=function(){if(el.classList.contains('on'))return;var f=document.createElement('iframe');f.src='https://www.youtube-nocookie.com/embed/'+el.getAttribute('data-id')+'?autoplay=1&rel=0';f.allow='autoplay; encrypted-media; picture-in-picture';f.allowFullscreen=true;el.insertBefore(f,el.firstChild);el.classList.add('on');};});}
   // PUA: un tema por semana -> fusiona las semanas regulares de cada tema (motor compartido en calendario.js)
   function semanasPua(){return window.SGCAL.semanasPua(SEM);}
-  function pintar(inicio,tipo,nombre,pausas){var sem=tipo==='PUA'?semanasPua():SEM;var n=sem.length;
+  // 🔴 16-oct · ?esc=<escuadrón>: el mensaje que ha escrito su comandante (Anita: «a los estudiantes no les cambia»). Lo da
+  // GamificaPro (`modForoSemana`, solo la semana que ya ha llegado); sin él, o si no hay, el genérico de siempre.
+  var ESC=String(q.get('esc')||'').replace(/[^A-Za-z0-9_-]/g,'').slice(0,80), PROPIO={}, PEDIDO={}, ULTIMO=null;
+  var API_FORO=window.SG_API_FORO||'https://us-central1-gamificapro-99e0a.cloudfunctions.net/modForoSemana';
+  function pedirPropio(n){var per=q.get('per'); if(!ESC||!per||!n||PEDIDO[n]||typeof fetch!=='function') return; PEDIDO[n]=1;
+    fetch(API_FORO+'?per='+encodeURIComponent(per)+'&esc='+encodeURIComponent(ESC)+'&semana='+n).then(function(r){return r.ok?r.json():null;})
+      .then(function(d){ if(d&&typeof d.texto==='string'&&d.texto.trim()&&Number(d.semana)===n){ PROPIO[n]=d.texto; if(ULTIMO) pintar.apply(null,ULTIMO); } }).catch(function(){});}
+  function pintar(inicio,tipo,nombre,pausas){ULTIMO=[inicio,tipo,nombre,pausas];var sem=tipo==='PUA'?semanasPua():SEM;var n=sem.length;
     // 13-sep · las semanas congeladas del calendario del referente no cuentan (motor/semanas.js)
     if(!pausas&&q.get('pausas')) pausas=q.get('pausas').split(',');
     var ini=inicio?new Date(inicio+'T00:00:00'):null;var real=ini?window.SGCAL.semanaActual(inicio,pausas):1;
@@ -26,14 +33,14 @@
       +'<div class="small muted">'+(ini?'semana 1: '+esc(inicio):'sin fecha de inicio')+'</div></div>';
     var nav='<div class="foro-nav">'+sem.map(function(x){
       if(ini&&x.sem>tope) return '<span class="lock" title="Se abre en la semana '+x.sem+'">'+x.sem+'</span>';
-      return '<a href="?'+(q.get('per')?'per='+encodeURIComponent(q.get('per')):'inicio='+esc(inicio||'')+'&tipo='+tipo)+'&semana='+x.sem+(document.body.classList.contains('embed')?'&embed=1':'')+'" class="'+(x.sem===s.sem?'on':x.sem<actual?'past':'')+'">'+x.sem+'</a>';}).join('')+'</div>';
+      return '<a href="?'+(q.get('per')?'per='+encodeURIComponent(q.get('per'))+(ESC?'&esc='+ESC:''):'inicio='+esc(inicio||'')+'&tipo='+tipo)+'&semana='+x.sem+(document.body.classList.contains('embed')?'&embed=1':'')+'" class="'+(x.sem===s.sem?'on':x.sem<actual?'past':'')+'">'+x.sem+'</a>';}).join('')+'</div>';
     var cuerpo='<div class="foro-card">'+(s.capitulo?'<span class="pill amber">Nuevo capítulo: '+esc(s.capitulo)+'</span>':'')+'<h2>'+esc(s.tema)+'</h2><div class="muted">'+esc(s.sub)+'</div>'
-      +'<pre class="foro-msg">'+msgHtml(s.foro,q.get('per'))+'</pre>'
+      +'<pre class="foro-msg">'+msgHtml((estado==='curso'&&PROPIO[s.sem])||s.foro,q.get('per'))+'</pre>'
       +(s.lanza.length?'<h4><img class=ico src=assets/img/iconos/p/llave.png alt> Retos de la semana</h4><ul>'+s.lanza.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'')
       +(s.insignias.length?'<h4><img class=ico src=assets/img/iconos/p/medalla.png alt> Insignias en juego</h4><div class="dots">'+s.insignias.map(function(k){return '<img class="dot" src="assets/img/insignias/'+k+'.webp" title="'+k+'">';}).join('')+'</div>':'')
       +'<h4><img class=ico src=assets/img/iconos/p/video.png alt> Vídeos de la semana</h4><div class="yt-list three">'+s.videos.filter(function(v){return !/^Fragmento|desenlace/i.test(((v&&v[0])||{}).titulo||'');}).map(function(v){return yt(v[0],v[1]);}).join('')+'</div>'
       +'<p class="small muted">Hito: '+esc(s.hito)+'</p></div>';
-    root.innerHTML=cab+nav+cuerpo;wire();}
+    root.innerHTML=cab+nav+cuerpo;wire();if(estado==='curso'&&ini)pedirPropio(s.sem);}
   // ?todos=1 — TODOS los mensajes, semana a semana, listos para copiar (para el profe que los publica a mano en el foro)
   function pintarTodos(tipo,perId,nombre){var semT=tipo==='PUA'?semanasPua():SEM;
     root.innerHTML='<div class="tab-head"><div><div class="eyebrow amber">Todos los mensajes'+(nombre?' · '+esc(nombre):'')+(tipo==='PUA'?' · PUA':'')+'</div><h3>'+semT.length+' mensajes del foro, listos para copiar</h3></div>'

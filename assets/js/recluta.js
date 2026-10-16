@@ -677,6 +677,21 @@
    * UNIR. Aquí no se copia: se lee. Ocupa el sitio que antes tenía la colección de insignias
    * porque es lo único de esta pantalla que CADUCA: la colección no cambia porque abras la Nave.
    */
+  /**
+   * 🔴 16-oct · LA ORDEN DE LA SEMANA, LA DE TU COMANDANTE. Anita (per-16450): «si modifico el mensaje, a mis estudiantes no les
+   * cambia». Si el comandante de tu escuadrón ha escrito el suyo de esta semana (y en este grupo tiene «el mío»), se ve el suyo; si
+   * no, el de siempre. Lo da GamificaPro (`modForoSemana`): solo esta semana, sin nombres. Mientras llega, el de siempre.
+   */
+  var FORO_PROPIO={}, FORO_PEDIDO={};
+  function foroPropio(esc, n){
+    var k=(esc||'')+'|'+n; if(!esc||!per||!n) return '';
+    if(!FORO_PEDIDO[k] && typeof fetch==='function'){ FORO_PEDIDO[k]=1;
+      fetch((window.SG_API_FORO||'https://us-central1-gamificapro-99e0a.cloudfunctions.net/modForoSemana')+'?per='+encodeURIComponent(per)+'&esc='+encodeURIComponent(esc)+'&semana='+n)
+        .then(function(r){ return r.ok?r.json():null; })
+        .then(function(d){ if(d&&typeof d.texto==='string'&&d.texto.trim()&&Number(d.semana)===n){ FORO_PROPIO[k]=d.texto; try{ render(); }catch(e){} } })
+        .catch(function(){}); }
+    return FORO_PROPIO[k]||'';
+  }
   function ordenDeLaSemana(){
     if (st.estado === 'antes')
       return '<div class="card orden-sem"><div class="eyebrow amber">La orden de la semana</div>'
@@ -694,7 +709,8 @@
      */
     var jefe=String((st.yo&&st.yo.profe)||'').trim(), escs=(st.d&&st.d.escuadrones)||[];
     var suEsc=escs.filter(function(e){ return jefe && e.comandante===jefe; })[0]||null;
-    var vids=videosDelMensaje(sm.foro), pl=Number(sm.tema_n)?PLAN[sm.tema_n-1]:(sm.planeta||null);   // (24-sep · la 15 decía «Fôrge»)
+    var foroSm=(st.estado==='curso'&&suEsc&&foroPropio(suEsc.id, Number(sm.sem)))||sm.foro;
+    var vids=videosDelMensaje(foroSm), pl=Number(sm.tema_n)?PLAN[sm.tema_n-1]:(sm.planeta||null);   // (24-sep · la 15 decía «Fôrge»)
     // 24-sep · detrás, su planeta: la superficie, o la nave posándose la primera semana del tema (una vez, y se queda quieta)
     var iSm=lista.indexOf(sm), ant=iSm>0?lista[iSm-1]:null, primera=!!(Number(sm.tema_n)&&(!ant||Number(ant.tema_n)!==Number(sm.tema_n)));
     var F=window.SG.fondoSemana?window.SG.fondoSemana(pl&&pl[0], primera):null;
@@ -709,7 +725,7 @@
       +   '<p class="small muted">' + esc(sm.sub || '') + '</p>'
       // recortado, con «Leer entero»: la orden entera empujaba todo lo demás muy abajo
       // 24-sep · al pie de la orden de ESTA semana, «A bordo esta semana» con su escuadrón (bienvenidas y Contramaestres)
-      +   '<div class="foro-msg recortado">' + msgHtml(window.SG.foroConAbordo&&st.estado==='curso'?window.SG.foroConAbordo(sm.foro, window.SG.foroAbordo((st.d||{}).reclutas, jefe)):sm.foro, per, {sinVideos:true, sinFirma:!!jefe}) + '</div>'
+      +   '<div class="foro-msg recortado">' + msgHtml(window.SG.foroConAbordo&&st.estado==='curso'?window.SG.foroConAbordo(foroSm, window.SG.foroAbordo((st.d||{}).reclutas, jefe)):foroSm, per, {sinVideos:true, sinFirma:!!jefe}) + '</div>'
       +   '<button type="button" class="leer-entero" data-leer-entero>Leer entero ▾</button>'
       /**
        * 🔴 LOS VÍDEOS DE LA SEMANA, AQUÍ. Estaban solo dentro de «ver la semana entera», a dos
