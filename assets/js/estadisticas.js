@@ -28,7 +28,7 @@
   if (raiz) { raiz.GP = raiz.GP || {}; if (!raiz.GP.estadisticas) raiz.GP.estadisticas = hecho; }
 })(typeof window !== "undefined" ? window : null, function () {
   var DIAS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
-  var PESTANAS = [["resumen", "Resumen"], ["curso", "Curso"], ["equipos", "Equipos"], ["retos", "Retos"], ["horas", "Horas"], ["horarios", "Horarios"], ["buzon", "Buzón"]];
+  var PESTANAS = [["resumen", "Resumen"], ["curso", "Curso"], ["equipos", "Equipos"], ["retos", "Retos"], ["horas", "Horas"], ["horarios", "Horarios"], ["buzon", "Buzón"], ["origen", "Origen"]];
   var PATRON = { A: "semanas impares (A)", B: "semanas pares (B)", todas: "todas las semanas", una: "vista 1 vez" };
   var NIVEL = { bien: "Va bien", ojo: "Ojo", mal: "Falla" };
   var COLORES = ["var(--gpe-barra)", "var(--gpe-barra2)", "var(--gpe-barra3)", "var(--gpe-barra4)", "var(--gpe-barra5)"];
@@ -110,6 +110,14 @@
     } else if (pestana === "horarios") {
       filas = [["Día", "Grupo", eq, "Docente", "Desde", "Hasta", "Semana del curso", "Acciones", "% del grupo", "Llamada a filas"]];
       D.clases.forEach(function (c) { filas.push([c.dia, c.grupoNombre, c.equipoNombre, c.docente, hh(c.desde), hh(c.hasta), c.semana, c.acciones, c.cuota, c.llamada ? "sí" : "no"]); });
+    } else if (pestana === "origen") {
+      // 16-oct · solo cifras (pieza `origen`): por rango de edad y por país, nunca por persona
+      var O = D.origen || { edades: {}, paises: {}, etiquetas: [] }, tot = O.total || 0, por = function (v) { return tot ? Math.round(v / tot * 100) : 0; };
+      filas = [["Rango de edad", "Personas", "%"]];
+      (O.etiquetas || []).forEach(function (e) { filas.push([e[1], O.edades[e[0]] || 0, por(O.edades[e[0]] || 0)]); });
+      filas.push([], ["País", "Personas", "%"]);
+      paisesDe(O).forEach(function (x) { filas.push([x.nombre, x.n, por(x.n)]); });
+      filas.push([], ["Sin decirlo todavía", O.sinDatos == null ? "" : O.sinDatos, ""]);
     } else {
       filas = [["Semana del", "Recibidos", "Resueltos", "Abiertos", "Al coordinador", "1.ª respuesta (mediana, h)"]];
       D.buzon.semanas.forEach(function (w) { filas.push([w.lunes, w.recibidos, w.resueltos, w.abiertos, w.paraCoordinador, w.primeraRespuestaH]); });
@@ -140,7 +148,7 @@
     "@media (max-width:560px){.gpe-filtros{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px}.gpe-filtros label:first-child{grid-column:1/-1}}",
     ".gpe-rapidos{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}",
     ".gpe-rapidos .gpe-b{padding:6px 4px;font-size:13px;white-space:normal}",
-    ".gpe-pestanas{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;background:var(--gpe-panel);border:1px solid var(--gpe-borde,#e1e5ea);border-radius:12px;padding:4px}",
+    ".gpe-pestanas{display:grid;grid-template-columns:repeat(var(--gpe-np,7),minmax(0,1fr));gap:4px;background:var(--gpe-panel);border:1px solid var(--gpe-borde,#e1e5ea);border-radius:12px;padding:4px}",
     "@media (max-width:640px){.gpe-pestanas{grid-template-columns:repeat(4,minmax(0,1fr))}}",
     ".gpe-pestanas button{font-family:inherit;font-weight:600;font-size:clamp(12px,3.3vw,14px);line-height:1.15;min-height:40px;padding:4px 2px;border:0;border-radius:8px;background:transparent;color:var(--gpe-tinta2,#4a5361);cursor:pointer;min-width:0;overflow-wrap:anywhere}",
     ".gpe-pestanas button[aria-selected=true]{background:var(--gpe-acento-suave,#e6edfc);color:var(--gpe-acento,#2a5bd7)}",
@@ -407,7 +415,28 @@
       '<div class="gpe-bloque gpe-grafica"><h2>Mensajes por semana</h2><div class="gpe-leyenda"><span style="--c:var(--gpe-barra3)">Resueltos</span><span style="--c:var(--gpe-barra2)">Abiertos o para el coordinador</span></div>' + (svg || '<p class="gpe-vacio">Ningún mensaje.</p>') + "</div>" +
       '<div class="gpe-bloque"><h2>Los mensajes</h2>' + lista + "</div>";
   }
-  var VISTAS = { resumen: vResumen, curso: vCurso, equipos: vEquipos, retos: vRetos, horas: vHoras, horarios: vHorarios, buzon: vBuzon };
+  /**
+   * 16-oct · DE DÓNDE ES EL ALUMNADO Y SU EDAD (pieza `origen`, functions/modOrigen.js). 🔴 Solo cifras: cuántos en cada rango de edad y
+   * en cada país, con los filtros de grupo y equipo. Sin la pieza (STARGATE hasta su próxima edición), la pestaña no sale.
+   */
+  var DN = null;
+  function nombrePais(c) { try { DN = DN || new Intl.DisplayNames(["es"], { type: "region" }); return DN.of(c) || c; } catch (e) { return c; } }
+  function paisesDe(O) {
+    return Object.keys(O.paises || {}).map(function (k) { return { pais: k, nombre: nombrePais(k), n: O.paises[k] }; })
+      .sort(function (a, b) { return b.n - a.n || a.nombre.localeCompare(b.nombre, "es"); });
+  }
+  function vOrigen(D) {
+    var O = D.origen;
+    if (!O) return '<div class="gpe-bloque"><p class="gpe-vacio">Este mod no pide el origen.</p></div>';
+    var tot = O.total || 0, por = function (v) { return tot ? Math.round(v / tot * 100) : 0; }, P = paisesDe(O);
+    var edades = (O.etiquetas || []).map(function (e) { var v = O.edades[e[0]] || 0; return [esc(e[1]), n(v), pct(por(v))]; });
+    var paises = P.map(function (x) { return [esc(x.nombre), n(x.n), pct(por(x.n))]; });
+    return '<div class="gpe-cifras">' + cifra(tot, tot + (O.sinDatos || 0), "Han dicho de dónde son") + cifra(P.length, null, "Países") +
+      cifra(P.length ? P[0].n : 0, null, P.length ? "En " + P[0].nombre : "El país con más gente") + cifra(O.sinDatos, null, "Sin decirlo todavía", "Se les pregunta al entrar (dos veces como mucho)") + "</div>" +
+      '<div class="gpe-bloque"><h2>Rango de edad</h2><p class="gpe-sub">Solo cifras: la edad de cada cual no se ve en ningún sitio.</p>' + tabla(["Rango", "#Personas", "%"], edades, "Nadie lo ha dicho aún.") + "</div>" +
+      '<div class="gpe-bloque"><h2>Por país</h2>' + tabla(["País", "#Personas", "%"], paises, "Nadie lo ha dicho aún.") + "</div>";
+  }
+  var VISTAS = { resumen: vResumen, curso: vCurso, equipos: vEquipos, retos: vRetos, horas: vHoras, horarios: vHorarios, buzon: vBuzon, origen: vOrigen };
 
   // ───────────────────────────── la página ─────────────────────────────
   function puedo(llamar, mod) { return llamar("modEstadisticas", { accion: "puedo", mod: mod }).then(function (r) { return !!(r && r.puede); }, function () { return false; }); }
@@ -416,7 +445,8 @@
     ponerEstilo();
     var raiz = o.raiz, llamar = o.llamar, mod = o.mod, memo = {}, datos = null, pedida = 0;
     var CLAVE = "gpe-" + mod;
-    var estado = { pestana: "resumen", grupo: "*", equipo: "*", reto: "*", desde: "", hasta: "" };
+    // 16-oct · `o.grupo`: el grupo elegido en la barra de la web (sin él, o «*», todos los que puede ver)
+    var estado = { pestana: "resumen", grupo: o.grupo && /^[\w-]{1,200}$/.test(o.grupo) ? o.grupo : "*", equipo: "*", reto: "*", desde: "", hasta: "" };
     try { var g = JSON.parse(localStorage.getItem(CLAVE) || "{}"); if (g.pestana && VISTAS[g.pestana]) estado.pestana = g.pestana; } catch (e) { /* sin almacenamiento */ }
     function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify({ pestana: estado.pestana })); } catch (e) { /* sin almacenamiento */ } }
 
@@ -452,7 +482,15 @@
         '<div class="gpe-rapidos">' + rap.map(function (r) { return '<button type="button" class="gpe-b" data-gpe-r="' + r[0] + '">' + r[1] + "</button>"; }).join("") + "</div>";
     }
     function pintar() {
-      raiz.querySelectorAll("[data-gpe-p]").forEach(function (b) { b.setAttribute("aria-selected", String(b.getAttribute("data-gpe-p") === estado.pestana)); });
+      // 16-oct · la pestaña «Origen», solo si el mod tiene la pieza (llega `origen` del servidor)
+      var hay = function (k) { return k !== "origen" || !!(datos && datos.origen); };
+      if (datos && !hay(estado.pestana)) estado.pestana = "resumen";
+      var vistas = 0;
+      raiz.querySelectorAll("[data-gpe-p]").forEach(function (b) {
+        var k = b.getAttribute("data-gpe-p"); b.hidden = !hay(k); if (!b.hidden) vistas++;
+        b.setAttribute("aria-selected", String(k === estado.pestana));
+      });
+      $(".gpe-pestanas").style.setProperty("--gpe-np", String(vistas));
       if (!datos) return;
       $("[data-gpe-cuerpo]").innerHTML = VISTAS[estado.pestana](datos);
       $("[data-gpe-csv]").disabled = false;
@@ -465,6 +503,8 @@
       return llamar("modEstadisticas", p).then(function (r) {
         if (yo !== pedida) return r;
         memo[k] = datos = r;
+        // 16-oct · el grupo que llegó de la barra no está entre los que cuentan (de prueba, sin empezar…): todos, y otra vez
+        if (estado.grupo !== "*" && r && r.opciones && !(r.opciones.grupos || []).some(function (g) { return g.id === estado.grupo; })) { estado.grupo = "*"; return cargar(); }
         $("[data-gpe-hora]").textContent = (r.nombre || mod) + " · del " + fechaCorta(r.desde) + " al " + fechaCorta(r.hasta) + " · datos de " + hora(r.generado);
         cuerpo.classList.remove("gpe-cargando");
         filtros(); pintar();
@@ -474,7 +514,7 @@
         cuerpo.classList.remove("gpe-cargando");
         var c = e && (e.codigo || e.code) || "";
         $("[data-gpe-hora]").textContent = "";
-        cuerpo.innerHTML = '<div class="gpe-aviso">' + (/permission/.test(c) ? "Esta página es del Mando." : e && e.sinDesplegar ? "Las estadísticas aún no están publicadas en el servidor." : "No se han podido cargar las cifras. Pulsa «Actualizar» dentro de un momento.") + "</div>";
+        cuerpo.innerHTML = '<div class="gpe-aviso">' + (/permission/.test(c) ? "Las estadísticas son del equipo docente: con esta cuenta no hay grupos que ver." : e && e.sinDesplegar ? "Las estadísticas aún no están publicadas en el servidor." : "No se han podido cargar las cifras. Pulsa «Actualizar» dentro de un momento.") + "</div>";
       });
     }
     raiz.addEventListener("click", function (e) {
