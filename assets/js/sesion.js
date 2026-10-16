@@ -78,7 +78,7 @@
   // el índice de semanas (que sigue siendo la diapositiva 0, a un paso atrás o en la barra de abajo)
   var DIF_ELEGIDA = DIFERIDO && !!(q.get('sem') || q.get('pres') || q.get('act'));
   var SOLO_EN_DIRECTO = ['llamada', 'unete', 'alistaos'];
-  var DIRECTO = { on:false, t:null, ultimo:'', fallos:0 }, SEG = { on:true, d:{}, parar:null, mia:null, miaDe:'', mazoDe:'' };
+  var DIRECTO = { on:false, em:null, fallos:0 }, SEG = { on:true, d:{}, parar:null, mia:null, miaDe:'', mazoDe:'' };
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function cargando(t,p){return '<div class="cargando"><div class="txt">'+t+'</div><div class="barra"><i></i></div>'+(p?'<div class="pista">'+p+'</div>':'')+'</div>';}
@@ -3083,35 +3083,41 @@
     return { quien:String(st.miNombre||''), off:apagadas(), orden:ordenGuardado(),
       panel:ks.indexOf('genially')>=0 ? panelPropio() : '', ks:ks };
   }
+  /**
+   * 🔴 16-oct · LA EMISIÓN ES DEL MOTOR (GamificaPro sdk/directo.js, `GP.directo.emisor`, común con DPG), con lo mismo que se publicó
+   * hoy aquí: un respiro de 350 ms (pasar tres diapositivas seguidas es UNA escritura), lo ya mandado no se repite (la firma) y la
+   * emisión que falla ya no se traga en silencio: el botón dice «Sin señal», se apunta en el registro de fallos y se vuelve a mandar
+   * sola (con un respiro que crece: 2, 4, 6… hasta 10 s).
+   */
+  function emisor(){
+    if(DIRECTO.em) return DIRECTO.em;
+    var D=window.GP&&window.GP.directo, M=window.SG&&window.SG.MOTOR; if(!D||!M) return null;
+    DIRECTO.em=D.emisor({
+      mandar:function(d){ return M.publicarEnVivo(st.per, d); },
+      respiro:350,
+      alCambiar:function(x){ DIRECTO.fallos=x.fallos; pintarDirecto(); },
+      apuntar:function(e){ if(M.apuntarFallo) M.apuntarFallo(e, 'sesion-directo'); }
+    });
+    return DIRECTO.em;
+  }
   function emitir(){
     if(!DIRECTO.on||st.alumno||!st.per) return;
     var M=window.SG&&window.SG.MOTOR, o=ocurrencia(st.i); if(!M||!M.publicarEnVivo||!o) return;
-    var mz=mazoParaEmitir(), firma=st.sem+'|'+o.k+'|'+o.n+'|'+st.f+'|'+JSON.stringify(mz); if(firma===DIRECTO.ultimo) return;
-    clearTimeout(DIRECTO.t);
-    DIRECTO.t=setTimeout(function(){
-      DIRECTO.ultimo=firma;
+    var em=emisor(); if(!em) return;
+    var mz=mazoParaEmitir(), firma=st.sem+'|'+o.k+'|'+o.n+'|'+st.f+'|'+JSON.stringify(mz);
+    em.emitir(firma, function(){
       var sl=st.slides[st.i]||{};
-      M.publicarEnVivo(st.per, {sesion:{activa:true, sem:st.sem, pres:!!st.pres, act:st.act||0, k:o.k, n:o.n, f:st.f||0, i:st.i, de:st.slides.length,
-        rot:String(sl.rot||'').slice(0,80), mazo:mz, t:Date.now(), por:st.miNombre||''}}).then(function(){
-        if(DIRECTO.fallos){ DIRECTO.fallos=0; pintarDirecto(); }
-      }, function(e){
-        // 🔴 16-oct · antes el fallo se tragaba en silencio y el alumnado se quedaba atrás sin que nadie lo supiera: ahora el botón
-        // lo dice, se apunta en el registro de fallos y se vuelve a mandar (con un respiro que crece: 2, 4, 6… hasta 10 s)
-        if(DIRECTO.ultimo===firma) DIRECTO.ultimo='';
-        DIRECTO.fallos++; pintarDirecto();
-        if(M.apuntarFallo) M.apuntarFallo(e, 'sesion-directo');
-        clearTimeout(DIRECTO.reintento);
-        DIRECTO.reintento=setTimeout(emitir, Math.min(2000*DIRECTO.fallos, 10000));
-      });
-    }, 350);
+      return {sesion:{activa:true, sem:st.sem, pres:!!st.pres, act:st.act||0, k:o.k, n:o.n, f:st.f||0, i:st.i, de:st.slides.length,
+        rot:String(sl.rot||'').slice(0,80), mazo:mz, t:Date.now(), por:st.miNombre||''}};
+    });
   }
   function encenderDirecto(){
     if(st.alumno||!st.per||!st.yo||DIRECTO.on) return;
-    DIRECTO.on=true; DIRECTO.ultimo=''; emitir(); pintarDirecto();
+    DIRECTO.on=true; if(emisor()) DIRECTO.em.olvidar(); emitir(); pintarDirecto();
   }
   function apagarDirecto(){
     if(!DIRECTO.on) return;
-    DIRECTO.on=false; DIRECTO.fallos=0; clearTimeout(DIRECTO.t); clearTimeout(DIRECTO.reintento); pintarDirecto();
+    DIRECTO.on=false; DIRECTO.fallos=0; if(DIRECTO.em) DIRECTO.em.parar(); pintarDirecto();
     var M=window.SG&&window.SG.MOTOR; if(M&&M.publicarEnVivo&&st.per) M.publicarEnVivo(st.per, {sesion:{activa:false, t:Date.now()}}).catch(function(){});
   }
   function pintarDirecto(){
@@ -3134,13 +3140,10 @@
    * y `exacto` es false: el rótulo dice dónde está su Comandante y ofrece ponerse al día.
    */
   function dondeVa(s){
-    var i=indiceDe(s.k, s.n); if(i>=0) return {i:i, exacto:true};
-    var ks=Array.isArray(s.ks)?s.ks:(s.mazo&&Array.isArray(s.mazo.ks)?s.mazo.ks:null), j=Number(s.i);
-    if(ks && j>=0 && j<ks.length){
-      for(var b=j-1;b>=0;b--){ var n=0; for(var c=0;c<b;c++) if(ks[c]===ks[b]) n++; var x=indiceDe(ks[b], n); if(x>=0) return {i:x, exacto:false}; }
-      return {i:0, exacto:false};
-    }
-    return {i:-1, exacto:false};
+    // (16-oct · la regla es del motor: GamificaPro sdk/directo.js, común con DPG; sin la pieza, la misma diapositiva o nada)
+    var D=window.GP&&window.GP.directo;
+    if(D) return D.dondeVa(st.slides.map(function(x){ return x.k; }), s);
+    var i=indiceDe(s.k, s.n); return {i:i, exacto:i>=0};
   }
   // (lo que monta el mazo; la lista `ks` no: solo sirve para el plan B, y con el docente en los dos tramos del Genially cambia sin que cambie nada)
   function firmaMazo(s){ var m=s&&s.mazo; return m&&typeof m==='object' ? JSON.stringify([m.quien, m.off, m.orden, m.panel]) : ''; }

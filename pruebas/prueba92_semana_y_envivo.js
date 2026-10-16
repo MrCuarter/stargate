@@ -51,7 +51,9 @@ c(/caraDe\(x\)/.test(AULA.slice(AULA.indexOf("function muroHtml"))) && /data-pq-
 c(/id="ev-resp" maxlength="280"/.test(NAVE) && /M\.responderPregunta\(per, p\.id, st\.yo\.ficha/.test(NAVE), "🔴 Nave · se responde escribiendo, desde «En vivo»");
 
 // ── 5 · la sesión sincronizada
-c(/function emitir\(\)/.test(SES) && /publicarEnVivo\(st\.per, \{sesion:\{activa:true, sem:st\.sem, pres:!!st\.pres, act:st\.act\|\|0, k:o\.k, n:o\.n/.test(SES), "🔴 sesión · el docente emite semana (o la presentación) y diapositiva (clave y cuál de ellas)");
+// (16-oct · la emisión va por la pieza del motor, GP.directo.emisor: emitir arma la sesión y el emisor la manda con publicarEnVivo)
+c(/function emitir\(\)/.test(SES) && /return \{sesion:\{activa:true, sem:st\.sem, pres:!!st\.pres, act:st\.act\|\|0, k:o\.k, n:o\.n/.test(SES)
+  && /mandar:function\(d\)\{ return M\.publicarEnVivo\(st\.per, d\); \}/.test(SES), "🔴 sesión · el docente emite semana (o la presentación) y diapositiva (clave y cuál de ellas)");
 c(/if\(EMBED && !st\.alumno && st\.per && st\.yo && !DIRECTO\.aMano\) encenderDirecto\(\)/.test(SES) && /DIRECTO\.aMano=true; apagarDirecto\(\);/.test(SES) && /encenderDirecto\(\);   \/\/ 17-sep · quien proyecta, emite/.test(SES) && /id="ses-directo"/.test(SES),
   "   al proyectar (en su Genially o a pantalla completa) emite solo, y un botón lo apaga (y apagado a mano, se queda apagado)");
 c(/function seguirDocente\(\)/.test(SES) && /ir\(i, false, true\)/.test(SES) && /Siguiendo a tu Comandante/.test(SES), "🔴 sesión · el recluta va a la diapositiva del docente, sola");

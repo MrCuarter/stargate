@@ -17,6 +17,10 @@
  *   3. el docente manda su mazo con cada diapositiva, y el plan B: adónde va el recluta si no tiene la diapositiva;
  *   4. la emisión ya no falla en silencio (el botón lo dice, se apunta y se reintenta).
  * (El directo de punta a punta, con dos navegadores, lo hace pruebas/vivo/directo_mismo_mazo.cjs.)
+ *
+ * 16-oct (noche) · la regla de adónde va y la emisión son ya la pieza del motor (GamificaPro sdk/directo.js, `GP.directo`, común con
+ * DPG): 1-3 corren igual con la pieza de verdad (assets/js/directo.js) dentro; 4 mira que sesion.js la usa con lo mismo de antes
+ * (respiro de 350 ms, firma con el mazo, «Sin señal», registro y reintento). La emisión entera, en tests/sdk/directo.test.ts.
  */
 const fs = require("fs"), path = require("path"), vm = require("vm");
 const raiz = path.join(__dirname, "..");
@@ -25,7 +29,8 @@ let ok = 0; const fallos = [];
 const c = (cond, txt, dato) => { if (cond) ok++; else fallos.push(txt); console.log("   " + (cond ? "✓" : "✗") + " " + txt + (cond || dato === undefined ? "" : "  →  " + JSON.stringify(dato).slice(0, 400))); };
 
 console.log("▶ 149 · En directo, el mazo del docente");
-const SES = leer("assets/js/sesion.js"), MOTOR = leer("assets/js/motor.js"), CSS = leer("assets/css/stargate.css");
+const SES = leer("assets/js/sesion.js"), MOTOR = leer("assets/js/motor.js"), CSS = leer("assets/css/stargate.css"), HTML = leer("sesion.html");
+const PIEZA = require(path.join(raiz, "assets/js/directo.js"));
 
 /** Una función de sesion.js tal cual (de «  function nombre(» a su llave de cierre). */
 function funcion(nombre) {
@@ -39,7 +44,7 @@ const NOMBRES = ["mazoDocente", "comoDocente", "panelPropio", "panelDelMazo", "a
   "indiceDe", "dondeVa", "firmaMazo", "mazoParaEmitir"];
 const codigo = NOMBRES.map(funcion).join("\n") + "\nthis.F={" + NOMBRES.join(",") + "};";
 function mundo({ alumno = false, diferido = false, sesion = null, slides = [], d = {} } = {}) {
-  const ctx = { window: { SG_PANEL_MAESTRO: "https://maestro" }, DIFERIDO: diferido, Date, JSON, String, Number, Array, Object,
+  const ctx = { window: { SG_PANEL_MAESTRO: "https://maestro", GP: { directo: PIEZA } }, DIFERIDO: diferido, Date, JSON, String, Number, Array, Object,
     SEG: { d: sesion ? { sesion } : {} }, st: Object.assign({ alumno, per: "g1", miNombre: alumno ? "" : "Ana", profeMio: alumno ? "Ana" : "", slides, d }) };
   vm.createContext(ctx); vm.runInContext(codigo, ctx);
   return ctx;
@@ -104,11 +109,28 @@ c((SES.match(/if\(!comoDocente\(\)\) todo=todo\.filter\(function\(x\)\{ return x
   "   y la Nave de ejemplo (en la semana y en la presentación)");
 c((SES.match(/var panel=panelDelMazo\(!EMBED \|\| VENTANA \|\| DIFERIDO\);/g) || []).length === 2, "   el panel, por panelDelMazo en la semana y en la presentación");
 c(/if\(st\.alumno\)\{ cod\.textContent='✓';/.test(funcion("montarUnete")), "   «Únete», para el recluta: ya está a bordo (no intenta leer el código de clase, que es del equipo docente)");
-const em = funcion("emitir");
+const em = funcion("emitir"), emi = funcion("emisor");
 c(/mazo:mz/.test(em) && /i:st\.i, de:st\.slides\.length/.test(em) && /rot:String\(sl\.rot/.test(em), "🔴 cada diapositiva emitida lleva el mazo, su posición y su nombre");
-c(/JSON\.stringify\(mz\)/.test(em), "   y si el docente cambia el mazo sin moverse de diapositiva, se vuelve a emitir");
-c(!/\.catch\(function\(\)\{\}\)/.test(em) && /DIRECTO\.fallos\+\+; pintarDirecto\(\);/.test(em) && /M\.apuntarFallo\(e, 'sesion-directo'\)/.test(em)
-  && /DIRECTO\.reintento=setTimeout\(emitir/.test(em), "🔴 la emisión ya no falla en silencio: «Sin señal», al registro de fallos y se reintenta");
+c(/JSON\.stringify\(mz\)/.test(em) && /em\.emitir\(firma, function\(\)\{/.test(em), "   y si el docente cambia el mazo sin moverse de diapositiva, se vuelve a emitir (la firma lleva el mazo)");
+c(!/\.catch\(function\(\)\{\}\)/.test(em + emi) && /D\.emisor\(\{/.test(emi) && /respiro:350,/.test(emi) && /alCambiar:function\(x\)\{ DIRECTO\.fallos=x\.fallos; pintarDirecto\(\); \}/.test(emi)
+  && /M\.apuntarFallo\(e, 'sesion-directo'\)/.test(emi), "🔴 la emisión ya no falla en silencio: «Sin señal», al registro de fallos y se reintenta (la pieza del motor, GP.directo.emisor)");
+c(/DIRECTO\.em\.olvidar\(\)/.test(funcion("encenderDirecto")) && /DIRECTO\.em\.parar\(\)/.test(funcion("apagarDirecto")), "   encender vuelve a mandar aunque sea la misma; apagar lo para todo (respiro y reintento)");
+c(/<script src="assets\/js\/directo\.js\?v=[0-9a-f]{10}" defer><\/script>\n<script src="assets\/js\/sesion\.js\?v=/.test(HTML), "   sesion.html carga la pieza antes que sesion.js");
+// la pieza de verdad, con lo de antes: el respiro, la firma, el reintento que crece hasta 10 s
+{
+  const enviados = []; let ahora = 0; const T = [];
+  const R = { poner: (f, ms) => { T.push({ t: ahora + ms, f }); return T.length; }, quitar: (i) => { if (i && T[i - 1]) T[i - 1].f = null; } };
+  let fallar = 1; const avisos = [];
+  const E = PIEZA.emisor({ reloj: R, respiro: 350, mandar: (d) => { enviados.push(d); return fallar-- > 0 ? Promise.reject(new Error("x")) : Promise.resolve(); }, alCambiar: (x) => avisos.push(x.fallos) });
+  const correr = async (ms) => { const fin = ahora + ms; for (;;) { const x = T.filter((y) => y.f && y.t <= fin).sort((a, b) => a.t - b.t)[0]; if (!x) break; ahora = x.t; const f = x.f; x.f = null; f(); await new Promise((r) => setImmediate(r)); } ahora = fin; };
+  (async () => {
+    E.emitir("a", () => "a"); E.emitir("b", () => "b"); await correr(350);
+    c(JSON.stringify(enviados) === '["b"]' && JSON.stringify(avisos) === "[1]", "   (la pieza) dos seguidas son una escritura; si falla, «Sin señal»", [enviados, avisos]);
+    await correr(2350);
+    c(JSON.stringify(enviados) === '["b","b"]' && JSON.stringify(avisos) === "[1,0]", "   (la pieza) a los 2 s lo vuelve a mandar y, al llegar, se quita el aviso", [enviados, avisos]);
+    fin149();
+  })();
+}
 c(/b\.innerHTML=sinSenal\?'Sin señal/.test(funcion("pintarDirecto")) && /\.ses-directo\.on\.sin-senal/.test(CSS), "   el botón del docente lo dice");
 c(/function apuntarFallo\(e, pantalla\)/.test(MOTOR) && /publicarEnVivo, apuntarFallo,/.test(MOTOR), "   (motor.js: apuntarFallo, al registro de la pieza del motor)");
 const sd = funcion("seguirDocente");
@@ -119,5 +141,7 @@ const ps = funcion("pintarSeguir");
 c(/ses-al-perdido/.test(ps) && /Tu Comandante está en «/.test(ps) && /id="ses-al-aldia">Ponerme al día/.test(ps) && /location\.reload\(\)/.test(ps) && /\.ses-al-perdido\{/.test(CSS),
   "🔴 si no tiene la diapositiva, el rótulo dice dónde está su Comandante y ofrece ponerse al día");
 
-console.log("\n  Batería 149 · " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
-if (fallos.length) process.exit(1);
+function fin149() {
+  console.log("\n  Batería 149 · " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
+  if (fallos.length) process.exit(1);
+}

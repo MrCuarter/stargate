@@ -164,6 +164,9 @@ GB.copiar_pieza(HERE, "consentimiento.js", os.path.join(HERE, "assets", "js", "c
 # 10-oct · ORDENAR ARRASTRANDO (GamificaPro sdk/ordena.js, `GP.ordena`): la rueda «Configurar las diapositivas» reordena las secciones
 # y la sesión las proyecta en ese orden. Se copia igual y se carga con defer donde están la rueda y la sesión (consola y sesión).
 GB.copiar_pieza(HERE, "ordena.js", os.path.join(HERE, "assets", "js", "ordena.js"), decir=print)
+# 16-oct · LA CLASE EN DIRECTO, COMÚN CON DPG (GamificaPro sdk/directo.js, `GP.directo`): adónde va el recluta que sigue (el plan B),
+# la emisión que falla («Sin señal» y se reintenta) y el latido del docente quieto en el panel. Se copia igual; la carga sesion.html.
+GB.copiar_pieza(HERE, "directo.js", os.path.join(HERE, "assets", "js", "directo.js"), decir=print)
 # 13-oct · LA PÁGINA «ESTADÍSTICAS» (GamificaPro sdk/estadisticas.js, `GP.estadisticas`): filtros, pestañas, gráficas, horarios de
 # clase detectados y CSV, para todos los mods; las cifras, de `modEstadisticas`. Se copia igual y la carga solo estadisticas.html.
 GB.copiar_pieza(HERE, "estadisticas.js", os.path.join(HERE, "assets", "js", "estadisticas.js"), decir=print)
@@ -4137,6 +4140,7 @@ al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></heade
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/tkcomun.js" defer></script>
 <script src="assets/js/guia-docente.js" defer></script>
+<script src="assets/js/directo.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>
 </div></section>
 ''' + FOOT
