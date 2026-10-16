@@ -78,7 +78,7 @@
   // el índice de semanas (que sigue siendo la diapositiva 0, a un paso atrás o en la barra de abajo)
   var DIF_ELEGIDA = DIFERIDO && !!(q.get('sem') || q.get('pres') || q.get('act'));
   var SOLO_EN_DIRECTO = ['llamada', 'unete', 'alistaos'];
-  var DIRECTO = { on:false, t:null, ultimo:'' }, SEG = { on:true, d:{}, parar:null, mia:null, miaDe:'' };
+  var DIRECTO = { on:false, t:null, ultimo:'', fallos:0 }, SEG = { on:true, d:{}, parar:null, mia:null, miaDe:'', mazoDe:'' };
 
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function cargando(t,p){return '<div class="cargando"><div class="txt">'+t+'</div><div class="barra"><i></i></div>'+(p?'<div class="pista">'+p+'</div>':'')+'</div>';}
@@ -551,6 +551,8 @@
   }
   function montarUnete(el){
     var M=window.SG&&window.SG.MOTOR, cod=el.querySelector('#ses-un-cod'), b=el.querySelector('#ses-un-copiar'), msg=el.querySelector('#ses-un-msg');
+    // 16-oct · el recluta la ve cuando sigue al docente en directo: él ya está dentro (el código no lo lee: es del equipo docente)
+    if(st.alumno){ cod.textContent='✓'; if(b) b.hidden=true; msg.textContent='Tú ya estás a bordo: tu Comandante está dando el código a quien aún no ha entrado.'; return null; }
     if(!M||!M.getDoc||!st.per){ cod.textContent='—'; msg.textContent='Entra con tu cuenta de docente para verlo.'; return null; }
     M.getDoc(M.doc(M.db,'projects',st.per)).then(function(d){
       var c=d&&d.exists()?String(d.data().joinCode||''):'';
@@ -1277,7 +1279,7 @@
       +' <b>Bronce</b> por llegar; <b>plata</b> y <b>oro</b>, por saber y por pilotar.</p></div>'
       +'<iframe class="ru-juego" src="'+esc(u)+'" title="La Ruta de la Estática" loading="lazy" allow="autoplay; fullscreen" allowfullscreen></iframe></div>'};
   }
-  function elComandante(){ return String((!st.alumno&&st.miNombre)||st.profeMio||'').trim(); }
+  function elComandante(){ var m=mazoDocente(); if(m&&m.quien) return String(m.quien).trim(); return String((!st.alumno&&st.miNombre)||st.profeMio||'').trim(); }
   /** Las dos de abrir tema: cómo fue el anterior y qué preguntasteis. */
   function diasTicket(lista, i){
     if(!window.SG_TICKETS_API||!st.per||i<=0) return [];
@@ -1799,7 +1801,32 @@
     genially:'despegue', puente:'despegue', act:'actividad', actretos:'actividad', entrega:'actividad',
     reto:'misiones', hito:'misiones', insignias:'recompensa', ruta:'ruta', directo:'directo', asedio:'asedio'};
   function secDe(x){ return x.sec || SEC_DE_K[x.k] || 'misiones'; }
+  /**
+   * 🔴 16-oct · EN DIRECTO, EL MAZO ES EL DE QUIEN EMITE. María Sierra (84 reclutas): «en directo no ven la misma diapositiva».
+   * El recluta montaba su mazo con lo que su Comandante tenía guardado AL CARGAR la página (las secciones apagadas, el orden, el
+   * panel) y sin las diapositivas «solo del docente» («Únete» en las semanas 1 y 2, «¡Alistaos!», la Nave de ejemplo). Si el docente
+   * cambiaba algo a mitad de clase, si presentaba otra persona del equipo o si estaba en una de esas, el recluta no tenía adónde ir y
+   * se quedaba quieto sin decir nada. Ahora el docente manda con cada diapositiva su mazo (`sesion.mazo`: quién, qué apaga, en qué
+   * orden, su panel y la lista de diapositivas) y quien le sigue en directo se monta exactamente ese. En diferido, como siempre.
+   */
+  function mazoDocente(){
+    var s=SEG.d&&SEG.d.sesion;
+    return (enDirecto() && s && s.mazo && typeof s.mazo==='object') ? s.mazo : null;
+  }
+  /** ¿Se monta el mazo como lo ve el docente? (el docente, y el recluta que le sigue en directo) */
+  function comoDocente(){ return !st.alumno || !!mazoDocente(); }
+  function panelPropio(){
+    var P=(st.d&&st.d.paneles)||{};
+    return (st.miNombre&&P[st.miNombre])||(st.alumno&&st.profeMio&&P[st.profeMio])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
+  }
+  /** El panel del despegue: el que proyecta el docente si se le sigue en directo ('' = él no lo lleva); si no, el de siempre. */
+  function panelDelMazo(hayHueco){
+    var m=mazoDocente();
+    if(m && typeof m.panel==='string') return m.panel;
+    return hayHueco ? panelPropio() : '';
+  }
   function apagadas(){
+    var m=mazoDocente(); if(m&&Array.isArray(m.off)) return m.off.map(String);
     var S=st.sesionesDelGrupo||(st.d&&st.d.sesiones)||{}, quien=String((!st.alumno&&st.miNombre)||st.profeMio||'').trim();
     return (quien&&Array.isArray(S[quien]))?S[quien]:[];
   }
@@ -1818,6 +1845,7 @@
    * «En directo» y «Hasta pronto», al final. Dentro del Genially en dos tramos (?tramo=), cada tramo ordena lo suyo.
    */
   function ordenGuardado(){
+    var m=mazoDocente(); if(m&&Array.isArray(m.orden)) return m.orden.map(String);
     var S=st.ordenDelGrupo||(st.d&&st.d.modOrdenSesion)||{}, quien=String((!st.alumno&&st.miNombre)||st.profeMio||'').trim();
     return (quien&&Array.isArray(S[quien]))?S[quien]:[];
   }
@@ -2097,13 +2125,13 @@
       else if(pieza==='bitacora') add(diaBitacora());
       else if(pieza==='nave') add(diapositivasNuevas(s));
       else if(pieza==='plantilla') add(diaPlantilla('embarque'));
-      else if(pieza==='alistaos'){ if(st.per && !st.alumno) add(diaAlistaos()); }
+      else if(pieza==='alistaos'){ if(st.per && comoDocente()) add(diaAlistaos()); }
       else if(pieza==='llamada'){ if(st.per) add(diaLlamada()); }
       else if(pieza==='ticket') add(diaTicketForm(s, arg));
       else if(pieza==='forge') add(diaPortada(s, n));
       else if(pieza==='despegue'){
-        if(!EMBED || VENTANA || DIFERIDO){
-          var P=(st.d&&st.d.paneles)||{}, panel=(st.miNombre&&P[st.miNombre])||(st.alumno&&st.profeMio&&P[st.profeMio])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
+        {
+          var panel=panelDelMazo(!EMBED || VENTANA || DIFERIDO);
           if(panel) add({k:'genially', rot:'El despegue', html:'<div class="dia genially"><iframe src="'+esc(panel)+'" title="Panel de control de la clase" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'});
         }
       }
@@ -2115,7 +2143,7 @@
     });
     out=out.filter(hay);
     var todo = TRAMO==='ap' ? out.filter(function(x){ return x.t==='ap'; }) : TRAMO==='ci' ? out.filter(function(x){ return x.t==='ci'; }) : out;
-    if(st.alumno) todo=todo.filter(function(x){ return x.k!=='simulacro'; });
+    if(!comoDocente()) todo=todo.filter(function(x){ return x.k!=='simulacro'; });
     if(DIFERIDO) todo=todo.filter(function(x){ return SOLO_EN_DIRECTO.indexOf(x.k)<0; });   // (en diferido no se ficha ni se alista)
     var off=apagadasEn(s);
     if(off.length){ var quedan=todo.filter(function(x){ return off.indexOf(secDe(x))<0; }); todo=quedan.length?quedan:[todo[0]]; }
@@ -2470,7 +2498,7 @@
     // 24-sep · Norberto: «cambia el orden: 1) Portada 2) Llamada a filas 3) La pregunta» (en las semanas 1 y 2, «Únete»
     // entre la portada y la llamada: primero se entra, después se pasa lista)
     var d=[diaPortada(s, n)], L=semanas(), iS=iDe(L, s);
-    if(st.per && !st.alumno && (Number(s.sem)||1)<=2) d.push(diaUnete());   // 19-sep · semanas 1 y 2
+    if(st.per && comoDocente() && (Number(s.sem)||1)<=2) d.push(diaUnete());   // 19-sep · semanas 1 y 2
     if(st.per) d.push(diaLlamada());
     d=d.concat(diasPregunta(s));
     // 20-sep · al empezar un tema, lo que dijisteis al cerrar el anterior: primero cómo fue, después las dudas
@@ -2560,8 +2588,8 @@
      * lo dice sin una tarjeta de por medio.
      */
     var medio=[];
-    if(!EMBED || VENTANA || DIFERIDO){
-      var P=(st.d&&st.d.paneles)||{}, panel=(st.miNombre&&P[st.miNombre])||(st.alumno&&st.profeMio&&P[st.profeMio])||(st.d&&st.d.panel)||window.SG_PANEL_MAESTRO||'';
+    {
+      var panel=panelDelMazo(!EMBED || VENTANA || DIFERIDO);
       if(panel) medio.push({k:'genially', t:'pr', rot:'El despegue', html:
         '<div class="dia genially"><iframe src="'+esc(panel)+'" title="Panel de control de la clase" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'});
     }
@@ -2577,7 +2605,7 @@
       +'<h2>Esta semana no hay nada aquí</h2>'
       +'<p class="sub">La semana '+esc(String(s.sem))+' no trae nada para este tramo. Sigue con tu Genially: el resto de la sesión está en los otros embeds.</p></div></div>'}];
     // (el recluta no «enseña la Nave simulada»: es la del docente)
-    if(st.alumno) todo=todo.filter(function(x){ return x.k!=='simulacro'; });
+    if(!comoDocente()) todo=todo.filter(function(x){ return x.k!=='simulacro'; });
     if(DIFERIDO) todo=todo.filter(function(x){ return SOLO_EN_DIRECTO.indexOf(x.k)<0; });   // (en diferido no se ficha ni se alista)
     /**
      * 18-sep · LA SESIÓN A MEDIDA. Cada docente quita en «Mis enlaces» las secciones que no quiere; al recluta que le
@@ -3046,14 +3074,35 @@
 
   // ── el docente emite dónde está (con un respiro: pasar tres diapositivas seguidas es UNA escritura)
   function ocurrencia(i){ var sl=st.slides[i]; if(!sl) return null; var n=0; for(var j=0;j<i;j++) if(st.slides[j].k===sl.k) n++; return {k:sl.k, n:n}; }
+  /**
+   * 🔴 16-oct · el mazo del docente viaja con cada diapositiva (ver `mazoDocente`): quién lo presenta, lo que apaga, su orden, su
+   * panel ('' si no lo lleva) y la lista de diapositivas (`ks`), con la que el recluta comprueba que tiene las mismas.
+   */
+  function mazoParaEmitir(){
+    var ks=st.slides.map(function(x){ return x.k; });
+    return { quien:String(st.miNombre||''), off:apagadas(), orden:ordenGuardado(),
+      panel:ks.indexOf('genially')>=0 ? panelPropio() : '', ks:ks };
+  }
   function emitir(){
     if(!DIRECTO.on||st.alumno||!st.per) return;
     var M=window.SG&&window.SG.MOTOR, o=ocurrencia(st.i); if(!M||!M.publicarEnVivo||!o) return;
-    var firma=st.sem+'|'+o.k+'|'+o.n+'|'+st.f; if(firma===DIRECTO.ultimo) return;
+    var mz=mazoParaEmitir(), firma=st.sem+'|'+o.k+'|'+o.n+'|'+st.f+'|'+JSON.stringify(mz); if(firma===DIRECTO.ultimo) return;
     clearTimeout(DIRECTO.t);
     DIRECTO.t=setTimeout(function(){
       DIRECTO.ultimo=firma;
-      M.publicarEnVivo(st.per, {sesion:{activa:true, sem:st.sem, pres:!!st.pres, act:st.act||0, k:o.k, n:o.n, f:st.f||0, t:Date.now(), por:st.miNombre||''}}).catch(function(){});
+      var sl=st.slides[st.i]||{};
+      M.publicarEnVivo(st.per, {sesion:{activa:true, sem:st.sem, pres:!!st.pres, act:st.act||0, k:o.k, n:o.n, f:st.f||0, i:st.i, de:st.slides.length,
+        rot:String(sl.rot||'').slice(0,80), mazo:mz, t:Date.now(), por:st.miNombre||''}}).then(function(){
+        if(DIRECTO.fallos){ DIRECTO.fallos=0; pintarDirecto(); }
+      }, function(e){
+        // 🔴 16-oct · antes el fallo se tragaba en silencio y el alumnado se quedaba atrás sin que nadie lo supiera: ahora el botón
+        // lo dice, se apunta en el registro de fallos y se vuelve a mandar (con un respiro que crece: 2, 4, 6… hasta 10 s)
+        if(DIRECTO.ultimo===firma) DIRECTO.ultimo='';
+        DIRECTO.fallos++; pintarDirecto();
+        if(M.apuntarFallo) M.apuntarFallo(e, 'sesion-directo');
+        clearTimeout(DIRECTO.reintento);
+        DIRECTO.reintento=setTimeout(emitir, Math.min(2000*DIRECTO.fallos, 10000));
+      });
     }, 350);
   }
   function encenderDirecto(){
@@ -3062,33 +3111,58 @@
   }
   function apagarDirecto(){
     if(!DIRECTO.on) return;
-    DIRECTO.on=false; clearTimeout(DIRECTO.t); pintarDirecto();
+    DIRECTO.on=false; DIRECTO.fallos=0; clearTimeout(DIRECTO.t); clearTimeout(DIRECTO.reintento); pintarDirecto();
     var M=window.SG&&window.SG.MOTOR; if(M&&M.publicarEnVivo&&st.per) M.publicarEnVivo(st.per, {sesion:{activa:false, t:Date.now()}}).catch(function(){});
   }
   function pintarDirecto(){
     var b=root.querySelector('#ses-directo'); if(!b) return;
+    var sinSenal=DIRECTO.on&&DIRECTO.fallos>0;
     b.classList.toggle('on', DIRECTO.on);
+    b.classList.toggle('sin-senal', sinSenal);
     // (23-sep · en el teléfono se queda en «Emitir»: con el texto entero, los mandos tapaban las flechas)
-    b.innerHTML=DIRECTO.on?'En directo':'Emitir<span class="sd-mas"> en directo</span>';
-    b.title=DIRECTO.on?'Tus reclutas ven esta sesión a tu ritmo desde su Nave. Pulsa para dejar de emitir.':'Que tus reclutas la sigan a tu ritmo desde su Nave';
+    b.innerHTML=sinSenal?'Sin señal<span class="sd-mas"> · reintentando</span>':DIRECTO.on?'En directo':'Emitir<span class="sd-mas"> en directo</span>';
+    b.title=sinSenal?'No llega a tus reclutas: lo estoy volviendo a mandar solo. Si dura, revisa la conexión.'
+      :DIRECTO.on?'Tus reclutas ven esta sesión a tu ritmo desde su Nave. Pulsa para dejar de emitir.':'Que tus reclutas la sigan a tu ritmo desde su Nave';
   }
   window.addEventListener('pagehide', function(){ if(DIRECTO.on){ var M=window.SG&&window.SG.MOTOR; if(M&&M.publicarEnVivo) M.publicarEnVivo(st.per,{sesion:{activa:false,t:Date.now()}}).catch(function(){}); } });
 
   // ── el recluta sigue al docente
   function indiceDe(k, n){ var c=-1; for(var i=0;i<st.slides.length;i++){ if(st.slides[i].k===k){ c++; if(c===Number(n||0)) return i; } } return -1; }
+  /**
+   * 🔴 16-oct · ADÓNDE VA EL RECLUTA (y nunca se queda quieto sin decirlo). Lo normal: la misma diapositiva (`k` y su vez `n`). Si no
+   * la tiene (un mazo viejo, una página guardada de antes), con la lista del docente (`ks`) va a la última que sí tienen los dos,
+   * y `exacto` es false: el rótulo dice dónde está su Comandante y ofrece ponerse al día.
+   */
+  function dondeVa(s){
+    var i=indiceDe(s.k, s.n); if(i>=0) return {i:i, exacto:true};
+    var ks=Array.isArray(s.ks)?s.ks:(s.mazo&&Array.isArray(s.mazo.ks)?s.mazo.ks:null), j=Number(s.i);
+    if(ks && j>=0 && j<ks.length){
+      for(var b=j-1;b>=0;b--){ var n=0; for(var c=0;c<b;c++) if(ks[c]===ks[b]) n++; var x=indiceDe(ks[b], n); if(x>=0) return {i:x, exacto:false}; }
+      return {i:0, exacto:false};
+    }
+    return {i:-1, exacto:false};
+  }
+  // (lo que monta el mazo; la lista `ks` no: solo sirve para el plan B, y con el docente en los dos tramos del Genially cambia sin que cambie nada)
+  function firmaMazo(s){ var m=s&&s.mazo; return m&&typeof m==='object' ? JSON.stringify([m.quien, m.off, m.orden, m.panel]) : ''; }
   function seguirDocente(){
     if(!st.alumno||!st.per||SEG.parar) return;
     var M=window.SG&&window.SG.MOTOR; if(!M||!M.vigilarEnVivo) return;
     SEG.parar=M.vigilarEnVivo(st.per, function(d){
       SEG.d=d||{};
       var s=SEG.d.sesion;
+      // 16-oct · el mazo cambia (otro docente, otra configuración, empieza o acaba el directo): se rehace con el que toca
+      var fm=enDirecto()?firmaMazo(s):'', otroMazo=fm!==SEG.mazoDe; SEG.mazoDe=fm;
       if(SEG.on && s && s.activa && (Date.now()-Number(s.t||0))<3*3600e3){
         if(!!s.pres!==!!st.pres || Number(s.act||0)!==Number(st.act||0) || (!s.pres&&!s.act&&Number(s.sem)&&Number(s.sem)!==Number(st.sem))){
           st.pres=!!s.pres; st.act=Number(s.act)||0; if(Number(s.sem)) st.sem=Number(s.sem); st.i=0; pintar(); }
-        var i=indiceDe(s.k, s.n); if(i>=0&&i!==st.i) ir(i, false, true);
+        else if(otroMazo) pintar();
+        var va=dondeVa(s), i=va.i;
+        SEG.perdido=va.exacto?null:{rot:String(s.rot||'')};
+        if(i>=0&&i!==st.i) ir(i, false, true);
         // 2-oct · y lo que el docente ha descubierto (la carta volteada, el sello roto, el podio); sin `f`, como antes
-        if(i>=0&&i===st.i&&s.f!=null){ var slS=st.slides[i], fS=Math.max(0, Math.min((slS&&slS.frag)||0, Number(s.f)||0)); if(fS!==st.f){ st.f=fS; frags(); } }
+        if(va.exacto&&i===st.i&&s.f!=null){ var slS=st.slides[i], fS=Math.max(0, Math.min((slS&&slS.frag)||0, Number(s.f)||0)); if(fS!==st.f){ st.f=fS; frags(); } }
       }
+      else { SEG.perdido=null; if(otroMazo) pintar(); }   // (el directo ha acabado: vuelve a su propio mazo)
       var p=SEG.d.pregunta;
       if(p&&p.abierta&&p.id&&SEG.miaDe!==p.id){ SEG.miaDe=p.id; SEG.mia=null;
         if(M.miRespuesta) M.miRespuesta(st.per, p.id, st.ficha).then(function(r){ SEG.mia=r; pintarSeguir(); }); }
@@ -3132,6 +3206,9 @@
     // mientras emite, el recluta va con él y no puede moverse: el rótulo lo dice y no hay «volver al ritmo» que dar
     mazo.classList.toggle('ses-bloqueado', !!vivo);
     if(vivo) html+='<span class="ses-al-sigo">Siguiendo a tu Comandante</span>';
+    // 16-oct · el plan B: si no tiene la diapositiva del docente, lo dice (nunca se queda quieto en silencio) y le pone al día
+    if(vivo&&SEG.perdido) html+='<div class="ses-al-perdido" role="status"><b>Tu Comandante está en «'+esc(SEG.perdido.rot||'otra diapositiva')+'»</b>'
+      +'<p>Esa aún no te ha llegado.</p><button type="button" class="btn primary" id="ses-al-aldia">Ponerme al día</button></div>';
     if(p&&p.abierta&&p.id){
       var pend=!SEG.mia;
       html+='<div class="ses-al-pq'+(pend?' abierta':'')+'"><b>Pregunta en directo</b><p>'+esc(p.texto)+'</p>'
@@ -3152,6 +3229,7 @@
     caja.setAttribute('data-html', html); caja.innerHTML=html;
     var ta2=caja.querySelector('#ses-al-resp'); if(ta2&&borrador) ta2.value=borrador;
     if(crVivo){ relojAlumno(); if(!SEG.relojIv) SEG.relojIv=setInterval(relojAlumno, 500); }
+    var ad=caja.querySelector('#ses-al-aldia'); if(ad) ad.onclick=function(){ ad.disabled=true; location.reload(); };
     var v=caja.querySelector('#ses-al-volver'); if(v) v.onclick=function(){ SEG.on=true; var s2=SEG.d.sesion; if(s2){ var i=indiceDe(s2.k,s2.n); if(i>=0) ir(i,false,true); } pintarSeguir(); };
     var en=caja.querySelector('#ses-al-enviar');
     if(en) en.onclick=function(){

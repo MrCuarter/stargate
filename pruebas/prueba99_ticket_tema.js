@@ -104,7 +104,7 @@ c(/¡No hay comentarios!/.test(SES) && /Animadles a hacerlo en el ticket del tem
 // ── 3 · los tres fallos del ticket que venían de antes
 c(/split\('\{GRUPO\}'\)\.join\(encodeURIComponent\(st\.per\|\|''\)\)/.test(SES),
   "🔴 el hueco «Grupo» lleva el ID del grupo, no su nombre (con el nombre, las respuestas no aparecían)");
-c(/function elComandante\(\)\{ return String\(\(!st\.alumno&&st\.miNombre\)\|\|st\.profeMio\|\|''\)/.test(SES),
+c(/function elComandante\(\)\{ var m=mazoDocente\(\); if\(m&&m\.quien\) return String\(m\.quien\)\.trim\(\); return String\(\(!st\.alumno&&st\.miNombre\)\|\|st\.profeMio\|\|''\)/.test(SES),
   "🔴 el Comandante se rellena también cuando la sesión la sigue un recluta (antes se quedaba vacío)");
 c(/if\(!todo\.length\) todo=\[\{k:'vacio'/.test(SES),
   "🔴 un tramo sin diapositivas (?tramo=cierre en una semana sin cierre) ya no deja la pantalla en negro");

@@ -764,6 +764,8 @@ try {
     pantalla: () => (location.pathname.split("/").pop().replace(/\.html$/, "") || "inicio").replace(/[^A-Za-z0-9._-]/g, "").slice(0, 40) || "otra",
   });
 } catch (e) { console.warn("registro", e); }
+/** 16-oct · para lo que se recoge con su propio `catch` (la emisión en directo de la sesión): sigue al registro como los demás. */
+function apuntarFallo(e, pantalla) { try { return !!(REGISTRO && REGISTRO.apuntar(e, { pantalla: pantalla })); } catch (x) { return false; } }
 /**
  * 🔴 10-oct (noche) · «TODO ES TODO» (GamificaPro, firestore.rules): el grupo entero (`projects/{id}`, con los correos del equipo
  * docente y el código de clase) ya solo lo lee su equipo docente, el Mando y los vitalicios. El alumnado y quien se va a alistar
@@ -2388,7 +2390,7 @@ window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, cambiarCuenta, l
                     guardarReflexion, enlaceDeReflexion, reflexionesDe, misReflexiones, comentariosDe, comentar, borrarComentario,
                     borrarReflexion, idReflexion, hitos, batalla,
                     votaciones, crearVotacion, cerrarVotacion, borrarVotacion, votar, miPapeleta,
-                    vigilarVotaciones, vigilarEnVivo, publicarEnVivo, lanzarPregunta, cerrarPregunta, responderPregunta, vigilarRespuestas, quitarRespuesta, miRespuesta,
+                    vigilarVotaciones, vigilarEnVivo, publicarEnVivo, apuntarFallo, lanzarPregunta, cerrarPregunta, responderPregunta, vigilarRespuestas, quitarRespuesta, miRespuesta,
                     referenteGlobal, crearInvitacion, leerInvitacion, canjearInvitacion, invitaciones, referentes, ponerReferente,
                     profes, anotarConexion, fichaDocenteRef, fichaDocenteDatos, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
                     directoYo, directoCanal, pasarEscuadron, escuadronNuevo, apoyarEscuadron,

@@ -70,7 +70,8 @@ c(/if\(st\.alumno && !DIFERIDO\)\{ seguirDocente\(\)/.test(SES) && /st\.alumno &
   "   a su ritmo: no sigue al docente ni se bloquea");
 c(/var SOLO_EN_DIRECTO = \['llamada', 'unete', 'alistaos'\]/.test(SES) && (SES.match(/if\(DIFERIDO\) todo=todo\.filter/g) || []).length === 2,
   "   sin lo que solo vale en directo (la llamada a filas, el únete, el alistamiento)");
-c((SES.match(/\(st\.alumno&&st\.profeMio&&P\[st\.profeMio\]\)/g) || []).length === 2, "   y con el panel de Genially de SU Comandante");
+c((SES.match(/\(st\.alumno&&st\.profeMio&&P\[st\.profeMio\]\)/g) || []).length === 1 && (SES.match(/var panel=panelDelMazo\(/g) || []).length === 2
+  && /return hayHueco \? panelPropio\(\) : '';/.test(SES), "   y con el panel de Genially de SU Comandante (panelPropio; en directo, el de quien emite: batería 149)");
 c(/function urlSesion\(sem\)\{ return 'sesion\.html\?embed=1&diferido=1&per='\+encodeURIComponent\(per\|\|''\)\+'&sem='/.test(NAVE92)
   && /function sesionesArchivo\(\)/.test(NAVE92) && /if\(s\.sem>hasta\) return;\s*\n\s*out\.push\(\{u:urlSesion\(s\.sem\)/.test(NAVE92),
   "🔴 diferido · en El Archivo → Sesiones, cada semana ya llegada tiene su sesión (y las que no han llegado, no)");

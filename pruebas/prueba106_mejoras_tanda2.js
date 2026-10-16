@@ -95,7 +95,7 @@ c(/BLOQUES_ASIGNATURA = \[/.test(DS) && /\("Creación de contenido", \[1, 2, 3\]
   "   los tres bloques: Creación de contenido (1-3), M-Learning (4-5) y Gamificación en el aula (6-8)");
 c(/es voluntario/.test(SES) && /Sin penalización/.test(SES) && /Todo lo evaluable, por la plataforma de UNIR/.test(SES) && /Al foro de la asignatura/.test(SES),
   "   voluntario y sin penalización; lo evaluable, en UNIR; las dudas, al foro");
-c(/else if\(pieza==='alistaos'\)\{ if\(st\.per && !st\.alumno\)/.test(SES), "   «¡Alistaos!» con la cuenta subiendo, solo en la pantalla del docente");
+c(/else if\(pieza==='alistaos'\)\{ if\(st\.per && comoDocente\(\)\)/.test(SES), "   «¡Alistaos!» con la cuenta subiendo, solo en la pantalla del docente (y de quien la sigue en directo: 16-oct, batería 149)");
 const VID = global(SESH, "SG_VIDEOS") || {};
 c(EMB.filter(x => x[0] === "video").every(x => VID[x[1]]), "   todos sus vídeos existen", JSON.stringify(EMB.filter(x => x[0] === "video" && !VID[x[1]])));
 const SECS = global(SESH, "SG_SECCIONES_SESION") || [];

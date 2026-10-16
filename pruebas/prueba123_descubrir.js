@@ -100,8 +100,8 @@ c(/st\.f=hacia_atras&&st\.slides\[i\]\.frag\?st\.slides\[i\]\.frag:0;/.test(S), 
 c(/\(e\.key==='r'\|\|e\.key==='R'\)&&!e\.metaKey&&!e\.ctrlKey&&!e\.altKey\)\{ e\.preventDefault\(\); alternarRev\(\);/.test(S)
   && /fijarF\(st\.f<sl\.frag\?sl\.frag:0\)/.test(S), "   R descubre o vuelve a esconder");
 c(/rv&&\(e\.key==='Enter'\|\|e\.key===' '\)&&!rv\.classList\.contains\('on'\)/.test(S), "   con el teclado: Intro o espacio sobre lo escondido");
-c(/var firma=st\.sem\+'\|'\+o\.k\+'\|'\+o\.n\+'\|'\+st\.f;/.test(S) && /k:o\.k, n:o\.n, f:st\.f\|\|0,/.test(S), "🔴 el docente emite también lo descubierto (f)");
-c(/if\(i>=0&&i===st\.i&&s\.f!=null\)\{[^\n]*st\.f=fS; frags\(\);/.test(S), "   y quien le sigue lo ve (sin `f`, como antes)");
+c(/firma=st\.sem\+'\|'\+o\.k\+'\|'\+o\.n\+'\|'\+st\.f\+'\|'\+JSON\.stringify\(mz\);/.test(S) && /k:o\.k, n:o\.n, f:st\.f\|\|0,/.test(S), "🔴 el docente emite también lo descubierto (f)");
+c(/if\(va\.exacto&&i===st\.i&&s\.f!=null\)\{[^\n]*st\.f=fS; frags\(\);/.test(S), "   y quien le sigue lo ve (sin `f`, como antes)");
 c(/if\(st\.alumno&&enDirecto\(\)\)\{ avisoBloqueo\(\); return false; \}/.test(fn("fijarF")), "   quien sigue en directo no descubre por su cuenta");
 c(/\.podio-p\.fr:not\(\.on\)\{pointer-events:none\}/.test(CSS) && /if\(e\.target\.closest\('\.cara\[data-quien\],a,button'\)\) return;/.test(S),
   "   en el podio, la cara de quien aún no ha subido no abre su ficha");
