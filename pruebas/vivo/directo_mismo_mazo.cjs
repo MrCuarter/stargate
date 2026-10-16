@@ -13,6 +13,7 @@
  *   6. acaba el directo: el recluta vuelve a su propio mazo.
  *
  *   NODE_PATH=$(npm root -g) node pruebas/vivo/directo_mismo_mazo.cjs     (Playwright; SG_CHROME=<ruta> para otro Chrome)
+ *   SG_MOVIL=1: el recluta en un teléfono (390×844) · SG_CAPTURAS=<carpeta>: guarda capturas del plan B y de «Sin señal»
  */
 const fs = require("fs"), path = require("path");
 const { chromium } = require("playwright");
@@ -64,7 +65,8 @@ function motorDoble(quien) {
   let envivo = {}, fallarProxima = 0, publicaciones = 0;
   const alRecluta = [];
   async function abrir(quien, url) {
-    const ctx = await navegador.newContext({ viewport: { width: 1280, height: 800 } });
+    const movil = quien === "recluta" && process.env.SG_MOVIL;
+    const ctx = await navegador.newContext(movil ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } : { viewport: { width: 1280, height: 800 } });
     await ctx.route("**/*", (ruta) => {
       const u = new URL(ruta.request().url());
       if (u.host !== "sg.lab") return ruta.abort();
@@ -137,12 +139,16 @@ function motorDoble(quien) {
   await rec.evaluate(d => window.__envivo(d), envivo);
   c(await hasta(rec, () => { const p = document.querySelector(".ses-al-perdido"); return p && /Una que no tienes/.test(p.textContent) && !!document.getElementById("ses-al-aldia"); }),
     "🔴 plan B: el recluta ve «Tu Comandante está en «…»» con «Ponerme al día»");
+  const CAP = process.env.SG_CAPTURAS; if (CAP) await rec.screenshot({ path: path.join(CAP, "recluta-plan-b.png") });
+  if (process.env.SG_MOVIL) c(await rec.evaluate(() => { const p = document.querySelector(".ses-al-perdido").getBoundingClientRect(); return p.left >= 0 && p.right <= innerWidth && document.documentElement.scrollWidth <= innerWidth; }),
+    "   (en el teléfono, el aviso cabe entero y la página no se desborda)");
   c((await enCual(rec)) === (await mazo(rec))[Math.min(5, ks.length - 1) - 1], "   y se pone en la última diapositiva común (no se queda donde estaba)", await enCual(rec));
 
   // la emisión falla una vez
   fallarProxima = 1;
   await doc.evaluate(() => { const b = Array.from(document.querySelectorAll(".barra-pasos .p")); b[1].click(); });
   c(await hasta(doc, () => /Sin señal/.test((document.getElementById("ses-directo") || {}).textContent || "")), "🔴 si la emisión falla, el botón dice «Sin señal»");
+  if (CAP) await doc.screenshot({ path: path.join(CAP, "docente-sin-senal.png") });
   c(await hasta(doc, () => /^En directo$/.test((document.getElementById("ses-directo") || {}).textContent || ""), null, 15), "   y se reintenta sola hasta que llega");
   c(((await doc.evaluate(() => window.__apuntados)) || []).length === 1, "   (y queda apuntado en el registro de fallos)", await doc.evaluate(() => window.__apuntados));
   r = await iguales(doc, rec);

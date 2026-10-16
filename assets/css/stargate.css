@@ -4725,7 +4725,7 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .ses-directo.on.sin-senal{border-color:#f5b043;color:#ffe3a1;background:rgba(245,176,67,.16)}
 .ses-directo.on.sin-senal::before{background:#f5b043;animation:sesAvisa .9s ease infinite}
 .ses-al-perdido{background:rgba(6,14,24,.94);border:1px solid rgba(245,176,67,.6);border-radius:14px;padding:10px 12px;color:#e8f3fa;width:100%}
-.ses-al-perdido b{font-size:.8rem;color:#ffe3a1}
+.ses-al-perdido b{display:block;font-size:.8rem;line-height:1.35;color:#ffe3a1}
 .ses-al-perdido p{margin:4px 0 8px;font-size:.9rem}
 .ses-al-pq{background:rgba(6,14,24,.94);border:1px solid rgba(255,125,125,.5);border-radius:14px;padding:10px 12px;color:#e8f3fa;width:100%}
 /* 18-sep · lo que lanza el docente desde su aula, encima de la diapositiva del recluta: el tiempo y la votación */
