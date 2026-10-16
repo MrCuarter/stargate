@@ -167,7 +167,7 @@ const CANAL = funcion(MOTOR, "directoCanal");
   if (!GPD) console.log("   (sin la carpeta de gamificapro al lado: la configuración del servidor no se comprueba aquí)");
   else {
     const S = fs.readFileSync(path.join(GPD, "functions", "mods", "stargate.js"), "utf8");
-    c(/directo: \{\s*coleccion: 'mod_directo',\s*sello: true,\s*partes: \{ estado: 'documento' \},\s*sinCongelar: true,\s*respuestas: \{ forma: 'jugador', sub: 'jugadores', puntos: 100000, avatar: 300 \},\s*eventos: \{ sub: 'eventos', alumno: \['sabotaje'\] \},/.test(S),
+    c(/directo: \{\s*coleccion: 'mod_directo',\s*sello: true,\s*(?:\/\/[^\n]*\n\s*)?cambio: 'modCambiado',\s*partes: \{ estado: 'documento' \},\s*sinCongelar: true,\s*respuestas: \{ forma: 'jugador', sub: 'jugadores', puntos: 100000, avatar: 300 \},\s*eventos: \{ sub: 'eventos', alumno: \['sabotaje'\] \},/.test(S),
       "   la sala: el estado como documento entero (con su sello), sin congelados, el jugador (puntos hasta 100.000, avatar de 300) y solo el sabotaje del alumnado");
     const MC = fs.readFileSync(path.join(GPD, "functions", "modClase.js"), "utf8");
     c(/accion === 'evento'|\/\/ evento/.test(MC) && /ev\.alumno \|\| \[\]\)\.includes\(t\)/.test(MC) && /t\.length > 40/.test(MC), "   y modClase deja al alumnado los tipos de «alumno» y corta el tipo de suceso a 40 letras");
