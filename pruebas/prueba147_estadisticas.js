@@ -44,7 +44,7 @@ global.window = null;
 const E = require(path.join(raiz, "assets/js/estadisticas.js"));
 c(JSON.stringify(E.peticionDe({ grupo: "per-1", equipo: "esc_a", reto: "*", desde: "2026-10-06", hasta: "" }, "stargate")) === '{"mod":"stargate","grupos":["per-1"],"equipos":["esc_a"],"desde":"2026-10-06"}',
   "   lo que se pide al servidor: el grupo, el escuadrón, el reto y las fechas elegidas");
-c(E.PESTANAS.map(x => x[1]).join(",") === "Resumen,Curso,Equipos,Retos,Horas,Horarios,Buzón", "   las siete pestañas, con «Horarios» (las clases de cada escuadrón)");
+c(E.PESTANAS.map(x => x[1]).join(",") === "Resumen,Curso,Equipos,Retos,Horas,Horarios,Buzón,Origen", "   las siete pestañas, con «Horarios» (las clases de cada escuadrón), y «Origen», que solo sale con la pieza encendida (16-oct)");
 
 console.log("\n  Batería 147 · " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 if (fallos.length) process.exit(1);
