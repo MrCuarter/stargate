@@ -1,0 +1,1250 @@
+{
+ "portada": [
+  "Haz: pulsa F para pantalla completa antes de empezar.",
+  "Haz: deja la portada puesta mientras se van conectando.",
+  "Enseña: la línea de la ruta, la nave avanza una semana cada vez.",
+  "Haz: pulsa «Copiar el enlace para el chat» y pégalo en Teams.",
+  "Ojo: quien entra con ese enlace ficha solo y sigue tu presentación.",
+  "Di: «Bienvenidos a una nueva semana de STARGATE.»"
+ ],
+ "embarque_portada": [
+  "Haz: pulsa F para pantalla completa y deja esta imagen mientras se conectan.",
+  "Haz: pulsa «Copiar el enlace para el chat» y pégalo en Teams.",
+  "Ojo: quien entra con ese enlace ficha solo y ve la presentación a tu ritmo.",
+  "Di: «Bienvenidos a bordo de La Constancia. Hoy embarcamos; la primera parada es Fôrge.»"
+ ],
+ "unete": [
+  "Haz: espera a que aparezca el código de clase, en grande.",
+  "Haz: pulsa «Copiar el enlace para alistarse» y pégalo en el chat.",
+  "Di: «Entrad en la web, iniciad sesión con Google y escribid este código.»",
+  "Ojo: el código lo ves solo tú; el recluta no lo lee en su pantalla.",
+  "Recomienda: dar dos minutos y seguir; quien no entre se alista después."
+ ],
+ "alistaos": [
+  "Haz: deja el código en pantalla; el recuento y las caras se actualizan solos.",
+  "Di: «Cada cara que veis es alguien que ya está a bordo.»",
+  "Haz: pulsa «Copiar el enlace para alistarse» si alguien no encuentra la web.",
+  "Haz: avanza cuando dejen de entrar reclutas."
+ ],
+ "llamada": [
+  "Haz: elige 10, 30, 60 o 120 minutos para la llamada.",
+  "Haz: marca el regalo de un sobre de cromos si quieres premiar a quien fiche.",
+  "Haz: pulsa «Tocar llamada a filas».",
+  "Di: «Entrad en vuestra Nave y pulsad Presente.»",
+  "Enseña: el anillo que se llena y las caras que entran.",
+  "Ojo: la asistencia que puntúa la registra la plataforma de UNIR, no esta llamada."
+ ],
+ "pregunta": [
+  "Haz: lee la pregunta en voz alta, sin añadir nada.",
+  "Pregunta: «¿Qué opináis? Id anotándolo.»",
+  "Ojo: no la respondas ahora; la irás respondiendo durante la clase.",
+  "Recomienda: volver a ella en la teoría y al cerrar la sesión."
+ ],
+ "foro": [
+  "Haz: deja correr la transmisión; el mensaje sube solo con música.",
+  "Haz: si el navegador la bloquea, pulsa «Poner la música».",
+  "Di: léelo o resúmelo con tus palabras.",
+  "Ojo: al final sale tu firma con tu comandante."
+ ],
+ "video": [
+  "Haz: pulsa play en el reproductor y comprueba que se oye en la sala.",
+  "Haz: no pases de diapositiva hasta que acabe.",
+  "Pregunta: «¿Qué os ha llamado la atención?»",
+  "Ojo: si no carga, avisa a la clase y sigue con la siguiente."
+ ],
+ "anteriores": [
+  "Pregunta: «¿Os acordáis de las misiones de la semana pasada?»",
+  "Haz: da un minuto para recordar antes de descubrir nada.",
+  "Haz: pulsa la diapositiva, la flecha derecha o R para destaparlas.",
+  "Enseña: bajo cada cara hay un icono con su enlace, o «Leer» su reflexión.",
+  "Recomienda: abrir una entrega en directo y felicitarla."
+ ],
+ "movido": [
+  "Di: «Estos han movido ficha esta semana.»",
+  "Haz: nombra a cuatro o cinco por su alias.",
+  "Ojo: usa solo los alias que ves en pantalla.",
+  "Ojo: es reconocimiento, no una comparación entre personas."
+ ],
+ "semanal": [
+  "Haz: pulsa, usa la flecha derecha o R para subir al podio.",
+  "Enseña: sale primero el tercero, luego el segundo y al final el primero.",
+  "Haz: haz una pausa antes del primer puesto.",
+  "Ojo: STARGATE es voluntario; no señales a quien no juega."
+ ],
+ "top": [
+  "Di: «Estos son los cinco que más xp acumulan en el viaje.»",
+  "Haz: lee los alias y su rango.",
+  "Pregunta: «¿Qué han hecho que podamos copiar?»",
+  "Ojo: sin comparaciones personales."
+ ],
+ "coleccion": [
+  "Di: «Aquí reconocemos a quienes más han reunido.»",
+  "Haz: lee los tres primeros de cada columna.",
+  "Enseña: abajo, quienes tienen algo legendario.",
+  "Ojo: las columnas sin nadie no salen."
+ ],
+ "escuadrones": [
+  "Haz: espera dos segundos: las barras corren y se reordenan solas.",
+  "Di: «Se compara por media de xp, no por suma.»",
+  "Enseña: tu escuadrón sale resaltado.",
+  "Ojo: con un solo escuadrón, la diapositiva no sale."
+ ],
+ "simulador": [
+  "Di: «Estos son los récords de la clase en la sala de Joran.»",
+  "Enseña: las máquinas arcade y el simulador de vuelo de la Nave.",
+  "Pregunta: «¿Quién se atreve a batirlos?»"
+ ],
+ "votacion": [
+  "Haz: lee la pregunta y las opciones en voz alta.",
+  "Di: «Votad desde vuestra Nave.»",
+  "Ojo: el recluta no vota desde esta pantalla.",
+  "Recomienda: cumplir lo votado para que vean que sirve."
+ ],
+ "oferta": [
+  "Di: «Esta semana hay una oferta en el Mercado de vuestra Nave.»",
+  "Enseña: el precio, las unidades que quedan y el día en que acaba.",
+  "Ojo: una unidad por persona; no prometas más."
+ ],
+ "reflexion": [
+  "Haz: lee en voz alta la reflexión, sin decir de quién es.",
+  "Pregunta: «¿Qué añadiríais o cambiaríais vosotros?»",
+  "Ojo: si alguna no debe proyectarse, ocúltala antes en tu Nave."
+ ],
+ "nuevo": [
+  "Di: «Esta semana se abre algo nuevo en STARGATE.»",
+  "Haz: lee en voz alta lo que ya se puede hacer.",
+  "Haz: pasa a la Nave en simulacro de la siguiente diapositiva.",
+  "Ojo: NEBULA guía la primera vez; su botón, arriba, repite la guía."
+ ],
+ "simulacro": [
+  "Haz: elige la semana en el selector de arriba.",
+  "Haz: navega despacio por las pestañas de la Nave.",
+  "Di: «Es la Nave de un recluta de mentira; nada de lo que toquéis cuenta.»",
+  "Recomienda: enseña solo lo nuevo de la semana y vuelve al panel."
+ ],
+ "genially": [
+  "Haz: este es el panel de control de tu clase: el despegue.",
+  "Haz: dentro das la teoría y la práctica guiada del tema.",
+  "Di: «Hasta aquí era el calentamiento; ahora despegamos.»",
+  "Ojo: el panel se maneja con el ratón; con F va a pantalla completa.",
+  "Ojo: para volver a las flechas, haz clic fuera del panel."
+ ],
+ "retos-semana": [
+  "Haz: pulsa el sello, la flecha derecha o R para romperlo.",
+  "Enseña: cuál es de clase y cuál es de casa.",
+  "Di: «Se registran en vuestra Nave, con el enlace.»",
+  "Ojo: el relámpago se puede hacer ahora o después, cuando cada cual quiera.",
+  "Ojo: los retos no puntúan; la actividad, sí."
+ ],
+ "tripulante": [
+  "Pregunta: «¿Quién creéis que es?»",
+  "Haz: lee su papel y su frase antes de voltear.",
+  "Haz: pulsa la carta, la flecha derecha o R para revelarlo.",
+  "Di: lee su lección en voz alta.",
+  "Ojo: su fragmento está prohibido; solo lo abre quien hace el relámpago."
+ ],
+ "reto": [
+  "Haz: lee el título y «Qué hay que hacer» en voz alta.",
+  "Haz: si hay un sello, pulsa o usa R para abrirlo.",
+  "Enseña: si hay botón «Ver un ejemplo», ábrelo en vivo.",
+  "Haz: en el relámpago, pulsa «Empezar» para lanzar el cronómetro.",
+  "Ojo: el enunciado completo y el registro están en la Nave, en Retos."
+ ],
+ "insignias": [
+  "Haz: pulsa, usa la flecha derecha o R para voltear las insignias.",
+  "Di: «Estas son las insignias que se ganan esta semana.»",
+  "Haz: lee el nombre y cómo se gana cada una.",
+  "Ojo: no prometas premios que no salgan en la pantalla."
+ ],
+ "entrega": [
+  "Di: «La actividad se entrega por la plataforma de UNIR.»",
+  "Enseña: la fecha y la cuenta atrás.",
+  "Ojo: es hasta las 23:59 de ese día.",
+  "Di: «En la Nave solo se registra, para el xp y la insignia.»",
+  "Recomienda: empezar hoy por los retos relacionados."
+ ],
+ "act": [
+  "Di: «Esta es la misión mayor: la actividad que puntúa.»",
+  "Haz: pulsa «La sesión completa de la Actividad» para abrir sus pasos.",
+  "Ojo: se entrega en la plataforma de UNIR.",
+  "Ojo: los retos no puntúan; la actividad, sí."
+ ],
+ "actretos": [
+  "Di: «Cada reto deja hecho un trozo de la actividad.»",
+  "Pregunta: «¿Cuál vais a hacer primero?»",
+  "Enseña: en cuál semana se lanza cada uno.",
+  "Ojo: los retos no puntúan; la actividad, sí."
+ ],
+ "hito": [
+  "Di: lee la entrega de la semana en voz alta.",
+  "Haz: relaciónala con la actividad o el test que toque.",
+  "Ojo: las fechas oficiales están en la plataforma de UNIR."
+ ],
+ "plantilla": [
+  "Haz: la plantilla de la Bitácora está embebida; muestra cómo se duplica.",
+  "Di: «Duplicadla, ponedle vuestro nombre y pegad el enlace en vuestra Nave.»",
+  "Ojo: el enlace debe abrir en una ventana de incógnito.",
+  "Recomienda: montarla desde cero en [Google Sites](https://sites.google.com/new)."
+ ],
+ "ruta": [
+  "Haz: la misión se juega en este recuadro; dura unos cinco minutos.",
+  "Enseña: cómo se pilota antes de soltarlos.",
+  "Di: «Bronce por llegar; plata y oro, por saber y pilotar.»",
+  "Ojo: las preguntas son de la asignatura.",
+  "Ojo: proyectada sirve para enseñarla; cada recluta juega en su Nave."
+ ],
+ "hasta": [
+  "Pregunta: «¿Qué os lleváis de hoy?»",
+  "Haz: pulsa la carta, la flecha derecha o R para ver qué pasará la semana que viene.",
+  "Enseña: el tema y el planeta que se abren.",
+  "Di: «Recordad los retos y el ticket.»"
+ ],
+ "ticket": [
+  "Di: «Esto dijisteis en el ticket del tema anterior.»",
+  "Enseña: cada barra reparte las notas de uno a cinco.",
+  "Haz: lee dos medias, la más alta y la más baja.",
+  "Pregunta: «¿Qué os sorprende?»",
+  "Ojo: es anónimo; no intentes adivinar quién contestó."
+ ],
+ "ticket_escuadron": [
+  "Haz: lee el escuadrón ganador y su porcentaje, y felicítalo.",
+  "Di: «Cada recluta suyo recibe una recompensa al azar en su Nave.»",
+  "Enseña: la raya es la meta de cada escuadrón.",
+  "Ojo: si no hay ganador, dilo claro y anima al próximo ticket."
+ ],
+ "ticket_dudas": [
+  "Haz: lee dos o tres comentarios «a mejorar» y dos positivos.",
+  "Di: «Os hemos leído; esto mantenemos y esto cambiamos.»",
+  "Haz: responde a la duda más repetida.",
+  "Ojo: son anónimos; si alguno es personal, sáltalo."
+ ],
+ "ticket_form": [
+  "Haz: dales tres minutos en silencio para rellenarlo aquí mismo.",
+  "Di: «Es anónimo y rápido; lo comentamos la próxima clase.»",
+  "Enseña: si no cabe, hay un enlace para abrirlo en otra pestaña.",
+  "Ojo: se rellena al acabar cada tema."
+ ],
+ "asedio": [
+  "Haz: explica las reglas que salen en pantalla.",
+  "Di: «Cada escuadrón ataca desde su Nave, dos minutos por intento.»",
+  "Enseña: los premios por puesto que ves en pantalla.",
+  "Ojo: el podio se enseña la semana siguiente."
+ ],
+ "directo": [
+  "Haz: elige el modo: defensa, carrera, caza o duelo.",
+  "Haz: espera a que entren desde el móvil, en Tu Nave, En directo.",
+  "Di: «Tres minutos de juego, desde el móvil.»",
+  "Haz: lanza la partida con la sala llena.",
+  "Ojo: en defensa se gana o se pierde en común; se puede repetir."
+ ],
+ "embarque_nombres": [
+  "Di: «Cuatro nombres y ya está.»",
+  "Haz: señala cada tarjeta: NEBULA, la Estática, el Capitán y tu Comandante.",
+  "Haz: en la tuya, preséntate con una frase.",
+  "Ojo: el Capitán sale en los vídeos; tú firmas las órdenes."
+ ],
+ "embarque_viaje": [
+  "Di: «Ocho planetas, ocho temas.»",
+  "Haz: recórrelos en orden con el cursor.",
+  "Di: en cada uno se quedó alguien de la Tripulación Cero.",
+  "Ojo: recuperarlo es su misión."
+ ],
+ "embarque_semana": [
+  "Haz: lee los cuatro pasos de uno en uno.",
+  "Di: «Sesión, retos, Nave y ticket de salida.»",
+  "Enseña: el relámpago se hace en clase; el principal, en casa.",
+  "Ojo: se registran sin tope, cada uno a su ritmo."
+ ],
+ "embarque_nota": [
+  "Di: «Esto es lo que cuenta para vuestra nota.»",
+  "Enseña: el reparto entre continua y, en REGULAR, examen.",
+  "Haz: lee las fechas de este grupo.",
+  "Ojo: los retos de STARGATE no puntúan.",
+  "Ojo: en PUA no hay examen."
+ ],
+ "embarque_nota_ej": [
+  "Haz: avanza con la flecha derecha o pulsando.",
+  "Enseña: la rueda se llena nota a nota.",
+  "Di: «Un 4 y un 3 en las actividades, seis tests, dos clases y un 9.»",
+  "Enseña: el último paso, lo que se pierde sin portfolio.",
+  "Ojo: el portfolio es el 20 % de cada actividad."
+ ],
+ "embarque_bitacora": [
+  "Di: «La Bitácora es vuestro ePortfolio.»",
+  "Haz: lee sus cuatro partes: evidencia, contexto, reflexión y autoevaluación.",
+  "Enseña: lo que acaba dentro: las dos actividades y tres hazañas.",
+  "Ojo: es lo que se evalúa.",
+  "Recomienda: [Google Sites](https://sites.google.com/new) o la plantilla de la siguiente diapositiva."
+ ],
+ "asig_portada": [
+  "Haz: pulsa F para pantalla completa.",
+  "Haz: pulsa «Copiar el enlace para el chat» y pégalo en Teams.",
+  "Di: «Hoy, cómo funciona todo; en la sesión 2 empezamos.»"
+ ],
+ "asig_bloque": [
+  "Haz: lee el nombre del bloque.",
+  "Haz: recorre sus temas de izquierda a derecha.",
+  "Enseña: la semana en que empieza cada uno.",
+  "Di: «Cada planeta es un tema del curso.»"
+ ],
+ "asig_unir": [
+  "Di: «Todo lo evaluable va por la plataforma de UNIR.»",
+  "Haz: lee las fechas de entrega de este grupo.",
+  "Enseña: la asistencia, las actividades y los tests.",
+  "Ojo: la llamada a filas de STARGATE no da nota."
+ ],
+ "asig_dudas": [
+  "Di: «Las dudas de la asignatura, al foro de UNIR.»",
+  "Di: «Las de STARGATE, a Pregunta a NEBULA en vuestra Nave.»",
+  "Ojo: NEBULA contesta al momento y, si no sabe, avisa al Mando."
+ ],
+ "asig_voluntario": [
+  "Di: «STARGATE es totalmente voluntario.»",
+  "Enseña: sin penalización, a vuestro ritmo y con ventaja.",
+  "Pregunta: «¿Quién ha vivido ya una gamificación como alumno?»",
+  "Ojo: la nota es la de UNIR."
+ ],
+ "semanas": [
+  "Haz: elige la semana que quieres ver.",
+  "Enseña: las llegadas se abren, la actual brilla y las futuras tienen candado.",
+  "Ojo: solo aparece en el diferido."
+ ],
+ "act_portada": [
+  "Di: «Esta es una misión mayor: la actividad que puntúa.»",
+  "Enseña: vale 4,3 de los 10 puntos.",
+  "Haz: lee la fecha de entrega dos veces.",
+  "Enseña: el reloj de cuenta atrás.",
+  "Ojo: se entrega en la plataforma de UNIR."
+ ],
+ "act_mision": [
+  "Haz: lee el bocadillo del Capitán despacio.",
+  "Haz: pausa antes de «Lo que vas a hacer».",
+  "Pregunta: «¿Qué es lo que más os cuesta de esto?»",
+  "Haz: anota dos respuestas para retomarlas."
+ ],
+ "act_entrega": [
+  "Di: «Dos piezas, en la plataforma de UNIR.»",
+  "Enseña: el PDF vale el 80 %; el ePortfolio, el 20 %.",
+  "Haz: abre en vivo la plantilla del ePortfolio.",
+  "Haz: abre «El enunciado completo» en otra pestaña.",
+  "Ojo: respeta las páginas máximas y la plantilla."
+ ],
+ "act_retos": [
+  "Di: «Cada reto deja hecho un trozo de la actividad.»",
+  "Pregunta: «¿Cuántos tenéis ya registrados?»",
+  "Enseña: la semana en que se lanzó cada uno.",
+  "Ojo: se registran en la Nave con su enlace."
+ ],
+ "act_portfolio": [
+  "Di: «Vuestra Bitácora es vuestro ePortfolio.»",
+  "Enseña: vale el 20 % de la nota.",
+  "Haz: abre la plantilla y «¿Mi enlace abre lo mío?».",
+  "Ojo: ábrelo en incógnito para comprobarlo.",
+  "Recomienda: [Google Sites](https://sites.google.com/new) para montarlo."
+ ],
+ "act_capturas": [
+  "Di: «Haced capturas de todo.»",
+  "Enseña: es la única prueba de que lo hicisteis en fecha.",
+  "Enseña: los atajos de tu sistema, Mac, Windows o Chromebook.",
+  "Haz: practica uno en directo.",
+  "Ojo: no es opcional."
+ ],
+ "act_errores": [
+  "Haz: lee los errores uno a uno.",
+  "Pregunta: «¿Cuál creéis que os puede pasar?»",
+  "Ojo: −0,10 por falta de ortografía.",
+  "Ojo: −0,25 por cada cinco tildes."
+ ],
+ "act_rubrica": [
+  "Haz: marca cada criterio cuando lo tengas.",
+  "Enseña: la rueda se llena sola hasta 10.",
+  "Di: «Esto es lo que pide el sobresaliente.»",
+  "Ojo: el turquesa va en el portfolio; el resto, en el PDF.",
+  "Ojo: la marca se guarda en tu navegador."
+ ],
+ "act_calendario": [
+  "Di: «Se lanza hoy y se entrega en UNIR.»",
+  "Enseña: las tres fechas: se lanza, se entrega, se resuelve.",
+  "Haz: deja visible la cuenta atrás.",
+  "Ojo: tras entregar, se registra en Mis retos."
+ ],
+ "act_cierre": [
+  "Pregunta: «¿Qué dudas os quedan?»",
+  "Haz: abre turno y contesta lo que sepas.",
+  "Di: «Las dudas de la asignatura, al foro de UNIR.»",
+  "Enseña: esta sesión queda siempre en la Nave, en El Archivo."
+ ],
+ "s1:portada": [
+  "Haz: pulsa F para pantalla completa.",
+  "Haz: pulsa «Copiar el enlace para el chat» y pégalo en Teams.",
+  "Di: «Semana 1: Fôrge, creación de contenido multimedia.»",
+  "Enseña: la ruta de 15 semanas y el planeta Fôrge.",
+  "Ojo: el nuevo capítulo de la historia es «El reclutamiento»."
+ ],
+ "s1:pregunta": [
+  "Haz: lee la pregunta sobre programar con ayuda de la IA.",
+  "Pregunta: «¿Alguien ha pedido a una IA una programación de aula?»",
+  "Enseña: en vivo, en [ChatGPT](https://chatgpt.com), una unidad con nivel, área, objetivos y evaluación.",
+  "Ojo: ni nombres ni datos del alumnado en el prompt.",
+  "Recomienda: revisar siempre lo que devuelve con tu criterio docente."
+ ],
+ "s1:genially": [
+  "Haz: da aquí el Tema 1: texto, imagen, audio, infografías y presentaciones.",
+  "Enseña: una infografía en [Canva](https://www.canva.com/login).",
+  "Recomienda: [Gemini](https://gemini.google.com); prompt: «Resume este tema en cinco ideas para mi nivel».",
+  "Recomienda: [Mythos](https://mythos.mistercuarter.es/forja) para generar imágenes coherentes con prompts listos.",
+  "Recomienda: [NotebookLM](https://notebooklm.google.com) para convertir tus apuntes en un resumen y un audio.",
+  "Pregunta: «¿Qué recurso multimedia usáis ya en clase?»"
+ ],
+ "s1:video": [
+  "Haz: pulsa play; es la intro de Fôrge, el planeta de este tema.",
+  "Pregunta: «¿Qué se forja en un lugar así?»",
+  "Ojo: justo después vienen los retos."
+ ],
+ "s1:retos-semana": [
+  "Haz: rompe el sello con la flecha derecha o R.",
+  "Enseña: dos retos: «Preséntate a tu tripulación» y «La hoja de ruta».",
+  "Di: «El primero, en casa; el segundo, ahora, en clase.»",
+  "Ojo: ninguno puntúa."
+ ],
+ "s1:reto": [
+  "Enseña: «Preséntate»: un vídeo de 60 segundos en el [Padlet de la clase](https://padlet.com/auth/login).",
+  "Di: «Natural gana a perfecto; grabadlo con el móvil.»",
+  "Haz: en el relámpago «La hoja de ruta», pulsa «Empezar» y abre la herramienta para programar.",
+  "Enseña: pide una programación de unidad a [Claude](https://claude.ai) con nivel, área y objetivos.",
+  "Ojo: sin datos personales del alumnado en el prompt.",
+  "Recomienda: copiar el enlace de la publicación y pegarlo en la Nave."
+ ],
+ "s1:insignias": [
+  "Haz: pulsa o R para voltear las insignias.",
+  "Di: «Esta es la insignia del reclutamiento, la primera.»",
+  "Haz: reparte la de Reclutamiento en público.",
+  "Ojo: sale al registrar el primer reto."
+ ],
+ "s1:directo": [
+  "Haz: es el primer juego de la clase; explícalo en 30 segundos.",
+  "Haz: pide que abran Tu Nave, En directo.",
+  "Di: «Tres minutos; cada uno con su personaje.»",
+  "Haz: lanza la partida cuando haya gente en la sala."
+ ],
+ "s1:hasta": [
+  "Pregunta: «¿Qué ha sido lo mejor de hoy?»",
+  "Haz: pulsa la carta para ver el tema de la semana que viene.",
+  "Di: «Semana 2: la Actividad 1, con una imagen hecha por IA.»",
+  "Ojo: recordad el reto de presentación."
+ ],
+ "s2:pregunta": [
+  "Haz: lee la pregunta sobre crear recursos con IA.",
+  "Pregunta: «¿Qué material creáis a menudo para clase?»",
+  "Enseña: pide a [Gemini](https://gemini.google.com) una ficha de un tema, sin datos del alumnado.",
+  "Recomienda: [Neural Quiz](https://neuralquiz.mistercuarter.es) para crear preguntas desde un PDF o un tema.",
+  "Ojo: contrasta siempre lo que genera la IA."
+ ],
+ "s2:ticket": [
+  "Di: «Esto es lo que dijisteis del embarque, la primera clase.»",
+  "Enseña: las barras reparten las notas de uno a cinco.",
+  "Pregunta: «¿Qué cambiaríais del embarque?»",
+  "Ojo: es anónimo."
+ ],
+ "s2:ticket_escuadron": [
+  "Haz: lee el escuadrón que más tickets del embarque rellenó.",
+  "Di: «Cada recluta suyo recibe una recompensa al azar.»",
+  "Ojo: el próximo ticket es al cerrar el Tema 1."
+ ],
+ "s2:ticket_dudas": [
+  "Haz: lee dos comentarios del embarque.",
+  "Di: «Os hemos leído; esto cambiamos hoy.»",
+  "Ojo: son anónimos; salta los personales."
+ ],
+ "s2:genially": [
+  "Haz: da aquí la teoría del Tema 1: una imagen con intención didáctica.",
+  "Enseña: un prompt con contexto, tipo de imagen y finalidad (CRAFT, RITA o RCTA).",
+  "Enseña: [Microsoft Designer](https://designer.microsoft.com) para generar la imagen.",
+  "Recomienda: [Mythos](https://mythos.mistercuarter.es/forja) para forjar prompts coherentes, y [Leonardo](https://app.leonardo.ai) para variantes.",
+  "Haz: itera al menos una vez en directo.",
+  "Ojo: cita la herramienta y no subas datos del alumnado."
+ ],
+ "s2:video": [
+  "Haz: el primer vídeo es la misión de la Actividad 1; pulsa play.",
+  "Pregunta: «¿Qué os pide?» al acabar.",
+  "Haz: el vídeo del cierre del planeta va después de los retos.",
+  "Ojo: el fragmento de Bran no se proyecta; se gana en la Nave."
+ ],
+ "s2:act": [
+  "Di: «Hoy se lanza la Actividad 1: una actividad a partir de una imagen con IA.»",
+  "Enseña: vale 4,3 puntos y se entrega en UNIR el último día de la semana 5.",
+  "Haz: pulsa el botón para abrir su sesión completa.",
+  "Ojo: la plantilla del portfolio también aparece."
+ ],
+ "s2:actretos": [
+  "Di: «Estos retos construyen la actividad.»",
+  "Enseña: «Del boceto a la forja» deja hecha la imagen.",
+  "Pregunta: «¿Cuál vais a hacer primero?»",
+  "Ojo: los retos no puntúan."
+ ],
+ "s2:tripulante": [
+  "Pregunta: «¿Quién es el Forjador?»",
+  "Haz: pulsa la carta o R para revelar a Bran Okafor.",
+  "Di: «Lo imperfecto compartido vale más que lo perfecto guardado.»",
+  "Ojo: su fragmento se gana con el relámpago en vuestra Nave."
+ ],
+ "s2:reto": [
+  "Enseña: Misión 1, la Actividad 1: imagen con IA, se entrega en UNIR y se registra en la Nave.",
+  "Haz: en el relámpago «Del boceto a la forja», pulsa «Empezar»: 15 minutos.",
+  "Di: «Traed una idea a medias y hacedla real con IA; subid el antes y el después.»",
+  "Recomienda: [Designer](https://designer.microsoft.com), [Copilot](https://copilot.microsoft.com) o [Mythos](https://mythos.mistercuarter.es/forja) para el prompt.",
+  "Haz: en la Misión 3, «La Bitácora en marcha», enseña a crear el portfolio en [Google Sites](https://sites.google.com/new).",
+  "Ojo: el enlace del portfolio debe abrir en incógnito."
+ ],
+ "s2:plantilla": [
+  "Di: «Recordad: la Bitácora en marcha, hoy.»",
+  "Haz: duplica la plantilla en directo.",
+  "Ojo: pegad el enlace en la Nave, en vuestra BIO.",
+  "Recomienda: [Google Sites](https://sites.google.com/new) si preferís empezar de cero."
+ ],
+ "s2:ruta": [
+  "Haz: es la misión «La tormenta de chatarra», de Fôrge a Ecos.",
+  "Enseña: cómo se pilota en 30 segundos.",
+  "Di: «Cinco minutos y una decena de preguntas.»",
+  "Ojo: es opcional y cada uno la juega en su Nave."
+ ],
+ "s2:ticket_form": [
+  "Haz: dales tres minutos para el ticket del Tema 1.",
+  "Di: «Anónimo, y lo comentamos al abrir el Tema 2.»",
+  "Ojo: cuenta para la raya de vuestro escuadrón."
+ ],
+ "act1:act_portada": [
+  "Di: «Tu primera misión mayor: «La primera chispa».»",
+  "Enseña: 4,3 de los 10 puntos y la fecha de entrega.",
+  "Enseña: las insignias que se ganan al registrarla.",
+  "Ojo: se entrega en UNIR; la Nave solo registra."
+ ],
+ "act1:video": [
+  "Haz: pulsa play al vídeo de la misión.",
+  "Pregunta: «¿Qué creéis que se evalúa?»",
+  "Ojo: dura poco; no lo interrumpas."
+ ],
+ "act1:act_mision": [
+  "Haz: lee el bocadillo del Capitán despacio.",
+  "Enseña: se diseña una actividad a partir de una imagen creada con IA.",
+  "Di: «Tenéis que demostrar que la IA la habéis usado vosotros, con criterio.»",
+  "Pregunta: «¿Qué actividad os vendría bien para vuestra aula?»"
+ ],
+ "act1:act_entrega": [
+  "Enseña: PDF de máximo 4 páginas con la plantilla, sus estilos e índice automático.",
+  "Enseña: el ePortfolio con las dos tablas completas.",
+  "Haz: abre la plantilla del portfolio y el enunciado.",
+  "Ojo: sin estilos ni índice, ese apartado solo vale 1,5.",
+  "Recomienda: usar [Google Docs](https://docs.google.com/document/u/0/) o Word con la plantilla."
+ ],
+ "act1:act_plan": [
+  "Haz: lee las tres cajas: para quién, qué tema, qué tarea.",
+  "Enseña: el ejemplo de Pilar, maestra de 6.º.",
+  "Pregunta: «¿Cuál sería vuestra tarea con una imagen?»",
+  "Enseña: las ideas de tarea con imagen de los chips.",
+  "Recomienda: pensar la tarea antes de generar la imagen."
+ ],
+ "act1:act_imagen": [
+  "Enseña: las dos versiones de la imagen de Pilar.",
+  "Haz: lee el prompt inicial, el modelo y la iteración.",
+  "Di: «Un prompt con finalidad y al menos una iteración.»",
+  "Recomienda: [Mythos](https://mythos.mistercuarter.es/forja) para estructurar el prompt de imagen.",
+  "Enseña: [Microsoft Designer](https://designer.microsoft.com) como en el ejemplo, o [Leonardo](https://app.leonardo.ai).",
+  "Ojo: el criterio docente elige la versión final."
+ ],
+ "act1:act_tecnica": [
+  "Haz: pulsa cada fila de la tabla técnica.",
+  "Enseña: función de la IA, prompt, iteración y criterio docente.",
+  "Di: «Va en el PDF, en captura, y completa en el portfolio.»",
+  "Ojo: el prompt debe seguir CRAFT, RITA o RCTA."
+ ],
+ "act1:act_reflexiva": [
+  "Haz: lee las cinco preguntas de la tabla reflexiva.",
+  "Di: «La técnica dice qué hiciste; la reflexiva, qué aprendiste.»",
+  "Enseña: la respuesta de Pilar como modelo.",
+  "Ojo: va completa en el portfolio, y en el PDF solo captura o resumen."
+ ],
+ "act1:act_enunciado": [
+  "Enseña: el enunciado que recibe el alumnado con la imagen.",
+  "Haz: lee los pasos de la tarea de Pilar.",
+  "Recomienda: [Canva](https://www.canva.com/login) para maquetar el enunciado.",
+  "Ojo: formato libre, visible o enlazado en el portfolio."
+ ],
+ "act1:act_calendario": [
+  "Enseña: se lanza en la semana 2, se entrega en la 5 y se resuelve en la 9.",
+  "Haz: deja la cuenta atrás visible.",
+  "Ojo: se registra en Mis retos al entregarla."
+ ],
+ "act2:act_portada": [
+  "Di: «Segunda misión mayor: «Cuarenta y ocho senderos».»",
+  "Enseña: 4,3 puntos; se entrega en la semana 9.",
+  "Enseña: la cuenta atrás y las insignias.",
+  "Ojo: se entrega en UNIR."
+ ],
+ "act2:video": [
+  "Haz: pulsa play al vídeo de la misión.",
+  "Pregunta: «¿Qué es un paisaje de aprendizaje?»",
+  "Ojo: todavía no hables de herramientas."
+ ],
+ "act2:act_mision": [
+  "Haz: lee el bocadillo del Capitán despacio.",
+  "Di: «Un grupo con ritmos muy distintos y ningún camino único.»",
+  "Enseña: planificar con una matriz y crear un paisaje.",
+  "Pregunta: «¿Cómo atendéis hoy la diversidad?»"
+ ],
+ "act2:act_entrega": [
+  "Enseña: PDF de máximo 10 páginas para seis actividades.",
+  "Enseña: el portfolio con la matriz y el paisaje.",
+  "Haz: abre la plantilla de la matriz y el enunciado.",
+  "Ojo: cada actividad extra suma una página."
+ ],
+ "act2:act_contexto": [
+  "Haz: lee nivel, área y criterios del ejemplo de Patricia.",
+  "Enseña: sus objetivos didácticos.",
+  "Di: «No hace falta una unidad larga.»",
+  "Pregunta: «¿Qué unidad real vais a usar?»"
+ ],
+ "act2:act_matriz": [
+  "Haz: pulsa una planta de la matriz para ver su actividad.",
+  "Enseña: 8 inteligencias por 6 niveles de Bloom.",
+  "Di: «Al menos seis cruces, variados.»",
+  "Enseña: los colores: obligatoria, optativa o voluntaria.",
+  "Haz: abre la plantilla de la matriz."
+ ],
+ "act2:act_ficha": [
+  "Haz: lee la ficha completa de una actividad.",
+  "Enseña: objetivo, tarea, recursos, evaluación, duración y tipo.",
+  "Recomienda: [Neural Quiz](https://neuralquiz.mistercuarter.es) para crear la parte de evaluación con preguntas.",
+  "Ojo: los recursos, en APA o con captura."
+ ],
+ "act2:act_paisaje": [
+  "Enseña: el huerto de Patricia, sin números.",
+  "Di: «Es un paisaje, no un itinerario: se entra por donde se quiera.»",
+  "Recomienda: [Canva](https://www.canva.com/login) o [Thinglink](https://www.thinglink.com) para una imagen interactiva.",
+  "Ojo: una presentación lineal no vale."
+ ],
+ "act2:act_ia": [
+  "Haz: lee los tres puntos de uso de la IA.",
+  "Di: «Cita la herramienta, el prompt y qué cambiaste.»",
+  "Recomienda: [Perplexity](https://www.perplexity.ai) para buscar actividades con fuentes.",
+  "Recomienda: [NotebookLM](https://notebooklm.google.com) para trabajar solo con tus propios apuntes.",
+  "Ojo: ni nombres ni datos del alumnado en el prompt."
+ ],
+ "act2:act_calendario": [
+  "Enseña: se lanza en la semana 6, se entrega en la 9 y se resuelve en la 13.",
+  "Haz: deja la cuenta atrás visible.",
+  "Ojo: se registra en Mis retos al entregarla."
+ ],
+ "pres:video": [
+  "Haz: el primer vídeo es el tráiler, a oscuras y sin presentar nada.",
+  "Haz: el segundo es la sinopsis: la historia entera en dos minutos.",
+  "Haz: el tercero presenta la Bitácora.",
+  "Pregunta: «¿Qué creéis que se juega en esta historia?»",
+  "Ojo: comprueba el sonido antes de empezar."
+ ],
+ "pres:llamada": [
+  "Haz: es el primer fichaje; tócala con 30 minutos.",
+  "Di: «Entrad en vuestra Nave y pulsad Presente.»",
+  "Enseña: el anillo y las caras.",
+  "Ojo: la asistencia de nota la registra UNIR."
+ ],
+ "pres:nuevo": [
+  "Di: «Esta es vuestra Nave, el centro de mando.»",
+  "Haz: navega por Retos, Mercado y Rankings.",
+  "Ojo: nada de lo que toques cuenta.",
+  "Recomienda: dejar que NEBULA te guíe."
+ ],
+ "pres:plantilla": [
+  "Haz: duplica la plantilla en directo.",
+  "Di: «Dadle vuestro nombre y pegad el enlace al alistaros.»",
+  "Ojo: el enlace debe abrir en incógnito.",
+  "Recomienda: [Google Sites](https://sites.google.com/new) si preferís empezar de cero."
+ ],
+ "pres:ticket_form": [
+  "Haz: da tres minutos para el ticket del embarque.",
+  "Di: «Anónimo; lo proyectamos la próxima semana.»",
+  "Ojo: cuenta para la raya de vuestro escuadrón."
+ ],
+ "pres:ruta": [
+  "Haz: es el primer vuelo hacia Fôrge, unos cinco minutos.",
+  "Enseña: cómo se pilota antes de soltarlos.",
+  "Ojo: las preguntas son de la asignatura.",
+  "Ojo: cada recluta juega en su Nave."
+ ],
+ "pres:hasta": [
+  "Di: «Nos vemos en Fôrge, en la sesión 2.»",
+  "Pregunta: «¿Qué dudas os quedan?»",
+  "Enseña: empieza el Tema 1 con la IA como ayudante.",
+  "Ojo: recordad hacer el ticket del embarque."
+ ],
+ "s3:pregunta": [
+  "Haz: lee la pregunta sobre videotutoriales con ayuda de herramientas e IA.",
+  "Pregunta: «¿Quién ha grabado ya un vídeo para su alumnado?»",
+  "Enseña: pide un guion de dos minutos a [Claude](https://claude.ai) sin datos del alumnado.",
+  "Ojo: ni nombres ni datos del alumnado en el prompt.",
+  "Recomienda: volver a esta pregunta al enseñar la grabación."
+ ],
+ "s3:video": [
+  "Haz: es la intro de Ecos; pulsa play.",
+  "Pregunta: «¿Qué mensaje debe volver claro?»",
+  "Di: «En Ecos solo regresa el mensaje que se entiende.»"
+ ],
+ "s3:genially": [
+  "Haz: da aquí el Tema 2: el vídeo como recurso y el aula invertida.",
+  "Enseña: grabar la pantalla con [Loom](https://www.loom.com) en un minuto.",
+  "Enseña: editar y subtitular en [CapCut](https://www.capcut.com) o [Clipchamp](https://app.clipchamp.com).",
+  "Recomienda: [ElevenLabs](https://elevenlabs.io/app/speech-synthesis) para una narración con voz natural, y [HeyGen](https://app.heygen.com/login) para un avatar presentador.",
+  "Recomienda: subirlo oculto a [YouTube Studio](https://studio.youtube.com).",
+  "Ojo: criterio: que se entienda sin ti delante."
+ ],
+ "s3:retos-semana": [
+  "Haz: rompe el sello con la flecha derecha o R.",
+  "Enseña: esta semana hay un solo reto principal: «El eco que enseña».",
+  "Di: «Es un videotutorial de dos a cuatro minutos.»",
+  "Ojo: no hay relámpago esta semana."
+ ],
+ "s3:reto": [
+  "Enseña: «El eco que enseña»: un videotutorial de dos a cuatro minutos de un procedimiento de tu área.",
+  "Di: «Guion breve, grabación con el móvil o de pantalla y edición sencilla.»",
+  "Recomienda: [Mistral Le Chat](https://chat.mistral.ai); prompt: «Escribe un guion de 2 minutos para explicar X a alumnado de Y».",
+  "Recomienda: [ElevenLabs](https://elevenlabs.io/app/speech-synthesis) si prefieres voz generada, y [Canva](https://www.canva.com/login) para portada y rótulos.",
+  "Ojo: súbelo oculto y pega el enlace en la Nave; es una hazaña de tu Bitácora."
+ ],
+ "s4:pregunta": [
+  "Haz: lee la pregunta sobre comprobar que han entendido el vídeo.",
+  "Pregunta: «¿Cómo sabéis hoy que vuestro alumnado ha visto el vídeo?»",
+  "Enseña: pide preguntas de un guion a [Mistral Le Chat](https://chat.mistral.ai).",
+  "Recomienda: [Neural Quiz](https://neuralquiz.mistercuarter.es) para crear preguntas desde un texto o un PDF.",
+  "Ojo: ni nombres ni datos del alumnado en el prompt."
+ ],
+ "s4:entrega": [
+  "Di: «La Actividad 1 se entrega el último día de la semana 5.»",
+  "Enseña: la fecha, la cuenta atrás y la insignia en juego.",
+  "Ojo: se entrega por UNIR; la Nave solo la registra.",
+  "Recomienda: revisar la rúbrica de Para el 10."
+ ],
+ "s4:genially": [
+  "Haz: da aquí el cierre del Tema 2: el vídeo que pregunta.",
+  "Enseña: meter preguntas en un vídeo con [Edpuzzle](https://edpuzzle.com/login).",
+  "Enseña: otra vía con [H5P](https://h5p.org), vídeo interactivo.",
+  "Recomienda: [Neural Quiz](https://neuralquiz.mistercuarter.es) para generar y nivelar las preguntas.",
+  "Recomienda: [Wayground](https://wayground.com/admin) para crear una clase y lanzar un cuestionario con resultados.",
+  "Pregunta: «¿Dónde pararíais el vídeo para preguntar?»"
+ ],
+ "s4:retos-semana": [
+  "Haz: rompe el sello con la flecha derecha o R.",
+  "Enseña: hoy hay un solo reto: el relámpago «El vídeo que pregunta».",
+  "Di: «Quince minutos, ahora en clase, o después.»"
+ ],
+ "s4:tripulante": [
+  "Pregunta: «¿Quién es el Cronista?»",
+  "Haz: pulsa la carta o R para revelar a Tomás Reyer.",
+  "Di: «Un buen vídeo es tu voz enseñando cuando ya no estás.»",
+  "Ojo: su fragmento es el momento más emotivo; dale su espacio.",
+  "Ojo: se gana con el relámpago, no se proyecta."
+ ],
+ "s4:reto": [
+  "Haz: pulsa «Empezar» para lanzar los 15 minutos.",
+  "Di: «Coged un vídeo vuestro o uno hecho y meted dos o tres preguntas.»",
+  "Enseña: [Edpuzzle](https://edpuzzle.com/login) o [H5P](https://h5p.org) en directo.",
+  "Recomienda: [Neural Quiz](https://neuralquiz.mistercuarter.es) para pedir las preguntas a tu IA.",
+  "Recomienda: [Kahoot!](https://create.kahoot.it) para convertir esas preguntas en un juego en directo.",
+  "Ojo: si no hay tiempo, buscad un vídeo que ya las lleve y pegad el enlace."
+ ],
+ "s4:video": [
+  "Haz: es el cierre del planeta Ecos; pulsa play.",
+  "Pregunta: «¿Qué ha cambiado en cómo veis el vídeo?»",
+  "Ojo: el fragmento de Tomás no se proyecta; se gana en la Nave."
+ ],
+ "s4:ruta": [
+  "Haz: la misión «Los ecos que vuelven», de Ecos a Sendara.",
+  "Enseña: cómo se pilota en 30 segundos.",
+  "Ojo: cinco minutos y una decena de preguntas del Tema 2."
+ ],
+ "s4:ticket_form": [
+  "Haz: da tres minutos para el ticket del Tema 2.",
+  "Di: «Anónimo; lo comentamos al abrir el Tema 3.»",
+  "Ojo: cuenta para la raya de vuestro escuadrón."
+ ],
+ "s5:pregunta": [
+  "Haz: lee la pregunta sobre crear un itinerario de aprendizaje.",
+  "Pregunta: «¿Todos vuestros alumnos recorren el mismo camino?»",
+  "Enseña: pide a [Copilot](https://copilot.microsoft.com) un itinerario de tres pasos para un tema.",
+  "Ojo: ni nombres ni datos del alumnado en el prompt."
+ ],
+ "s5:video": [
+  "Haz: es la intro de Sendara; pulsa play.",
+  "Pregunta: «¿Cuántos caminos hay hasta una misma cima?»",
+  "Di: «En Sendara se trazaron 48 senderos.»"
+ ],
+ "s5:entrega": [
+  "Di: «La Actividad 1 se entrega el último día de esta semana.»",
+  "Enseña: la fecha y la cuenta atrás.",
+  "Pregunta: «¿Quién la lleva ya hecha?»",
+  "Ojo: se entrega en UNIR."
+ ],
+ "s5:genially": [
+  "Haz: da aquí el Tema 3: contenidos interactivos e itinerarios.",
+  "Enseña: un mapa de itinerario con bifurcación en [Padlet](https://padlet.com/auth/login).",
+  "Enseña: un recurso interactivo en [Canva](https://www.canva.com/login).",
+  "Recomienda: [Mythos](https://mythos.mistercuarter.es/universos) para dibujar el mapa de una ruta con lugares.",
+  "Recomienda: [NotebookLM](https://notebooklm.google.com); prompt: «Propón un itinerario de tres pasos con mis apuntes».",
+  "Ojo: un solo sendero es un itinerario; el paisaje es la semana 6."
+ ],
+ "s5:retos-semana": [
+  "Haz: rompe el sello con la flecha derecha o R.",
+  "Enseña: hoy hay un solo reto: el relámpago «Dos senderos».",
+  "Di: «Quince minutos, en clase o después.»"
+ ],
+ "s5:tripulante": [
+  "Pregunta: «¿Quién es la Rastreadora?»",
+  "Haz: pulsa la carta o R para revelar a Sylla Bren.",
+  "Di: «No hay una sola ruta.»",
+  "Ojo: su fragmento se gana con el relámpago."
+ ],
+ "s5:reto": [
+  "Haz: pulsa «Empezar» para lanzar los 15 minutos.",
+  "Di: «Un objetivo y dos actividades distintas para llegar a él.»",
+  "Enseña: un ejemplo en [Google Docs](https://docs.google.com/document/u/0/).",
+  "Recomienda: [Gemini](https://gemini.google.com) para proponer una segunda vía.",
+  "Ojo: dos actividades de verdad distintas, no la misma con otro nombre."
+ ],
+ "s6:pregunta": [
+  "Haz: lee la pregunta sobre un paisaje de aprendizaje.",
+  "Pregunta: «¿Cómo atendéis hoy a ritmos tan distintos?»",
+  "Enseña: pide a [Gemini](https://gemini.google.com) ideas con distinto nivel de reto.",
+  "Ojo: ni nombres ni datos del alumnado en el prompt."
+ ],
+ "s6:video": [
+  "Haz: el primer vídeo es la misión de la Actividad 2; pulsa play.",
+  "Haz: el segundo es el cierre del planeta Sendara, al final.",
+  "Pregunta: «¿Qué es un paisaje de aprendizaje?»",
+  "Ojo: el fragmento de Sylla no se proyecta."
+ ],
+ "s6:genially": [
+  "Haz: da aquí el cierre del Tema 3: del itinerario al paisaje.",
+  "Enseña: una imagen interactiva con enlaces en [Canva](https://www.canva.com/login).",
+  "Enseña: etiquetas sobre una imagen con [Thinglink](https://www.thinglink.com).",
+  "Recomienda: [Mythos](https://mythos.mistercuarter.es/universos) para crear el lugar ilustrado del paisaje.",
+  "Recomienda: [Leonardo](https://app.leonardo.ai) para generar el fondo del paisaje.",
+  "Ojo: sin números ni orden, cada cual entra por donde quiere."
+ ],
+ "s6:act": [
+  "Di: «Hoy se lanza la Actividad 2: crea un paisaje de aprendizaje.»",
+  "Enseña: 4,3 puntos; se entrega en la semana 9.",
+  "Haz: pulsa el botón para abrir su sesión completa.",
+  "Ojo: se resuelve en la semana 13."
+ ],
+ "s6:actretos": [
+  "Di: «El itinerario es el esqueleto de la actividad.»",
+  "Enseña: el reto «El itinerario» deja hecha parte del paisaje.",
+  "Pregunta: «¿Quién tiene ya sus dos senderos?»"
+ ],
+ "s6:reto": [
+  "Enseña: Misión 1, la Actividad 2: se entrega en UNIR y se registra en la Nave.",
+  "Enseña: Misión 2, «El itinerario»: dos senderos, refuerzo y ampliación.",
+  "Di: «Cada estudiante tiene que poder elegir su camino.»",
+  "Recomienda: [Canva](https://www.canva.com/login) o [Google Sites](https://sites.google.com/new) para el itinerario.",
+  "Ojo: enlace público; ábrelo en incógnito."
+ ],
+ "s6:ruta": [
+  "Haz: la misión «Los 48 senderos», de Sendara a Reliae.",
+  "Enseña: cómo se pilota en 30 segundos.",
+  "Ojo: cinco minutos y preguntas del Tema 3."
+ ],
+ "s6:ticket_form": [
+  "Haz: da tres minutos para el ticket del Tema 3.",
+  "Di: «Anónimo; lo comentamos al abrir el Tema 4.»",
+  "Ojo: cuenta para la raya del escuadrón."
+ ],
+ "s7:pregunta": [
+  "Haz: lee la pregunta sobre compartir materiales de forma organizada.",
+  "Pregunta: «¿Dónde tiene hoy cada alumno vuestros materiales?»",
+  "Enseña: pide a [Perplexity](https://www.perplexity.ai) apps educativas con fuentes.",
+  "Ojo: ni nombres ni datos del alumnado en el prompt."
+ ],
+ "s7:video": [
+  "Haz: es la intro de Reliae; pulsa play.",
+  "Pregunta: «¿Qué se comunica mal si llega tarde?»",
+  "Di: «Compartir a tiempo salva más que compartir perfecto.»"
+ ],
+ "s7:entrega": [
+  "Di: «La Actividad 2 se entrega el último día de la semana 9.»",
+  "Enseña: la fecha y la cuenta atrás.",
+  "Ojo: hoy hay un recordatorio; la semana 8 hay otro.",
+  "Ojo: se entrega en UNIR."
+ ],
+ "s7:genially": [
+  "Haz: da aquí el Tema 4: m-learning y difusión de contenidos.",
+  "Enseña: compartir ordenado con [Google Classroom](https://classroom.google.com/h).",
+  "Enseña: crear una página rápida en [Google Sites](https://sites.google.com/new).",
+  "Recomienda: [ClassDojo](https://teach.classdojo.com) para comunicarte con familias y alumnado desde el móvil.",
+  "Pregunta: «¿Qué app usáis en el móvil con vuestro alumnado?»",
+  "Ojo: primero compartir ordenado; la comunicación viva llega la semana siguiente."
+ ],
+ "s7:retos-semana": [
+  "Haz: rompe el sello con la flecha derecha o R.",
+  "Enseña: hoy hay un solo reto: el relámpago «Abre el canal».",
+  "Di: «Diez minutos, ahora en clase.»"
+ ],
+ "s7:tripulante": [
+  "Pregunta: «¿Quién es la Operadora?»",
+  "Haz: pulsa la carta o R para revelar a Amara Sol.",
+  "Di: «Compartir a tiempo salva más que compartir perfecto.»",
+  "Ojo: su fragmento se gana con el relámpago."
+ ],
+ "s7:reto": [
+  "Haz: pulsa «Empezar» para lanzar los 10 minutos.",
+  "Di: «Publicad algo del curso con #mutecdstargate, en abierto.»",
+  "Enseña: cómo hacerlo desde [LinkedIn](https://www.linkedin.com) o tu red habitual.",
+  "Recomienda: [Canva](https://www.canva.com/login) para una imagen rápida.",
+  "Ojo: a tiempo por encima de perfecto; no publiques imágenes del alumnado."
+ ],
+ "s8:pregunta": [
+  "Haz: lee la pregunta sobre el entorno de aula: compartir, calificar y comunicarse.",
+  "Pregunta: «¿Qué plataforma usáis ya con vuestro alumnado?»",
+  "Enseña: pide a [ChatGPT](https://chatgpt.com) un diseño de aula, sin datos del alumnado.",
+  "Ojo: ni nombres ni datos del alumnado en el prompt."
+ ],
+ "s8:entrega": [
+  "Di: «La Actividad 2 se entrega el último día de la semana 9, la que viene.»",
+  "Enseña: la fecha y la cuenta atrás.",
+  "Pregunta: «¿Quién tiene ya su paisaje?»",
+  "Ojo: se entrega en UNIR."
+ ],
+ "s8:genially": [
+  "Haz: da aquí el cierre del Tema 4: el entorno digital de aula.",
+  "Enseña: crear una clase, una tarea y un material en [Google Classroom](https://classroom.google.com/h).",
+  "Enseña: una web de aula en [Google Sites](https://sites.google.com/new).",
+  "Recomienda: [iDoceo](https://www.idoceo.es) para el cuaderno del profesor: notas, asistencia y observaciones.",
+  "Pregunta: «¿Qué haríais distinto con un solo sitio?»"
+ ],
+ "s8:reto": [
+  "Enseña: «El entorno de aula»: una tarea y tres materiales organizados.",
+  "Haz: abre [Google Classroom](https://classroom.google.com/h) o [Sites](https://sites.google.com/new) en directo.",
+  "Di: «Compartid un documento con dos capturas, o el enlace si es abierta.»",
+  "Ojo: Classroom puede ser cerrada; Sites, mejor abierto."
+ ],
+ "s8:video": [
+  "Haz: es el cierre del planeta Reliae; pulsa play.",
+  "Pregunta: «¿Qué se organiza mejor al compartir?»",
+  "Ojo: el fragmento de Amara no se proyecta."
+ ],
+ "s8:ruta": [
+  "Haz: la misión «Los anillos de Reliae», de Reliae a Umbral.",
+  "Enseña: cómo se pilota en 30 segundos.",
+  "Ojo: preguntas del Tema 4."
+ ],
+ "s8:ticket_form": [
+  "Haz: da tres minutos para el ticket del Tema 4.",
+  "Di: «Anónimo; lo comentamos al abrir el Tema 5.»",
+  "Ojo: cuenta para la raya del escuadrón."
+ ],
+ "s9:pregunta": [
+  "Haz: lee la pregunta sobre seguir el progreso del alumnado.",
+  "Pregunta: «¿Cómo registráis hoy lo que aprende cada alumno?»",
+  "Enseña: pide a [Claude](https://claude.ai) una rúbrica de cuatro criterios para una tarea.",
+  "Ojo: ni nombres ni datos del alumnado en el prompt."
+ ],
+ "s9:video": [
+  "Haz: el primer vídeo es la intro de Umbral; pulsa play.",
+  "Haz: el segundo, al final, es el cierre del planeta.",
+  "Pregunta: «¿Qué pasa cuando alguien silencia el aprendizaje?»",
+  "Ojo: aparece la Estática; el fragmento de Vera no se proyecta."
+ ],
+ "s9:genially": [
+  "Haz: da aquí el Tema 5: evaluación con el móvil, rúbrica y ePortfolio.",
+  "Enseña: un formulario de registro en [Google Forms](https://docs.google.com/forms/u/0/).",
+  "Enseña: una rúbrica de autoevaluación convertida en formulario con [CoRubrics](https://workspace.google.com/marketplace/app/corubrics/969519855495?hl=es).",
+  "Recomienda: [iDoceo](https://www.idoceo.es) para registrar la evaluación sistemática desde el móvil.",
+  "Recomienda: [Neural Quiz](https://neuralquiz.mistercuarter.es) para crear cuestionarios, nivelarlos y convertirlos entre Kahoot, Wayground o Blooket.",
+  "Pregunta: «¿Qué evidencia guardáis de vuestro alumnado?»"
+ ],
+ "s9:tripulante": [
+  "Pregunta: «¿Quién es la Médica?»",
+  "Haz: pulsa la carta o R para revelar a Vera Khal.",
+  "Di: «Evaluar es mirar con método a alguien que te importa.»",
+  "Ojo: su fragmento se gana con el relámpago."
+ ],
+ "s9:reto": [
+  "Haz: en el relámpago «Mide con método», pulsa «Empezar»: 15 minutos.",
+  "Di: «Una rúbrica de autoevaluación con 3 o 4 criterios y un formulario para recoger respuestas.»",
+  "Enseña: [CoRubrics](https://workspace.google.com/marketplace/app/corubrics/969519855495?hl=es) en [Google Forms](https://docs.google.com/forms/u/0/) en directo.",
+  "Recomienda: [Neural Quiz](https://neuralquiz.mistercuarter.es) para generar los criterios con tu IA.",
+  "Enseña: Misión 2, «Tu centro de recursos»: web abierta en [Google Sites](https://sites.google.com/new).",
+  "Ojo: la web debe abrir en incógnito; usa una herramienta distinta a la del reto anterior."
+ ],
+ "s9:ruta": [
+  "Haz: la misión «La niebla de Umbral», de Umbral a Ludo.",
+  "Enseña: cómo se pilota en 30 segundos.",
+  "Ojo: preguntas del Tema 5."
+ ],
+ "s9:ticket_form": [
+  "Haz: da tres minutos para el ticket del Tema 5.",
+  "Di: «Anónimo; lo comentamos al abrir el Tema 6.»",
+  "Ojo: cuenta para la raya del escuadrón."
+ ],
+ "s10:pregunta": [
+  "Haz: lee las dos preguntas, una detrás de otra.",
+  "Pregunta: «¿Qué juegos usáis ya para aprender?»",
+  "Enseña: pide a [Gemini](https://gemini.google.com) una adaptación de un juego conocido a un objetivo.",
+  "Ojo: ni nombres ni datos del alumnado en el prompt.",
+  "Recomienda: contestar la segunda al enseñar el reto del juego digital."
+ ],
+ "s10:video": [
+  "Haz: el primer vídeo es la intro de Ludo; pulsa play.",
+  "Haz: el segundo, al final, es el cierre del planeta.",
+  "Pregunta: «¿Qué diferencia hay entre jugar y gamificar?»",
+  "Ojo: el fragmento de Joran no se proyecta."
+ ],
+ "s10:genially": [
+  "Haz: da aquí el Tema 6: juego y aprendizaje basado en el juego.",
+  "Di: «Aquí SE JUEGA: el juego es la actividad.»",
+  "Recomienda: [Neural Quiz](https://neuralquiz.mistercuarter.es/juegos/sala.html), la sala de juegos con tus preguntas.",
+  "Enseña: crear un juego en [Wordwall](https://wordwall.net/es) y en [Educaplay](https://es.educaplay.com).",
+  "Enseña: en [Kahoot!](https://create.kahoot.it) cómo crear la clase, lanzar el juego y ver los resultados.",
+  "Recomienda: [Gimkit](https://www.gimkit.com/login) o [Blooket](https://dashboard.blooket.com/login) para repasar con juego en vivo."
+ ],
+ "s10:tripulante": [
+  "Pregunta: «¿Quién es el Ingeniero-jugador?»",
+  "Haz: pulsa la carta o R para revelar a Joran Pike.",
+  "Di: «El juego es el ensayo general del miedo.»",
+  "Ojo: su fragmento se gana con el relámpago."
+ ],
+ "s10:reto": [
+  "Haz: en el relámpago «Encuentra el juego», pulsa «Empezar»: 15 minutos.",
+  "Di: «Adaptad un juego que ya exista a un objetivo vuestro: cambiad una regla o una carta.»",
+  "Enseña: Misión 2, «El juego»: un juego digital con niveles, en [Wordwall](https://wordwall.net/es) o [Educaplay](https://es.educaplay.com).",
+  "Recomienda: [Wayground](https://wayground.com/admin) para crear la clase, lanzar y ver quién ha acertado.",
+  "Recomienda: [Neural Quiz](https://neuralquiz.mistercuarter.es/juegos/sala.html) para jugar con tus preguntas.",
+  "Ojo: enlázalo desde tu paisaje y desde tu Bitácora."
+ ],
+ "s10:ruta": [
+  "Haz: la misión «El parque de Joran», de Ludo a Vínculo.",
+  "Enseña: cómo se pilota en 30 segundos.",
+  "Ojo: preguntas del Tema 6."
+ ],
+ "s10:ticket_form": [
+  "Haz: da tres minutos para el ticket del Tema 6.",
+  "Di: «Anónimo; lo comentamos al abrir el Tema 7.»",
+  "Ojo: cuenta para la raya del escuadrón."
+ ],
+ "s11:pregunta": [
+  "Haz: lee la pregunta sobre material para clase con PBL.",
+  "Pregunta: «¿Qué proyectos con producto final habéis hecho?»",
+  "Enseña: pide a [Mistral Le Chat](https://chat.mistral.ai) un esquema de proyecto.",
+  "Ojo: ni nombres ni datos del alumnado en el prompt."
+ ],
+ "s11:video": [
+  "Haz: es la intro de Vínculo; pulsa play.",
+  "Pregunta: «¿Qué es gamificar, y qué no?»",
+  "Ojo: aquí NO se juega: se toman elementos del juego."
+ ],
+ "s11:asedio": [
+  "Haz: lee las reglas que salen en pantalla.",
+  "Di: «Reto entre escuadrones, dos minutos por intento.»",
+  "Enseña: los premios del primer puesto y de quien ataque.",
+  "Haz: pide que abran Tu Nave y entren.",
+  "Ojo: el podio se enseña la semana 12."
+ ],
+ "s11:genially": [
+  "Haz: da aquí el Tema 7: elementos básicos de la gamificación y la microgamificación.",
+  "Di: «Aquí NO se juega: se toman elementos del juego.»",
+  "Recomienda: [Mythos](https://mythos.mistercuarter.es/telar), el Telar, para la historia de la clase y sus retos.",
+  "Enseña: el seguimiento de conductas y puntos en [ClassDojo](https://teach.classdojo.com).",
+  "Enseña: una votación en [Mentimeter](https://www.mentimeter.com).",
+  "Pregunta: «¿Qué elementos de juego usáis ya sin llamarlos así?»"
+ ],
+ "s11:tripulante": [
+  "Pregunta: «¿Quién es el Mando?»",
+  "Haz: pulsa la carta o R para revelar a Mara Voss.",
+  "Di: «Una insignia registra un acto con significado.»",
+  "Ojo: su fragmento se gana con el relámpago."
+ ],
+ "s11:reto": [
+  "Haz: en el relámpago «Un porqué», pulsa «Empezar»: 15 minutos.",
+  "Di: «Diseñad con IA una insignia o una carta de recompensa para una tarea.»",
+  "Recomienda: [Mythos](https://mythos.mistercuarter.es/forja) para forjar insignias y cartas con prompts coherentes.",
+  "Enseña: otra opción con [Copilot](https://copilot.microsoft.com), [Leonardo](https://app.leonardo.ai) o [Canva](https://www.canva.com/login).",
+  "Ojo: la insignia debe registrar un acto con significado, no premiar la obediencia."
+ ],
+ "s12:pregunta": [
+  "Haz: lee la pregunta sobre gamificación profunda.",
+  "Pregunta: «¿Qué diferencia hay con la microgamificación?»",
+  "Di: «STARGATE es una gamificación profunda funcionando ante vuestros ojos.»",
+  "Enseña: pide a [Gemini](https://gemini.google.com) una historia para una unidad, sin datos del alumnado."
+ ],
+ "s12:asedio": [
+  "Haz: enseña el podio del Asedio.",
+  "Haz: enseña el salón de héroes y heroínas.",
+  "Di: «Felicidades a los escuadrones.»",
+  "Ojo: si no hay datos, sáltala."
+ ],
+ "s12:genially": [
+  "Haz: da aquí el cierre del Tema 7: la gamificación profunda.",
+  "Recomienda: [Mythos](https://mythos.mistercuarter.es/universos) para crear el universo con personajes, lugares y objetos.",
+  "Recomienda: [ElevenLabs](https://elevenlabs.io/app/speech-synthesis) para dar voz al narrador y [Voicemod](https://www.voicemod.net) para hablar como un personaje en directo.",
+  "Recomienda: [Suno](https://suno.com/create) para la música de ambientación de tu historia.",
+  "Enseña: cómo se ve STARGATE desde dentro: narrativa, retos y recompensa.",
+  "Pregunta: «¿Qué narrativa envolvería vuestra tarea?»"
+ ],
+ "s12:reto": [
+  "Enseña: Misión 1, «La microgamificación»: una tarea real, una narrativa, tres retos y una recompensa.",
+  "Haz: abre el [Telar](https://mythos.mistercuarter.es/telar) de Mythos y arma un ejemplo.",
+  "Recomienda: [Canva](https://www.canva.com/login) para el tablero de retos.",
+  "Recomienda: [Neural Quiz](https://neuralquiz.mistercuarter.es) para convertir los retos en un juego.",
+  "Recomienda: [Blooket](https://dashboard.blooket.com/login) o [Gimkit](https://www.gimkit.com/login) para administrar el juego y ver resultados.",
+  "Ojo: es una hazaña obligatoria de la Bitácora y el esqueleto del examen."
+ ],
+ "s12:insignias": [
+  "Haz: pulsa o R para voltear la insignia.",
+  "Di: «Esta se gana al presentar la microgamificación.»",
+  "Ojo: lee cómo se consigue."
+ ],
+ "s12:video": [
+  "Haz: el primer vídeo es el cierre del planeta Vínculo; pulsa play.",
+  "Pregunta: «¿Qué os llevaríais para vuestra aula?»",
+  "Ojo: el fragmento de Mara no se proyecta."
+ ],
+ "s12:ruta": [
+  "Haz: la misión «La formación de Vínculo», de Vínculo a Liminar.",
+  "Enseña: cómo se pilota en 30 segundos.",
+  "Ojo: preguntas del Tema 7."
+ ],
+ "s12:ticket_form": [
+  "Haz: da tres minutos para el ticket del Tema 7.",
+  "Di: «Anónimo; lo comentamos al abrir el Tema 8.»",
+  "Ojo: cuenta para la raya del escuadrón."
+ ],
+ "s13:pregunta": [
+  "Haz: lee la pregunta sobre la realidad aumentada en el aula.",
+  "Pregunta: «¿Habéis usado RA con alumnado?»",
+  "Enseña: pide a [Perplexity](https://www.perplexity.ai) ejemplos de RA con fuentes.",
+  "Ojo: ni nombres ni datos del alumnado en el prompt."
+ ],
+ "s13:video": [
+  "Haz: es la intro de Liminar; pulsa play.",
+  "Pregunta: «¿Qué cambia si sobreponemos capas a la realidad?»",
+  "Di: «Aquí se completa la Tripulación Cero.»"
+ ],
+ "s13:genially": [
+  "Haz: da aquí el Tema 8: realidad aumentada en el aula.",
+  "Enseña: un recurso de RA en [CoSpaces](https://cospaces.io).",
+  "Enseña: un recorrido en [Google Arts & Culture](https://artsandculture.google.com).",
+  "Recomienda: [Mythos](https://mythos.mistercuarter.es/universos) para imaginar lugares y mapas del recurso.",
+  "Recomienda: [HeyGen](https://app.heygen.com/login) para un avatar que guíe la experiencia.",
+  "Pregunta: «¿Qué contenido de vuestra aula ganaría con una capa de RA?»"
+ ],
+ "s13:tripulante": [
+  "Pregunta: «¿Quién es la Arquitecta de capas?»",
+  "Haz: pulsa la carta o R para revelar a Noa Lieth.",
+  "Di: «Enseñar futuros.»",
+  "Ojo: con el QR de Noa se completa la Cero; su fragmento se gana con el relámpago."
+ ],
+ "s13:reto": [
+  "Haz: en el relámpago «El QR», pulsa «Empezar»: 10 minutos.",
+  "Di: «Enlazad una actividad o recurso vuestro a un código QR y comprobadlo con el móvil.»",
+  "Enseña: generar un QR desde [Canva](https://www.canva.com/login).",
+  "Ojo: en el examen pueden pedir un QR creado en el momento.",
+  "Ojo: sube la captura del QR y de adónde lleva."
+ ],
+ "s13:insignias": [
+  "Haz: pulsa o R para voltear la insignia.",
+  "Di: «Cartógrafo se entrega con el paisaje presentado.»",
+  "Ojo: hoy se resuelve la Actividad 2."
+ ],
+ "s14:pregunta": [
+  "Haz: lee la pregunta sobre realidad virtual.",
+  "Pregunta: «¿Qué experiencia de RV os gustaría que viviera vuestro alumnado?»",
+  "Enseña: pide a [Claude](https://claude.ai) una escena de aprendizaje inmersivo.",
+  "Ojo: ni nombres ni datos del alumnado en el prompt."
+ ],
+ "s14:genially": [
+  "Haz: da aquí el cierre del Tema 8: RV y realidad mixta.",
+  "Enseña: crear un mundo en [CoSpaces](https://cospaces.io).",
+  "Enseña: un recorrido virtual en [Google Arts & Culture](https://artsandculture.google.com).",
+  "Recomienda: [Runway](https://app.runwayml.com) para generar un vídeo corto de ambientación.",
+  "Pregunta: «¿Qué haríais con 360 grados en el aula?»"
+ ],
+ "s14:reto": [
+  "Enseña: Misión 1, «El último umbral»: tu Bitácora publicada.",
+  "Haz: abre la plantilla de [Google Sites](https://sites.google.com/new) y repasa la lista.",
+  "Di: «Dos actividades, tres hazañas, tus experiencias y tu QR.»",
+  "Ojo: todo debe abrir sin tu cuenta.",
+  "Ojo: pega el enlace único en la Nave y revisa en incógnito."
+ ],
+ "s14:insignias": [
+  "Haz: pulsa o R para voltear la insignia.",
+  "Di: «Tripulación Cero completa.»",
+  "Ojo: lee cómo se consigue."
+ ],
+ "s14:video": [
+  "Haz: es el finale; pulsa play.",
+  "Pregunta: «¿Qué verdad guardaba la Cero?»",
+  "Ojo: queda sin resolver hasta la batalla."
+ ],
+ "s14:ruta": [
+  "Haz: la misión «Las capas de Liminar».",
+  "Enseña: cómo se pilota en 30 segundos.",
+  "Ojo: preguntas del Tema 8."
+ ],
+ "s14:ticket_form": [
+  "Haz: da tres minutos para el ticket del Tema 8.",
+  "Di: «Anónimo; es el último del viaje.»",
+  "Ojo: cuenta para la raya del escuadrón."
+ ],
+ "s15:ticket": [
+  "Di: «Esto dijisteis del último tema.»",
+  "Enseña: las barras de notas.",
+  "Pregunta: «¿Qué cambiaríais para el próximo viaje?»",
+  "Ojo: es anónimo."
+ ],
+ "s15:nuevo": [
+  "Di: «Esta es la última novedad de la Nave.»",
+  "Haz: lee lo que ya se puede hacer.",
+  "Ojo: nada de lo que toques cuenta."
+ ],
+ "s15:genially": [
+  "Haz: da aquí el repaso: resume los ocho temas en una frase cada uno.",
+  "Pregunta: «¿Con qué planeta empezamos el repaso?»",
+  "Recomienda: [Neural Quiz](https://neuralquiz.mistercuarter.es/juegos/sala.html) para repasar con preguntas en directo.",
+  "Recomienda: [Wayground](https://wayground.com/admin) o [Kahoot!](https://create.kahoot.it) para un repaso final con resultados.",
+  "Recomienda: [Gimkit](https://www.gimkit.com/login) o [Blooket](https://dashboard.blooket.com/login) si prefieren un repaso por equipos.",
+  "Enseña: la lista de comprobación del examen."
+ ],
+ "s15:video": [
+  "Haz: es el Plan de Ataque, el examen; pulsa play.",
+  "Pregunta: «¿Qué os pide el examen?»",
+  "Ojo: el desenlace y el Fragmento Prohibido no se proyectan."
+ ],
+ "s15:reto": [
+  "Enseña: «El simulacro del examen»: 90 minutos de reloj.",
+  "Haz: pulsa «Empezar» solo cuando tengan los enunciados.",
+  "Di: «Montad una plataforma con portada, logo, dos módulos y tres productos.»",
+  "Recomienda: [Google Sites](https://sites.google.com/new) para montarla y [Canva](https://www.canva.com/login) para el logo.",
+  "Recomienda: [NotebookLM](https://notebooklm.google.com); prompt: «Hazme 10 preguntas de repaso con mis apuntes».",
+  "Ojo: debe abrir en incógnito."
+ ],
+ "s15:insignias": [
+  "Haz: pulsa o R para voltear la insignia.",
+  "Haz: lee cómo se consigue.",
+  "Ojo: no prometas más premios que los que salen en pantalla."
+ ],
+ "s15:ruta": [
+  "Haz: es Vaeon, la batalla final contra la Estática.",
+  "Enseña: cómo se pilota en 30 segundos.",
+  "Di: «Sus manos, su núcleo y su cabeza.»",
+  "Ojo: cada recluta la juega en su Nave."
+ ],
+ "s15:ticket_form": [
+  "Haz: da tres minutos para el último ticket.",
+  "Di: «Anónimo; es el cierre del viaje.»",
+  "Ojo: cuenta para la raya del escuadrón."
+ ],
+ "s15:hasta": [
+  "Pregunta: «¿Qué os lleváis del viaje?»",
+  "Di: «Vuelve después de la batalla para ver el desenlace.»",
+  "Enseña: se abre en la Nave, en El Archivo, tras la batalla.",
+  "Ojo: no proyectes el Fragmento Prohibido."
+ ]
+}
