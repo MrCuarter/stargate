@@ -8393,4 +8393,4 @@ body.ses-presenta .mazo .lienzo .yt.on,body.ses-presenta .mazo .lienzo iframe{po
 .ses-mando-notas.gpn{--gpn-fondo:var(--bg2);--gpn-tinta:var(--ink);--gpn-suave:var(--mut);--gpn-acento:var(--teal);padding:12px 14px}
 @media (max-width:760px){.ses-mando{grid-template-columns:1fr}}
 /* la piel de la pregunta y de la ayuda (--gpp-*) */
-.gpp{--gpp-fondo:#0d1420;--gpp-tinta:#e9f0f6;--gpp-suave:#9fb2c2;--gpp-acento:#37e0ec;--gpp-linea:#1c2c40}
+body .gpp{--gpp-fondo:#0d1420;--gpp-tinta:#e9f0f6;--gpp-suave:#9fb2c2;--gpp-acento:#37e0ec;--gpp-linea:#1c2c40}

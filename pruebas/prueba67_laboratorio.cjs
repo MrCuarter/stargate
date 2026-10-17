@@ -4956,6 +4956,37 @@ const REG = {};   // cifras que se apuntan para el informe
       c("en vivo · sin errores en las sesiones", !rv.errores.concat(al.errores).filter(e => !/Failed to load resource/.test(e)).length, rv.errores.concat(al.errores)[0] || "");
       await rv.cerrar(); await av.cerrar(); await al.cerrar();
     }
+    // ============================================================ 44p · EL MODO PRESENTADOR AL EMITIR
+    /**
+     * 17-oct · Norberto: «el modo presentador va también a STARGATE… al iniciar la sesión en directo, la misma pregunta; quien elija
+     * “simple” sigue exactamente como hoy». La pieza es de GamificaPro (sdk/presentador.js). Rita, con su sesión, pulsa «Emitir en
+     * directo»: sale la pregunta con «simple» marcada; elige simple y lo recuerda; el directo sigue encendido y emitiendo, y la
+     * próxima vez no se le pregunta.
+     */
+    if (hacer("44p")) {
+      const P = "lab-clase";
+      const rv = await nueva("Rita, presentador");
+      await rv.ir("entrar.html"); await rv.entrarComo("rita@lab.test", "Rita Referente");
+      await rv.ir("sesion.html?per=" + P); await rv.hasta("!!document.querySelector('.barra-pasos .p') && !!document.getElementById('ses-directo')", 60);
+      await rv.js("try{ localStorage.removeItem('gpPresentador:sg-sesion'); }catch(e){} document.getElementById('ses-directo').click(); 1");
+      const preg = await rv.hasta("!!document.querySelector('.gpp .gpp-t')", 10);
+      c("🔴 presentador · al pulsar «Emitir en directo», la pregunta «Una pantalla · simple» / «Dos pantallas · presentador», con simple marcada",
+        preg && await rv.js("(document.querySelector('.gpp-t[aria-checked=true]')||{}).getAttribute('data-m')==='simple' && document.querySelectorAll('.gpp-t').length===2"),
+        await rv.js("[].map.call(document.querySelectorAll('.gpp-t'),function(x){return x.getAttribute('data-m')+':'+x.getAttribute('aria-checked')}).join(' ')"));
+      await rv.foto(FOTOS + "/44p-pregunta.png");
+      await rv.js("document.querySelector('.gpp-rec input').click(); document.querySelector('.gpp [data-ok]').click(); 1"); await dormir(1500);
+      const s1 = ((await leerDoc("mod_envivo/" + P)) || {}).sesion || {};
+      c("   presentador · «simple» con «Recordar mi elección»: se cierra, se recuerda y el directo sigue como siempre (emitiendo)",
+        await rv.js("!document.querySelector('.gpp') && localStorage.getItem('gpPresentador:sg-sesion')==='simple' && document.getElementById('ses-directo').classList.contains('on') && !document.body.classList.contains('ses-mando-on')") && s1.activa === true,
+        JSON.stringify(s1).slice(0, 160));
+      await rv.js("document.getElementById('ses-directo').click(); 1"); await dormir(1200);
+      await rv.js("document.getElementById('ses-directo').click(); 1"); await dormir(800);
+      c("   presentador · con «simple» recordado, volver a emitir ya no pregunta", await rv.js("!document.querySelector('.gpp') && document.getElementById('ses-directo').classList.contains('on')"));
+      await rv.js("document.getElementById('ses-directo').click(); 1"); await dormir(1200);
+      c("   presentador · al apagar, la sesión deja de emitirse", (((await leerDoc("mod_envivo/" + P)) || {}).sesion || {}).activa === false);
+      c("   presentador · sin errores en la sesión", !rv.errores.filter(e => !/Failed to load resource/.test(e)).length, rv.errores[0] || "");
+      await rv.cerrar();
+    }
     // ============================================================ 45 · LA SESIÓN A MEDIDA DE CADA DOCENTE
     /**
      * 18-sep · Norberto: «que cada sección tenga un nombre propio… y que cada docente pueda marcar con una checkbox las
