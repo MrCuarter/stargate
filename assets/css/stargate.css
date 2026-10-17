@@ -8369,3 +8369,28 @@ body.notas-docente>.nav,body.notas-docente>footer{display:none}
 .notas-docente #notas-app{max-width:880px;margin:0 auto}
 .notas-docente .gpn{--gpn-fondo:var(--bg);--gpn-tinta:var(--ink);--gpn-suave:var(--mut);--gpn-acento:var(--teal);font-family:'DMSans',system-ui,sans-serif}
 .gpnq{--gpn-fondo:var(--bg2);--gpn-acento:var(--teal);--gpn-tinta:var(--ink);--gpn-suave:var(--mut)}
+
+/* ══ 17-oct · EL MODO PRESENTADOR (sesion.js → presIniciar; la pieza, GamificaPro sdk/presentador.js) */
+/* la presentación: solo la diapositiva, a toda la ventana */
+body.ses-presenta .ses-ctl,body.ses-presenta .mazo .nav,body.ses-presenta .barra-pasos,body.ses-presenta .ses-tramos,body.ses-presenta .ses-aula,
+body.ses-presenta .ses-al,body.ses-presenta .ses-mando,body.ses-presenta #sg-guia,body.ses-presenta .gp-cab{display:none!important}
+body.ses-presenta .mazo .lienzo{pointer-events:none}
+body.ses-presenta .mazo .lienzo .yt.on,body.ses-presenta .mazo .lienzo iframe{pointer-events:auto}
+/* el mando: la siguiente en pequeño y las notas, debajo de la diapositiva */
+.ses-pres.on{color:var(--teal);border-color:var(--teal)}
+.ses-mando{margin:14px 0;border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:12px 14px;display:grid;grid-template-columns:minmax(220px,30%) minmax(0,1fr);gap:12px 18px;align-items:start}
+.ses-mando[hidden]{display:none}
+.ses-mando-cab{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;min-width:0}
+.ses-mando-cab b{color:var(--teal);letter-spacing:.04em}
+.ses-mando-cab span{flex:1 1 260px;min-width:0;color:var(--mut);font-size:.92rem}
+.ses-mando-cab .btn{min-height:40px}
+.ses-mando-sig{min-width:0}
+.ses-mando-sig small{display:block;margin-bottom:6px;color:var(--mut);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em}
+.ses-mando-mini{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:10px;background:var(--bg2);border:1px solid var(--line)}
+.ses-mando-mini .ses-mini{position:absolute;left:0;top:0;width:1100px;height:619px;transform-origin:0 0;pointer-events:none;border:0;border-radius:0}
+.ses-mando-mini .ses-mini .lienzo{height:100%;min-height:0}
+.ses-mando-notas{min-width:0;max-height:min(70vh,640px);overflow:auto;border-radius:10px}
+.ses-mando-notas.gpn{--gpn-fondo:var(--bg2);--gpn-tinta:var(--ink);--gpn-suave:var(--mut);--gpn-acento:var(--teal);padding:12px 14px}
+@media (max-width:760px){.ses-mando{grid-template-columns:1fr}}
+/* la piel de la pregunta y de la ayuda (--gpp-*) */
+.gpp{--gpp-fondo:#0d1420;--gpp-tinta:#e9f0f6;--gpp-suave:#9fb2c2;--gpp-acento:#37e0ec;--gpp-linea:#1c2c40}

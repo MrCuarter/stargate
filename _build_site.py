@@ -173,6 +173,9 @@ GB.copiar_pieza(HERE, "directo.js", os.path.join(HERE, "assets", "js", "directo.
 # 17-oct · LAS NOTAS DEL DOCENTE FUERA DE LO QUE SE PROYECTA (GamificaPro sdk/notas.js, `GP.notas`, común con DPG): «Notas en otra
 # ventana» y «Notas en el móvil» (el QR a notas.html). La cargan sesion.html y notas.html; motor.js le pone la nube.
 GB.copiar_pieza(HERE, "notas.js", os.path.join(HERE, "assets", "js", "notas.js"), decir=print)
+# 17-oct · EL MODO PRESENTADOR (GamificaPro sdk/presentador.js, `GP.presentador`, común con DPG): la pregunta de una o dos pantallas al
+# emitir en directo, la ayuda y el canal entre el mando y la presentación (sesion.js → presIniciar)
+GB.copiar_pieza(HERE, "presentador.js", os.path.join(HERE, "assets", "js", "presentador.js"), decir=print)
 # y el guion de cada diapositiva (_guiones_sg.json: {clave: [líneas]}; la clave, la `k` de la diapositiva, o «s3:k» / «act1:k» / «pres:k»
 # para una sesión concreta, que gana a la general). Solo lo ve el docente, en sus notas.
 GUIONES_SG = json.load(open(os.path.join(HERE, "_guiones_sg.json"), encoding="utf-8")) if os.path.exists(os.path.join(HERE, "_guiones_sg.json")) else {}
@@ -4155,6 +4158,7 @@ al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></heade
 <script src="assets/js/guia-docente.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <script src="assets/js/notas.js" defer></script>
+<script src="assets/js/presentador.js" defer></script>
 <script>window.SG_GUIONES={json.dumps(GUIONES_SG, ensure_ascii=False)};</script>
 <script src="assets/js/directo.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>

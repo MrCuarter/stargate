@@ -2680,7 +2680,7 @@
   // sus grupos), se editan en la ventana de notas o en el móvil; aquí se escucha el perfil y se manda el guion que toca (GP.notas.efectivo)
   function guionDe(sl){ var N=window.GP&&window.GP.notas; return N?N.efectivo(guionPorDefecto(sl), NOTAS.perfil, claveSes(), sl&&sl.k||''):{guion:guionPorDefecto(sl)}; }
   function publicarNotas(){
-    var N=window.GP&&window.GP.notas; if(!N||st.alumno||!st.slides.length) return;
+    var N=window.GP&&window.GP.notas; if(!N||PRES||st.alumno||!st.slides.length) return;
     if(!NOTAS.oye&&st.yo) NOTAS.oye=N.escucharPerfil(function(p){ NOTAS.perfil=p; if(NOTAS.oye) publicarNotas(); })||true;
     var sl=st.slides[st.i], sg=st.slides[st.i+1], s=semanas()[st.sem-1]||{}, e=guionDe(sl);
     var parte=function(x, i, g){ return { titulo:x.rot||'', guion:g, nota:i===0&&s.consejo&&!st.act?'El consejo del Capitán: '+s.consejo:'' }; };
@@ -2693,6 +2693,101 @@
     if(ev.target.closest('[data-notas-ventana]')){ ev.preventDefault(); var em=notasFuera(); publicarNotas();
       if(em.estado().ventana) em.cerrar(); else if(!em.abrir()) alert('El navegador no ha dejado abrir la ventana: permite las ventanas emergentes de esta web y vuelve a probar.'); }
     else if(ev.target.closest('[data-notas-movil]')){ ev.preventDefault(); publicarNotas(); N.ventanaQR({ emisor:notasFuera(), url:urlNotas(), QR:window.QRCode }); }
+  });
+  /**
+   * 🔴 17-oct · EL MODO PRESENTADOR (Norberto: «el modo presentador va también a STARGATE, igual que en DPG»). La pieza es del motor
+   * (GamificaPro sdk/presentador.js, `GP.presentador`, la misma de DPG). Al pulsar «Emitir en directo», la pregunta «Una pantalla ·
+   * simple» / «Dos pantallas · presentador» (la primera vez, simple; con «Recordar mi elección», ya no se pregunta). Quien elige
+   * «simple» sigue exactamente como hoy. Con «dos pantallas», la presentación (sesion.html?…&presentar=1) va en una ventana aparte, la
+   * que se comparte: solo la diapositiva, sigue a esta y 🔴 no escribe nada (ni emite, ni notas). Esta se queda como mando, con la
+   * siguiente en pequeño y las notas. Para cambiar: el icono de las dos pantallas, junto a los demás. Sin avisos ni visitas nuevas.
+   */
+  var PRES=q.get('presentar')==='1', GPP=window.GP&&window.GP.presentador, PRES_CLAVE='sg-sesion';
+  if(PRES) document.body.classList.add('embed','ses-presenta');
+  var PZ={m:null, p:null, on:false, vista:null, ini:false};
+  var IC_DOS='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 6h9v7H2zM13 6h9v7h-9zM5 17h3M6.5 13v4M16 17h3M17.5 13v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  /** Lo que viaja: lo mismo que se emite al directo (sin esperar a que el directo esté encendido). */
+  function estadoSesion(){
+    var o=ocurrencia(st.i); if(!o) return null;
+    var sl=st.slides[st.i]||{};
+    return {activa:true, sem:st.sem, pres:!!st.pres, act:st.act||0, k:o.k, n:o.n, f:st.f||0, i:st.i, de:st.slides.length,
+      rot:String(sl.rot||'').slice(0,80), mazo:mazoParaEmitir(), t:Date.now(), por:st.miNombre||''};
+  }
+  function presMandar(){ if(PZ.m&&PZ.on){ var e=estadoSesion(); if(e) PZ.m.mandar(e); } }
+  function presUrl(){ var u=new URL(location.href); u.searchParams.set('presentar','1'); u.searchParams.set('sem', st.sem); u.searchParams.delete('embed'); u.searchParams.delete('ventana'); return u.toString(); }
+  function presIniciar(){
+    if(PZ.ini||!GPP||st.alumno) return; PZ.ini=true;
+    if(PRES){ PZ.p=GPP.presentacion({ per:st.per||'demo', alEstado:seguirMando, alAcc:function(a){ var m=/^yt:(\d+)$/.exec(a), y=m&&root.querySelectorAll('.lienzo .yt')[+m[1]]; if(y) y.click(); } }); return; }
+    PZ.m=GPP.mando({ per:st.per||'demo', alCambiar:presOn, alPide:presMandar,
+      alTecla:function(key, shift){ document.dispatchEvent(new KeyboardEvent('keydown',{key:key, shiftKey:shift})); } });
+    // (en el mando, el vídeo suena en la presentación)
+    document.addEventListener('click', function(ev){
+      if(!PZ.on||!ev.target.closest) return; var y=ev.target.closest('.lienzo .yt'); if(!y||y.classList.contains('on')) return;
+      ev.stopPropagation(); ev.preventDefault(); PZ.m.acc('yt:'+Array.prototype.indexOf.call(root.querySelectorAll('.lienzo .yt'), y));
+    }, true);
+  }
+  /** En la presentación: la diapositiva del mando (como la sigue el recluta, sin bloqueos ni rótulos). */
+  function seguirMando(s){
+    if(!s||!st.slides.length) return;
+    if(!!s.pres!==!!st.pres || Number(s.act||0)!==Number(st.act||0) || (Number(s.sem)&&Number(s.sem)!==Number(st.sem))){
+      st.pres=!!s.pres; st.act=Number(s.act)||0; if(Number(s.sem)) st.sem=Number(s.sem); st.i=0; pintar(); }
+    var va=dondeVa(s), i=va.i;
+    if(i>=0&&i!==st.i) ir(i, false, true);
+    if(i>=0&&i===st.i&&s.f!=null){ var sl=st.slides[i], f=Math.max(0, Math.min((sl&&sl.frag)||0, Number(s.f)||0)); if(f!==st.f){ st.f=f; frags(); } }
+  }
+  function presOn(on){
+    PZ.on=!!on;
+    document.body.classList.toggle('ses-mando-on', PZ.on);
+    Array.prototype.forEach.call(document.querySelectorAll('[data-ses-presentar]'),function(b){ b.classList.toggle('on', PZ.on); });
+    var p=document.getElementById('ses-mando');
+    if(PZ.on&&!p){
+      p=document.createElement('aside'); p.id='ses-mando'; p.className='ses-mando'; p.setAttribute('aria-label','Tu centro de mando');
+      p.innerHTML='<div class="ses-mando-cab"><b>Presentando en otra ventana</b><span>Comparte o proyecta esa ventana: desde aquí la pasas y sale al momento.</span>'
+        +'<button type="button" class="btn min" data-ses-mando-cerrar>Cerrar la presentación</button></div>'
+        +'<div class="ses-mando-sig"><small id="ses-mando-sig-t">La siguiente</small><div class="ses-mando-mini" id="ses-mando-mini"></div></div><div class="ses-mando-notas" id="ses-mando-notas"></div>';
+      root.parentNode.insertBefore(p, root.nextSibling);
+      p.querySelector('[data-ses-mando-cerrar]').onclick=presCerrar;
+    }
+    if(p) p.hidden=!PZ.on;
+    if(PZ.on){
+      var N=window.GP&&window.GP.notas;
+      if(N&&!PZ.vista) PZ.vista=N.vista(document.getElementById('ses-mando-notas'), { per:st.per||'demo' });
+      publicarNotas(); pintaSiguiente(); presMandar();
+    } else if(PZ.vista){ PZ.vista.destruir(); PZ.vista=null; document.getElementById('ses-mando-notas').innerHTML='';
+      var N2=window.GP&&window.GP.notas; if(N2) try{ var bn=new BroadcastChannel(N2.canal(st.per||'demo')); bn.postMessage({tipo:'adios'}); bn.close(); }catch(e){} }
+  }
+  function pintaSiguiente(){
+    var caja=document.getElementById('ses-mando-mini'), t=document.getElementById('ses-mando-sig-t'); if(!caja) return;
+    var s=st.slides[st.i+1];
+    t.textContent=s?'La siguiente · '+(st.i+2)+' / '+st.slides.length:'Es la última';
+    caja.innerHTML=s?'<div class="mazo ses-mini"><div class="lienzo">'+s.html+'</div></div>':'';
+    var m=caja.firstChild; if(!m) return;
+    var escala=function(){ var w=caja.clientWidth; if(w) m.style.transform='scale('+(w/1100).toFixed(4)+')'; };
+    escala(); if(window.ResizeObserver&&!caja._ro) (caja._ro=new ResizeObserver(function(){ var x=caja.firstChild; if(x){ m=x; escala(); } })).observe(caja);
+  }
+  function presAbrir(){
+    var w=GPP&&PZ.m?GPP.abrir(presUrl(), st.per||'demo'):null;
+    if(!w){ alert('El navegador ha bloqueado la ventana de la presentación: sigues con una pantalla. Para usar dos, permite las ventanas emergentes de esta web y vuelve a probar.'); return false; }
+    PZ.m.abierta(w); return true;
+  }
+  function presCerrar(){ if(PZ.m) PZ.m.cerrar(); presOn(false); }
+  function presAyuda(){
+    GPP.ayuda({ nombre:'Presentación · STARGATE', nota:'El mando va en esta ventana: comparte solo la de la presentación.', alAbrir:presAbrir });
+  }
+  function presElegir(marcado){
+    GPP.elegir({ clave:PRES_CLAVE, marcado:marcado, pie:'Comparte solo la ventana de la presentación', alAyuda:presAyuda,
+      alElegir:function(m){ if(m==='presentador') presAbrir(); else if(PZ.on) presCerrar(); } });
+  }
+  /** Al pulsar «Emitir en directo» (es un clic: la ventana se puede abrir ahí mismo). */
+  function presAlEmitir(){
+    if(!GPP||!PZ.m||PZ.on) return;
+    var r=GPP.recordado(PRES_CLAVE);
+    if(r==='presentador') presAbrir(); else if(r!=='simple') presElegir(null);
+  }
+  document.addEventListener('click', function(ev){
+    if(!ev.target.closest||!ev.target.closest('[data-ses-presentar]')||!GPP||!PZ.m) return;
+    ev.preventDefault();
+    if(PZ.on){ presCerrar(); if(GPP.recordado(PRES_CLAVE)) GPP.recordar(PRES_CLAVE,'simple'); } else presElegir('presentador');
   });
   function enPantalla(){ return !!(document.fullscreenElement||document.webkitFullscreenElement)||document.body.classList.contains('proyectando'); }
   function controles(){
@@ -2710,6 +2805,7 @@
       // 28-sep · NEBULA, otra vez: repite la guía de lo que hay en pantalla (la primera vez sale sola)
       +(!st.alumno&&st.per&&st.yo&&window.SG&&SG.GUIA?'<button type="button" class="ses-ic ses-guia" id="ses-guia" title="Guíame otra vez (NEBULA)" aria-label="Guíame otra vez"><img src="assets/img/personajes/nebula.png" alt="" width="20" height="20" style="object-fit:contain"></button>':'')
       +(!st.alumno?'<button type="button" class="ses-ic ses-son'+(suenaSesion()?'':' mudo')+'" id="ses-son" title="'+(suenaSesion()?'Quitar el sonido (M)':'Poner el sonido (M)')+'" aria-label="'+(suenaSesion()?'Quitar el sonido':'Poner el sonido')+'">'+(suenaSesion()?IC_SON:IC_MUDO)+'</button>':'')
+      +(!st.alumno&&!EMBED&&window.GP&&window.GP.presentador?'<button type="button" class="ses-ic ses-pres'+(PZ.on?' on':'')+'" data-ses-presentar title="Una o dos pantallas: la presentación en una ventana aparte (la que compartes) y esta como tu mando" aria-label="Presentar en otra ventana">'+IC_DOS+'</button>':'')
       +(!st.alumno&&window.GP&&window.GP.notas?'<button type="button" class="ses-ic ses-notas" data-notas-ventana title="Notas en otra ventana (la que no compartes)" aria-label="Notas en otra ventana">'+IC_NOTAS+'</button>':'')
       +'<button type="button" class="ses-ic" id="ses-pantalla" title="'+(fs?'Salir de pantalla completa (F)':'Pantalla completa (F)')+'" aria-label="'+(fs?'Salir de pantalla completa':'Pantalla completa')+'">'+(fs?IC_SALIR:IC_PANTALLA)+'</button>'
       +'<div class="cuenta">'+(st.i+1)+' / '+st.slides.length+'</div></div>';
@@ -2887,7 +2983,7 @@
     if(st.fuera){ try{ st.fuera(); }catch(e){} st.fuera=null; }
     rastroAcademia();
 
-    root.innerHTML=(EMBED ? '' : st.aviso+prep(s)+tira())
+    root.innerHTML=(EMBED||PRES ? '' : st.aviso+prep(s)+tira())
       +'<div class="mazo" id="mazo" tabindex="0" aria-live="polite">'
       +tramos()
       +'<div class="lienzo">'+st.slides[st.i].html+'</div>'
@@ -2929,9 +3025,9 @@
     marcarTramo();
     // 17-sep · en directo: el docente que proyecta dentro de su Genially emite solo; el recluta, sigue
     // (30-sep · si el docente la apaga a mano, se queda apagada: antes cada repintado la volvía a encender)
-    var bd=root.querySelector('#ses-directo'); if(bd) bd.onclick=function(){ if(DIRECTO.on){ DIRECTO.aMano=true; apagarDirecto(); } else { DIRECTO.aMano=false; encenderDirecto(); } };
+    var bd=root.querySelector('#ses-directo'); if(bd) bd.onclick=function(){ if(DIRECTO.on){ DIRECTO.aMano=true; apagarDirecto(); } else { DIRECTO.aMano=false; presAlEmitir(); encenderDirecto(); } };
     if(EMBED && !st.alumno && st.per && st.yo && !DIRECTO.aMano) encenderDirecto(); else emitir();
-    publicarNotas();
+    publicarNotas(); presIniciar(); if(PZ.on) pintaSiguiente();
     if(st.alumno && !DIFERIDO){ seguirDocente(); SEG.dibujado=''; pintarSeguir(); }
   }
   /**
@@ -3119,7 +3215,7 @@
       var c=root.querySelector('.cuenta'); if(c) c.textContent=(i+1)+' / '+n;
       marcarTramo();
     } else pintar();
-    emitir(); publicarNotas();
+    emitir(); publicarNotas(); if(PZ.on) pintaSiguiente();
   }
 
   // ── el docente emite dónde está (con un respiro: pasar tres diapositivas seguidas es UNA escritura)
@@ -3151,6 +3247,8 @@
     return DIRECTO.em;
   }
   function emitir(){
+    if(PRES) return;   // (la presentación solo sigue)
+    presMandar();
     if(!DIRECTO.on||st.alumno||!st.per) return;
     var M=window.SG&&window.SG.MOTOR, o=ocurrencia(st.i); if(!M||!M.publicarEnVivo||!o) return;
     var em=emisor(); if(!em) return;
@@ -3162,7 +3260,7 @@
     });
   }
   function encenderDirecto(){
-    if(st.alumno||!st.per||!st.yo||DIRECTO.on) return;
+    if(PRES||st.alumno||!st.per||!st.yo||DIRECTO.on) return;
     DIRECTO.on=true; if(emisor()) DIRECTO.em.olvidar(); emitir(); pintarDirecto();
   }
   function apagarDirecto(){
@@ -3363,6 +3461,11 @@
     // (15-sep · con el selector de grupo o la puerta en pantalla no hay diapositivas que pasar: el mando
     // redibujaba el grupo de antes y el selector desaparecía)
     if(!st.slides.length || !root.querySelector('.lienzo')) return;
+    if(PRES){   // (en la presentación, las teclas pasan al mando; F, la pantalla completa, se queda aquí)
+      if((e.key==='f'||e.key==='F')&&!e.metaKey&&!e.ctrlKey&&!e.altKey){ e.preventDefault(); pantallaCompleta(); return; }
+      if(/^(ArrowRight|ArrowLeft|PageDown|PageUp| |r|R)$/.test(e.key)&&!e.metaKey&&!e.ctrlKey&&!e.altKey){ e.preventDefault(); if(PZ.p) PZ.p.tecla(e.key, e.shiftKey); }
+      return;
+    }
     if(root.querySelector('.ses-ficha')){ if(/^(Escape|ArrowRight|ArrowLeft|PageDown|PageUp| )$/.test(e.key)){ e.preventDefault(); cerrarFicha(); } return; }
     if(/^(INPUT|SELECT|TEXTAREA)$/.test((e.target&&e.target.tagName)||'')) return;
     // la barra espaciadora sobre un botón lo pulsa (no pasa de diapositiva); las flechas y el mando, siempre
