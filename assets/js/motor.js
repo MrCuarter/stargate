@@ -18,7 +18,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, sig
          connectAuthEmulator, reauthenticateWithPopup }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, getCountFromServer, writeBatch, onSnapshot,
-         deleteField, connectFirestoreEmulator }
+         deleteField, connectFirestoreEmulator, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import { getFunctions, httpsCallable, connectFunctionsEmulator }
   from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
@@ -78,6 +78,9 @@ onAuthStateChanged(auth, u => {
   quien = u ? { uid: u.uid, correo: (u.email || "").toLowerCase(), nombre: u.displayName || "", foto: u.photoURL || "" } : null;
   document.dispatchEvent(new CustomEvent("sg:sesion", { detail: quien }));
   while (esperando.length) esperando.shift()(quien);
+  // 17-oct · las notas del docente fuera de lo que se proyecta (GamificaPro sdk/notas.js → mod_notas/{grupo}; solo el equipo docente)
+  const NTS = window.GP && window.GP.notas;
+  if (NTS && NTS.conectarFirestore) NTS.conectarFirestore(u && !u.isAnonymous ? { db, doc, setDoc, onSnapshot, serverTimestamp, deleteField, uid: u.uid, correo: (u.email || "").toLowerCase(), mod: "stargate" } : null);
 });
 const sesion = () => new Promise(ok => (quien !== undefined ? ok(quien) : esperando.push(ok)));
 

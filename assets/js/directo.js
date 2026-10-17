@@ -39,6 +39,25 @@
  *   GP.directo.dormir(caja)    los iframes de `caja` que pueden sonar (SUENA) se descargan (`about:blank`, la dirección en
  *                              `data-gp-src`); GP.directo.despertar(caja) los vuelve a poner al volver.
  *
+ * 🔴 17-oct · LO QUE SE CUENTA EN LA DIAPOSITIVA, IGUAL EN TODAS LAS PANTALLAS (prueba de Norberto con el grupo X: el docente veía
+ * «1 de 1 han fichado» y la estudiante «0 de 1»; quien fichó por la llamada solo lo sabía la pantalla del docente). Quien emite manda
+ * también la sala tal como la ve él, y quien sigue cuenta con esa:
+ *   GP.directo.sala(gente, sid, max)  → [{ id, a, v, fi, f }]: quién está en la sala de la sesión `sid` (alias, personaje, ficha y si
+ *                                        ha fichado), como mucho `max` (120). `gente`: [{ id, alias, vecino, fichaId, fich, sala }].
+ *   GP.directo.deLaSala(lista, id)    → la entrada de `id` en esa lista, o null.
+ *
+ * 17-oct · LOS TRABAJOS DEL ALUMNADO EN PANTALLA (Norberto: «primero las de quienes están conectados, con un punto verde junto al
+ * alias, y los huecos se rellenan con las de quienes la hicieron pero no están»):
+ *   GP.directo.trabajos(lista, { max }) → la misma lista, primero quien está (`vivo`), luego el resto (cada grupo en su orden), y
+ *                                        como mucho `max`. Cada web la pinta con su piel; el punto verde, GP.directo.punto(vivo).
+ *
+ * 17-oct · LO QUE TE DA TU DOCENTE EN CLASE TE LLEGA (antes se repartía y el estudiante no se enteraba): el servidor (modRegalar)
+ * deja un aviso con `modRegalo` en la bandeja (`notifications`); la web lo escucha y lo enseña una vez, con confeti, en la clase y en
+ * su panel, también si no estaba conectado:
+ *   GP.directo.textoPremio(aviso)     → «+10 leguas y +5 de oro» (de `aviso.modRegalo`), o "".
+ *   GP.directo.premios({ vigilar, mostrar, leido }) → dejar de escuchar. `vigilar(cb)` escucha la bandeja (→ dejar de escuchar);
+ *                                        `mostrar(aviso, texto)` lo enseña; `leido(id)` lo marca. Cada aviso, una sola vez.
+ *
  * Cada web la copia en su build (assets/js/directo.js, con `guardas.copiar_pieza`) y NO se edita allí: aquí.
  */
 (function (raiz, fabrica) {
@@ -134,5 +153,54 @@
     iframes(caja).forEach(function (f) { var u = f.getAttribute("data-gp-src"); if (u) { f.setAttribute("src", u); f.removeAttribute("data-gp-src"); } });
   }
 
-  return { ocurrencia: ocurrencia, indiceDe: indiceDe, dondeVa: dondeVa, firma: firma, emisor: emisor, SUENA: SUENA, dormir: dormir, despertar: despertar };
+  // ── la sala, tal como la ve quien emite
+  function sala(gente, sid, max) {
+    var tope = Math.max(1, Number(max) || 120), r = [];
+    (Array.isArray(gente) ? gente : []).forEach(function (p) {
+      if (!p || !p.id || !p.alias || r.length >= tope) return;
+      var f = !!(p.fich && p.fich[sid]), dentro = f || !!(p.sala && p.sala[sid]);
+      if (!dentro) return;
+      var x = { id: String(p.id), a: String(p.alias).slice(0, 40), v: String(p.vecino || "").slice(0, 60), f: f ? 1 : 0 };
+      if (p.fichaId) x.fi = String(p.fichaId).slice(0, 60);
+      r.push(x);
+    });
+    return r;
+  }
+  function deLaSala(lista, id) {
+    var L = Array.isArray(lista) ? lista : [];
+    for (var i = 0; i < L.length; i++) if (L[i] && L[i].id === id) return L[i];
+    return null;
+  }
+
+  // ── los trabajos del alumnado: primero quien está
+  function trabajos(lista, o) {
+    var L = Array.isArray(lista) ? lista.filter(Boolean) : [], max = o && Number(o.max) > 0 ? Number(o.max) : Infinity;
+    return L.filter(function (x) { return !!x.vivo; }).concat(L.filter(function (x) { return !x.vivo; })).slice(0, max);
+  }
+  function punto(vivo) { return vivo ? '<i class="gp-vivo" title="Conectado ahora" aria-label="Conectado ahora"></i>' : ""; }
+
+  // ── los premios de clase que te llegan
+  function textoPremio(av) {
+    var g = av && av.modRegalo; if (!g || typeof g !== "object") return "";
+    var xp = Number(g.xp) || 0, m = Number(g.monedas) || 0;
+    return [xp ? "+" + xp + " " + (g.nombreXp || "puntos") : "", m ? "+" + m + " " + (g.nombreMonedas || "monedas") : ""].filter(Boolean).join(" y ");
+  }
+  function premios(o) {
+    o = o || {};
+    var vistos = {};
+    if (typeof o.vigilar !== "function") return function () {};
+    var parar = o.vigilar(function (lista) {
+      (Array.isArray(lista) ? lista : []).slice().sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); }).forEach(function (av) {
+        if (!av || !av.id || vistos[av.id] || av.read || !av.modRegalo) return;
+        var t = textoPremio(av); if (!t) return;
+        vistos[av.id] = true;
+        try { if (o.mostrar) o.mostrar(av, t); } catch (e) {}
+        try { if (o.leido) Promise.resolve(o.leido(av.id)).catch(function () {}); } catch (e) {}
+      });
+    });
+    return typeof parar === "function" ? parar : function () {};
+  }
+
+  return { ocurrencia: ocurrencia, indiceDe: indiceDe, dondeVa: dondeVa, firma: firma, emisor: emisor, SUENA: SUENA, dormir: dormir, despertar: despertar,
+           sala: sala, deLaSala: deLaSala, trabajos: trabajos, punto: punto, textoPremio: textoPremio, premios: premios };
 });

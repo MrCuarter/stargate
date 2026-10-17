@@ -170,6 +170,16 @@ GB.copiar_pieza(HERE, "ordena.js", os.path.join(HERE, "assets", "js", "ordena.js
 # 16-oct · LA CLASE EN DIRECTO, COMÚN CON DPG (GamificaPro sdk/directo.js, `GP.directo`): adónde va el recluta que sigue (el plan B),
 # la emisión que falla («Sin señal» y se reintenta) y el latido del docente quieto en el panel. Se copia igual; la carga sesion.html.
 GB.copiar_pieza(HERE, "directo.js", os.path.join(HERE, "assets", "js", "directo.js"), decir=print)
+# 17-oct · LAS NOTAS DEL DOCENTE FUERA DE LO QUE SE PROYECTA (GamificaPro sdk/notas.js, `GP.notas`, común con DPG): «Notas en otra
+# ventana» y «Notas en el móvil» (el QR a notas.html). La cargan sesion.html y notas.html; motor.js le pone la nube.
+GB.copiar_pieza(HERE, "notas.js", os.path.join(HERE, "assets", "js", "notas.js"), decir=print)
+# y el guion de cada diapositiva (_guiones_sg.json: {clave: [líneas]}; la clave, la `k` de la diapositiva, o «s3:k» / «act1:k» / «pres:k»
+# para una sesión concreta, que gana a la general). Solo lo ve el docente, en sus notas.
+GUIONES_SG = json.load(open(os.path.join(HERE, "_guiones_sg.json"), encoding="utf-8")) if os.path.exists(os.path.join(HERE, "_guiones_sg.json")) else {}
+for _k, _l in GUIONES_SG.items():
+    assert isinstance(_l, list) and 1 <= len(_l) <= 6 and all(isinstance(x, str) and 0 < len(x) <= 400 for x in _l), "guion de «" + _k + "»: de 1 a 6 líneas"
+    assert "genially" not in " ".join(_l).lower(), "guion de «" + _k + "»: nombra Genially"
+print("· guiones de la sesión:", len(GUIONES_SG))
 # 13-oct · LA PÁGINA «ESTADÍSTICAS» (GamificaPro sdk/estadisticas.js, `GP.estadisticas`): filtros, pestañas, gráficas, horarios de
 # clase detectados y CSV, para todos los mods; las cifras, de `modEstadisticas`. Se copia igual y la carga solo estadisticas.html.
 GB.copiar_pieza(HERE, "estadisticas.js", os.path.join(HERE, "assets", "js", "estadisticas.js"), decir=print)
@@ -4143,6 +4153,9 @@ al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></heade
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/tkcomun.js" defer></script>
 <script src="assets/js/guia-docente.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<script src="assets/js/notas.js" defer></script>
+<script>window.SG_GUIONES={json.dumps(GUIONES_SG, ensure_ascii=False)};</script>
 <script src="assets/js/directo.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>
 </div></section>
@@ -4886,6 +4899,19 @@ y sin formularios: la fecha de la semana 1 decide el calendario completo.</p></h
 ''' + FOOT
 open(os.path.join(HERE, "crear.html"), "w", encoding="utf-8").write(_ver_assets(_html))
 print("escrito: crear.html  (la consola del referente)")
+
+# ---------------------------------------------------------------- 17-oct · las notas del docente, fuera de lo que se proyecta
+# Norberto: el docente comparte su pantalla, así que la nota de cada diapositiva va a otra ventana (la que no comparte) o a su móvil.
+# La vista es del motor (GamificaPro sdk/notas.js); notas_app.js, la puerta: con ?ventana=1 sigue a la sesión por el mismo navegador;
+# sin él (el QR), entra con su cuenta y escucha mod_notas/{grupo}, que solo deja leer al equipo docente del grupo (las reglas).
+_html = head("STARGATE · Notas de la sesión", "Las notas de cada diapositiva para el docente, en otra ventana o en el móvil.",
+             "cla").replace("</head>", _cabeza_motor() + '<meta name="robots" content="noindex,nofollow">'
+             '<script src="' + _v("assets/js/notas.js") + '" defer></script>\n</head>').replace("<body>", '<body class="notas-docente">', 1) + '''
+<div id="notas-app"><p class="muted" style="padding:16px">Cargando…</p></div>
+''' + '<script src="' + _v("assets/js/notas_app.js") + '" defer></script>' + '''
+</body></html>'''
+open(os.path.join(HERE, "notas.html"), "w", encoding="utf-8").write(_ver_assets(_html))
+print("escrito: notas.html  (las notas del docente)")
 
 # ---------------------------------------------------------------- validar un reto desde fuera
 # Pública a propósito: el enlace vive dentro de un Genially y lo pulsa el alumnado.

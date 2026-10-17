@@ -8362,3 +8362,10 @@ body.ajf-abierta{overflow:hidden}
 .gpe h1{font-size:clamp(22px,4.4vw,30px)}
 .gpe h2{font-size:16px;line-height:1.3}
 .gpe .gpe-filtros input[type=date]{color-scheme:dark}
+
+/* 17-oct · LAS NOTAS DE LA SESIÓN EN OTRA VENTANA O EN EL MÓVIL (notas.html; la vista es GamificaPro sdk/notas.js, piel --gpn-*) */
+body.notas-docente{background:var(--bg)}
+body.notas-docente>.nav,body.notas-docente>footer{display:none}
+.notas-docente #notas-app{max-width:880px;margin:0 auto}
+.notas-docente .gpn{--gpn-fondo:var(--bg);--gpn-tinta:var(--ink);--gpn-suave:var(--mut);--gpn-acento:var(--teal);font-family:'DMSans',system-ui,sans-serif}
+.gpnq{--gpn-fondo:var(--bg2);--gpn-acento:var(--teal);--gpn-tinta:var(--ink);--gpn-suave:var(--mut)}

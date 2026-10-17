@@ -2657,6 +2657,43 @@
   var IC_PANTALLA='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   var IC_SALIR='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   var IC_VENTANA='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var IC_NOTAS='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6zM6 3v18M10 8h5M10 12h5M10 16h3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  /**
+   * 🔴 17-oct · LAS NOTAS FUERA DE LO QUE SE PROYECTA (Norberto: «el docente comparte su pantalla en clase»; «la mayoría van a ir a
+   * pelo… un guion o unas recomendaciones de cómo interactuar con esa diapositiva sería fantástico»). La pieza es del motor (GamificaPro
+   * sdk/notas.js, `GP.notas`, la misma de DPG): «Notas en otra ventana» (sigue la diapositiva por el mismo navegador) y «Notas en el
+   * móvil» (un QR a notas.html; solo el equipo docente del grupo, también en las reglas: mod_notas). Aquí, qué se manda: el título y el
+   * guion de esta diapositiva y de la siguiente (window.SG_GUIONES, de _guiones_sg.json: por su `k`, o «s3:k», «act1:k», «pres:k» para
+   * una sesión concreta) y, en la primera, el consejo del Capitán. El recluta no lo manda nunca.
+   */
+  var NOTAS={em:null};
+  function urlNotas(){ return new URL(window.GP.notas.enlace('', st.per||'demo'), location.href).toString(); }
+  function notasFuera(){
+    if(!NOTAS.em) NOTAS.em=window.GP.notas.emisor({ per:st.per||'demo', url:urlNotas(), alCambiar:function(e){
+      Array.prototype.forEach.call(document.querySelectorAll('[data-notas-ventana]'),function(b){ b.classList.toggle('on', e.ventana); });
+    } });
+    return NOTAS.em;
+  }
+  function claveSes(){ return st.act?'act'+st.act:st.pres?'pres':'s'+st.sem; }
+  function guionPorDefecto(sl){ var G=window.SG_GUIONES||{}; return (sl&&(G[claveSes()+':'+sl.k]||G[sl.k]))||null; }
+  // 17-oct · lo de cada docente: las suyas, de su perfil (mod_profes/stargate__<uid>: `notas`, `notasOn`, `notasBase`; valen para todos
+  // sus grupos), se editan en la ventana de notas o en el móvil; aquí se escucha el perfil y se manda el guion que toca (GP.notas.efectivo)
+  function guionDe(sl){ var N=window.GP&&window.GP.notas; return N?N.efectivo(guionPorDefecto(sl), NOTAS.perfil, claveSes(), sl&&sl.k||''):{guion:guionPorDefecto(sl)}; }
+  function publicarNotas(){
+    var N=window.GP&&window.GP.notas; if(!N||st.alumno||!st.slides.length) return;
+    if(!NOTAS.oye&&st.yo) NOTAS.oye=N.escucharPerfil(function(p){ NOTAS.perfil=p; if(NOTAS.oye) publicarNotas(); })||true;
+    var sl=st.slides[st.i], sg=st.slides[st.i+1], s=semanas()[st.sem-1]||{}, e=guionDe(sl);
+    var parte=function(x, i, g){ return { titulo:x.rot||'', guion:g, nota:i===0&&s.consejo&&!st.act?'El consejo del Capitán: '+s.consejo:'' }; };
+    var ses=st.act?'La sesión de la Actividad '+st.act:st.pres?'La presentación de la asignatura':'Semana '+st.sem+(s.tema_n?' · Tema '+s.tema_n:'');
+    notasFuera().publicar(N.paquete(parte(sl, st.i, e.guion), sg?parte(sg, st.i+1, guionDe(sg).guion):null, { i:st.i, de:st.slides.length, sesion:ses,
+      ses:claveSes(), clave:sl.k||'', propio:e.propio, base:e.base, cambiado:e.cambiado, tiene:e.tiene }));
+  }
+  document.addEventListener('click', function(ev){
+    var N=window.GP&&window.GP.notas; if(!N||!ev.target.closest) return;
+    if(ev.target.closest('[data-notas-ventana]')){ ev.preventDefault(); var em=notasFuera(); publicarNotas();
+      if(em.estado().ventana) em.cerrar(); else if(!em.abrir()) alert('El navegador no ha dejado abrir la ventana: permite las ventanas emergentes de esta web y vuelve a probar.'); }
+    else if(ev.target.closest('[data-notas-movil]')){ ev.preventDefault(); publicarNotas(); N.ventanaQR({ emisor:notasFuera(), url:urlNotas(), QR:window.QRCode }); }
+  });
   function enPantalla(){ return !!(document.fullscreenElement||document.webkitFullscreenElement)||document.body.classList.contains('proyectando'); }
   function controles(){
     var fs=enPantalla();
@@ -2673,6 +2710,7 @@
       // 28-sep · NEBULA, otra vez: repite la guía de lo que hay en pantalla (la primera vez sale sola)
       +(!st.alumno&&st.per&&st.yo&&window.SG&&SG.GUIA?'<button type="button" class="ses-ic ses-guia" id="ses-guia" title="Guíame otra vez (NEBULA)" aria-label="Guíame otra vez"><img src="assets/img/personajes/nebula.png" alt="" width="20" height="20" style="object-fit:contain"></button>':'')
       +(!st.alumno?'<button type="button" class="ses-ic ses-son'+(suenaSesion()?'':' mudo')+'" id="ses-son" title="'+(suenaSesion()?'Quitar el sonido (M)':'Poner el sonido (M)')+'" aria-label="'+(suenaSesion()?'Quitar el sonido':'Poner el sonido')+'">'+(suenaSesion()?IC_SON:IC_MUDO)+'</button>':'')
+      +(!st.alumno&&window.GP&&window.GP.notas?'<button type="button" class="ses-ic ses-notas" data-notas-ventana title="Notas en otra ventana (la que no compartes)" aria-label="Notas en otra ventana">'+IC_NOTAS+'</button>':'')
       +'<button type="button" class="ses-ic" id="ses-pantalla" title="'+(fs?'Salir de pantalla completa (F)':'Pantalla completa (F)')+'" aria-label="'+(fs?'Salir de pantalla completa':'Pantalla completa')+'">'+(fs?IC_SALIR:IC_PANTALLA)+'</button>'
       +'<div class="cuenta">'+(st.i+1)+' / '+st.slides.length+'</div></div>';
   }
@@ -2810,6 +2848,9 @@
       +(st.per&&st.miNombre&&!st.alumno&&window.SG&&window.SG.CFGSESION
         ?'<button type="button" class="btn" id="prep-cfg"><img class=ico src=assets/img/iconos/p/ajustes.png alt> Configurar diapositivas</button> ':'')
       +'<button type="button" class="btn" data-ses-ventana title="Sin la web alrededor: solo la presentación">⧉ En una ventana aparte</button> '
+      // 17-oct · las notas de cada diapositiva, fuera de lo que se proyecta (GamificaPro sdk/notas.js): en otra ventana o en el móvil
+      +(!st.alumno&&window.GP&&window.GP.notas?'<button type="button" class="btn" data-notas-ventana title="La nota y el guion de cada diapositiva, en una ventana aparte: llévala a la pantalla que no compartes">Notas en otra ventana</button> '
+        +(st.per&&st.yo?'<button type="button" class="btn" data-notas-movil title="Un QR: las notas en tu móvil o tu iPad, solo con tu cuenta de docente">Notas en el móvil</button> ':''):'')
       +'<button type="button" class="btn primary" id="proyectar">▶ Proyectar la sesión</button></div></div>'
       /**
        * 17-sep · Norberto: «en la página de la sesión echo en falta un botón para copiar el código HTML directamente». Los
@@ -2890,6 +2931,7 @@
     // (30-sep · si el docente la apaga a mano, se queda apagada: antes cada repintado la volvía a encender)
     var bd=root.querySelector('#ses-directo'); if(bd) bd.onclick=function(){ if(DIRECTO.on){ DIRECTO.aMano=true; apagarDirecto(); } else { DIRECTO.aMano=false; encenderDirecto(); } };
     if(EMBED && !st.alumno && st.per && st.yo && !DIRECTO.aMano) encenderDirecto(); else emitir();
+    publicarNotas();
     if(st.alumno && !DIFERIDO){ seguirDocente(); SEG.dibujado=''; pintarSeguir(); }
   }
   /**
@@ -3077,7 +3119,7 @@
       var c=root.querySelector('.cuenta'); if(c) c.textContent=(i+1)+' / '+n;
       marcarTramo();
     } else pintar();
-    emitir();
+    emitir(); publicarNotas();
   }
 
   // ── el docente emite dónde está (con un respiro: pasar tres diapositivas seguidas es UNA escritura)
