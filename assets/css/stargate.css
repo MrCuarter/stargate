@@ -1187,21 +1187,24 @@ ol.pasos-num li b{color:var(--ink)}
 .reto-sem.por-lanzar{opacity:.5;filter:grayscale(.55);border:1px dashed var(--line);border-radius:14px;padding:12px 14px;margin:0 0 10px;background:rgba(11,17,25,.5)}
 .reto-sem.por-lanzar .rs-cab{display:flex;gap:8px;align-items:center;margin:0 0 6px}
 .reto-sem.por-lanzar .rs-tit{display:block;margin:0 0 4px}
-.ins-grid{display:flex;flex-wrap:wrap;gap:22px;margin-top:14px}
-.ins-grid figure{margin:0;width:min(210px,42vw);text-align:center}
-.ins-grid img{width:112px;height:112px;object-fit:contain;filter:drop-shadow(0 0 22px rgba(55,224,236,.35))}
-.ins-grid figcaption b{display:block;margin-top:8px;font-size:.94rem}
-.ins-grid figcaption em{display:block;font-style:normal;color:var(--muted);font-size:.78rem;margin-top:4px}
+/* 17-oct · «Las insignias en juego» llenan la diapositiva (se veían de 112 px en una pantalla enorme y vacía): rejilla de columnas iguales y
+   filas uniformes (`--c` columnas, `--r` filas, los pone la sesión); todas del mismo tamaño, `--insz`, que crece con la pantalla */
+.ins-grid{--c:3;--r:1;--insz:clamp(96px,min(calc(.7*88vw/var(--c)),calc(36vh/var(--r))),360px);display:grid;grid-template-columns:repeat(var(--c),minmax(0,1fr));grid-auto-rows:1fr;gap:clamp(16px,3vh,44px) clamp(14px,3vw,48px);justify-items:center;align-items:start;margin-top:clamp(14px,3vh,40px);width:min(100%,calc(var(--c)*(var(--insz) + 12vw/var(--c) + 40px)))}
+.ins-grid figure{margin:0;width:100%;max-width:calc(var(--insz) + 150px);text-align:center}
+.ins-grid img{width:var(--insz);height:var(--insz);object-fit:contain;filter:drop-shadow(0 0 22px rgba(55,224,236,.35))}
+.ins-grid figcaption b{display:block;margin-top:10px;font-size:clamp(.94rem,1.5vw,1.45rem)}
+.ins-grid figcaption em{display:block;font-style:normal;color:var(--muted);font-size:clamp(.78rem,1.05vw,1.05rem);margin-top:4px}
+@media(max-width:700px){.dia.insignias:not(.una) .ins-grid{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;--insz:min(36vw,160px)}}
 /* 18-sep · Norberto: «si solo hay una insignia por sesión, ponla más grande». Con una sola, ocupa lo que le
    corresponde: se proyecta y se ve desde el fondo del aula. */
-.dia.insignias.una .ins-grid{justify-content:flex-start;gap:34px;align-items:center;margin-top:18px}
+.dia.insignias.una .ins-grid{display:flex;width:auto;justify-content:flex-start;gap:34px;align-items:center;margin-top:18px}
 .dia.insignias.una .ins-grid figure{display:flex;align-items:center;gap:28px;width:auto;text-align:left;max-width:min(100%,900px)}
 .dia.insignias.una .ins-grid img{width:min(34vh,300px);height:min(34vh,300px)}
 .dia.insignias.una .ins-grid figcaption b{margin-top:0;font-size:clamp(1.2rem,2.2vw,1.9rem)}
 .dia.insignias.una .ins-grid figcaption em{font-size:clamp(.9rem,1.3vw,1.1rem);margin-top:8px;max-width:38ch}
 .dia.insignias.una .ins-grid figcaption q{font-size:clamp(.85rem,1.2vw,1rem)}
 @media(max-width:700px){.dia.insignias.una .ins-grid figure{flex-direction:column;text-align:center;gap:14px}}
-.ins-grid figcaption q{display:block;color:var(--amber);font-size:.8rem;margin-top:6px}
+.ins-grid figcaption q{display:block;color:var(--amber);font-size:clamp(.8rem,1.05vw,1.05rem);margin-top:6px}
 
 .cierre-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:16px;margin-top:16px}
 .cierre-grid .c{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:rgba(255,255,255,.02)}

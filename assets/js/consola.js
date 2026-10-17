@@ -2328,8 +2328,10 @@
               '</span><b class="tk-n-m">' + x.media.toFixed(1) + '</b></div>'; }).join("") + '</div>' : "") +
           (A.textos.length ? '<div class="tk-lista">' + A.textos.map(function (x) {
             var fija = m.fijadas.indexOf(x.id) >= 0, oculta = m.ocultas.indexOf(x.id) >= 0;
+            // 17-oct · lo que no aporta (menos de 3 palabras, «No», «Ninguna») no se proyecta, salvo que lo fijes
+            var corta = !fija && !oculta && window.GP && GP.respuestasUtiles && !GP.respuestasUtiles.util(x.v);
             return '<div class="tk-uno' + (fija ? " fija" : "") + (oculta ? " oculta" : "") + '" data-tk="' + esc(x.id) + '">' +
-              '<span class="tk-de">' + esc(SG.TK.corto(x.c)) + '</span><p>' + esc(x.v) + '</p>' +
+              '<span class="tk-de">' + esc(SG.TK.corto(x.c)) + (corta ? ' · no se proyecta: no aporta' : "") + '</span><p>' + esc(x.v) + '</p>' +
               '<span class="tk-b"><button type="button" class="btn min" data-tkm="fija" aria-pressed="' + fija + '">' + ico("estrella") + ' ' + (fija ? "Fijada" : "Fijar") + '</button>' +
                 '<button type="button" class="btn min" data-tkm="oculta" aria-pressed="' + oculta + '">' + ico("ojo") + ' ' + (oculta ? "Oculta" : "Ocultar") + '</button></span></div>'; }).join("") + '</div>'
             : '<p class="small muted">Puntuaron, pero no escribió nadie.</p>');
@@ -2623,7 +2625,7 @@
       .sort(function (a, b) { return fe(b) - fe(a) || String(a.alias || "").localeCompare(String(b.alias || "")); });
     var entrega = id === "S7" ? "Se registra solo, con la palabra del final del Escape UNI."
       : RF ? "Se responde en el propio reto: una reflexión escrita."
-      : rel ? "Se hace en clase (10-15 min) y se registra con una foto, una captura o un enlace."
+      : rel ? "Se hace en clase (10-15 min), pero se puede hacer cuando se quiera, y se registra con una foto, una captura o un enlace."
       : "Se registra en su Nave con el enlace público de lo que ha hecho.";
     var fila = function (x) {
       var rfx = ((EVRF || {})[x.ficha] || {})[id], f = fe(x);

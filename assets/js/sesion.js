@@ -305,6 +305,11 @@
    * Lo que no tiene datos no sale escondido: sale como siempre.
    *   · rev-antes: se ve hasta descubrir · rev-despues: se ve al descubrir (los dos, con `data-f`)
    */
+  /** 17-oct · la rejilla de «Las insignias en juego»: columnas iguales y filas uniformes (--c, --r), para que llenen la diapositiva. */
+  function insRejilla(n){
+    var c=n<=4?n:(n<=6?3:4), r=Math.ceil(n/c);
+    return ' style="--c:'+c+';--r:'+r+'"';
+  }
   function pistaRev(txt, ico){ return '<span class="rev-pista"><img class=ico src=assets/img/iconos/p/'+(ico||'ojo')+'.png alt> '+txt+'</span>'; }
   /** La carta de dos caras, en la misma celda de rejilla: mide lo que la cara más alta. `todo`=false si la pulsa otro. */
   function cartaRev(dorso, cara, cls, todo){
@@ -1473,11 +1478,14 @@
          */
         var m=MARCAS||{fijadas:[],ocultas:[]};
         var visibles=A.textos.filter(function(x){ return m.ocultas.indexOf(x.id)<0; });
+        // 17-oct · lo que no aporta («No.», «Ninguna», menos de 3 palabras) no se proyecta ni cuenta en «Y N más»; lo que el docente fijó, sí
+        var RU=window.GP&&GP.respuestasUtiles;
+        if(RU) visibles=RU.filtrar(visibles,{texto:function(x){return x.v;}, salvar:function(x){return m.fijadas.indexOf(x.id)>=0;}});
         var fijas=visibles.filter(function(x){ return m.fijadas.indexOf(x.id)>=0; });
         var resto=visibles.filter(function(x){ return m.fijadas.indexOf(x.id)<0; });
         var CABEN=6, salen=fijas.concat(resto).slice(0, Math.max(CABEN, fijas.length));
         if(!salen.length) return nada(A.textos.length
-          ? 'Has ocultado todo lo que escribieron sobre <b>'+esc(tema)+'</b>: aquí no sale nada.'
+          ? 'Lo que escribieron sobre <b>'+esc(tema)+'</b> no se proyecta: lo has ocultado o no aportaba (menos de 3 palabras, «No», «Ninguna»…).'
           : 'Nadie escribió nada sobre <b>'+esc(tema)+'</b>. Animadles a hacerlo en el ticket del tema que empieza hoy: lo que preguntéis ahí se responde en clase.');
         caja.innerHTML='<div class="tk-ecos">'+salen.map(function(x,i){
             return '<blockquote style="--i:'+i+'"'+(m.fijadas.indexOf(x.id)>=0?' class="fijada"':'')+'><span class="tk-de">'+esc(corto(x.c))+'</span>'+esc(x.v.length>240?x.v.slice(0,237)+'…':x.v)+'</blockquote>'; }).join('')+'</div>'
@@ -1530,7 +1538,7 @@
    * va un cronómetro grande con sus minutos (los del calendario: «— en clase, 15 min») para lanzarlo ahí mismo.
    */
   function cronoRelampago(min){
-    return '<div class="rel-crono" data-min="'+min+'"><div class="rc-eyebrow"><img class=ico src=assets/img/iconos/p/rayo.png alt> Se hace ahora, en clase</div>'
+    return '<div class="rel-crono" data-min="'+min+'"><div class="rc-eyebrow"><img class=ico src=assets/img/iconos/p/rayo.png alt> Se hace ahora, en clase · y si lo ves en diferido, cuando quieras</div>'
       +'<div class="rc-reloj" aria-live="polite">'+(min<10?'0':'')+min+':00</div>'
       +'<div class="rc-botones"><button type="button" class="btn primary" data-rc="go">▶ Empezar</button>'
       +'<button type="button" class="btn" data-rc="pausa"><img class=ico src=assets/img/iconos/p/pausa.png alt> Pausa</button><button type="button" class="btn" data-rc="reset">↺</button></div></div>';
@@ -1728,7 +1736,7 @@
     if(otras.length) out.push({k:'insignias', rot:'Insignias', frag:1, html:
       '<div class="dia insignias'+(otras.length===1?' una':'')+'"><div class="kicker">También se entrega esta semana</div>'
       +'<h2>'+(otras.length===1?'La insignia en juego':'Las insignias en juego')+'</h2>'
-      +'<div class="rev-zona" data-revelable data-f="1" role="button" tabindex="0" aria-label="Voltear las insignias"><div class="ins-grid">'+otras.map(function(k,i){ var b=badge(k);
+      +'<div class="rev-zona" data-revelable data-f="1" role="button" tabindex="0" aria-label="Voltear las insignias"><div class="ins-grid"'+insRejilla(otras.length)+'>'+otras.map(function(k,i){ var b=badge(k);
         return '<figure style="--i:'+i+'">'+cartaRev(dorsoRev('', false), '<img src="assets/img/insignias/'+esc(k)+'.webp" alt="">', 'ins-carta', false)
           +'<figcaption class="rev-despues" data-f="1"><b>'+esc(b?b.nombre:k)+'</b>'
           +(b&&b.como?'<em>'+esc(b.como)+'</em>':'')+(b&&b.cita?'<q>'+esc(b.cita)+'</q>':'')+'</figcaption></figure>'; }).join('')+'</div>'

@@ -154,6 +154,9 @@ GB.copiar_pieza(HERE, "cuenta.js", os.path.join(HERE, "assets", "js", "cuenta.js
 # 11-oct · EL PARTE DEL TICKET, EN LÍNEAS (GamificaPro sdk/parte.js, `GP.parte`): la raya, la barra y las líneas de cada escuadrón son
 # del motor (las mismas que DPG); tkcomun.js solo les pone la piel («tkp»). Se copia igual y se carga antes que tkcomun.js.
 GB.copiar_pieza(HERE, "parte.js", os.path.join(HERE, "assets", "js", "parte.js"), decir=print)
+# 17-oct · LAS RESPUESTAS QUE APORTAN (GamificaPro sdk/respuestasUtiles.js, `GP.respuestasUtiles`): «Lo que escribisteis» no enseña lo que
+# no aporta («No.», «Ninguna», menos de 3 palabras). Se copia igual y se carga antes que tkcomun.js; NO se edita aquí.
+GB.copiar_pieza(HERE, "respuestasUtiles.js", os.path.join(HERE, "assets", "js", "respuestasUtiles.js"), decir=print)
 # 10-oct · LA INVESTIGACIÓN DEL TICKET, EN LA WEB (GamificaPro sdk/investigacion.js, `GP.investigacion`; aquí también `SG.INV`): hasta
 # hoy era de esta web y DPG1 la necesita igual. Se copia tal cual y NO se edita aquí; lo de STARGATE, en _site_data.py → INVESTIGACION_PIEL
 GB.copiar_pieza(HERE, "investigacion.js", os.path.join(HERE, "assets", "js", "investigacion.js"), decir=print)
@@ -5793,10 +5796,13 @@ for _html in _glob2.glob(os.path.join(HERE, "*.html")):
 # ---------------------------------------------------------------- 11-oct · el parte del ticket, en líneas (GamificaPro sdk/parte.js)
 # En cada página que carga tkcomun.js, justo antes (con defer, en orden): SG.TK.lineasParte y compañía son GP.parte con la piel «tkp».
 _TAG_PARTE = '<script src="assets/js/parte.js?v=' + _ver("assets/js/parte.js") + '" defer></script>'
+# 17-oct · y la de las respuestas que aportan (GamificaPro sdk/respuestasUtiles.js), también justo antes de tkcomun.js
+_TAG_RESP = '<script src="assets/js/respuestasUtiles.js?v=' + _ver("assets/js/respuestasUtiles.js") + '" defer></script>'
 for _html in _glob2.glob(os.path.join(HERE, "*.html")):
     _s = open(_html, encoding="utf-8").read()
     _s2 = _re2.sub(r'<script src="assets/js/parte\.js(\?v=[0-9a-f]+)?" defer></script>\n?', '', _s)
-    _s2 = _re2.sub(r'(<script src="assets/js/tkcomun\.js(\?v=\w+)?" defer></script>)', lambda m: _TAG_PARTE + "\n" + m.group(1), _s2)
+    _s2 = _re2.sub(r'<script src="assets/js/respuestasUtiles\.js(\?v=[0-9a-f]+)?" defer></script>\n?', '', _s2)
+    _s2 = _re2.sub(r'(<script src="assets/js/tkcomun\.js(\?v=\w+)?" defer></script>)', lambda m: _TAG_RESP + "\n" + _TAG_PARTE + "\n" + m.group(1), _s2)
     if _s2 != _s:
         open(_html, "w", encoding="utf-8").write(_s2)
 
