@@ -4686,7 +4686,17 @@
         si: "Borrar el grupo", peligro: true }))) return;
       b.disabled = true; b.textContent = "Borrando…";
       try {
-        await MOTOR.llamar("deleteProject", { projectId: PER });
+        // 17-oct · el motor no borra un grupo con alumnado activo sin el aviso fuerte (GamificaPro modGrupoGestionLogica.js):
+        // si contesta «activos», se dice cuántos y, si se confirma, se repite con `forzar`
+        try { await MOTOR.llamar("deleteProject", { projectId: PER }); }
+        catch (e) {
+          var n = Number((e && e.details && e.details.codigo === "activos" && e.details.activos) || 0);
+          if (!n) throw e;
+          if (!(await window.SG.preguntar({ titulo: "«" + nombre + "» tiene " + n + (n === 1 ? " recluta activo" : " reclutas activos"),
+            texto: "Borrarlo borra sus fichas y todo lo suyo. No se puede deshacer. Si el curso ha terminado, archívalo: no se borra nada.",
+            si: "Borrar también su trabajo", peligro: true }))) { b.disabled = false; b.textContent = "Borrar el grupo para siempre"; return; }
+          await MOTOR.llamar("deleteProject", { projectId: PER, forzar: true });
+        }
         location.href = (GESTION ? "gestion.html" : PAGINA) + "?borrado=" + encodeURIComponent(nombre);
       } catch (e) { b.disabled = false; b.textContent = "Borrar el grupo para siempre"; aviso(e.message); }
     };
