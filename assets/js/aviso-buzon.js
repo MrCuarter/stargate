@@ -227,7 +227,7 @@
       // «Necesito algo más» vuelve a la guardia (el mensaje pasa a «nuevo») con la frase delante: así se cuenta
       M.buzonResponder(x.id, (resuelto ? (V.mas || "Necesito algo más: ") : "") + t, {})
         .then(function () { return M.buzonVisto(x.id); })
-        .then(function () { abierto(1); listo("Enviado. Te contestamos aquí y por correo en menos de 24 horas."); }, fallo);
+        .then(function () { abierto(1); listo("Enviado. Te contestamos aquí y por correo."); }, fallo);
     };
   }
 

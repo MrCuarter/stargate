@@ -3642,6 +3642,12 @@ body.fragmento{background:var(--bg)}
 .bz-r{padding:10px 12px;border-radius:12px;background:rgba(16,26,40,.75)}
 .bz-r.mando{background:rgba(55,224,236,.08);border:1px solid rgba(55,224,236,.25)}
 .bz-r b{font-size:.85rem;color:var(--teal2)}
+/* 20-oct · «NEBULA está pensando…» (el Intendente con datos) */
+.bz-r.pensando p{color:var(--teal2)}
+.bz-pts i{display:inline-block;width:5px;height:5px;margin-left:3px;border-radius:50%;background:currentColor;animation:bz-pts 1.2s infinite ease-in-out both}
+.bz-pts i:nth-child(2){animation-delay:.2s}.bz-pts i:nth-child(3){animation-delay:.4s}
+@keyframes bz-pts{0%,80%,100%{opacity:.2}40%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.bz-pts i{animation:none;opacity:.7}}
 .bz-r.docente b{color:var(--amber)}
 .bz-r p{margin:4px 0;white-space:pre-wrap}
 .bz-r time{font-size:.78rem;color:var(--mut)}

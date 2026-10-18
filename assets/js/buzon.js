@@ -382,7 +382,7 @@
       return cargar().then(function () {
         pintar();
         aviso('<img class="bz-ok-cap" src="assets/img/' + (aca ? 'personajes/nebula.png' : 'capitan/pulgar.png') + '" alt=""> <b>' + (aca ? "Recibido, Comandante." : "Transmisión recibida, Comandante.") + '</b> ' +
-          'Te respondemos aquí mismo en menos de 24 horas (y te avisamos por correo)' + (aca ? "" : "; lo urgente, lo primero") + '.', true);
+          'Te respondemos aquí mismo (y te avisamos por correo)' + (aca ? "" : "; lo urgente, lo primero") + '.', true);
       });
     }).catch(function (e) {
       b.disabled = false; b.innerHTML = "<img class=ico src=assets/img/iconos/p/envivo.png alt> " + (aca ? "Enviar a NEBULA" : "Transmitir al Mando");
@@ -393,6 +393,13 @@
   }
 
   // ── un mensaje, con su hilo (el mío o, para el Mando, el de cualquiera)
+  // 20-oct · «NEBULA está pensando…» (solo para quien escribió): el Intendente marca el mensaje (intendente.decision = "mirando") en cuanto
+  // lo recoge; recién enviado, aún sin marca, también. A los 2 minutos se deja de esperar (la respuesta o la línea fija llegan solas)
+  function pensando(m) {
+    if (!m || m.estado !== "nuevo" || (m.respuestas || []).length) return false;
+    var i = m.intendente, t = Date.now();
+    return i ? i.decision === "mirando" && t - (Number(i.fecha) || 0) < 120000 : t - (Number(m.creado) || 0) < 20000;
+  }
   function mensaje(m, comoMando) {
     // 28-sep · lo del alumnado llega como tipo 'recluta' y su clase (problema, duda o idea) va en el contexto: antes salía
     // siempre como «Un problema» (el primero de la lista)
@@ -416,6 +423,7 @@
       + '<p class="bz-texto">' + esc(m.texto) + '</p>' + adjuntosHtml(m.adjuntos)
       + (comoMando ? '<p class="bz-cx">' + ["desde " + (cx.desde || "—"), cx.semana ? "semana " + cx.semana : "", cx.pantalla || "", cx.referente ? "referente" : "",
            (cx.navegador || "").replace(/^.*?\) /, "").slice(0, 60)].filter(Boolean).map(esc).join(" · ") + '</p>' : '')
+      + (!comoMando && pensando(m) ? '<div class="bz-hilo"><div class="bz-r mando pensando" role="status"><b>' + firma + '</b><p>NEBULA está pensando<span class="bz-pts" aria-hidden="true"><i></i><i></i><i></i></span></p></div></div>' : '')
       + ((m.respuestas || []).length ? '<div class="bz-hilo">' + m.respuestas.map(function (r) {
           return '<div class="bz-r ' + (r.de === "mando" ? "mando" : "docente") + '"><b>' + (r.de === "mando" ? firma : (comoMando ? esc(m.nombre || "Docente") : "Tú")) + '</b>'
             + '<p>' + esc(r.texto) + '</p><time>' + cuando(r.fecha) + '</time></div>'; }).join("") + '</div>' : '')
@@ -510,6 +518,7 @@
           return '<div class="bz-r ' + (m.de === "Tú" ? "docente" : "mando") + '"><b>' + esc(m.de) + '</b><p>' + esc(m.x || "") + '</p>' + adjuntosHtml(m.adj) + '<time>' + cuando(m.t) + '</time></div>'; }).join("") + '</div>'
       + '<p class="small muted">Para contestar o preguntar algo nuevo, escribe arriba con «La Academia» marcada.</p></article>' };
   }
+  var PENSANDO_HASTA = 0;
   function pintar() {
     var L = MIOS.map(function (m) { return { t: m.actualizado || m.creado || 0, html: mensaje(m, false) }; }), ha = hiloAcademia();
     if (ha) L.push(ha);
@@ -535,6 +544,15 @@
     MIOS.forEach(function (m) { vistos[m.id] = (m.respuestas || []).length; });
     try { localStorage.setItem("sgBzVistos", JSON.stringify(vistos)); } catch (e) {}
     MIOS.filter(function (m) { return m.visto === false; }).forEach(function (m) { MOTOR.buzonVisto(m.id); m.visto = true; });
+    // 20-oct · mientras algún mensaje espera su respuesta, se vuelve a mirar cada pocos segundos (sin pisar lo que se esté escribiendo)
+    if (MIOS.some(pensando)) {
+      PENSANDO_HASTA = PENSANDO_HASTA || Date.now() + 120000;
+      if (Date.now() < PENSANDO_HASTA) setTimeout(function () {
+        var ta = app.querySelector("textarea");
+        if (ta && ta.value) return;
+        cargar().then(pintar);
+      }, 4000);
+    } else PENSANDO_HASTA = 0;
   }
   function cargar() {
     SIN_LEER = false;

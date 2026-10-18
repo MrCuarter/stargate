@@ -21,7 +21,7 @@
 
   var IMG = "assets/img/personajes/nebula.png";
   var MAX = 500;
-  var PLAZO = "en menos de 24 horas";
+  // 20-oct · sin plazo prometido: lo que tiene dato se contesta en el acto (el Intendente con datos) y lo demás lo mira el equipo
   var FRECUENTES = ["reto_registrar", "enlace_abre", "comprar", "no_presente", "evaluacion", "examen"];
   var NOMBRE_IR = { nave: "Ir a Mi nave", retos: "Ir a Retos", ruta: "Ir a la Ruta", simulador: "Ir al Simulador de Joran",
     botin: "Ir a tu Botín", "botin:cromos": "Ir a tus cromos", "botin:heroes": "Ir a tus héroes", "botin:insignias": "Ir a tus insignias",
@@ -260,6 +260,10 @@
     ".nbc-duda q{display:block;quotes:none;white-space:pre-wrap;overflow-wrap:anywhere}",
     ".nbc-est{display:inline-block;margin-top:4px;font-size:12px;font-weight:700;padding:1px 8px;border-radius:99px;border:1px solid #3a4d63;color:var(--nbc-apagado)}",
     ".nbc-est.si{border-color:#1b6b58;color:#7fe7c4}",
+    ".nbc-est.pensando{border-color:#1c6f7c;color:var(--nbc-cian)}",
+    ".nbc-pts i{display:inline-block;width:5px;height:5px;margin-left:3px;border-radius:50%;background:currentColor;animation:nbc-pts 1.2s infinite ease-in-out both}",
+    ".nbc-pts i:nth-child(2){animation-delay:.2s}.nbc-pts i:nth-child(3){animation-delay:.4s}",
+    "@keyframes nbc-pts{0%,80%,100%{opacity:.2}40%{opacity:1}}@media (prefers-reduced-motion:reduce){.nbc-pts i{animation:none;opacity:.7}}",
     ".nbc-resp{margin-top:6px;padding:6px 8px;border-left:3px solid var(--nbc-cian);background:#0c2530;white-space:pre-wrap;overflow-wrap:anywhere}",
     ".nbc-resp b{display:block;font-size:12px;color:var(--nbc-cian)}",
     ".nbc-resp a{color:var(--nbc-cian);text-decoration:underline}",
@@ -358,7 +362,7 @@
   function leerCola(per) { try { var c = JSON.parse(localStorage.getItem(claveCola(per)) || "[]"); return Array.isArray(c) ? c : []; } catch (e) { return []; } }
   function guardarCola(per, c) { try { if (c.length) localStorage.setItem(claveCola(per), JSON.stringify(c.slice(-10))); else localStorage.removeItem(claveCola(per)); } catch (e) { /* sin almacenamiento */ } }
 
-  var TXT_NADA = "Eso no lo tengo en mis registros. Se lo consulto a tu Comandante y te respondo aquí " + PLAZO + ".";
+  var TXT_NADA = "Eso no lo tengo en mis registros. Se lo consulto a tu Comandante y te respondo aquí mismo.";
 
   function montar(contenedor, opciones) {
     var raiz = typeof contenedor === "string" ? document.getElementById(contenedor) : contenedor;
@@ -600,7 +604,7 @@
     function alMando(q, cl, urls) {
       turnos.push({ r: "yo", t: q + (urls && urls.length ? (urls.length === 1 ? " (con una captura)" : " (con " + urls.length + " capturas)") : "") });
       empujar({ r: "nebula", k: "texto", t: cl === "idea" ? "Anotada tu idea, recluta: se la paso al Mando. Las ideas se leen todas, y las buenas acaban en tu Nave."
-        : "Recibido: se lo paso al Mando con tu alias. Te respondo aquí " + PLAZO + "." });
+        : "Recibido: se lo paso al Mando con tu alias. Te respondo aquí mismo." });
       enviarDuda(q, [], function () { guardar(per, turnos); pintar(); }, cl, urls);
     }
     // ── el buzón: enviar (solo al pulsar), la cola si falla, y «Tus dudas al Comandante»
@@ -615,7 +619,7 @@
         if (!M) throw new Error("sin motor");
         return M.buzonEnviar(carta);
       }).then(function () {
-        estado.textContent = (cl === "idea" ? "Idea enviada" : cl === "problema" ? "Problema enviado" : "Duda enviada") + ". Te respondo aquí " + PLAZO + ".";
+        estado.textContent = (cl === "idea" ? "Idea enviada" : cl === "problema" ? "Problema enviado" : "Duda enviada") + ". Te respondo aquí mismo.";
         fin(true); refrescar(true);
       }).catch(function () {
         var c = leerCola(per); c.push(carta); guardarCola(per, c);
@@ -641,7 +645,14 @@
         });
       }).catch(function () { if (avisar) estado.textContent = "Sigo sin poder enviarlas. Lo reintento más tarde."; });
     }
-    var dudas = [];
+    var dudas = [], pensandoHasta = 0;
+    // 20-oct · «NEBULA está pensando…»: el Intendente marca el mensaje (intendente.decision = "mirando") en cuanto lo recoge; recién
+    // enviado, aún sin marca, también; y a los 2 minutos se deja de esperar (la respuesta o la línea fija llegan solas con el refresco)
+    function pensando(m) {
+      if (!m || m.estado !== "nuevo" || respuestasMando(m).length || (m.respuestas || []).length) return false;
+      var i = m.intendente, t = Date.now();
+      return i ? i.decision === "mirando" && t - (Number(i.fecha) || 0) < 120000 : t - (Number(m.creado) || 0) < 20000;
+    }
     function pintarMias() {
       miasLista.innerHTML = "";
       if (!dudas.length) { mias.hidden = true; return; }
@@ -652,7 +663,9 @@
       dudas.forEach(function (m) {
         var li = el("li", "nbc-duda"), rs = respuestasMando(m);
         li.appendChild(el("q", null, m.texto || ""));
-        var est = el("span", "nbc-est" + (rs.length ? " si" : ""), rs.length ? "Respondida" : "Pendiente");
+        var pens = pensando(m);
+        var est = el("span", "nbc-est" + (rs.length ? " si" : pens ? " pensando" : ""), rs.length ? "Respondida" : pens ? "NEBULA está pensando" : "Pendiente");
+        if (pens) { var pts = el("span", "nbc-pts"); pts.setAttribute("aria-hidden", "true"); pts.innerHTML = "<i></i><i></i><i></i>"; est.appendChild(pts); est.setAttribute("role", "status"); }
         li.appendChild(est);
         if (m.creado) li.appendChild(document.createTextNode(" " + fechaCorta(m.creado)));
         rs.forEach(function (r) {
@@ -681,7 +694,14 @@
       if (!forzar && Date.now() - ultimoRefresco < 15000) return Promise.resolve();
       ultimoRefresco = Date.now();
       vaciarCola(false);
-      return misDudas(per).then(function (l) { if (l) { dudas = l; pintarMias(); } }).catch(function () { /* sin buzón */ });
+      return misDudas(per).then(function (l) {
+        if (l) { dudas = l; pintarMias(); }
+        // mientras alguna duda espera su respuesta, se vuelve a mirar cada pocos segundos (tope de 2 minutos desde que se empezó a esperar)
+        if (dudas.some(pensando)) {
+          pensandoHasta = pensandoHasta || Date.now() + 120000;
+          if (Date.now() < pensandoHasta) setTimeout(function () { refrescar(true); }, 4000);
+        } else pensandoHasta = 0;
+      }).catch(function () { /* sin buzón */ });
     }
 
     campo.addEventListener("input", function () { cuenta.textContent = campo.value.length + "/" + MAX; });
