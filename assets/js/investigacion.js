@@ -30,7 +30,9 @@
  *   GP.investigacion.consultar(M, per, ficha)        → Promise<{ investigacion } | null>   (nunca falla; null = no se enseña nada)
  *                                                      M = lo que llama al servidor: { llamar(nombre, datos) → Promise }
  *   GP.investigacion.participa(e) / decidido(e)      → acepta hoy / ha decidido alguna vez (aceptado o retirado)
- *   GP.investigacion.ofrecer(e, ficha)               → toca ofrecerla (no ha decidido y este navegador no la ha visto)
+ *   GP.investigacion.ofrecer(e, ficha)               → toca ofrecerla (no ha decidido, o aceptó un texto anterior, y este navegador no la
+ *                                                      ha visto con esta versión)
+ *   GP.investigacion.desactualizado(e)               → 18-oct · participa con una versión del texto distinta de la de esta página
  *   GP.investigacion.visto(ficha) / marcarVisto(ficha)
  *   GP.investigacion.panel(caja, o)                  → pinta el texto y los botones dentro de `caja` y los cablea.
  *        o = { M, per, ficha, estado, alCambiar(estado), alCerrar(), cerrar: 'Cerrar' | null }
@@ -53,7 +55,13 @@
   var clave = function (ficha) { return VISTO + ficha; };
   function visto(ficha) { try { return !!C && localStorage.getItem(clave(ficha)) === C.v; } catch (e) { return false; } }
   function marcarVisto(ficha) { try { if (C && ficha) localStorage.setItem(clave(ficha), C.v); } catch (e) { /* sin almacenamiento */ } }
-  function ofrecer(e, ficha) { return !!e && !decidido(e) && !visto(ficha); }
+  /**
+   * 18-oct · ¿Aceptó un texto anterior? (Norberto aprobó la codificación con IA: «inv-dpg-ia-2026-10» / «inv-ia-2026-10»). Solo cuenta
+   * una versión guardada y distinta de la de esta página: sin versión, como siempre. A quien aceptó la anterior se le vuelve a ofrecer
+   * UNA vez (lo visto se guarda con la versión) y el panel le deja aceptar la nueva; si no, sigue con la de antes.
+   */
+  function desactualizado(e) { return participa(e) && !!e.investigacion.version && e.investigacion.version !== (C && C.v); }
+  function ofrecer(e, ficha) { return !!e && (!decidido(e) || desactualizado(e)) && !visto(ficha); }
 
   /** ¿Participa? Nunca falla: con cualquier error (sin desplegar, sin la pieza, sin red) o si tarda, null = no se enseña nada. */
   function consultar(M, per, ficha, tope) {
@@ -88,7 +96,15 @@
       var si = participa(estado), inv = estado.investigacion || {};
       var html = '<h3 class="inv-tit">' + esc(C.titulo || "Investigación sobre el ticket de salida") + "</h3>"
         + '<div class="inv-texto">' + C.texto.map(function (p) { return "<p>" + p + "</p>"; }).join("") + "</div>";
-      if (si) {
+      if (desactualizado(estado)) {
+        // 18-oct · aceptó el texto anterior: lo de siempre sigue; puede aceptar el nuevo (la misma casilla) o dejarlo así
+        html += '<p class="inv-estado"><b>Participas</b>' + (fecha(inv.fecha) ? " desde el " + esc(fecha(inv.fecha)) : "")
+          + " con el texto anterior. <b>El texto ha cambiado</b>: léelo y, si te parece bien, acéptalo. Si no, sigues como hasta ahora.</p>"
+          + '<label class="inv-acepto"><input type="checkbox" data-inv="casilla"> <span>' + esc(C.acepto) + "</span></label>"
+          + (msg ? '<p class="inv-msg' + (mal ? " mal" : "") + '" role="status">' + msg + "</p>" : "")
+          + pie(boton("borrar", "Borrar mi código", "inv-peligro") + boton("retirar", "Retirarme") + boton("no", "Dejarlo así")
+            + boton("si", "Sí, acepto el nuevo", K.primario, true));
+      } else if (si) {
         html += '<p class="inv-estado"><b>Participas</b>' + (fecha(inv.fecha) ? " desde el " + esc(fecha(inv.fecha)) : "")
           + ": tus tickets llevan tu seudónimo.</p>"
           + (msg ? '<p class="inv-msg' + (mal ? " mal" : "") + '" role="status">' + msg + "</p>" : "")
@@ -145,11 +161,13 @@
           if (que === "si") {
             var casilla = caja.querySelector('[data-inv="casilla"]');
             if (!casilla || !casilla.checked) return;
+            var nuevo = desactualizado(estado);
             ocupado(b, "Guardando…");
             return llamar("modConsentimiento", { acepta: true, version: C.v }).then(function (r) {
               marcarVisto(o.ficha);
               cambia({ investigacion: (r && r.investigacion) || { acepta: true, version: C.v, fecha: Date.now() } });
-              hecho("<b>¡Gracias!</b> Desde ahora tus tickets llevan tu seudónimo. Puedes retirarte cuando quieras, aquí mismo.");
+              hecho(nuevo ? "<b>¡Gracias!</b> Queda aceptado el texto nuevo. Puedes retirarte cuando quieras, aquí mismo."
+                : "<b>¡Gracias!</b> Desde ahora tus tickets llevan tu seudónimo. Puedes retirarte cuando quieras, aquí mismo.");
             }, function (e) { leer("No se ha podido guardar: " + esc(limpio(e)) + " Vuelve a probar en un momento.", true); });
           }
           if (que === "retirar") {
@@ -205,7 +223,7 @@
     return { cerrar: cerrar };
   }
 
-  var api = { disponible: disponible, consultar: consultar, participa: participa, decidido: decidido, ofrecer: ofrecer,
+  var api = { disponible: disponible, consultar: consultar, participa: participa, decidido: decidido, desactualizado: desactualizado, ofrecer: ofrecer,
               visto: visto, marcarVisto: marcarVisto, panel: panel, ventana: ventana, version: C ? C.v : "" };
   GP.investigacion = api;
   // lo que ya usaba una web antes de que la pieza fuera común (STARGATE: window.SG.INV)

@@ -17,7 +17,8 @@ from _site_data import (GOOGLE_CLIENT_ID, RUTA, SALA_JORAN, DIRECTO, ASEDIO, JUE
                         HITOS_A_BORDO, CUBIERTAS_A_BORDO, HEROES_A_BORDO, CARTA_A_BORDO, BATALLA, SIN_PUA, VOTACION,
                         PLANETA_FIN, TRIPULANTES,
                         PRIVACIDAD_V, PRIVACIDAD_FECHA, PRIVACIDAD_CONTACTO, CONSENTIMIENTO_TEXTO, CONSENTIMIENTO_PIEL,
-                        INVESTIGACION_V, INVESTIGACION_TITULO, INVESTIGACION_TEXTO, INVESTIGACION_ACEPTO, INVESTIGACION_PIEL)
+                        INVESTIGACION_V, INVESTIGACION_TITULO, INVESTIGACION_TEXTO, INVESTIGACION_ACEPTO, INVESTIGACION_PIEL,
+                        PRIVACIDAD_PIDE, IA_TRANSPARENCIA)
 # Los logros de a bordo, tal y como los lee el navegador (un dato, un sitio: _site_data.py)
 _A_BORDO = {
     "cubiertas": [{"clave": c[0], "nombre": c[1], "sub": c[2], "premio": c[3]} for c in CUBIERTAS_A_BORDO],
@@ -3405,12 +3406,13 @@ borradores.</p>
 # se recoge, esto se cambia el mismo día.
 # 5-oct-2026 · con el CONSENTIMIENTO (Norberto, de baja: aprobado el 5-oct). La versión y la fecha salen de _site_data.py
 # (PRIVACIDAD_V): son las mismas que guarda el alistamiento con lo que se firma y las que mira la Nave para preguntar una vez.
-# 🔴 Aquí no se nombra ninguna herramienta concreta de inteligencia artificial: «herramientas de inteligencia artificial».
+# 18-oct · ya se nombra la IA que se usa (Claude, de Anthropic): Norberto lo aprobó y hay que contarla como encargado del tratamiento.
 _CONTACTO_A = '<a href="mailto:' + PRIVACIDAD_CONTACTO + '">' + PRIVACIDAD_CONTACTO + '</a>'
 _CONSENT_JSON = json.dumps({"v": PRIVACIDAD_V, "texto": CONSENTIMIENTO_TEXTO, "contacto": PRIVACIDAD_CONTACTO}, ensure_ascii=False)
 # 10-oct · y lo mismo con la piel, para la pieza común de la Nave (assets/js/consentimiento.js lee `window.GP_CONSENTIMIENTO`).
 # «</» se escapa: va dentro de un <script>.
-_CONSENT_PIEZA_JSON = json.dumps({"v": PRIVACIDAD_V, "texto": CONSENTIMIENTO_TEXTO, "contacto": PRIVACIDAD_CONTACTO, "enlace": "privacidad.html",
+# 18-oct · con `pide` (PRIVACIDAD_PIDE): la versión nueva se publica sin sacar la ventana a quien aceptó desde el 11-oct
+_CONSENT_PIEZA_JSON = json.dumps({"v": PRIVACIDAD_V, "pide": PRIVACIDAD_PIDE, "texto": CONSENTIMIENTO_TEXTO, "contacto": PRIVACIDAD_CONTACTO, "enlace": "privacidad.html",
                                   "piel": CONSENTIMIENTO_PIEL}, ensure_ascii=False).replace("</", "<\\/")
 # 7-oct · LA INVESTIGACIÓN DEL TICKET (voluntaria y aparte): su texto y su versión, para la Nave y el ticket
 # (assets/js/investigacion.js). «</» se escapa: va dentro de un <script>. 10-oct · la pieza es del motor (GamificaPro
@@ -3440,12 +3442,13 @@ universidad ofrece a su alumnado.</p>
 Protección de Datos). Al alistarte marcas una casilla que dice:</p>
 <p class="small"><i>«''' + CONSENTIMIENTO_TEXTO + '''»</i></p>
 <p>Ese consentimiento cubre usar STARGATE y que tus datos se usen, sin tu nombre, en la investigación del punto 9.</p>
-<p>Se guarda que lo aceptaste, cuándo y la versión de esta página que aceptaste. Quien ya estaba
-alistado antes de esta versión lo confirma una vez, la próxima vez que entra en su Nave.</p>
+<p>Se guarda que lo aceptaste, cuándo y la versión de esta página que aceptaste. Quien se alistó antes de
+la versión del 11 de octubre de 2026 lo confirma una vez, la próxima vez que entra en su Nave; los cambios
+de esta versión no hace falta volver a aceptarlos.</p>
 <p><b>Es voluntario:</b> si prefieres no usar STARGATE, díselo a tu docente y se acuerda otra forma de
 seguir la asignatura. Y puedes retirar el consentimiento cuando quieras (punto 10); retirarlo no
 afecta a lo que se hizo antes.</p>
-<p>La <b>investigación del ticket de salida</b> lleva su propio consentimiento, aparte y voluntario (punto 8).</p>
+<p>La <b>investigación</b> (el ticket de salida con seudónimo y el análisis de tus textos) lleva su propio consentimiento, aparte y voluntario (punto 8).</p>
 
 <h2>3 · Qué datos se recogen</h2>
 <p>Solo lo necesario para que el juego funcione.</p>
@@ -3498,9 +3501,10 @@ automáticos al alumnado.</p>
 <li>Si NEBULA no sabe la respuesta y pulsas <b>«Enviar mi duda»</b>, tu mensaje llega al buzón del equipo
   docente con tu alias, tu grupo y el correo de tu cuenta (para saber que es tuyo). La respuesta te
   aparece en tu chat.</li>
-<li>El equipo docente prepara las respuestas <b>con ayuda de herramientas de inteligencia artificial,
-  siempre bajo supervisión humana</b>. Por eso tu mensaje y los datos que lo acompañan pueden ser tratados
-  por el proveedor de esa herramienta. <b>No escribas en tus dudas datos personales que no hagan falta.</b></li>
+<li>Las respuestas las prepara <b>NEBULA, la asistente de IA de la Nave (Claude, de Anthropic)</b>, con la
+  información comprobada de la plataforma; lo que pide cambiar algo, las quejas y lo que no sabe se lo pasa a
+  una persona del equipo docente, que lo contesta. Tu mensaje y los datos que lo acompañan pueden ser tratados
+  por ese proveedor (punto 6). <b>No escribas en tus dudas datos personales que no hagan falta.</b></li>
 </ul>
 
 <h2>6 · Dónde se guardan y quién presta el servicio</h2>
@@ -3520,8 +3524,13 @@ automáticos al alumnado.</p>
 <li>Los vídeos de YouTube se insertan en su <b>modo de privacidad mejorada</b>.</li>
 <li><b>Transferencias internacionales.</b> Google puede tratar datos fuera del Espacio Económico Europeo;
   cuando lo hace, se ampara en las <b>cláusulas contractuales tipo</b> aprobadas por la Comisión Europea,
-  que forman parte de sus condiciones de tratamiento de datos. Lo mismo puede ocurrir con el proveedor de
-  las herramientas de inteligencia artificial del punto 5, con las garantías que ofrezca ese proveedor.</li>
+  que forman parte de sus condiciones de tratamiento de datos.</li>
+<li><b>Anthropic</b> (Anthropic, PBC, en Estados Unidos) presta la inteligencia artificial de los puntos 5 y 8
+  como <b>encargado del tratamiento</b>, con sus condiciones comerciales: <b>no usa lo que recibe para entrenar
+  sus modelos</b> y conserva lo que recibe y lo que devuelve <b>como mucho 30 días</b>, salvo lo que necesite
+  guardar más tiempo por la seguridad del servicio. Sus servidores están en <b>Estados Unidos</b>: es una
+  <b>transferencia internacional</b>, amparada en las <b>cláusulas contractuales tipo</b> de la Comisión Europea
+  que forman parte de su acuerdo de tratamiento de datos.</li>
 </ul>
 
 <h2>7 · Quién puede verlos</h2>
@@ -3531,20 +3540,28 @@ automáticos al alumnado.</p>
 <li><img class=ico src=assets/img/iconos/p/candado.png alt> <b>El tablero público de clase enseña SOLO tu alias</b>, tu avatar y tus puntos. Nunca tu
   correo ni tu nombre real, ni siquiera si el docente comparte pantalla. Está construido así a
   propósito: esos datos no salen del servidor.</li>
-<li><b>Si participas en la investigación del ticket</b>, solo el investigador puede saber qué seudónimo
+<li><b>Si participas en la investigación</b>, solo el investigador puede saber qué seudónimo
   es tuyo (punto 8).</li>
-<li><b>Nadie más</b>, fuera de los proveedores de servicio de los puntos 5 y 6. No se venden, no se ceden,
+<li><b>Nadie más</b>, fuera de los proveedores de servicio de los puntos 5, 6 y 8. No se venden, no se ceden,
   no se usan para publicidad y no hay analítica ni rastreo de terceros en esta web.</li>
 </ul>
 
-<h2>8 · La investigación del ticket de salida (voluntaria)</h2>
+<h2>8 · La investigación (voluntaria)</h2>
 <p><b>Norberto Cuartero</b>, docente del máster, investiga para su tesis doctoral y para publicaciones
 científicas cómo evoluciona la opinión del alumnado a lo largo de un curso gamificado. Participar es
 <b>aparte y voluntario</b>: se te pregunta en tu Nave y en la página del ticket, y la casilla no viene marcada.</p>
 <ul>
-<li><b>Qué se trata.</b> Tus respuestas al ticket de salida, las mismas de siempre, y un <b>seudónimo</b>: un
+<li><b>Qué se trata.</b> Tus respuestas al ticket de salida, las mismas de siempre, con un <b>seudónimo</b>: un
   código que es siempre el mismo para ti en STARGATE. No contiene tu nombre ni tu correo, y no se puede
-  deshacer sin una clave secreta que custodia el investigador. No se recoge ningún dato nuevo.</li>
+  deshacer sin una clave secreta que custodia el investigador. Y, con ese mismo código, <b>lo que escribes en
+  STARGATE</b>: las reflexiones de tus retos, tus comentarios a las de otras personas y las respuestas
+  abiertas del ticket. No se recoge ningún dato nuevo.</li>
+<li><b>Con ayuda de inteligencia artificial.</b> Ese análisis lo hace cada noche la <b>inteligencia artificial
+  Claude, de Anthropic</b> (en Estados Unidos, con cláusulas contractuales tipo; no usa lo que recibe para
+  entrenar sus modelos): etiqueta cada texto con temas como la motivación, la dificultad o la utilidad para tu
+  aula. <b>Antes de enviarlo se borran tu nombre, los de tu grupo, correos, teléfonos y documentos</b>, y no se
+  envía quién lo escribió. El resultado no lo ve tu Comandante ni nadie de la clase, y <b>no cambia tu nota, tu
+  xp ni tus créditos</b>. No pongas en tus textos datos personales que no hagan falta.</li>
 <li><b>Para qué.</b> Solo investigación educativa: resultados de conjunto o con seudónimo, <b>nunca</b> con tu
   nombre ni con nada que te identifique. Si se citara una frase tuya, se quitaría antes lo que pudiera
   reconocerte.</li>
@@ -3556,8 +3573,9 @@ científicas cómo evoluciona la opinión del alumnado a lo largo de un curso ga
   conservan mientras sirvan a la investigación. Si pides que se borre lo tuyo, se borran también tu
   seudónimo y tu consentimiento.</li>
 <li><b>Cómo retirarlo.</b> Cuando quieras y sin dar explicaciones, en tu Nave o en la página del ticket:
-  desde ese momento tus tickets dejan de llevar el código. Con <b>«Borrar mi código»</b> se quita también de
-  todo lo que ya enviaste, en todos tus grupos de STARGATE.</li>
+  desde ese momento tus tickets dejan de llevar el código y no se analiza nada más tuyo. Con
+  <b>«Borrar mi código»</b> se quita también de todo lo que ya enviaste, en todos tus grupos de STARGATE, y
+  se borra el análisis de tus textos.</li>
 <li><b>No cambia nada más:</b> ni tu nota, ni tu xp, ni tus créditos, ni el premio del ticket.</li>
 <li>Para cualquier duda: ''' + _CONTACTO_A + '''.</li>
 </ul>
@@ -4282,7 +4300,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_RETOS_TIPO={json.dumps(RETOS_TIPO, ensure_ascii=False)};window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(_ACT_NAVE, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_RUTA={json.dumps(RUTA, ensure_ascii=False)};window.SG_SALA_JORAN={json.dumps(SALA_JORAN, ensure_ascii=False)};window.SG_DIRECTO={json.dumps(DIRECTO, ensure_ascii=False)};window.SG_ASEDIO={json.dumps(ASEDIO, ensure_ascii=False)};window.SG_JUEGOS={json.dumps(JUEGOS)};window.SG_CONSENTIMIENTO={_CONSENT_JSON};</script>
+<script>window.SG_RETOS_TIPO={json.dumps(RETOS_TIPO, ensure_ascii=False)};window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(_ACT_NAVE, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_RUTA={json.dumps(RUTA, ensure_ascii=False)};window.SG_SALA_JORAN={json.dumps(SALA_JORAN, ensure_ascii=False)};window.SG_DIRECTO={json.dumps(DIRECTO, ensure_ascii=False)};window.SG_ASEDIO={json.dumps(ASEDIO, ensure_ascii=False)};window.SG_JUEGOS={json.dumps(JUEGOS)};window.SG_CONSENTIMIENTO={_CONSENT_JSON};window.SG_IA_TRANSPARENCIA={json.dumps(IA_TRANSPARENCIA, ensure_ascii=False)};</script>
 <script src="assets/js/secreto.js" defer></script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sobre.js" defer></script>

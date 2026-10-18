@@ -25,26 +25,37 @@ const sinEtiquetas = (t) => t.replace(/<[^>]+>/g, "");
 
 console.log("\n  · El texto aprobado, un dato y un sitio");
 const C = sacar(NAVE), C2 = sacar(TKH);
-c(C.v === "inv-2026-10", "la versión del texto es inv-2026-10 (la que se guarda con el sí)", C.v);
+// 18-oct · el texto nuevo (con la codificación con IA, aprobado por Norberto): versión nueva
+c(C.v === "inv-ia-2026-10", "la versión del texto es inv-ia-2026-10 (la que se guarda con el sí)", C.v);
 c(JSON.stringify(C) === JSON.stringify(C2), "🔴 la Nave y el ticket llevan EL MISMO texto y la misma versión");
 const todo = sinEtiquetas(C.texto.join(" "));
 [
   "Norberto Cuartero, docente de este máster, investiga para su tesis doctoral y para publicaciones científicas",
-  "Nada nuevo: tus respuestas al ticket se guardan como hasta ahora.",
+  "Nada nuevo. Si aceptas, tus respuestas al ticket llevan un seudónimo",
+  "Ese análisis lo hace cada noche la inteligencia artificial Claude, de Anthropic",
   "no se puede deshacer sin una clave secreta que custodia el investigador",
-  "Nunca con tu nombre ni con nada que te identifique.",
+  "nunca con tu nombre ni con nada que te identifique.",
   "Solo el investigador, con la clave.",
   "Cada vez que la usa queda registrado: cuándo y de qué grupo.",
   "No afecta a tu nota, ni a tu xp, ni a tus créditos, ni al premio del ticket: la cápsula te toca igual.",
-  "Puedes retirarlo cuando quieras, en tu Nave o en la página del ticket.",
-  "pulsa «Borrar mi código» en el mismo sitio: se quita de todos tus tickets de STARGATE.",
+  "Puedes retirarlo cuando quieras, en tu Nave o en la página del ticket",
+  "Con «Borrar mi código» se quita además el código de todo lo que ya enviaste, en todos tus grupos de STARGATE",
   "n.cuartero.10@gmail.com",
 ].forEach((f) => c(todo.indexOf(f) >= 0, "   dice: «" + f.slice(0, 70) + (f.length > 70 ? "…" : "") + "»"));
-c(C.acepto === "Acepto que mis tickets de salida lleven un seudónimo para esta investigación, en estas condiciones.", "   y la casilla dice lo aprobado");
-c(C.titulo === "Investigación sobre el ticket de salida · voluntaria", "   con su título");
+c(C.acepto === "Acepto que mis tickets lleven un seudónimo y que mis textos de STARGATE se analicen con ayuda de IA para esta investigación, en estas condiciones.", "   y la casilla dice lo aprobado");
+c(C.titulo === "Investigación sobre el curso · voluntaria", "   con su título");
 c(/<script>window\.GP_INVESTIGACION=\{.*?\};<\/script><script src="assets\/js\/investigacion\.js(\?v=\w+)?" defer><\/script>\s*<script src="assets\/js\/recluta\.js/.test(NAVE),
   "la Nave carga investigacion.js antes que recluta.js");
 c(TKH.indexOf("assets/js/investigacion.js") > 0 && TKH.indexOf("assets/js/investigacion.js") < TKH.indexOf("assets/js/ticket.js"), "   y el ticket, antes que ticket.js");
+
+// 18-oct · la transparencia del Reglamento europeo de IA (art. 50): una línea fija y discreta al pie del chat de NEBULA, la del motor
+{
+  const t = JSON.parse((NAVE.match(/window\.SG_IA_TRANSPARENCIA=("[^"]*")/) || [])[1] || '""');
+  c(t === "NEBULA es la asistente de IA de la Nave; si algo no te cuadra, escribe y lo verá una persona.", "🔴 la línea de transparencia de NEBULA, en la Nave", t);
+  const gp = [process.env.GAMIFICAPRO_DIR, path.join(__dirname, "..", "..", "..", "gamificapro")].filter(Boolean).map((d) => path.join(d, "functions", "mods", "stargate.js")).find((f) => fs.existsSync(f));
+  if (gp) c((fs.readFileSync(gp, "utf8").match(/transparencia: '([^']+)'/) || [])[1] === t, "   la misma que GamificaPro functions/mods/stargate.js → ia.transparencia");
+  c(/if \(W\.SG_IA_TRANSPARENCIA\) pie\.appendChild\(el\("p", "nbc-ia"/.test(L("assets/js/nebula-chat.js")), "   el chat la pinta al pie, una vez");
+}
 
 console.log("\n  · Donde decía «anónimo», la verdad");
 const desc = (TKH.match(/<meta name="description" content="([^"]*)"/) || [])[1], og = (TKH.match(/<meta property="og:description" content="([^"]*)"/) || [])[1];
@@ -54,12 +65,15 @@ c(!/an[óo]nim/i.test(TKH.replace(/<script[\s\S]*?<\/script>/g, "")) && !/an[óo
 c(/Tu nombre no se guarda con lo que contestes\. ' *\n?\s*\+ 'Si participas en la investigación \(voluntaria\), tu ticket lleva un seudónimo\./.test(TK), "   la puerta del ticket: «Tu nombre no se guarda… Si participas…, un seudónimo»");
 // 7-oct subió a 2026-10-07 con la investigación; 10-oct (Norberto: los datos se conservan para su investigación educativa) vuelve a subir,
 // a 2026-10-11, y se vuelve a preguntar una vez: lo que se comprueba es la versión vigente, no la de entonces.
-c(/PRIVACIDAD_V = "2026-10-11"/.test(DATOS) && PRIV.indexOf("Versión 2026-10-11") > 0, "🔴 la política sube de versión (se vuelve a preguntar una vez el consentimiento general)");
-c(JSON.parse(NAVE.match(/window\.SG_CONSENTIMIENTO=(\{.*?\});/)[1]).v === "2026-10-11", "   y la Nave pregunta por la nueva");
+// 18-oct · sube a 2026-10-18 (la IA aprobada) SIN volver a preguntar: la pieza común lleva `pide` = 2026-10-11 (lo que se manda del
+// alumnado no cambia hasta Navidad)
+c(/PRIVACIDAD_V = "2026-10-18"/.test(DATOS) && PRIV.indexOf("Versión 2026-10-18") > 0, "🔴 la política sube de versión");
+c(JSON.parse(NAVE.match(/window\.SG_CONSENTIMIENTO=(\{.*?\});/)[1]).v === "2026-10-18", "   y quien se aliste firma la nueva");
+c(JSON.parse(NAVE.match(/window\.GP_CONSENTIMIENTO=(\{.*?\});<\/script>/)[1]).pide === "2026-10-11", "🔴 pero a quien aceptó desde el 11-oct no se le vuelve a preguntar (pide)");
 c(/no se borran al terminar el curso: se conservan mientras sirvan a esa investigación/.test(PRIV.replace(/<\/?b>/g, "").replace(/\s+/g, " ")) && !/se archiva, y se borra/.test(PRIV.replace(/\s+/g, " ")), "🔴 punto 9: los datos se conservan mientras sirvan a la investigación (ya no se borran al acabar el curso)");
 c(!/Son anónimos/.test(PRIV) && /No llevan tu nombre\.<\/b> Si aceptas la investigación \(voluntaria\), llevan un seudónimo/.test(PRIV), "   los tickets en la política: «No llevan tu nombre. Si aceptas…, un seudónimo»");
 c(!/son anónimos y se guardan/.test(PRIV) && /no llevan tu nombre y se guardan en la propia plataforma/.test(PRIV), "   y en la lista de proveedores, lo mismo");
-c(/<h2>8 · La investigación del ticket de salida \(voluntaria\)<\/h2>/.test(PRIV) && /6\.1\.a del RGPD/.test(PRIV) && /se\s+conservan mientras sirvan a la investigación/.test(PRIV) && !/cinco años/.test(PRIV)
+c(/<h2>8 · La investigación \(voluntaria\)<\/h2>/.test(PRIV) && /Con ayuda de inteligencia artificial/.test(PRIV) && /6\.1\.a del RGPD/.test(PRIV) && /se\s+conservan mientras sirvan a la investigación/.test(PRIV) && !/cinco años/.test(PRIV)
   && /«Borrar mi código»/.test(PRIV), "🔴 la política tiene su apartado: finalidad, base, quién, cuánto tiempo y cómo retirarlo");
 c(/<h2>9 · Cuánto tiempo<\/h2>/.test(PRIV) && /<h2>10 · Tus derechos/.test(PRIV) && /<h2>11 · Si esto cambia/.test(PRIV) && /cuando quieras \(punto 10\)/.test(PRIV), "   y la numeración (y su «punto 10») sigue cuadrando");
 c(/el <b>ticket de salida<\/b>: sin tu nombre, para decir algo positivo que te llevas/.test(L("guia-recluta.html")), "   la guía del recluta: «sin tu nombre»");
@@ -129,7 +143,8 @@ const errorFirebase = (code, message) => Object.assign(new Error(message), { cod
   console.log("\n  · Se ofrece una vez, y no aparece si ya se respondió");
   ({ I } = cargarINV());
   c(I.ofrecer({ investigacion: null }, "F1") === true, "🔴 no ha decidido nada: se le ofrece");
-  c(I.ofrecer({ investigacion: { acepta: true, version: "inv-2026-10", fecha: 1 } }, "F1") === false, "🔴 ya aceptó: no se le vuelve a ofrecer");
+  c(I.ofrecer({ investigacion: { acepta: true, version: "inv-ia-2026-10", fecha: 1 } }, "F1") === false, "🔴 ya aceptó: no se le vuelve a ofrecer");
+  c(I.ofrecer({ investigacion: { acepta: true, version: "inv-2026-10", fecha: 1 } }, "F3") === true, "🔴 18-oct · aceptó el texto anterior: se le ofrece el nuevo (una vez)");
   c(I.ofrecer({ investigacion: { acepta: false, fecha: 1 } }, "F1") === false, "🔴 ya se retiró: tampoco");
   c(I.ofrecer(null, "F1") === false, "   sin servidor: nada");
   I.marcarVisto("F1");
@@ -155,7 +170,7 @@ const errorFirebase = (code, message) => Object.assign(new Error(message), { cod
   caja.querySelector('[data-inv="casilla"]').checked = true; caja.querySelector('[data-inv="casilla"]').onchange();
   c(caja.querySelector('[data-inv="si"]').disabled === false, "marcada, «Sí, participo» se enciende");
   caja.pulsa("si"); await espera();
-  c(JSON.stringify(M.llamadas.pop()) === JSON.stringify(["modConsentimiento", { projectId: "per-1", studentProfileId: "F1", acepta: true, version: "inv-2026-10" }]),
+  c(JSON.stringify(M.llamadas.pop()) === JSON.stringify(["modConsentimiento", { projectId: "per-1", studentProfileId: "F1", acepta: true, version: "inv-ia-2026-10" }]),
     "🔴 al aceptar, manda SU ficha, acepta: true y la versión del texto que ha leído");
   c(cambios.length === 1 && I.participa(cambios[0]) && /tus tickets llevan tu seudónimo/.test(caja.texto()), "   y desde ahí, participa (y se le dice)");
 
@@ -205,8 +220,10 @@ const errorFirebase = (code, message) => Object.assign(new Error(message), { cod
     "🔴 recluta que no ha decidido: la tarjeta «¿Nos ayudas a investigar?», que se puede cerrar");
   c(!/sgp-capa|aria-modal/.test(r.oferta), "🔴 es una tarjeta en la Nave, NUNCA una ventana obligatoria al entrar");
   c(/no has decidido/.test(r.linea) && /Leer y decidir/.test(r.linea), "   y al pie, su línea: «no has decidido · Leer y decidir»");
-  r = await nave({ inv: { acepta: true, version: "inv-2026-10", fecha: 1 } });
+  r = await nave({ inv: { acepta: true, version: "inv-ia-2026-10", fecha: 1 } });
   c(r.oferta === "" && /<b>participas<\/b>/.test(r.linea) && /Cambiar/.test(r.linea), "🔴 ya aceptó: no hay tarjeta; la línea dice «participas · Cambiar»");
+  r = await nave({ inv: { acepta: true, version: "inv-2026-10", fecha: 1 } });
+  c(/¿Nos ayudas a investigar\?/.test(r.oferta) && /<b>participas<\/b>/.test(r.linea), "🔴 18-oct · aceptó el texto anterior: la tarjeta de siempre, una vez, para leer el nuevo");
   r = await nave({ inv: { acepta: false, fecha: 1 } });
   c(r.oferta === "" && /<b>no participas<\/b>/.test(r.linea), "🔴 ya dijo que no (o se retiró): no hay tarjeta; «no participas · Cambiar»");
   r = await nave({ visto: true });

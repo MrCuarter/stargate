@@ -6,7 +6,8 @@
  * como STARGATE»). Es la misma, letra por letra, con lo propio de cada mod por configuración: cada web la copia en su build
  * (assets/js/consentimiento.js, con `guardas.copiar_pieza`) y NO se edita allí: aquí. Lo que la web pone delante (del build):
  *
- *   window.GP_CONSENTIMIENTO = { v: la versión de la política publicada («2026-10-07»), texto: lo que se acepta (lleva
+ *   window.GP_CONSENTIMIENTO = { v: la versión de la política publicada («2026-10-07»), pide?: la más antigua que vale sin volver a
+ *     preguntar (18-oct; sin ella, solo `v`), texto: lo que se acepta (lleva
  *     «política de privacidad», que se convierte en el enlace), contacto: el correo para dejarlo, enlace: «privacidad.html»,
  *     piel: { no: el prefijo de «ya dijo que no en esta visita» en sessionStorage («sgConsNo_»),
  *             clases: { capa, caja, quien, txt, pie, boton, primario },
@@ -21,7 +22,7 @@
  * y `guardar(firma)` (merge, sin pisar nombre, correo ni nada más).
  *
  *   GP.consentimiento.disponible()   → hay versión y texto en esta página
- *   GP.consentimiento.aceptado(dat)  → lo privado de la ficha lleva el sí a ESTA versión
+ *   GP.consentimiento.aceptado(dat)  → lo privado de la ficha lleva el sí a ESTA versión (o, con `pide`, a una desde `pide`)
  *   GP.consentimiento.firma()        → { v, t: ahora }: lo que se guarda al aceptar (y al alistarse)
  *   GP.consentimiento.textoHtml()    → el texto que se acepta, con «política de privacidad» enlazada (otra pestaña)
  *   GP.consentimiento.pedir(o)       → pregunta si hace falta y, si no, sigue. o = { per, ficha, excluir, leer(), guardar(firma),
@@ -59,7 +60,13 @@
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
 
   function disponible() { return !!(C && C.v && C.texto); }
-  function aceptado(dat) { return !!(C && dat && dat.consentimiento && dat.consentimiento.v === C.v); }
+  // 18-oct · `pide` (opcional): la versión más antigua que vale. Una política que cambia en algo que no hay que volver a aceptar se
+  // publica con su versión nueva (lo que se firma desde hoy) sin sacar la ventana a quien aceptó desde `pide` (STARGATE, 18-oct)
+  function aceptado(dat) {
+    var v = C && dat && dat.consentimiento && dat.consentimiento.v;
+    if (!v) return false;
+    return C.pide ? String(v) >= String(C.pide) : v === C.v;
+  }
   function firma() { return { v: C ? C.v : "", t: Date.now() }; }
   function textoHtml() {
     return esc((C && C.texto) || "").replace("política de privacidad",

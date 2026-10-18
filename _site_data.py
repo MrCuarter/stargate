@@ -219,8 +219,13 @@ PLANTILLA_EPORTFOLIO = "https://view.genially.com/695f825d05cc22f3f7fac45b"
 # 11-oct · sube otra vez (Norberto, 10-oct): los datos NO se borran al terminar el curso, se conservan mientras sirvan a su
 # investigación educativa (tesis y artículos), y la casilla lo dice. Como cambia lo que se acepta, a cada recluta le sale UNA vez la
 # ventana de aceptar (la pieza común, GamificaPro sdk/consentimiento.js).
-PRIVACIDAD_V = "2026-10-11"
-PRIVACIDAD_FECHA = "11 de octubre de 2026"
+# 18-oct · NORBERTO APRUEBA LA IA («ACEPTO LA PRIVACIDAD»; GamificaPro docs/PRIVACIDAD_IA_STARGATE_PROPUESTA.md): los puntos 5 (NEBULA
+# contesta el buzón), 6 (Anthropic como encargado), 7 y 8 (la investigación con IA, voluntaria y aparte). Versión nueva, pero SIN volver a
+# pedir el sí: lo que se manda del alumnado no cambia (L1 y el Vigía siguen apagados hasta Navidad). `PRIVACIDAD_PIDE`: la más antigua
+# que vale sin preguntar (GamificaPro sdk/consentimiento.js → `pide`); quien se aliste desde hoy firma la nueva.
+PRIVACIDAD_V = "2026-10-18"
+PRIVACIDAD_FECHA = "18 de octubre de 2026"
+PRIVACIDAD_PIDE = "2026-10-11"
 PRIVACIDAD_CONTACTO = "n.cuartero.10@gmail.com"
 CONSENTIMIENTO_TEXTO = ("He leído la política de privacidad y acepto participar en STARGATE y que mis datos se usen, sin mi nombre, "
                         "para investigación educativa. Es voluntario: puedo dejarlo y pedir que se borren mis datos cuando quiera.")
@@ -252,29 +257,40 @@ CONSENTIMIENTO_PIEL = {
 # ni los créditos, ni el premio del ticket. Quien acepta, sus tickets llevan un seudónimo (lo calcula el servidor de
 # GamificaPro con un secreto: `modConsentimiento`, `modOlvidarSeudonimo`; docs/INVESTIGACION_TICKET.md, §5). La versión es
 # la del texto que se enseña y se guarda con el sí. Si el texto cambia, cambia la versión (y lo decide el comité de ética).
-INVESTIGACION_V = "inv-2026-10"
-INVESTIGACION_TITULO = "Investigación sobre el ticket de salida · voluntaria"
+# 18-oct · NORBERTO LO APRUEBA: el texto del §4 de GamificaPro docs/INVESTIGACION_IA.md, con la piel de STARGATE (la codificación con IA).
+# Versión nueva: quien aceptó «inv-2026-10» sigue igual y se le ofrece UNA vez el nuevo, con la tarjeta de siempre (sdk/investigacion.js →
+# desactualizado). Solo quien acepta ESTA versión entra en la codificación (GamificaPro functions/mods/stargate.js → INVESTIGACION.ia.versiones).
+INVESTIGACION_V = "inv-ia-2026-10"
+INVESTIGACION_TITULO = "Investigación sobre el curso · voluntaria"
 INVESTIGACION_TEXTO = [
     "Norberto Cuartero, docente de este máster, investiga para su tesis doctoral y para publicaciones científicas cómo "
-    "evoluciona la opinión del alumnado a lo largo de un curso gamificado. Para eso le ayudaría saber que el ticket del tema 1 "
-    "y el del tema 5 son <b>de la misma persona</b>, aunque no sepa quién es.",
-    "<b>Qué se recoge.</b> Nada nuevo: tus respuestas al ticket se guardan como hasta ahora. Si aceptas, cada una lleva además "
-    "un <b>seudónimo</b>, un código que es siempre el mismo para ti en STARGATE. El código no contiene tu nombre ni tu correo, "
-    "y no se puede deshacer sin una clave secreta que custodia el investigador.",
-    "<b>Para qué.</b> Solo para investigación educativa: estudiar cómo cambian las respuestas a lo largo del curso y publicar "
-    "resultados de conjunto o con seudónimo. <b>Nunca</b> con tu nombre ni con nada que te identifique. Si alguna vez se citara "
-    "una frase tuya, se quitaría antes lo que pudiera reconocerte.",
+    "evoluciona la experiencia del alumnado a lo largo de un curso gamificado.",
+    "<b>Qué se recoge.</b> Nada nuevo. Si aceptas, tus respuestas al ticket llevan un <b>seudónimo</b>, un código que es siempre el "
+    "mismo para ti en STARGATE, y <b>lo que escribes en STARGATE</b> (las reflexiones de tus retos, tus comentarios a las de otras "
+    "personas y las respuestas abiertas del ticket) se analiza para la investigación con ese mismo código. El código no contiene tu nombre ni tu correo, y no se puede "
+    "deshacer sin una clave secreta que custodia el investigador.",
+    "<b>Con ayuda de inteligencia artificial.</b> Ese análisis lo hace cada noche la <b>inteligencia artificial Claude, de "
+    "Anthropic</b> (en Estados Unidos, con cláusulas contractuales tipo; no usa lo que recibe para entrenar sus modelos): etiqueta "
+    "cada texto con temas como la motivación, la dificultad o la utilidad para tu aula. <b>Antes de enviarlo se borran tu nombre, "
+    "los de tu grupo, correos, teléfonos y documentos</b>, y no se envía quién lo escribió. El resultado no lo ve tu Comandante ni "
+    "nadie de la clase, y <b>no cambia tu nota, tu xp ni tus créditos</b>. No pongas en tus textos datos personales que no hagan falta.",
+    "<b>Para qué.</b> Solo para investigación educativa: resultados de conjunto o con seudónimo, <b>nunca</b> con tu nombre ni con "
+    "nada que te identifique. Si alguna vez se citara una frase tuya, se quitaría antes lo que pudiera reconocerte.",
     "<b>Quién puede saber que un código es tuyo.</b> Solo el investigador, con la clave. "
     "Cada vez que la usa queda registrado: cuándo y de qué grupo. Tu Comandante y el resto del profesorado "
     "siguen viendo las respuestas sin nombre, como siempre. Tus compañeros, nunca.",
-    "<b>Es voluntario.</b> Si no aceptas, tu ticket se guarda igual que siempre, sin código. <b>No afecta a tu nota</b>, ni a tu "
-    "xp, ni a tus créditos, ni al premio del ticket: la cápsula te toca igual.",
-    "<b>Puedes retirarlo cuando quieras</b>, en tu Nave o en la página del ticket. Desde ese momento tus tickets dejan de llevar "
-    "el código y la clave deja de nombrarte. Si además quieres que se quite el código de lo que ya enviaste, pulsa <b>«Borrar mi "
-    "código»</b> en el mismo sitio: se quita de todos tus tickets de STARGATE. Si algo no va, escribe a "
+    "<b>Es voluntario.</b> Si no aceptas, todo sigue igual: tus textos no se analizan y tu ticket se guarda sin código. <b>No "
+    "afecta a tu nota</b>, ni a tu xp, ni a tus créditos, ni al premio del ticket: la cápsula te toca igual.",
+    "<b>Puedes retirarlo cuando quieras</b>, en tu Nave o en la página del ticket: desde ese momento no se analiza nada más tuyo y "
+    "tus tickets dejan de llevar el código. Con <b>«Borrar mi código»</b> se quita además el código de todo lo que ya enviaste, en "
+    "todos tus grupos de STARGATE, y se borra el análisis de tus textos. Si algo no va, escribe a "
     + PRIVACIDAD_CONTACTO + ".",
 ]
-INVESTIGACION_ACEPTO = "Acepto que mis tickets de salida lleven un seudónimo para esta investigación, en estas condiciones."
+INVESTIGACION_ACEPTO = ("Acepto que mis tickets lleven un seudónimo y que mis textos de STARGATE se analicen con ayuda de IA para "
+                        "esta investigación, en estas condiciones.")
+# 18-oct · LA TRANSPARENCIA DEL REGLAMENTO EUROPEO DE IA (art. 50.1): una línea fija y discreta en el chat de NEBULA, no en cada mensaje.
+# Es LA de GamificaPro functions/mods/stargate.js → ia.transparencia (la batería lo compara).
+IA_TRANSPARENCIA = "NEBULA es la asistente de IA de la Nave; si algo no te cuadra, escribe y lo verá una persona."
 # 10-oct · LA PIEL de la pieza común (GamificaPro sdk/investigacion.js, que el build copia como assets/js/investigacion.js; hasta
 # hoy era de esta web): lo que ya se veía, tal cual. `visto`, la clave de lo ya ofrecido en el navegador (la de siempre: nadie ve
 # la tarjeta otra vez); `alias`, el nombre que usan recluta.js y ticket.js (SG.INV); las clases y los dos textos de STARGATE.

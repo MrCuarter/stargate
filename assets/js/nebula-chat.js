@@ -294,6 +294,7 @@
     ".nbc-adj label{display:inline-flex;align-items:center;min-height:36px;padding:6px 12px;border-radius:99px;border:1px solid var(--nbc-cian);color:var(--nbc-cian);font-size:14px;cursor:pointer}",
     ".nbc-adj label:focus-within{outline:2px solid var(--nbc-texto);outline-offset:2px}",
     ".nbc-adj span.nbc-pista{font-size:12px;color:var(--nbc-apagado)}",
+    ".nbc-ia{margin:8px 0 0;font-size:14px;line-height:1.35;color:var(--nbc-apagado)}",
     ".nbc-mini{position:relative;width:56px;height:56px;border-radius:8px;overflow:hidden;border:1px solid var(--nbc-borde);flex:none}",
     ".nbc-mini img{width:100%;height:100%;object-fit:cover;display:block}",
     ".nbc-mini button{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;border:0;background:#0b131ecc;color:var(--nbc-texto);font-size:15px;line-height:1;cursor:pointer;padding:0}",
@@ -478,6 +479,9 @@
     var cuenta = el("span", null, "0/" + MAX);
     info.appendChild(estado); info.appendChild(cuenta);
     pie.appendChild(clases); pie.appendChild(form); pie.appendChild(adjFila); pie.appendChild(info);
+    // 18-oct · la transparencia del Reglamento europeo de IA (art. 50): UNA línea fija y discreta al pie, no en cada mensaje
+    // (_site_data.py → IA_TRANSPARENCIA, la misma de GamificaPro functions/mods/stargate.js → ia.transparencia)
+    if (W.SG_IA_TRANSPARENCIA) pie.appendChild(el("p", "nbc-ia", String(W.SG_IA_TRANSPARENCIA)));
 
     caja.appendChild(cab); caja.appendChild(mias); caja.appendChild(log); caja.appendChild(pie);
     raiz.appendChild(caja);

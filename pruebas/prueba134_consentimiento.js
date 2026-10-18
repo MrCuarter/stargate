@@ -126,12 +126,16 @@ async function prueba(o) {
   c(P.includes(TEXTO), "   el texto de la casilla, tal cual");
   c(/consentimiento<\/b> \(artículo 6\.1\.a/.test(P), "   base legal: el consentimiento");
   c(/Google Apps Script/.test(P) && /cuenta\s+de Google del equipo docente/.test(P) && /un único correo/.test(P), "   el correo de bienvenida (una cuenta de Google del equipo docente, por Apps Script)");
-  c(/no se envía a ningún sitio/.test(P) && /herramientas de inteligencia artificial,\s+siempre bajo supervisión humana/.test(P) && /tu alias, tu grupo y el correo de tu cuenta/.test(P), "   el canal de ayuda: NEBULA en el navegador; lo que no sabe, al equipo, con IA bajo supervisión humana");
+  // 18-oct · Norberto aprueba la IA: NEBULA contesta el buzón (el Intendente) y lo que no sabe pasa a una persona
+  c(/no se envía a ningún sitio/.test(P) && /NEBULA, la asistente de IA de la Nave \(Claude, de Anthropic\)/.test(P) && /se lo pasa a\s+una persona del equipo docente/.test(P) && /tu alias, tu grupo y el correo de tu cuenta/.test(P), "   el canal de ayuda: NEBULA en el navegador; lo que no sabe, NEBULA (IA) y una persona en lo delicado");
   c(/cláusulas contractuales tipo/.test(P) && /Firebase y Google Cloud/.test(P), "   Google como infraestructura y las transferencias (cláusulas contractuales tipo)");
-  c(/Delegación de Protección de Datos de la UNIR/.test(P) && !/acuerdo de|encargad[oa] del tratamiento/i.test(P), "   la Delegación de Protección de Datos de la UNIR, sin dar por hecho ningún acuerdo");
+  c(/Delegación de Protección de Datos de la UNIR/.test(P) && !/acuerdo con la UNIR|UNIR[^.]*encargad[oa] del tratamiento/i.test(P), "   la Delegación de Protección de Datos de la UNIR, sin dar por hecho ningún acuerdo con ella");
   c(/Para dejar STARGATE y retirar tu consentimiento/.test(P) && /aepd\.es/.test(P), "   cómo retirar el consentimiento y pedir el borrado (y la AEPD)");
   c(!/Solo lo necesario para que el juego funcione\. Nada más\./.test(P), "   fuera el «Nada más» que ya no era verdad");
-  c(!/Claude|Anthropic/.test(P), "🔴 ni «Claude» ni «Anthropic» en la página");
+  // 18-oct · Anthropic, encargado del tratamiento (punto 6); sin el Marco de Privacidad UE-EE. UU. (no confirmado) ni el punto 5 bis (hasta Navidad)
+  c(/Anthropic, PBC/.test(P) && /encargado del tratamiento/.test(P) && /como mucho 30 días/.test(P) && /puntos 5, 6 y 8/.test(P), "🔴 Anthropic en el punto 6 (encargado, 30 días, cláusulas tipo) y en el 7");
+  c(!/Marco de Privacidad/.test(P) && !/5 bis/.test(P), "   sin el Marco de Privacidad ni el punto 5 bis (L1 y el Vigía, apagados hasta Navidad)");
+  c(/Versión 2026-10-18/.test(P) && /los cambios\s+de esta versión no hace falta volver a aceptarlos/.test(P), "   versión nueva sin volver a pedir el sí");
   c(!/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(P.replace(/<script[\s\S]*?<\/script>/g, "")), "   sin emojis");
 
   console.log("\n  Batería 134 · el consentimiento");
