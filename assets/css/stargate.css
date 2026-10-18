@@ -8400,3 +8400,9 @@ body.ses-presenta .mazo .lienzo .yt.on,body.ses-presenta .mazo .lienzo iframe{po
 @media (max-width:760px){.ses-mando{grid-template-columns:1fr}}
 /* la piel de la pregunta y de la ayuda (--gpp-*) */
 body .gpp{--gpp-fondo:#0d1420;--gpp-tinta:#e9f0f6;--gpp-suave:#9fb2c2;--gpp-acento:#37e0ec;--gpp-linea:#1c2c40}
+
+/* 18-oct · PREGUNTA A NEBULA (recluta.js → preguntaANebulaCaja): un desplegable discreto al final de «En vivo»; la respuesta, solo para quien pregunta */
+.neb-pregunta summary{cursor:pointer;min-height:40px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.neb-pregunta textarea{width:100%;margin-top:8px;font:inherit;font-size:.95rem;color:#e8f3fa;background:#0b1119;border:1px solid #24304a;border-radius:10px;padding:10px 12px;resize:vertical}
+.neb-pregunta textarea:focus{outline:2px solid var(--teal);outline-offset:1px}
+.neb-resp{margin:8px 0 0;padding:10px 12px;border-radius:10px;background:#0f1a26;border:1px solid #24304a;overflow-wrap:anywhere}

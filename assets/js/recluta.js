@@ -1947,8 +1947,37 @@
         +'<div class="ev-marco"><iframe src="'+src+'" title="La sesión en directo" allow="fullscreen" allowfullscreen loading="lazy"></iframe></div>'
         +'<p><a class="btn min" href="'+src+'" target="_blank" rel="noopener">Abrirla en grande ↗</a></p></div>';
     }
-    return html||'<div class="card"><p class="muted">Ahora mismo no hay nada en directo.</p></div>';
+    return (html||'<div class="card"><p class="muted">Ahora mismo no hay nada en directo.</p></div>')+preguntaANebulaCaja();
   }
+  // ================= PREGUNTA A NEBULA (18-oct) =================
+  // Una duda suelta durante la clase en directo («¿qué reto toca?», «no me carga»). La respuesta vuelve solo a quien pregunta (GamificaPro
+  // modDudaDirecto, modo privado: no se escribe en ningún chat y el servidor no deja pasar claves ni respuestas de retos). Discreto: un
+  // desplegable al final de «En vivo»; nada cambia para los Comandantes.
+  var NEB = { txt: '', resp: '', enviando: false, abierto: false };
+  function preguntaANebulaCaja(){
+    var M=window.SG&&window.SG.MOTOR;
+    if(!M||!M.preguntarANebula||SIMULACRO||enDemo()||!st.yo) return '';
+    return '<details class="card neb-pregunta" id="neb-pregunta"'+(NEB.abierto||NEB.resp?' open':'')+'><summary><b>Pregunta a NEBULA</b> <span class="small muted">una duda rápida, solo tú ves la respuesta</span></summary>'
+      +'<textarea id="neb-txt" maxlength="200" rows="2" aria-label="Tu pregunta a NEBULA" placeholder="Escribe tu duda, recluta…">'+esc(NEB.txt)+'</textarea>'
+      +'<p class="ev-acc"><button type="button" class="btn primary" id="neb-enviar"'+(NEB.enviando?' disabled':'')+'>'+(NEB.enviando?'NEBULA está pensando…':'Preguntar')+'</button></p>'
+      +(NEB.resp?'<p class="neb-resp" role="status"><b>NEBULA:</b> '+esc(NEB.resp)+'</p>':'')+'</details>';
+  }
+  document.addEventListener('input', function(ev){ if(ev.target&&ev.target.id==='neb-txt') NEB.txt=ev.target.value; });
+  document.addEventListener('toggle', function(ev){ if(ev.target&&ev.target.id==='neb-pregunta') NEB.abierto=ev.target.open; }, true);
+  document.addEventListener('click', function(ev){
+    var b=ev.target&&ev.target.closest&&ev.target.closest('#neb-enviar'); if(!b) return;
+    var M=window.SG&&window.SG.MOTOR, txt=(NEB.txt||'').trim();
+    if(!M||!M.preguntarANebula||NEB.enviando) return;
+    if(txt.length<3){ NEB.resp='Escribe tu duda con alguna palabra clave y te contesto.'; render(); return; }
+    NEB.enviando=true; NEB.resp=''; NEB.abierto=true; render();
+    // la sesión de los topes del servidor: una por día (40 preguntas como mucho por clase)
+    M.preguntarANebula(per, 'd'+new Date().toISOString().slice(0,10).replace(/-/g,''), txt).then(function(r){
+      NEB.enviando=false;
+      if(r&&r.respondido&&r.texto){ NEB.resp=r.texto; NEB.txt=''; }
+      else NEB.resp='Eso no lo tengo en mis bancos de datos, recluta. Pregúntaselo a tu Comandante en el chat de la clase.';
+      render();
+    }, function(){ NEB.enviando=false; NEB.resp='No he podido contestar ahora mismo. Inténtalo de nuevo en un momento.'; render(); });
+  });
   document.addEventListener('input', function(ev){ if(ev.target&&ev.target.id==='ev-resp') ENV.borrador=ev.target.value; });
   document.addEventListener('click', function(ev){
     var b=ev.target&&ev.target.closest&&ev.target.closest('#ev-enviar'); if(!b) return;

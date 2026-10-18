@@ -1224,6 +1224,13 @@ async function lanzarPregunta(perId, texto, por) {
 }
 async function cerrarPregunta(perId) { await llamar("modClase", { accion: "cerrarPregunta", projectId: perId, sala: "envivo" }); }
 // (`alias` ya no viaja: el servidor pone el de la ficha, que es el que exigían las reglas)
+/**
+ * 18-oct · «PREGUNTA A NEBULA» (GamificaPro modDudaDirecto, modo privado): una duda suelta durante la clase en directo. La respuesta vuelve
+ * solo a quien pregunta (no se escribe en ningún chat). → { respondido, texto? }; si NEBULA no tiene respuesta, respondido es false.
+ */
+async function preguntarANebula(perId, sesion, texto) {
+  return llamar("modDudaDirecto", { projectId: String(perId), sesion: String(sesion), texto: String(texto || "").slice(0, 200) });
+}
 async function responderPregunta(perId, preguntaId, fichaId, alias, texto) {
   const u = auth.currentUser;
   if (!u) throw new Error("Entra con tu cuenta para responder.");
@@ -2393,7 +2400,7 @@ window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, cambiarCuenta, l
                     guardarReflexion, enlaceDeReflexion, reflexionesDe, misReflexiones, comentariosDe, comentar, borrarComentario,
                     borrarReflexion, idReflexion, hitos, batalla,
                     votaciones, crearVotacion, cerrarVotacion, borrarVotacion, votar, miPapeleta,
-                    vigilarVotaciones, vigilarEnVivo, publicarEnVivo, apuntarFallo, lanzarPregunta, cerrarPregunta, responderPregunta, vigilarRespuestas, quitarRespuesta, miRespuesta,
+                    vigilarVotaciones, vigilarEnVivo, publicarEnVivo, apuntarFallo, lanzarPregunta, cerrarPregunta, responderPregunta, preguntarANebula, vigilarRespuestas, quitarRespuesta, miRespuesta,
                     referenteGlobal, crearInvitacion, leerInvitacion, canjearInvitacion, invitaciones, referentes, ponerReferente,
                     profes, anotarConexion, fichaDocenteRef, fichaDocenteDatos, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
                     directoYo, directoCanal, pasarEscuadron, escuadronNuevo, apoyarEscuadron,
