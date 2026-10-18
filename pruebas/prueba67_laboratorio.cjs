@@ -2558,6 +2558,9 @@ const REG = {};   // cifras que se apuntan para el informe
       await nor.foto(FOTOS + "/24-borrar-grupo.png");
       await nor.js("document.getElementById('s-borrar').click(); 1");
       c("borrar · la última pregunta, en su ventana con la cara de STARGATE", /borrar «/.test(await nor.responder()));
+      // 17-oct · con alumnado activo el motor lo frena: la segunda pregunta dice cuántos y, al confirmar, se repite con `forzar`
+      await nor.hasta("!!document.querySelector('.sgp-caja h3') && /recluta activo/.test(document.querySelector('.sgp-caja h3').textContent)", 20);
+      c("🔴 borrar · con un recluta activo, avisa de cuántos y pide confirmar otra vez", /1 recluta activo/.test(await nor.responder(null, 20)));
       c("borrar · vuelve a «Gestionar grupos» diciendo que se ha borrado", await nor.hasta("location.pathname.indexOf('gestion.html')>=0 && location.search.indexOf('borrado=')>=0 && /borrado/i.test(document.body.innerText)", 60),
         await nor.js("location.href") + " · " + (await nor.texto()).slice(0, 200));
       await nor.foto(FOTOS + "/24-borrado.png");
@@ -3621,8 +3624,9 @@ const REG = {};   // cifras que se apuntan para el informe
       const dani2 = await nueva("Dani lee la respuesta");
       await dani2.ir("entrar.html"); await dani2.entrarComo("dani@lab.test", "Dani Docente");
       await dani2.ir("consola.html"); await dani2.hasta("!!document.querySelector('[data-bz]')", 30); await dormir(2500);
-      c("buzón · en su consola, «📡 ¿Algo falla?» avisa de la respuesta sin leer (1)",
-        await dani2.hasta("!!document.querySelector('[data-bz] .bz-n') && document.querySelector('[data-bz] .bz-n').textContent==='1'", 15));
+      c("buzón · en su consola, «📡 ¿Algo falla?» avisa de las respuestas sin leer (2: el acuse de NEBULA al escalar, 18-oct, y la del Mando)",
+        await dani2.hasta("!!document.querySelector('[data-bz] .bz-n') && document.querySelector('[data-bz] .bz-n').textContent==='2'", 15),
+        await dani2.js("(document.querySelector('[data-bz]')||{outerHTML:'sin [data-bz]'}).outerHTML.slice(0,300)") + " · doc: " + JSON.stringify(await leerDoc("mod_buzon/" + m1._id)).slice(0,500));
       await dani2.foto(FOTOS + "/33-consola-aviso.png");
       await dani2.js("document.querySelector('[data-bz]').click(); 1"); await dani2.hasta("!!document.querySelector('.bz-msg.fresco')", 30);
       c("buzón · y en el buzón, la respuesta nueva resaltada", /respuesta nueva/i.test(await dani2.js(`document.querySelector('.bz-msg[data-m="${m1._id}"]').innerText`)));
@@ -3634,7 +3638,7 @@ const REG = {};   // cifras que se apuntan para el informe
       await dani2.hasta("/Enviado al Mando/.test((document.getElementById('bz-aviso')||{}).innerText||'')", 20);
       const m1c = await leerDoc("mod_buzon/" + m1._id);
       c("buzón · Dani contesta: su respuesta, en el hilo, y el mensaje vuelve a «nuevo» (el Mando lo verá)",
-        m1c.estado === "nuevo" && m1c.respuestas.length === 2 && m1c.respuestas[1].de === "docente");
+        m1c.estado === "nuevo" && m1c.respuestas.length === 3 && m1c.respuestas[0].acuse === true && m1c.respuestas[2].de === "docente", JSON.stringify(m1c).slice(0, 600));
       await dani2.js(`document.querySelector('.bz-lista .bz-msg[data-m="${m1._id}"] [data-cerrar]').click(); 1`);
       await dani2.hasta("/Cerrado/.test((document.getElementById('bz-aviso')||{}).innerText||'')", 20);
       c("buzón · y lo da por resuelto él mismo", (await leerDoc("mod_buzon/" + m1._id)).estado === "resuelto");
@@ -5740,7 +5744,7 @@ const REG = {};   // cifras que se apuntan para el informe
         await limpiar(rita); await tecla(rita, "ArrowRight"); await dormir(1500);
         const h1 = await estado(rita);   // (la etiqueta va en mayúsculas: innerText dice «LA SEMANA 4»)
         c("🔴 descubrir · → la voltea (no pasa): la semana 4 y su tema; suena el volteo y, detrás, la chispa",
-          /la semana 4/i.test(h1.vis) && h1.cuenta === h0.cuenta && (await sonidos(rita)).join(",") === "volteo,chispa", (await sonidos(rita)).join(","));
+          /la semana 4/i.test(h1.vis) && h1.cuenta === h0.cuenta && (await sonidos(rita)).join(",") === "volteo,chispa", (await sonidos(rita)).join(",") + " · cuenta " + h0.cuenta + "→" + h1.cuenta + " · " + String(h1.vis).slice(0, 160));
       }
 
       // 6 · M quita el sonido, y sigue quitado al recargar

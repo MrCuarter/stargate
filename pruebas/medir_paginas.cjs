@@ -57,7 +57,7 @@ const SCAN = `(function(){ var W=document.documentElement.clientWidth, m=[];
   if (!(await L.emuladoresVivos())) { console.log("sin emuladores"); process.exit(3); }
   await L.reiniciar();
   const r = spawnSync(process.execPath, [path.join(WEB, "motor", "sembrar_prueba.js"), "--escuela"],
-    { encoding: "utf8", env: Object.assign({}, process.env, { FIRESTORE_EMULATOR_HOST: "127.0.0.1:8080" }) });
+    { encoding: "utf8", env: Object.assign({}, process.env, { FIRESTORE_EMULATOR_HOST: "127.0.0.1:" + (JSON.parse(process.env.SG_LAB_PUERTOS || "{}").firestore || 8080) }) });
   if (r.status) { console.log(r.stderr || r.stdout); process.exit(2); }
   await L.arrancar(false);
   const P = "nave-escuela", fsA = admin().firestore();
