@@ -63,6 +63,7 @@ if (!SDK || SDK.version !== "v1") throw new Error("[STARGATE] falta el SDK de Ga
 // verdad mezclada con lo de `demo-stargate`, como antes.
 const WEB = SDK.conectar({
   mod: "stargate",
+  region: "europe-west1",   // 19-oct · las funciones (GamificaPro docs/TRASLADO_FUNCIONES_EUROPA.md); sin esto, Iowa
   firebase: { initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, getFirestore, getFunctions,
               connectAuthEmulator, connectFirestoreEmulator, connectFunctionsEmulator },
   config: window.SG_FIREBASE, emu: window.SG_EMU === true, conservarConfig: true,

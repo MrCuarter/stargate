@@ -16,7 +16,7 @@
   // 🔴 16-oct · ?esc=<escuadrón>: el mensaje que ha escrito su comandante (Anita: «a los estudiantes no les cambia»). Lo da
   // GamificaPro (`modForoSemana`, solo la semana que ya ha llegado); sin él, o si no hay, el genérico de siempre.
   var ESC=String(q.get('esc')||'').replace(/[^A-Za-z0-9_-]/g,'').slice(0,80), PROPIO={}, PEDIDO={}, ULTIMO=null;
-  var API_FORO=window.SG_API_FORO||'https://us-central1-gamificapro-99e0a.cloudfunctions.net/modForoSemana';
+  var API_FORO=window.SG_API_FORO||'https://europe-west1-gamificapro-99e0a.cloudfunctions.net/modForoSemana';
   function pedirPropio(n){var per=q.get('per'); if(!ESC||!per||!n||PEDIDO[n]||typeof fetch!=='function') return; PEDIDO[n]=1;
     fetch(API_FORO+'?per='+encodeURIComponent(per)+'&esc='+encodeURIComponent(ESC)+'&semana='+n).then(function(r){return r.ok?r.json():null;})
       .then(function(d){ if(d&&typeof d.texto==='string'&&d.texto.trim()&&Number(d.semana)===n){ PROPIO[n]=d.texto; if(ULTIMO) pintar.apply(null,ULTIMO); } }).catch(function(){});}

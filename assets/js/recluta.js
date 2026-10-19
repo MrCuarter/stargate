@@ -686,7 +686,7 @@
   function foroPropio(esc, n){
     var k=(esc||'')+'|'+n; if(!esc||!per||!n) return '';
     if(!FORO_PEDIDO[k] && typeof fetch==='function'){ FORO_PEDIDO[k]=1;
-      fetch((window.SG_API_FORO||'https://us-central1-gamificapro-99e0a.cloudfunctions.net/modForoSemana')+'?per='+encodeURIComponent(per)+'&esc='+encodeURIComponent(esc)+'&semana='+n)
+      fetch((window.SG_API_FORO||'https://europe-west1-gamificapro-99e0a.cloudfunctions.net/modForoSemana')+'?per='+encodeURIComponent(per)+'&esc='+encodeURIComponent(esc)+'&semana='+n)
         .then(function(r){ return r.ok?r.json():null; })
         .then(function(d){ if(d&&typeof d.texto==='string'&&d.texto.trim()&&Number(d.semana)===n){ FORO_PROPIO[k]=d.texto; try{ render(); }catch(e){} } })
         .catch(function(){}); }
