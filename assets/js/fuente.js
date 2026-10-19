@@ -138,7 +138,8 @@
       if (m && fresco && m.fresco && !m.fin) return m.p.then(copia);
       var reg = { fin: 0, fresco: !!fresco };
       var pedir = function (yo) {
-        return fetch(PUBLICA + "?per=" + encodeURIComponent(per) + (fresco ? "&t=" + ahora + (yo ? "&yo=" + encodeURIComponent(yo) : "") : ""));
+        return fetch(PUBLICA + "?per=" + encodeURIComponent(per) + (fresco ? "&t=" + ahora + (yo ? "&yo=" + encodeURIComponent(yo) : "") : ""))
+          .then(function (r) { return { json: function () { return r.json().then(function (d) { if (d && typeof d === "object" && fresco && yo) d.conYo = yo; return d; }); } }; });
       };
       var sabida = fresco ? fichaSabida(per) : "";
       reg.p = (sabida === null ? buscarMiFicha(per).then(pedir) : pedir(sabida))
@@ -399,7 +400,9 @@
             return esperarTraductor().then(function () {
               d.catalogo = window.SG_CATALOGO;
               crudo = d;   // hace falta abajo para saber QUÉ retos tiene uno mismo
-              return window.SG.TABLERO.tablero(d, false);
+              var T = window.SG.TABLERO.tablero(d, false);
+              if (T && d.conYo) T.conYo = d.conYo;   // (19-oct · lo fresco que trajo MI ficha releída: ver «¿quién soy?»)
+              return T;
             });
           })
           .catch(function (e) { return { error: "No he podido leer el grupo: " + e.message }; });
@@ -426,9 +429,9 @@
                 var todos = t.reclutas.concat(t.fantasmas || []);
                 var yo_ = todos.filter(function (x) { return x.fid && x.fid === f.id; })[0]
                        || todos.filter(function (x) { return !x.fid && x.alias === f.displayName; })[0];
-                // 🔴 19-oct · si no estoy, el tablero es de antes de alistarme: el servidor lo guarda 5 min, y lo fresco pedido
-                // antes de saber cuál es mi ficha (el motor aún cargaba) no la lleva. Ahora ya se sabe: se pide otra vez, con ella.
-                if (!yo_ && !otraVez) return window.SG.FUENTE.tablero(per, true).then(function (t2) { return t2 && t2.reclutas ? conTablero(t2, true) : conTablero(t, true); });
+                // 🔴 19-oct · si no estoy, o el tablero no trajo MI ficha releída (lo fresco pedido antes de saber cuál es, mientras
+                // el motor cargaba, sale de lo guardado: hasta 1 min), lo mío puede ser de antes. Ahora ya se sabe: otra vez, con ella.
+                if ((!yo_ || t.conYo !== f.id) && !otraVez) return window.SG.FUENTE.tablero(per, true).then(function (t2) { return t2 && t2.reclutas ? conTablero(t2, true) : conTablero(t, true); });
                 // 🔴 A CADA CUAL, LO SUYO. El tablero público no dice qué retos concretos ha hecho
                 // nadie —y así se queda—, pero uno tiene derecho a ver los suyos: es lo que la Nave
                 // necesita para saber qué casillas pintar hechas y cuáles ofrecer para marcar.
