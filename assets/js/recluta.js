@@ -1984,7 +1984,8 @@
   function vigilarVotacion(){
     if(!motorNuevo()||!per||st.paraVotos||SIMULACRO||enDemo()||!st.yo) return;
     var M=window.SG&&window.SG.MOTOR; if(!M||!M.vigilarVotaciones) return;
-    st.paraVotos=M.vigilarVotaciones(per, function(l){
+    // (19-oct · sin los recuentos de cada voto, que aquí no se pintan: vigilarVotacionesAlumno, en motor.js)
+    st.paraVotos=(M.vigilarVotacionesAlumno||M.vigilarVotaciones)(per, function(l){
       var v=votacionVigente(l), antes=VOTO.v&&VOTO.v.id;
       VOTO.v=v; VOTO.cargada=true;
       // (cada voto de cualquiera cambia los totales del documento: eso NO repinta; solo que aparezca, cambie o se cierre)

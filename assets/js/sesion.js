@@ -3320,7 +3320,8 @@
       pintarSeguir();
     });
     // 18-sep · y las votaciones: si el docente lanza una desde su aula, se pinta aquí encima, sin salir de la presentación
-    if(M.vigilarVotaciones && !SEG.pararVotos) SEG.pararVotos=M.vigilarVotaciones(st.per, function(l){
+    // (19-oct · sin los recuentos de cada voto, que aquí no se pintan: vigilarVotacionesAlumno, en motor.js)
+    if(M.vigilarVotaciones && !SEG.pararVotos) SEG.pararVotos=(M.vigilarVotacionesAlumno||M.vigilarVotaciones)(st.per, function(l){
       var ahora=Date.now(), v=(l||[]).filter(function(x){ return x.isActive && !(x.stargateCierra && ahora>Number(x.stargateCierra)); })[0]||null;
       if((v&&v.id)!==(SEG.voto&&SEG.voto.id)){ SEG.voto=v; SEG.yaVote=false;
         if(v && M.miPapeleta) M.miPapeleta(st.per, v.id, st.ficha).then(function(pp){ SEG.yaVote=Object.keys(pp||{}).some(function(k){ return Number((pp||{})[k])>0; }); pintarSeguir(); }, function(){}); }

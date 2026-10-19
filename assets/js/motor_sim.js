@@ -1190,6 +1190,34 @@ function vigilarVotaciones(perId, alCambiar) {
   return VOTACION.vigilar(perId, alCambiar);
 }
 /**
+ * 19-oct · LAS VOTACIONES DEL ALUMNADO, SIN N×N (GamificaPro: S1 de docs/AHORRO_MODS.md, functions/modVotacionSenal.js). Medido el
+ * 19-oct: 398 votos en una clase, y cada uno llegaba a todas las Naves y sesiones abiertas (~80.000 lecturas). La Nave y la sesión
+ * no pintan los recuentos («Los resultados se enseñan en clase cuando se resuelva»): escuchan la señal del grupo
+ * (`mod_votacion/{grupo}`, que el servidor solo toca al abrir, cambiar o cerrar una votación) y entonces piden las activas. El
+ * aula del docente sigue con `vigilarVotaciones`, con el recuento en vivo. Sin señal o apagada (`ligero: false`, GamificaPro
+ * `scripts/votacion-ligera.mjs --apagar`), lo de siempre. Es `vigilarLigero` de sdk/votacion.js; mientras el SDK fijado no la
+ * traiga, esta copia, igual (tests/sdk/votacion.test.ts y tests/emulador/mod-votacion-senal.test.ts, en GamificaPro).
+ */
+function vigilarVotacionesAlumno(perId, alCambiar) {
+  if (VOTACION.vigilarLigero) return VOTACION.vigilarLigero(perId, alCambiar);
+  const porCreado = (a, b) => Number(b.creado || 0) - Number(a.creado || 0);
+  let parado = false, entero = null, vez = 0;
+  const todo = () => { if (!entero) entero = vigilarVotaciones(perId, (l) => { if (!parado) alCambiar(l); }); };
+  const pedir = () => {
+    const mia = ++vez;
+    getDocs(query(collection(db, "projects", perId, "voting_events"), where("isActive", "==", true))).then((r) => {
+      if (!parado && mia === vez) alCambiar(r.docs.map((d) => Object.assign({ id: d.id }, d.data())).sort(porCreado));
+    }, () => { if (!parado && mia === vez) alCambiar([]); });
+  };
+  const pararSenal = onSnapshot(doc(db, "mod_votacion", perId), (s) => {
+    if (parado) return;
+    if (!s.exists() || s.data().ligero === false) return todo();
+    if (entero) { entero(); entero = null; }
+    pedir();
+  }, () => { if (!parado) todo(); });
+  return () => { parado = true; pararSenal(); if (entero) { entero(); entero = null; } };
+}
+/**
  * 8-oct (tarde) · LO EN VIVO Y EL JUEGO DEL FINAL, EN `mod_*` (GamificaPro: la sala del mod, `clase.salas` de functions/mods/stargate.js;
  * PLAN_CENTRALIZAR, «adelantar lo de Navidad», tanda 1): `mod_envivo/{grupo}`, `mod_respuestas/{grupo}__{pregunta}__{ficha}` y
  * `mod_directo/{grupo}`, con los mismos ids y campos que las viejas (`stargate_envivo`, `stargate_respuestas`, `stargate_directo`). Lo
@@ -2405,7 +2433,7 @@ window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, cambiarCuenta, l
                     guardarReflexion, enlaceDeReflexion, reflexionesDe, misReflexiones, comentariosDe, comentar, borrarComentario,
                     borrarReflexion, idReflexion, hitos, batalla,
                     votaciones, crearVotacion, cerrarVotacion, borrarVotacion, votar, miPapeleta,
-                    vigilarVotaciones, vigilarEnVivo, publicarEnVivo, apuntarFallo, lanzarPregunta, cerrarPregunta, responderPregunta, vigilarRespuestas, quitarRespuesta, miRespuesta,
+                    vigilarVotaciones, vigilarVotacionesAlumno, vigilarEnVivo, publicarEnVivo, apuntarFallo, lanzarPregunta, cerrarPregunta, responderPregunta, vigilarRespuestas, quitarRespuesta, miRespuesta,
                     referenteGlobal, crearInvitacion, leerInvitacion, canjearInvitacion, invitaciones, referentes, ponerReferente,
                     profes, anotarConexion, fichaDocenteRef, fichaDocenteDatos, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
                     directoYo, directoCanal, pasarEscuadron, escuadronNuevo, apoyarEscuadron,

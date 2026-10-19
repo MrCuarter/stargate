@@ -41,7 +41,8 @@ c(/function controles\(\)\{[\s\S]*?ses-aula-b[\s\S]*?ses-pantalla/.test(SES) && 
   "   y va con los demás mandos, no flotando encima de la barra de pasos");
 c(/function emitirCrono\(\)/.test(AULA) && /publicarEnVivo\(PER, \{ sesion: \{ crono: c \} \}\)/.test(AULA), "🔴 aula · el temporizador viaja a la sesión de la clase");
 c(/function relojAlumno\(\)/.test(SES) && /class="ses-al-crono"/.test(SES), "   y el recluta lo ve encima de la diapositiva");
-c(/SEG\.pararVotos=M\.vigilarVotaciones\(st\.per/.test(SES) && /class="ses-al-vt"/.test(SES), "🔴 la votación que lanza el docente se pinta encima, y se vota ahí");
+// (19-oct · sin los recuentos de cada voto: vigilarVotacionesAlumno, con la de siempre de respaldo)
+c(/SEG\.pararVotos=\(M\.vigilarVotacionesAlumno\|\|M\.vigilarVotaciones\)\(st\.per/.test(SES) && /class="ses-al-vt"/.test(SES), "🔴 la votación que lanza el docente se pinta encima, y se vota ahí");
 
 // ── 3 · el panel del docente y el grupo de un vistazo
 c(/async function miFichaDocente\(\)/.test(MOTOR) && /async function ponerAvatarDocente\(clave\)/.test(MOTOR), "🔴 motor · el docente guarda su avatar de comandante");

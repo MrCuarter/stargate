@@ -64,6 +64,37 @@ const reglas = fs.readFileSync(path.join(GP, "firestore.rules"), "utf8");
 c(/match \/projects\/\{projectId\}\/voting_events\/\{eventId\}/.test(reglas) && /allow create: if isSignedIn\(\) && isProjectOwner\(projectId\)/.test(reglas),
   "🔴 y las reglas dejan crear la votación SOLO al profesorado del grupo");
 
+// 5b · 19-oct · el alumnado, sin los recuentos de cada voto (GamificaPro: S1 de docs/AHORRO_MODS.md, functions/modVotacionSenal.js)
+c(/st\.paraVotos=\(M\.vigilarVotacionesAlumno\|\|M\.vigilarVotaciones\)\(per,/.test(N), "🔴 la Nave escucha las votaciones sin los recuentos de cada voto (vigilarVotacionesAlumno)");
+c(/SEG\.pararVotos=\(M\.vigilarVotacionesAlumno\|\|M\.vigilarVotaciones\)\(st\.per,/.test(S), "   y la sesión que sigue el recluta, también");
+c(/VOT\.parar = MOTOR\.vigilarVotaciones\(PER,/.test(A), "   el aula del docente sigue con el recuento en vivo (vigilarVotaciones)");
+c(/vigilarVotaciones, vigilarVotacionesAlumno, vigilarEnVivo,/.test(M), "   y el motor de la web la exporta");
+{
+  // la copia de motor.js (la de sdk/votacion.js, `vigilarLigero`, mientras el SDK fijado no la traiga), funcionando con un Firestore de mentira
+  const src = M.slice(M.indexOf("function vigilarVotacionesAlumno("), M.indexOf("\n}\n", M.indexOf("function vigilarVotacionesAlumno(")) + 2);
+  const senal = { existe: false, datos: {} }, oyentes = [], llamadas = { consultas: 0, enteras: 0, paradas: 0 };
+  const activas = [{ id: "a", isActive: true, creado: 1, title: "A" }, { id: "b", isActive: true, creado: 2, title: "B" }];
+  const fk = {
+    db: {}, doc: (db, c, id) => ({ c, id }), collection: () => ({}), where: () => ({}), query: () => ({}),
+    getDocs: () => { llamadas.consultas++; return Promise.resolve({ docs: activas.map(x => ({ id: x.id, data: () => x })) }); },
+    onSnapshot: (ref, f) => { const o = () => f({ exists: () => senal.existe, data: () => senal.datos }); oyentes.push(o); o(); return () => oyentes.splice(oyentes.indexOf(o), 1); },
+    VOTACION: {}, vigilarVotaciones: (per, f) => { llamadas.enteras++; f(activas.slice().reverse()); return () => { llamadas.paradas++; }; },
+  };
+  const VA = new Function(...Object.keys(fk), src + "\nreturn vigilarVotacionesAlumno;")(...Object.values(fk));
+  const vistos = [], aviso = () => oyentes.slice().forEach(o => o());
+  const parar = VA("g", l => vistos.push(l.map(x => x.id).join(",")));
+  c(llamadas.enteras === 1 && llamadas.consultas === 0 && vistos[0] === "b,a", "   sin señal del servidor, lo de siempre (escucha las votaciones enteras)", JSON.stringify([llamadas, vistos]));
+  senal.existe = true; senal.datos = { cambiado: 1 }; aviso();
+  Promise.resolve().then(() => Promise.resolve()).then(() => {
+    c(llamadas.paradas === 1 && llamadas.consultas === 1 && vistos.at(-1) === "b,a", "🔴 con señal, deja de escucharlas enteras y pide las activas una vez, en el mismo orden", JSON.stringify([llamadas, vistos]));
+    senal.datos = { cambiado: 1, ligero: false }; aviso();
+    c(llamadas.enteras === 2, "   apagada (ligero: false), vuelve a escucharlas enteras al momento", JSON.stringify(llamadas));
+    parar();
+    c(llamadas.paradas === 2 && oyentes.length === 0, "   y al dejar de vigilar no queda nada escuchando", JSON.stringify([llamadas, oyentes.length]));
+    fin();
+  });
+}
+
 // 6 · lo otro que trajimos del motor: la hoja de cálculo para evaluar
 const K = leer("assets/js/consola.js");
 c(/function descargarCSV\(t, lista, filtro\)/.test(K) && /id="c-csv"/.test(K), "la consola exporta el grupo a CSV desde «Mi gente»");
@@ -72,7 +103,9 @@ c(/Sala de Joran \(máquinas\)/.test(K) && /Logros de a bordo/.test(K) && /Enlac
   "   y lleva lo que hace falta para evaluar: retos, insignias, logros, la sala de Joran y los enlaces entregados");
 c(/lista\.map\(function \(x\)/.test(K) && /filtro \? "_" \+ filtro/.test(K), "   respeta el escuadrón filtrado y lo dice en el nombre del fichero");
 
-console.log("\n  Batería 82 · las votaciones del aula y el CSV");
-console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
-fallos.forEach(f => console.log("   ✗ " + f));
-process.exit(fallos.length ? 1 : 0);
+function fin() {
+  console.log("\n  Batería 82 · las votaciones del aula y el CSV");
+  console.log("  " + ok + " comprobaciones, " + fallos.length + " fallos");
+  fallos.forEach(f => console.log("   ✗ " + f));
+  process.exit(fallos.length ? 1 : 0);
+}
