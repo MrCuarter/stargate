@@ -15,12 +15,12 @@
 // Fôrge. La curva de los ocho, otra vez con el piloto automático simulado (300 terrenos por planeta, con 0,3 s de
 // reacción): la ancha, siempre posable y con combustible de sobra (vuelos de 40-55 s); la estrecha de Liminar, un 65 %
 // al piloto automático: exigente, pero posible.
-import { THREE, $, azar, elegir, estado, SON, audio, holo, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=79ed3709f1';
+import { THREE, $, azar, elegir, estado, SON, audio, holo, cargar, medir, texBrillo, pantalla, cerrarPantalla, aviso, finDePartida, JUEGOS, EMBED } from './comun.js?v=92d7de7993';
 // 🔴 nivelDe (el nº del último planeta superado: 0-8; en el borrador, del navegador; en la web, del servidor) lo escribe
 // comun.js. Se lee por el espacio de nombres y no con `import { nivelDe }` para que, mientras comun.js no lo tenga, la
 // máquina no se quede en blanco (un import con nombre que no existe tumba el módulo entero): sin él, solo Fôrge.
-import * as COMUN from './comun.js?v=79ed3709f1';
-import { crearDesafio, MODO, urlModo, SIN_MORIR } from './desafio.js?v=79ed3709f1';
+import * as COMUN from './comun.js?v=92d7de7993';
+import { crearDesafio, MODO, urlModo, SIN_MORIR } from './desafio.js?v=92d7de7993';
 const nivelDe = (id) => (typeof COMUN.nivelDe === 'function' ? COMUN.nivelDe(id) : 0);
 
 const V3 = THREE.Vector3;
@@ -378,7 +378,7 @@ function pintarHUD(vv) {
 let pausa = false;
 function pausar() {
   if (!S || S.fin || S.estado === 'portada' || DESAFIO.abierto) return; pausa = !pausa; if (soplido) soplido.gain.value = 0; // con la pregunta abierta el juego ya está parado
-  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=79ed3709f1">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
+  if (pausa) { pantalla(`<h2>Pausa</h2><div class="botones"><button id="b-seg">Seguir</button>${EMBED ? '' : '<a class="boton sec" href="index.html?v=92d7de7993">Volver a la sala</a>'}</div>`); $('b-seg').onclick = pausar; }
   else cerrarPantalla();
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && S && !S.fin && !pausa && !DESAFIO.abierto && !window.__sinPausa) pausar(); });
@@ -449,7 +449,7 @@ async function portada() {
     <p><b>Vuelas con ayuda:</b> sales encima de la plataforma ancha, el módulo se endereza solo al soltar el giro, el viento sopla menos y las patas aguantan más. En Fôrge y Ecos, la ayuda entera; después se retira un poco en cada planeta${SIN_MORIR ? ', y aquí estrellarte no gasta módulos' : ''}.</p>
     ${DESAFIO.texto()}
     <p class="pista">Tu marca (tu mejor partida): <b>${(e.marcas.descenso || 0).toLocaleString('es-ES')}</b> · Módulo Lunar del Apolo: NASA (dominio público)</p>
-    <div class="botones"><button id="b-ya"></button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=79ed3709f1">Volver a la sala</a>'}</div>`);
+    <div class="botones"><button id="b-ya"></button><a class="boton sec" href="${urlModo(desafio ? 'arcade' : 'desafio')}">${desafio ? 'Jugar en arcade' : 'Jugar en desafío'}</a>${EMBED ? '' : '<a class="boton sec" href="index.html?v=92d7de7993">Volver a la sala</a>'}</div>`);
   const marcar = (i) => {
     elegido = i; const P = PLANETAS[i];
     document.querySelectorAll('#planetas .pl').forEach((b) => b.classList.toggle('sel', +b.dataset.i === i));

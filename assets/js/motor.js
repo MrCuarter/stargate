@@ -2301,7 +2301,7 @@ async function directoYo(perId) {
 function directoCanal(perId, esDocente, yo, alMensaje) {
   const u = auth.currentUser, t0 = Date.now(), fuera = [];
   const sala = doc(db, DIRECTO, perId);
-  let ultimo = 0, pendiente = null, reloj = null, miDoc = null, cola = Promise.resolve();
+  let ultimo = 0, pendiente = null, reloj = null, miDoc = null, cola = Promise.resolve(), ultimoEstado = "";
   // escribir como mucho una vez por segundo por documento (se guarda solo lo último)
   const tanda = (fn) => { pendiente = fn; if (reloj) return; const t = Math.max(0, 1000 - (Date.now() - ultimo));
     reloj = setTimeout(() => { reloj = null; ultimo = Date.now(); const f = pendiente; pendiente = null; f && f().catch(() => {}); }, t); };
@@ -2327,7 +2327,19 @@ function directoCanal(perId, esDocente, yo, alMensaje) {
   function enviar(m) {
     if (!u || !m || !m.t) return;
     if (esDocente) {
-      if (m.t === "estado") { const e = limpio(m); delete e.t; tanda(() => enOrden(() => alServidor({ accion: "poner", parte: "estado", valor: e }))); return; }
+      if (m.t === "estado") {
+        const e = limpio(m); delete e.t;
+        /*
+         * 19-oct (P10 de GamificaPro docs/COSTES_POR_CLASE.md §9.3) · el proyector manda su estado dos veces por segundo y cada
+         * escritura la leen todos los móviles. En la sala de espera y en el final, si no ha cambiado nada, no se escribe (los móviles ya
+         * tienen ese estado: lo da su escucha al entrar). En la partida, sí, siempre: es el latido del móvil («Reconectando…» a los 3 s).
+         */
+        const k = JSON.stringify(e);
+        if (k === ultimoEstado && (e.fase === "preparar" || e.fase === "fin")) return;
+        ultimoEstado = k;
+        tanda(() => enOrden(() => alServidor({ accion: "poner", parte: "estado", valor: e })).catch((err) => { if (ultimoEstado === k) ultimoEstado = ""; throw err; }));
+        return;
+      }
       alServidor({ accion: "evento", t: m.t, datos: limpio(m) }).catch(() => {});
       return;
     }

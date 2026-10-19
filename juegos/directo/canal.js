@@ -27,7 +27,14 @@ export async function esperarMotor(ms = 8000) {
 export const conServidor = () => !!(PER && motor());
 export function conectar(codigo, alMensaje, { docente = false, yo = null } = {}) {
   const M = PER && motor();
-  if (M) return M.directoCanal(PER, docente, yo, alMensaje);
+  if (M) {
+    const c = M.directoCanal(PER, docente, yo, alMensaje);
+    // 19-oct (P10 de GamificaPro docs/COSTES_POR_CLASE.md §9.3) · las escuchas viven en el motor de la página que contiene este marco:
+    // al salir del juego (se cierra o se cambia el marco), se cierran; antes seguían leyendo la sala hasta recargar la página.
+    // (si el navegador guarda el marco para volver atrás, al volver se recarga: con las escuchas cerradas no vería nada)
+    addEventListener('pagehide', (ev) => { c.cerrar(); if (ev.persisted) addEventListener('pageshow', () => location.reload(), { once: true }); });
+    return c;
+  }
   const bc = new BroadcastChannel('sg-directo-' + String(codigo).toUpperCase());
   bc.onmessage = (ev) => alMensaje(ev.data);
   return { enviar: (m) => bc.postMessage(m), cerrar: () => bc.close(), mio: async () => null };
@@ -66,7 +73,7 @@ export const MODOS = {
     que: 'La clase se parte al azar en dos escuadrones invitados (dos de la flota que no son el vuestro) y tira de una baliza. Tras un acierto: empujar fuerte o sabotear al rival. Cuenta la media por miembro, así que da igual que un equipo tenga uno más.' },
 };
 // 🔴 en la web, los nombres y la línea de cada modo salen de _site_data.py → DIRECTO (el build escribe datos.js)
-try { const D = (await import('./datos.js?v=79ed3709f1')).DIRECTO; for (const [k, largo, estructura, breve] of D.modos) if (MODOS[k]) Object.assign(MODOS[k], { largo, estructura, breve }); } catch (e) { /* borrador: sin datos.js */ }
+try { const D = (await import('./datos.js?v=92d7de7993')).DIRECTO; for (const [k, largo, estructura, breve] of D.modos) if (MODOS[k]) Object.assign(MODOS[k], { largo, estructura, breve }); } catch (e) { /* borrador: sin datos.js */ }
 // ── LOS AJUSTES (lo que el docente puede tocar antes de lanzar)
 export const DURACIONES = [120, 180, 240, 300];
 export const PREGUNTAS = { no: 'Sin preguntas (solo reflejos)', semana: 'El tema de la semana', vistos: 'Los temas ya vistos', todo: 'Todo el viaje' };
