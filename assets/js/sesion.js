@@ -2679,9 +2679,28 @@
   // 17-oct · lo de cada docente: las suyas, de su perfil (mod_profes/stargate__<uid>: `notas`, `notasOn`, `notasBase`; valen para todos
   // sus grupos), se editan en la ventana de notas o en el móvil; aquí se escucha el perfil y se manda el guion que toca (GP.notas.efectivo)
   function guionDe(sl){ var N=window.GP&&window.GP.notas; return N?N.efectivo(guionPorDefecto(sl), NOTAS.perfil, claveSes(), sl&&sl.k||''):{guion:guionPorDefecto(sl)}; }
+  // (escuchar el perfil una vez: las notas de la clase y las de la rueda, al día)
+  function oirPerfil(){
+    var N=window.GP&&window.GP.notas; if(!N||NOTAS.oye||!st.yo) return;
+    NOTAS.oye=N.escucharPerfil(function(p){ NOTAS.perfil=p; if(NOTAS.oye) publicarNotas(); if(NOTAS.rueda&&NOTAS.rueda.rejilla) NOTAS.rueda.rejilla.alDia(); })||true;
+  }
+  // 19-oct · las notas de cada diapositiva de esta clase, editables en la rueda «Configurar las diapositivas» (GP.mazo.notasRejilla)
+  function notasRueda(){
+    var N=window.GP&&window.GP.notas; if(!N||st.alumno||!st.slides.length) return null;
+    oirPerfil();
+    var vistas={}, items=st.slides.filter(function(sl){ if(!sl||!sl.k||vistas[sl.k]) return false; vistas[sl.k]=1; return true; })
+      .map(function(sl){ return { k:sl.k, titulo:sl.rot||sl.k, eti:'', sl:sl }; });
+    NOTAS.rueda={ items:items,
+      ver:function(it){ var e=guionDe(it.sl); return { lineas:e.guion||[], propias:!!e.propio }; },
+      guardar:function(it, lin){ return N.guardarMia(claveSes(), it.k, lin, guionPorDefecto(it.sl)); },
+      original:function(it){ return N.guardarMia(claveSes(), it.k, [], guionPorDefecto(it.sl)); },
+      puede:function(){ return !!NOTAS.perfil; },
+      html:function(lin){ return N.html(lin); } };
+    return NOTAS.rueda;
+  }
   function publicarNotas(){
     var N=window.GP&&window.GP.notas; if(!N||PRES||st.alumno||!st.slides.length) return;
-    if(!NOTAS.oye&&st.yo) NOTAS.oye=N.escucharPerfil(function(p){ NOTAS.perfil=p; if(NOTAS.oye) publicarNotas(); })||true;
+    oirPerfil();
     var sl=st.slides[st.i], sg=st.slides[st.i+1], s=semanas()[st.sem-1]||{}, e=guionDe(sl);
     var parte=function(x, i, g){ return { titulo:x.rot||'', guion:g, nota:i===0&&s.consejo&&!st.act?'El consejo del Capitán: '+s.consejo:'' }; };
     var ses=st.act?'La sesión de la Actividad '+st.act:st.pres?'La presentación de la asignatura':'Semana '+st.sem+(s.tema_n?' · Tema '+s.tema_n:'');
@@ -3421,7 +3440,7 @@
     Array.prototype.forEach.call(root.querySelectorAll('[data-ses-ventana]'),function(b){ b.onclick=function(){ abrirEnVentana(); }; });
     var bCfg=document.getElementById('prep-cfg');
     if(bCfg) bCfg.onclick=function(){
-      window.SG.CFGSESION.abrir({ per:st.per, grupo:st.nombre||st.per, nombre:st.miNombre, off:apagadas(), orden:ordenGuardado(), verSesion:false,
+      window.SG.CFGSESION.abrir({ per:st.per, grupo:st.nombre||st.per, nombre:st.miNombre, off:apagadas(), orden:ordenGuardado(), verSesion:false, notas:notasRueda(),
         // 10-oct · y al reordenar, igual
         alOrdenar:function(o){ var S=Object.assign({}, st.ordenDelGrupo||(st.d&&st.d.modOrdenSesion)||{});
           if(o.length) S[st.miNombre]=o; else delete S[st.miNombre];

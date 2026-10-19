@@ -592,9 +592,15 @@ window.SG.CFGSESION = (function () {
                   (ASAS ? ' <button type="button" class="btn min" data-cfg-orden>Orden de serie</button>' : '') +
                   (o.verSesion === false ? '' : ' <a class="btn min" href="sesion.html?per=' + encodeURIComponent(o.per || "") + '" target="_blank" rel="noopener">Ver la sesión ↗</a>') + '</p>'
                 : '<p class="muted">No te encuentro en el equipo docente de este grupo.</p>') +
+      // 19-oct · las notas del presentador de cada diapositiva de ESTA clase (abierta desde la sesión), editables: GP.mazo.notasRejilla
+      (o.notas && window.GP && window.GP.mazo && window.GP.mazo.notasRejilla ? '<div class="card m-notas"><h3>Tus notas de esta clase</h3>' +
+        '<p class="small muted">Las notas del presentador de cada diapositiva. Pulsa una para leerla entera, editarla o volver al texto original. Se guardan en tu perfil y valen para todos tus grupos.</p>' +
+        '<div class="m-notas-r"></div></div>' : '') +
       '</div>';
     document.body.appendChild(capa);
-    var cerrar = function () { capa.remove(); document.removeEventListener("keydown", tecla); };
+    var notas = capa.querySelector(".m-notas-r") ? window.GP.mazo.notasRejilla(capa.querySelector(".m-notas-r"), { items: o.notas.items, notas: o.notas }) : null;
+    if (o.notas) o.notas.rejilla = notas;
+    var cerrar = function () { if (notas) notas.quitar(); if (o.notas) o.notas.rejilla = null; capa.remove(); document.removeEventListener("keydown", tecla); };
     var tecla = function (ev) { if (ev.key === "Escape") cerrar(); };
     document.addEventListener("keydown", tecla);
     capa.addEventListener("click", function (ev) { if (ev.target === capa || ev.target.closest("[data-cfg-x]")) cerrar(); });

@@ -8407,3 +8407,11 @@ body.ses-mando-on #mazo .lienzo{min-height:0;height:var(--gpdv-alto,min(62vh,560
 body.ses-mando-on #sesion-app~.gpdv{display:flex;margin:4px 0 -8px;--gpdv-linea:rgba(55,224,236,.18);--gpdv-agarre:rgba(55,224,236,.55);--gpdv-activo:var(--teal);--gpdv-fondo:var(--bg,#05080d)}
 /* la piel de la pregunta y de la ayuda (--gpp-*) */
 body .gpp{--gpp-fondo:#0d1420;--gpp-tinta:#e9f0f6;--gpp-suave:#9fb2c2;--gpp-acento:#37e0ec;--gpp-linea:#1c2c40}
+
+/* 19-oct · LAS NOTAS, EDITABLES EN LA RUEDA (GamificaPro sdk/mazo.js, GP.mazo.notasRejilla): en «Configurar las diapositivas» abierta
+   desde la clase, una tarjeta por diapositiva con sus notas recortadas; pulsarla abre la ventana con «Editar» y «Volver al texto original» */
+.cfg-caja .m-notas{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.cfg-caja .m-notas h3{display:block;margin:0 0 4px;font-size:1rem;color:var(--teal)}
+.m-notas,.gpm-nvelo{--gpm-acento:var(--teal);--gpm-acento2:var(--teal);--gpm-sobre-acento:#04121a;--gpm-tx:var(--ink);--gpm-suave:var(--mut);
+  --gpm-borde:rgba(62,214,200,.28);--gpm-panel:var(--panel);--gpm-velo:rgba(2,6,12,.78)}
+.m-notas .gpm-rejilla{grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr))}
