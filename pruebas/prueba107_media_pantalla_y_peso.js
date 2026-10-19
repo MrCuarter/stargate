@@ -52,6 +52,26 @@ const c = (cond, txt, dato) => { if (cond) ok++; else fallos.push(txt); console.
   // un Genially proyectado sin sesión (no fresco): 200 alumnos mirando siguen pegando a la caché del servidor
   c(!/&t=/.test(pedidas[3]), "   (el tablero de un Genially sigue saliendo de la caché del servidor)");
 
+  // 19-oct · lo mío, al momento (GamificaPro, COSTES_POR_CLASE §9, P1): con motor y sesión, lo fresco lleva MI ficha (`yo`),
+  // buscada una vez (no se olvida al escribir); sin ficha (el docente) o sin motor, sin `yo`
+  let fichas = 0, quien = { uid: "u1" };
+  ventana.SG.MOTOR = { sesion: () => Promise.resolve(quien), db: {}, collection: () => ({}), where: () => ({}), query: () => ({}),
+    getDocs: () => { fichas++; return Promise.resolve(quien ? { empty: false, docs: [{ id: "ficha-u1", data: () => ({}) }] } : { empty: true, docs: [] }); } };
+  const conYo = F.tablero("g3", true); await suelta(); await suelta(); await conYo;
+  c(/[?&]per=g3&t=\d+&yo=ficha-u1$/.test(pedidas[4]), "🔴 lo fresco con sesión dice cuál es MI ficha (el servidor relee solo esa)", pedidas[4]);
+  await F.accion({ accion: "nada", per: "g3" }).catch(() => {});
+  const otraVez = F.tablero("g3", true); await suelta(); await otraVez;
+  c(/&yo=ficha-u1$/.test(pedidas[5]) && fichas <= 2, "   y no se olvida al escribir (no se busca en cada petición)", pedidas[5] + " · " + fichas);
+  const solo = F.tablero("g3"); await suelta(); await solo;
+  c(pedidas.length === 6, "   lo que solo mira sigue sin pedir nada si lo fresco acaba de llegar", pedidas.length);
+  quien = null;
+  const sinFicha = F.tablero("g4", true); await suelta(); await suelta(); await sinFicha;
+  c(/[?&]per=g4&t=\d+$/.test(pedidas[6]), "   sin sesión (el proyector, un Genially), fresco sin `yo`", pedidas[6]);
+  quien = { uid: "u1" };
+  const yaAlistado = F.tablero("g4", true); await suelta(); await suelta(); await yaAlistado;
+  c(/&yo=ficha-u1$/.test(pedidas[7]), "🔴 «no tengo ficha» no se recuerda: quien se alista en la misma página manda la suya", pedidas[7]);
+  delete ventana.SG.MOTOR;
+
   const FU = L("assets/js/fuente.js"), REC = L("assets/js/recluta.js");
   c(/quien: function \(per, quien_, yaFresco\)/.test(FU) && /yaFresco && yaFresco\.reclutas \? Promise\.resolve\(yaFresco\)/.test(FU),
     "🔴 «¿quién soy?» usa el tablero fresco que la Nave acaba de traer");

@@ -111,12 +111,37 @@
      * Escribir por aquí (`accion`) lo olvida todo.
      */
     var MEMO = {};
+    /**
+     * 🔴 19-oct · LO MÍO, AL MOMENTO (GamificaPro, docs/COSTES_POR_CLASE.md §9, P1). El servidor guarda el tablero 5 min para
+     * todos; a quien pide fresco y dice cuál es SU ficha (`yo`) le relee solo esa y el proyecto (2 lecturas, no las 548 del
+     * grupo). Lo de los compañeros llega como mucho 5 min tarde; lo propio, al instante, como antes. Sin `yo` (el docente, el
+     * proyector, un Genially sin sesión), lo fresco es de hace como mucho 1 min.
+     * MIAS[per]: el identificador de mi ficha en ese grupo. No cambia: no se olvida al escribir. «No tengo» NO se guarda: quien se
+     * alista en esta misma página tiene que mandar la suya en cuanto la tenga (el laboratorio lo cazó: sin ella, su Nave no le
+     * encontraba en el tablero guardado).
+     */
+    var MIAS = {};
+    var fichaSabida = function (per) {   // → el identificador (o ""), o null si hay que buscarlo
+      if (!(window.SG && window.SG.MOTOR && window.SG.MOTOR.sesion)) return "";
+      return MIAS[per] || null;
+    };
+    var buscarMiFicha = function (per) {
+      var M = window.SG.MOTOR;
+      return M.sesion().then(function (yo) {
+        if (!yo) return "";
+        return miFicha(M, per, yo).then(function (f) { if (f) MIAS[per] = f.id; return f ? f.id : ""; });
+      }).catch(function () { return ""; });
+    };
     var pedirTablero = function (per, fresco) {
       var m = MEMO[per], ahora = Date.now(), copia = function (d) { return d && typeof d === "object" ? Object.assign({}, d) : d; };
       if (m && !fresco && (!m.fin || ahora - m.fin < 30000)) return m.p.then(copia);
       if (m && fresco && m.fresco && !m.fin) return m.p.then(copia);
       var reg = { fin: 0, fresco: !!fresco };
-      reg.p = fetch(PUBLICA + "?per=" + encodeURIComponent(per) + (fresco ? "&t=" + ahora : ""))
+      var pedir = function (yo) {
+        return fetch(PUBLICA + "?per=" + encodeURIComponent(per) + (fresco ? "&t=" + ahora + (yo ? "&yo=" + encodeURIComponent(yo) : "") : ""));
+      };
+      var sabida = fresco ? fichaSabida(per) : "";
+      reg.p = (sabida === null ? buscarMiFicha(per).then(pedir) : pedir(sabida))
         .then(function (r) { return r.json(); })
         .then(function (d) { reg.fin = Date.now(); if (d && d.error && MEMO[per] === reg) delete MEMO[per]; return d; },
               function (e) { if (MEMO[per] === reg) delete MEMO[per]; throw e; });
@@ -132,6 +157,7 @@
         .then(function (r) {
           if (r.empty) return null;
           cacheFicha[k] = Object.assign({ id: r.docs[0].id }, r.docs[0].data());
+          MIAS[per] = r.docs[0].id;   // (19-oct · para que lo fresco diga cuál es la mía: `pedirTablero`)
           return cacheFicha[k];
         });
     };
@@ -363,10 +389,10 @@
        * sitio. Dos copias de las mismas cuentas es garantizar que un día dicen cosas distintas.
        */
       tablero: function (per, fresco) {
-        // 🔴 El tablero público se cachea 30 s en el servidor, y eso es lo que salva una clase de
+        // 🔴 El tablero público se guarda 5 min en el servidor (19-oct), y eso es lo que salva una clase de
         // 200 mirándolo a la vez. Pero justo después de marcar un reto esa caché es veneno: el
         // alumno pulsa, se registra, y su Nave le sigue enseñando lo de antes. Quien acaba de
-        // escribir pide fresco; los 200 que solo miran, no.
+        // escribir pide fresco con SU ficha (`pedirTablero`: el servidor relee solo esa); los 200 que solo miran, no.
         return pedirTablero(per, fresco)
           .then(function (d) {
             if (d.error) return d;
@@ -391,7 +417,7 @@
           return M.sesion().then(function (yo) {
             if (!yo) return { error: "Entra con tu cuenta de Google para ver tu ficha.", sinSesion: true };
             // (23-sep · si quien pregunta acaba de traer el tablero FRESCO, se usa ese: no se pide dos veces seguidas)
-            return (yaFresco && yaFresco.reclutas ? Promise.resolve(yaFresco) : window.SG.FUENTE.tablero(per, true)).then(function (t) {
+            var conTablero = function (t, otraVez) {
               return miFicha(M, per, yo).then(function (f) {
                 if (!f) return { error: "Todavía no te has alistado en este grupo.", sinFicha: true };
                 // 🔴 13-sep · por la FICHA, no por el alias: con dos «Halo» en el grupo, uno veía la
@@ -400,6 +426,9 @@
                 var todos = t.reclutas.concat(t.fantasmas || []);
                 var yo_ = todos.filter(function (x) { return x.fid && x.fid === f.id; })[0]
                        || todos.filter(function (x) { return !x.fid && x.alias === f.displayName; })[0];
+                // 🔴 19-oct · si no estoy, el tablero es de antes de alistarme: el servidor lo guarda 5 min, y lo fresco pedido
+                // antes de saber cuál es mi ficha (el motor aún cargaba) no la lleva. Ahora ya se sabe: se pide otra vez, con ella.
+                if (!yo_ && !otraVez) return window.SG.FUENTE.tablero(per, true).then(function (t2) { return t2 && t2.reclutas ? conTablero(t2, true) : conTablero(t, true); });
                 // 🔴 A CADA CUAL, LO SUYO. El tablero público no dice qué retos concretos ha hecho
                 // nadie —y así se queda—, pero uno tiene derecho a ver los suyos: es lo que la Nave
                 // necesita para saber qué casillas pintar hechas y cuáles ofrecer para marcar.
@@ -453,7 +482,8 @@
                   })
                   .catch(function () { return { yo: yo_, correo: yo.correo, verificado: true }; });
               });
-            });
+            };
+            return (yaFresco && yaFresco.reclutas ? Promise.resolve(yaFresco) : window.SG.FUENTE.tablero(per, true)).then(function (t) { return conTablero(t, false); });
           });
         }).catch(function (e) { return { error: e.message }; });
       },

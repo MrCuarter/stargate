@@ -105,17 +105,27 @@
     o = o || {};
     var R = o.reloj || { poner: function (f, ms) { return setTimeout(f, ms); }, quitar: function (t) { clearTimeout(t); } };
     var respiro = o.respiro == null ? 350 : Math.max(0, Number(o.respiro) || 0);
-    var E = { ultimo: null, pedida: null, t: null, reintento: null, fallos: 0, parado: true };
+    // 18-oct · `n`: el número de cada envío; `hecho`: el más nuevo que ya ha llegado (ver mandar)
+    var E = { ultimo: null, pedida: null, t: null, reintento: null, fallos: 0, parado: true, n: 0, hecho: 0 };
 
     function avisar() { if (o.alCambiar) try { o.alCambiar({ fallos: E.fallos }); } catch (e) {} }
+    /*
+     * 🔴 18-oct · LOS ENVÍOS QUE LLEGAN DESORDENADOS (laboratorio previo al estreno de DPG1). Sin respiro, cada diapositiva sale al momento y
+     * sin esperar a la anterior; si la primera tarda (la función del servidor, en frío) y el docente ya ha pasado a otra, la vieja llega
+     * DESPUÉS y pisa a la nueva: la clase se quedaba en la diapositiva de antes hasta el siguiente cambio. Ahora cada envío lleva su número
+     * y, si uno llega cuando ya había llegado otro más nuevo, se vuelve a mandar lo último pedido (sin esperar ni bloquear nada). Y si el
+     * que falla es uno viejo ya superado, ni «Sin señal» ni reintento: lo nuevo ya está.
+     */
     function mandar(p) {
-      var hecha;
+      var hecha, n = ++E.n;
       try { hecha = Promise.resolve(o.mandar(p.datos())); } catch (e) { hecha = Promise.reject(e); }
       return hecha.then(function () {
         if (E.fallos) { E.fallos = 0; avisar(); }
+        if (n < E.hecho && !E.parado && E.pedida) { mandar(E.pedida); return; }
+        if (n > E.hecho) E.hecho = n;
       }, function (e) {
         if (o.apuntar) try { o.apuntar(e); } catch (x) {}
-        if (E.parado) return;
+        if (E.parado || n < E.hecho) return;
         if (p.firma != null && E.ultimo === p.firma) E.ultimo = null;   // (el reintento la vuelve a mandar)
         E.fallos++; avisar();
         R.quitar(E.reintento);
