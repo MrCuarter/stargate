@@ -2440,6 +2440,10 @@ const REG = {};   // cifras que se apuntan para el informe
       await ses.hasta("[].slice.call(document.querySelectorAll('.barra-pasos .p')).some(function(b){return b.getAttribute('title')==='Novedades'})", 20);
       // (solo se pinta la diapositiva en pantalla: se pulsa cada «Lo nuevo» y se lee lo que sale)
       const loNuevo = await ses.js("(function(){ var t=''; [].slice.call(document.querySelectorAll('.barra-pasos .p')).forEach(function(b){ if(b.getAttribute('title')==='Novedades'){ b.click(); var d=document.querySelector('.lienzo .dia.nuevo-nave'); t+=(d?d.textContent:'')+' | '; } }); return t; })()");
+      // 19-oct · el servidor guarda el tablero 5 min (GamificaPro, COSTES_POR_CLASE §9, P1): sin fresco, la sesión arrancaba con el de
+      // antes de abrir el Arsenal. Solo fallaba detrás de la sección 22, que lo dejaba guardado; esto lo caza aunque nadie lo haya pedido
+      c("🔴 calendario · la sesión del docente pide el tablero fresco (con lo que acaba de cambiar, no lo guardado de hace 5 min)",
+        await ses.js("performance.getEntriesByType('resource').some(function(e){ return /tableroStargate\\?per=[^&]*&t=/.test(e.name); })"));
       c("calendario · la sesión proyectada de ESTA semana presenta el Arsenal abierto antes de tiempo («Lo nuevo»)", /Arsenal/.test(loNuevo), loNuevo.slice(0, 200));
       await ses.cerrar();
       c("🔴 calendario · el cierre de retos y el de canje, una semana más tarde", S1.cierre === SS.masDias(S0.cierre, 7) && S1.cierreCanje === SS.masDias(S0.cierreCanje, 7),

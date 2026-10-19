@@ -25,14 +25,19 @@ window.SGCAL = (function(){
    * La caché se guarda con el motor en la clave: si no, al cambiar de motor se leería la foto del
    * otro y volvería el mismo error por otra puerta.
    */
-  function perData(API,per,cb){
+  /**
+   * 🔴 19-oct · `fresco` (opcional): lo que acaba de cambiar el docente, al momento. Sin él, el servidor da el tablero de hace
+   * como mucho 5 min (GamificaPro, COSTES_POR_CLASE §9, P1). El laboratorio (sección 23) lo cazó: Rita abría el Arsenal antes de
+   * tiempo, proyectaba la sesión enseguida y «Lo nuevo» no lo presentaba, porque le llegaba el tablero de antes de abrirlo.
+   */
+  function perData(API,per,cb,fresco){
     var F = window.SG && window.SG.FUENTE;
     var nuevo = F && F.nombre === 'firestore';
     var K='sgPerCache_'+(nuevo?'fs_':'')+per, hit=false;
     try{var c=JSON.parse(localStorage.getItem(K)||'null');
         if(c&&c.d&&(Date.now()-c.t)<43200e3){hit=true;cb(c.d,true);}}catch(e){}
     var pedir = nuevo
-      ? F.tablero(per)
+      ? F.tablero(per, !!fresco)
       : fetch(API+'?per='+encodeURIComponent(per),{redirect:'follow'}).then(function(r){return r.json();});
     pedir.then(function(d){
       if(d&&!d.error){try{localStorage.setItem(K,JSON.stringify({t:Date.now(),d:d}));}catch(e){}}
