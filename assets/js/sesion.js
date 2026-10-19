@@ -2749,6 +2749,7 @@
       p.querySelector('[data-ses-mando-cerrar]').onclick=presCerrar;
     }
     if(p) p.hidden=!PZ.on;
+    if(p&&PZ.on&&window.GP&&window.GP.divisor) window.GP.divisor.poner('#mazo .lienzo', { antes:p, clave:'sg-mando', reserva:56, min:200, texto:'Arrastra para agrandar o achicar la diapositiva (doble clic: el tamaño de serie)' });   // (19-oct · GamificaPro sdk/divisor.js)
     if(PZ.on){
       var N=window.GP&&window.GP.notas;
       if(N&&!PZ.vista) PZ.vista=N.vista(document.getElementById('ses-mando-notas'), { per:st.per||'demo' });
