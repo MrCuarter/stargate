@@ -3697,6 +3697,8 @@
     var yaArranco=false, copia=null, per=st.per;
     miNombreDe(per, function(){
       var espera=setTimeout(function(){ if(!yaArranco&&copia){ yaArranco=true; arrancar(copia); } }, 6000);
+      // 19-oct · el docente, con lo que acaba de cambiar (abrir un capítulo antes, congelar una semana); el recluta, con lo
+      // guardado: no cambia nada del calendario y así no relee el grupo cada vez que alguien abre la sesión
       window.SGCAL.perData(API, per, function(d,esCache){
         if(per!==st.per) return;
         if(esCache){ copia=d; return; }
@@ -3706,7 +3708,7 @@
         // (antes arrancaba con el error: la semana 1 del calendario estándar, sin datos y sin aviso)
         var bueno=d&&!d.error?d:copia;
         if(bueno) arrancar(bueno); else sinRed(cargarYArrancar);
-      });
+      }, !st.alumno);
     });
   }
   /** Volver a pedir el tablero (alguien ficha y no está en la lista: se ha alistado después). */

@@ -210,7 +210,7 @@ NO_MODULOS.forEach(function (f) {
 // estando en la 14. Un docente habría proyectado la clase equivocada sin enterarse.
 const CAL = js("calendario.js");
 c(/F\.nombre === 'firestore'/.test(CAL), "🔴 `perData` mira qué motor hay antes de pedir nada");
-c(/\? F\.tablero\(per\)/.test(CAL), "   y con el nuevo pide por la fuente, no al Apps Script");
+c(/\? F\.tablero\(per, !!fresco\)/.test(CAL), "   y con el nuevo pide por la fuente, no al Apps Script (19-oct: fresco si lo pide quien llama: la sesión del docente)");
 c(/'sgPerCache_'\+\(nuevo\?'fs_':''\)\+per/.test(CAL),
   "🔴 y la caché lleva el motor en la clave: si no, al cambiar de motor se leería la foto del otro");
 
