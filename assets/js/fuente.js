@@ -22,7 +22,7 @@
   // prueba el motor nuevo sin arriesgar nada de lo que ya funciona.
   var CUAL = (q.get("motor") || window.SG_MOTOR || "apps").toLowerCase();
   var PUBLICA = (window.SG_API_PUBLICA ||
-    "https://us-central1-gamificapro-99e0a.cloudfunctions.net/tableroStargate");
+    "https://europe-west1-gamificapro-99e0a.cloudfunctions.net/tableroStargate");
 
   // ---------------------------------------------------------------- el motor viejo: Apps Script
   function apps() {

@@ -4796,7 +4796,7 @@
   async function demostracion() {
     cargando("Preparando la demostración…");
     var PUB = window.SG_API_PUBLICA ||
-      "https://us-central1-gamificapro-99e0a.cloudfunctions.net/tableroStargate";
+      "https://europe-west1-gamificapro-99e0a.cloudfunctions.net/tableroStargate";
     var per = url.get("per") || window.SG_PER_DEMO || "demo-stargate";
     var d = await fetch(PUB + "?per=" + encodeURIComponent(per)).then(function (r) { return r.json(); });
     if (d.error) { app.innerHTML = '<div class="card"><h3>La demostración no está disponible</h3><p>' +
