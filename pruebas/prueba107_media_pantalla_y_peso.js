@@ -59,6 +59,7 @@ const c = (cond, txt, dato) => { if (cond) ok++; else fallos.push(txt); console.
     getDocs: () => { fichas++; return Promise.resolve(quien ? { empty: false, docs: [{ id: "ficha-u1", data: () => ({}) }] } : { empty: true, docs: [] }); } };
   const conYo = F.tablero("g3", true); await suelta(); await suelta(); await conYo;
   c(/[?&]per=g3&t=\d+&yo=ficha-u1$/.test(pedidas[4]), "🔴 lo fresco con sesión dice cuál es MI ficha (el servidor relee solo esa)", pedidas[4]);
+  c((await conYo).conYo === "ficha-u1", "   y el tablero lo dice (conYo): «¿quién soy?» repite si lo fresco no trajo la suya", (await conYo).conYo);
   await F.accion({ accion: "nada", per: "g3" }).catch(() => {});
   const otraVez = F.tablero("g3", true); await suelta(); await otraVez;
   c(/&yo=ficha-u1$/.test(pedidas[5]) && fichas <= 2, "   y no se olvida al escribir (no se busca en cada petición)", pedidas[5] + " · " + fichas);
