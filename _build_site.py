@@ -177,6 +177,13 @@ GB.copiar_pieza(HERE, "notas.js", os.path.join(HERE, "assets", "js", "notas.js")
 # 17-oct · EL MODO PRESENTADOR (GamificaPro sdk/presentador.js, `GP.presentador`, común con DPG): la pregunta de una o dos pantallas al
 # emitir en directo, la ayuda y el canal entre el mando y la presentación (sesion.js → presIniciar)
 GB.copiar_pieza(HERE, "presentador.js", os.path.join(HERE, "assets", "js", "presentador.js"), decir=print)
+# 19-oct · EL DIVISOR ARRASTRABLE (GamificaPro sdk/divisor.js, `GP.divisor`, común con DPG): en el mando del presentador, el asa entre
+# la diapositiva y las notas para agrandarla o achicarla (sesion.js → presOn). La carga sesion.html.
+GB.copiar_pieza(HERE, "divisor.js", os.path.join(HERE, "assets", "js", "divisor.js"), decir=print)
+# 19-oct · LAS NOTAS, EDITABLES EN LA RUEDA (GamificaPro sdk/mazo.js, `GP.mazo.notasRejilla`, común con DPG): en «Configurar las
+# diapositivas» abierta desde la clase, las notas del presentador de cada diapositiva, con «Editar» y «Volver al texto original»
+# (las de cada docente, en su perfil: GP.notas). La carga sesion.html.
+GB.copiar_pieza(HERE, "mazo.js", os.path.join(HERE, "assets", "js", "mazo.js"), decir=print)
 # y el guion de cada diapositiva (_guiones_sg.json: {clave: [líneas]}; la clave, la `k` de la diapositiva, o «s3:k» / «act1:k» / «pres:k»
 # para una sesión concreta, que gana a la general). Solo lo ve el docente, en sus notas.
 GUIONES_SG = json.load(open(os.path.join(HERE, "_guiones_sg.json"), encoding="utf-8")) if os.path.exists(os.path.join(HERE, "_guiones_sg.json")) else {}
@@ -2610,9 +2617,15 @@ window.SG.CFGSESION = (function () {
                   (ASAS ? ' <button type="button" class="btn min" data-cfg-orden>Orden de serie</button>' : '') +
                   (o.verSesion === false ? '' : ' <a class="btn min" href="sesion.html?per=' + encodeURIComponent(o.per || "") + '" target="_blank" rel="noopener">Ver la sesión ↗</a>') + '</p>'
                 : '<p class="muted">No te encuentro en el equipo docente de este grupo.</p>') +
+      // 19-oct · las notas del presentador de cada diapositiva de ESTA clase (abierta desde la sesión), editables: GP.mazo.notasRejilla
+      (o.notas && window.GP && window.GP.mazo && window.GP.mazo.notasRejilla ? '<div class="card m-notas"><h3>Tus notas de esta clase</h3>' +
+        '<p class="small muted">Las notas del presentador de cada diapositiva. Pulsa una para leerla entera, editarla o volver al texto original. Se guardan en tu perfil y valen para todos tus grupos.</p>' +
+        '<div class="m-notas-r"></div></div>' : '') +
       '</div>';
     document.body.appendChild(capa);
-    var cerrar = function () { capa.remove(); document.removeEventListener("keydown", tecla); };
+    var notas = capa.querySelector(".m-notas-r") ? window.GP.mazo.notasRejilla(capa.querySelector(".m-notas-r"), { items: o.notas.items, notas: o.notas }) : null;
+    if (o.notas) o.notas.rejilla = notas;
+    var cerrar = function () { if (notas) notas.quitar(); if (o.notas) o.notas.rejilla = null; capa.remove(); document.removeEventListener("keydown", tecla); };
     var tecla = function (ev) { if (ev.key === "Escape") cerrar(); };
     document.addEventListener("keydown", tecla);
     capa.addEventListener("click", function (ev) { if (ev.target === capa || ev.target.closest("[data-cfg-x]")) cerrar(); });
@@ -4180,6 +4193,8 @@ al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></heade
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <script src="assets/js/notas.js" defer></script>
 <script src="assets/js/presentador.js" defer></script>
+<script src="assets/js/divisor.js" defer></script>
+<script src="assets/js/mazo.js" defer></script>
 <script>window.SG_GUIONES={json.dumps(GUIONES_SG, ensure_ascii=False)};</script>
 <script src="assets/js/directo.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>
