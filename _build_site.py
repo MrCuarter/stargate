@@ -188,7 +188,7 @@ GB.copiar_pieza(HERE, "mazo.js", os.path.join(HERE, "assets", "js", "mazo.js"), 
 # para una sesión concreta, que gana a la general). Solo lo ve el docente, en sus notas.
 GUIONES_SG = json.load(open(os.path.join(HERE, "_guiones_sg.json"), encoding="utf-8")) if os.path.exists(os.path.join(HERE, "_guiones_sg.json")) else {}
 for _k, _l in GUIONES_SG.items():
-    assert isinstance(_l, list) and 1 <= len(_l) <= 6 and all(isinstance(x, str) and 0 < len(x) <= 400 for x in _l), "guion de «" + _k + "»: de 1 a 6 líneas"
+    assert isinstance(_l, list) and 1 <= len(_l) <= 8 and all(isinstance(x, str) and 0 < len(x) <= 400 for x in _l), "guion de «" + _k + "»: de 1 a 8 líneas"
     assert "genially" not in " ".join(_l).lower(), "guion de «" + _k + "»: nombra Genially"
 print("· guiones de la sesión:", len(GUIONES_SG))
 # 13-oct · LA PÁGINA «ESTADÍSTICAS» (GamificaPro sdk/estadisticas.js, `GP.estadisticas`): filtros, pestañas, gráficas, horarios de
