@@ -55,7 +55,7 @@
   var COLECCION = "mod_notas";
   // = firestore.rules → notasValidas
   var MAX = { titulo: 160, nota: 3000, linea: 400, lineas: 8, sesion: 160 };
-  var ETIQUETA = /^(Haz|Di|Pregunta|Enseña|Recomienda|Ojo|Muestra|Pide|Abre|Lee)\s*:\s*/i;
+  var ETIQUETA = /^(Haz|Di|Pregunta|Enseña|Recomienda|Ojo|Muestra|Pide|Abre|Lee|Qué es|Temario|En el aula|Recursos|Qué decir)\s*:\s*/i;
 
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; });
