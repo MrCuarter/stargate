@@ -62,6 +62,17 @@ c(/\.split\('\{TEMA\}'\)\.join\(encodeURIComponent\(opcion\)\)[\s\S]{0,200}\+\(s
 c(/sinCuentaEnDiferido\(\)\?' Sin cuenta: eliges a tu Comandante y va sin premio/.test(SES) && /tkPres&&!sinCuentaEnDiferido\(\)/.test(SES),
   "   y no le promete cápsula ni «la raya de tu escuadrón»");
 
+console.log("\n  · 3c · el anuncio al profesorado (GamificaPro sdk/anuncio.js)");
+const CONH = L("consola.html");
+c(fs.existsSync(path.join(R, "assets/js/anuncio.js")) && /window\.GP\.anuncio = \{ mostrar: mostrar/.test(L("assets/js/anuncio.js")), "   la pieza del motor, copiada en el build");
+c(/<script src="assets\/js\/anuncio\.js\?v=[0-9a-f]{10}" defer><\/script>/.test(CONH) && !/anuncio\.js/.test(L("ensayo.html")) && !/anuncio\.js/.test(L("gestion.html")),
+  "🔴 solo en la consola (ni en el ensayo ni en Gestionar grupos), con su huella");
+c(/setTimeout\(quizaAnuncio, 2500\)/.test(CON) && /GESTION \|\| ENSAYA \|\| !PER \|\| !YO \|\| !YO\.correo \|\| document\.querySelector\("\.bc-capa"\)/.test(CON),
+  "   después de entrar en su grupo; nunca en la demostración ni encima de su bienvenida");
+c(/document\.querySelector\("\.sgav-fondo"\)\) \{ if \(intentos < 90\) setTimeout/.test(CON), "   y si está la ventana de respuestas del buzón, espera a que la cierre");
+c(/clave: "ticket-sin-cuenta", hasta: "2026-11-20"/.test(CON) && /quien: YO\.correo/.test(CON), "   una vez por persona, y caduca (el 20-nov)");
+c(/texto: "Ver los enlaces", alPulsar: function \(\) \{ TAB = "mios";/.test(CON) && /Enlaces → Para tu alumnado/.test(CON), "🔴 breve, y su botón lleva a Enlaces");
+
 console.log("\n  · 4 · el ticket de siempre, igual");
 c(/MOTOR\(\)\.llamar\("modTicket", \{ accion: "enviar", projectId: PER, tema: TEMA, respuestas: envio \}\)/.test(TK), "   lo que envía la recluta, lo mismo");
 c(/capsula\(r \|\| \{\}\);/.test(TK) && /M\.sesion\(\)\.then\(una\);/.test(TK), "   la cápsula y la puerta de Google, en su sitio");

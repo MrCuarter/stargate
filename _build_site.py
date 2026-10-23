@@ -180,6 +180,9 @@ GB.copiar_pieza(HERE, "presentador.js", os.path.join(HERE, "assets", "js", "pres
 # 19-oct · EL DIVISOR ARRASTRABLE (GamificaPro sdk/divisor.js, `GP.divisor`, común con DPG): en el mando del presentador, el asa entre
 # la diapositiva y las notas para agrandarla o achicarla (sesion.js → presOn). La carga sesion.html.
 GB.copiar_pieza(HERE, "divisor.js", os.path.join(HERE, "assets", "js", "divisor.js"), decir=print)
+# 23-oct · UN ANUNCIO BREVE, UNA SOLA VEZ (GamificaPro sdk/anuncio.js, `GP.anuncio`): lo nuevo, al profesorado, en su consola
+# (consola.js → quizaAnuncio). Se mete en consola.html más abajo, con su huella.
+GB.copiar_pieza(HERE, "anuncio.js", os.path.join(HERE, "assets", "js", "anuncio.js"), decir=print)
 # 19-oct · LAS NOTAS, EDITABLES EN LA RUEDA (GamificaPro sdk/mazo.js, `GP.mazo.notasRejilla`, común con DPG): en «Configurar las
 # diapositivas» abierta desde la clase, las notas del presentador de cada diapositiva, con «Editar» y «Volver al texto original»
 # (las de cada docente, en su perfil: GP.notas). La carga sesion.html.
@@ -5895,6 +5898,16 @@ for _html in _glob2.glob(os.path.join(HERE, "*.html")):
         _s2 = _s2.replace("</head>", _TAG_ORDENA + "\n</head>", 1)
     if _s2 != _s:
         open(_html, "w", encoding="utf-8").write(_s2)
+
+# ---------------------------------------------------------------- 23-oct · el anuncio breve (GamificaPro sdk/anuncio.js), solo en la consola
+_TAG_ANUNCIO = '<script src="assets/js/anuncio.js?v=' + _ver("assets/js/anuncio.js") + '" defer></script>'
+_html = os.path.join(HERE, "consola.html")
+_s = open(_html, encoding="utf-8").read()
+_s2 = _re2.sub(r'<script src="assets/js/anuncio\.js(\?v=[0-9a-f]+)?" defer></script>\n?', '', _s)
+assert "</head>" in _s2, "consola.html sin </head>: revisa el anuncio"
+_s2 = _s2.replace("</head>", _TAG_ANUNCIO + "\n</head>", 1)
+if _s2 != _s:
+    open(_html, "w", encoding="utf-8").write(_s2)
 
 # ---------------------------------------------------------------- 9-oct · cambiar el correo con el que entro (GamificaPro sdk/cuenta.js)
 # Solo en la Nave del recluta (recluta.html): el botón está en su menú «···». Con su huella, como desliza.js.

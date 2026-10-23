@@ -744,6 +744,24 @@
     pintar();
     quizaBienvenida();
     vigilarSistema();   // 7-oct · los mensajes de NEBULA a su alumnado
+    setTimeout(quizaAnuncio, 2500);   // 23-oct · lo nuevo, después de la bienvenida y de la ventana del buzón (que sale sola al leer)
+  }
+  /**
+   * 🔴 23-oct · LO NUEVO, EN UNA VENTANA BREVE (GamificaPro sdk/anuncio.js, `GP.anuncio`). Norberto: «¿Puedes hacer que se abra un pop
+   * up a los profesores muy breve con esta info?» (el ticket y las sesiones sin cuenta, que pidió Caridad). Una vez por persona y
+   * hasta `hasta`. Nunca encima de su bienvenida (si la está viendo, sale otro día), ni de la ventana de respuestas del buzón
+   * (aviso-buzon.js: espera a que la cierre), ni en la demostración, el ensayo o Gestionar grupos. El siguiente anuncio: otra `clave`.
+   */
+  var ANUNCIO = { clave: "ticket-sin-cuenta", hasta: "2026-11-20", titulo: "Nuevo: el ticket y las sesiones, sin cuenta",
+    html: "<p>Quien no juega a STARGATE ya puede ver la presentación y las sesiones dadas, y hacer el ticket de salida, <b>sin entrar con ninguna cuenta</b>. " +
+      "El ticket va sin premio y te llega junto al de tu escuadrón.</p><p>Los dos enlaces, en <b>Enlaces → Para tu alumnado</b>.</p>" };
+  function quizaAnuncio(intentos) {
+    var A = window.GP && window.GP.anuncio;
+    if (!A || GESTION || ENSAYA || !PER || !YO || !YO.correo || document.querySelector(".bc-capa")) return;
+    intentos = intentos || 0;
+    if (document.querySelector(".sgav-fondo")) { if (intentos < 90) setTimeout(function () { quizaAnuncio(intentos + 1); }, 2000); return; }
+    A.mostrar({ clave: ANUNCIO.clave, quien: YO.correo, hasta: ANUNCIO.hasta, titulo: ANUNCIO.titulo, html: ANUNCIO.html,
+      boton: { texto: "Ver los enlaces", alPulsar: function () { TAB = "mios"; if (alDia()) pintar(); else releerYPintar(); } } });
   }
   /**
    * 🔴 7-oct · LO QUE NEBULA LE HA DICHO A TU ALUMNADO. Norberto (de baja, con Claude de asistente): «que no te hagas pasar por el

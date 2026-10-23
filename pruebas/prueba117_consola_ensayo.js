@@ -30,7 +30,9 @@ c(/<title>STARGATE · Consola de ensayo<\/title>/.test(ENS) && /<h1>Consola de e
 c(ENS.replace(/<script>window\.SG_ENSAYO=1;<\/script>.*?<\/script>/, "").replace(/Consola de ensayo/g, "Mi nave").replace(/<meta name="robots" content="noindex">\n/, "")
    .replace(/<title>STARGATE · Mi nave<\/title>/, "") === CON.replace(/<script type="module" src="assets\/js\/motor\.js[^"]*"><\/script>/, "").replace(/<title>STARGATE · Mi nave<\/title>/, "")
      // 1-oct · menos el aviso de respuestas del buzón (batería 122): en el ensayo no hay buzón de verdad que avisar
-     .replace(/<script src="assets\/js\/aviso-buzon\.js\?v=[0-9a-f]{10}" defer><\/script>\n/, ""),
+     .replace(/<script src="assets\/js\/aviso-buzon\.js\?v=[0-9a-f]{10}" defer><\/script>\n/, "")
+     // 23-oct · y el anuncio de lo nuevo (GamificaPro sdk/anuncio.js, batería 152): en el ensayo no se anuncia nada
+     .replace(/<script src="assets\/js\/anuncio\.js\?v=[0-9a-f]{10}" defer><\/script>\n/, ""),
   "🔴 por lo demás, ensayo.html ES consola.html (no se puede quedar atrás)");
 
 // ── 2 · motor_sim.js = motor.js, con otros imports
