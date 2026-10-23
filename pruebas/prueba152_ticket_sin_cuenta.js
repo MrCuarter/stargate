@@ -10,7 +10,8 @@
  *   1. ticket.html?per=…&invitado=1 entra sin cuenta, deja elegir Comandante y planeta, y envía SIN premio;
  *   2. 🔴 la sesión sin cuenta no se queda en el resto de la web: el motor la cierra fuera del ticket de invitado, y el ticket la
  *      cierra al acabar;
- *   3. el docente tiene el enlace en su consola (Enlaces → Para tu alumnado), con su nombre ya marcado;
+ *   3. el docente tiene el enlace en su consola (Enlaces → Para tu alumnado), con su nombre ya marcado; y al lado, el de la
+ *      presentación y las sesiones sin cuenta (el de la Nave del recluta: sin las notas del docente);
  *   4. el ticket de siempre no cambia (lo que envía, la cápsula, la investigación).
  */
 const fs = require("fs"), path = require("path");
@@ -47,6 +48,10 @@ c(/tit: "El ticket de salida sin cuenta"/.test(CON) && /abrir: "ticket\.html\?pe
   "🔴 en Enlaces → Para tu alumnado, con su Comandante (él o ella) ya marcado");
 c(/\.tk-elige\{display:grid;grid-template-columns:repeat\(auto-fill,minmax\(min\(100%,220px\),1fr\)\)/.test(BUILD) && /\.tk-elige \.btn\{[^}]*min-height:44px[^}]*min-width:0/.test(BUILD),
   "   botones en rejilla que caben en 320 px, de 44 px de alto");
+
+c(/tit: "La presentación y las sesiones, sin cuenta"/.test(CON) && /abrir: "sesion\.html\?embed=1&diferido=1&per=" \+ P \+ "&pres=1"/.test(CON) &&
+  /'sesion\.html\?embed=1&diferido=1&pres=1&per='/.test(L("assets/js/recluta.js")),
+  "🔴 y las sesiones sin cuenta: el enlace de la Nave del recluta (sin nada del docente, sin pasar de la semana en curso)");
 
 console.log("\n  · 4 · el ticket de siempre, igual");
 c(/MOTOR\(\)\.llamar\("modTicket", \{ accion: "enviar", projectId: PER, tema: TEMA, respuestas: envio \}\)/.test(TK), "   lo que envía la recluta, lo mismo");

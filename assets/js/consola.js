@@ -2792,6 +2792,11 @@
            * 23-oct · EL TICKET SIN CUENTA (Caridad: «para compartir con el alumnado que no tenga acceso a Stargate»): eligen su
            * Comandante (sale ya marcado el tuyo) y el planeta, sin premio; lo suyo te llega con el ticket de tu escuadrón.
            */
+          // 23-oct · y las sesiones para quien no juega: el mismo enlace que la Nave del recluta (recluta.js → urlPresentacion), sin nada
+          // del docente (embed) y sin pasar de la semana en curso (diferido; «Las semanas», el índice). El de «La presentación de la
+          // asignatura», arriba, es la vista del docente (con sus notas): ese no se reparte.
+          mFila({ ico: ico("video"), tit: "La presentación y las sesiones, sin cuenta", desc: "Para quien no juega: la presentación de la asignatura y, en «Las semanas», cada sesión ya dada. Sin tus notas ni nada del docente.",
+                  abrir: "sesion.html?embed=1&diferido=1&per=" + P + "&pres=1" }),
           mFila({ ico: ico("notas"), tit: "El ticket de salida sin cuenta", desc: "Para quien no juega a STARGATE: elige Comandante (sale el tuyo) y planeta, sin premio. Lo ves con el de tu escuadrón.",
                   abrir: "ticket.html?per=" + P + "&invitado=1&c=" + encodeURIComponent(yo.nombre || "") }),
           mFila({ ico: ico("cohete"), tit: "La Nave del alumnado", desc: "Dentro de tu Genially: cada recluta ve la suya.", abrir: "recluta.html?per=" + P, codigo: "recluta.html?per=" + P + "&embed=1" }),
