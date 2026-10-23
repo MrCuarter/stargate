@@ -7,7 +7,7 @@
  *
  *   { id, p: [formas de preguntarlo], claves: [palabras que pesan], r: 'respuesta (HTML sencillo)', ir?: 'pestaña de la Nave' }
  *
- * 🔴 Los datos salen de la web (_site_data.py, guia-recluta.html, ayuda.html, actividades.html, privacidad.html). Sin
+ * 🔴 Los datos salen de la web (_site_data.py, guia-recluta.html, ayuda.html, actividades.html (solo docentes), privacidad.html). Sin
  * fechas absolutas (cambian por grupo: se dice la semana y dónde verla). PROHIBIDO: soluciones de tests, retos, Ruta o
  * examen; destripar la historia; correos o datos de personas; preguntas del banco. Si se pide eso, se explica por qué no.
  * `ir`: nave · retos · ruta · simulador · botin · botin:cromos · botin:heroes · botin:insignias · mercado · zoco ·
@@ -471,15 +471,15 @@ window.SG_NEBULA_FAQ = [
     r: "En clase o en el <b>foro de la plataforma de UNIR</b>. Para repasar: Archivo → Sesiones de clase. Y si es de cómo funciona STARGATE, pregúntame aquí.", ir: "archivo" },
   { id: "temario_pdf", p: ["dónde está el temario en pdf", "los apuntes de los temas", "material de estudio"],
     claves: ["apuntes", "pdf", "material", "estudio", "temario"],
-    r: "El material oficial de los temas está en el aula virtual de UNIR. En la Nave, las sesiones de clase (Archivo) y en <a href=\"actividades.html#docs\" target=\"_blank\" rel=\"noopener\">Actividades y evaluación</a>, los documentos oficiales." },
+    r: "El material oficial de los temas está en el aula virtual de UNIR. En la Nave, las sesiones de clase (Archivo) y en la <a href=\"guia-recluta.html#docs\" target=\"_blank\" rel=\"noopener\">guía del recluta → Enunciados y rúbricas</a>, los documentos oficiales." },
 
   // ───────────────────────────── LAS DOS ACTIVIDADES ─────────────────────────────
   { id: "actividades", p: ["qué actividades hay que entregar", "cuáles son las actividades evaluables", "qué tengo que entregar"],
     claves: ["actividades", "entregar", "evaluables", "entregables"],
-    r: "Dos, de <b>4,3 puntos</b> cada una: la <b>Actividad 1</b> (actividad didáctica a partir de una imagen con IA) y la <b>Actividad 2</b> (planifica y crea un paisaje de aprendizaje). Se entregan por la plataforma de UNIR. <a href=\"actividades.html\" target=\"_blank\" rel=\"noopener\">Enunciados y rúbricas</a>." },
+    r: "Dos, de <b>4,3 puntos</b> cada una: la <b>Actividad 1</b> (actividad didáctica a partir de una imagen con IA) y la <b>Actividad 2</b> (planifica y crea un paisaje de aprendizaje). Se entregan por la plataforma de UNIR. <a href=\"guia-recluta.html#docs\" target=\"_blank\" rel=\"noopener\">Enunciados y rúbricas</a>." },
   { id: "act1", p: ["qué es la actividad 1", "de qué va la actividad 1", "actividad de la imagen con IA"],
     claves: ["actividad", "1", "uno", "imagen", "ia"],
-    r: "Diseñas una actividad para tu aula a partir de una <b>imagen creada con IA</b>, documentando el proceso con criterio docente: planificación, prompt con iteración, tabla técnica y tabla reflexiva. Entregas un PDF (80 %) y tu ePortfolio (20 %). <a href=\"actividades.html#act1\" target=\"_blank\" rel=\"noopener\">Actividad 1</a>." },
+    r: "Diseñas una actividad para tu aula a partir de una <b>imagen creada con IA</b>, documentando el proceso con criterio docente: planificación, prompt con iteración, tabla técnica y tabla reflexiva. Entregas un PDF (80 %) y tu ePortfolio (20 %). <a href=\"guia-recluta.html#docs\" target=\"_blank\" rel=\"noopener\">Enunciado y rúbrica</a>." },
   { id: "act1_fechas", p: ["cuándo se entrega la actividad 1", "fecha de entrega actividad 1", "plazo actividad 1"],
     claves: ["actividad", "1", "entrega", "plazo", "fecha", "cuando"],
     r: "Se lanza en la semana 2, se entrega <b>el último día de la semana 5</b> y se devuelve corregida en la 9. La fecha exacta de tu grupo, en la tarjeta de la entrega de Mi nave (con su cuenta atrás) y en el aula virtual.", ir: "nave" },
@@ -494,7 +494,7 @@ window.SG_NEBULA_FAQ = [
     r: "Un prompt estructurado (contexto educativo + tipo de imagen + finalidad) siguiendo un modelo: CRAFT, RITA o RCTA. Di cuál sigues y que se vean sus partes, y haz al menos una iteración." },
   { id: "act2", p: ["qué es la actividad 2", "de qué va la actividad 2", "paisaje de aprendizaje actividad"],
     claves: ["actividad", "2", "dos", "paisaje"],
-    r: "Planificas un tema con una <b>matriz de programación</b> (inteligencias múltiples × Bloom) y lo conviertes en un <b>paisaje de aprendizaje</b> interactivo que atiende a la diversidad. PDF (80 %) + ePortfolio (20 %). <a href=\"actividades.html#act2\" target=\"_blank\" rel=\"noopener\">Actividad 2</a>." },
+    r: "Planificas un tema con una <b>matriz de programación</b> (inteligencias múltiples × Bloom) y lo conviertes en un <b>paisaje de aprendizaje</b> interactivo que atiende a la diversidad. PDF (80 %) + ePortfolio (20 %). <a href=\"guia-recluta.html#docs\" target=\"_blank\" rel=\"noopener\">Enunciado y rúbrica</a>." },
   { id: "act2_fechas", p: ["cuándo se entrega la actividad 2", "fecha de entrega actividad 2", "plazo actividad 2"],
     claves: ["actividad", "2", "entrega", "plazo", "fecha", "cuando"],
     r: "Se lanza en la semana 6, se entrega <b>el último día de la semana 9</b> y se devuelve corregida en la 13. La fecha exacta de tu grupo, en Mi nave y en el aula virtual.", ir: "nave" },
@@ -512,7 +512,7 @@ window.SG_NEBULA_FAQ = [
     r: "Por la <b>plataforma de UNIR</b> (el aula virtual), no en la Nave. En la Nave solo marcas su reto cuando ya la has enviado." },
   { id: "rubrica", p: ["dónde está la rúbrica", "cómo se evalúa la actividad", "criterios de corrección"],
     claves: ["rubrica", "criterios", "evalua", "correccion", "puntua"],
-    r: "Las rúbricas de las dos Actividades, con el peso de cada criterio y lo que pide el sobresaliente, están en <a href=\"actividades.html\" target=\"_blank\" rel=\"noopener\">Actividades y evaluación</a> y en su sesión del Archivo.", ir: "archivo" },
+    r: "Las rúbricas de las dos Actividades, con el peso de cada criterio y lo que pide el sobresaliente, están en la <a href=\"guia-recluta.html#docs\" target=\"_blank\" rel=\"noopener\">guía del recluta → Enunciados y rúbricas</a> y en su sesión del Archivo.", ir: "archivo" },
   { id: "errores_frecuentes", p: ["errores frecuentes en las actividades", "qué fallos no cometer", "consejos para la actividad"],
     claves: ["errores", "fallos", "consejos", "evitar"],
     r: "Los clásicos: una sola versión sin iteración, el prompt sin modelo, la IA sin citar, salirse de la plantilla o de las páginas, y un enlace que no abre. En la Actividad 2, además: presentar un itinerario disfrazado de paisaje o menos de seis actividades." },
@@ -533,7 +533,7 @@ window.SG_NEBULA_FAQ = [
     r: "La Actividad 1 se resuelve en la semana 9 y la 2 en la 13. Las notas, en la plataforma de UNIR." },
   { id: "plantilla_entrega", p: ["dónde está la plantilla de entrega", "plantilla del pdf", "documentos oficiales"],
     claves: ["plantilla", "documentos", "enunciado", "descargar"],
-    r: "En <a href=\"actividades.html#docs\" target=\"_blank\" rel=\"noopener\">Actividades y evaluación → Descargas</a>: enunciados, rúbricas, pautas del ePortfolio, plantilla de entrega y ejemplo de examen. Los mismos que en el aula virtual." },
+    r: "En la <a href=\"guia-recluta.html#docs\" target=\"_blank\" rel=\"noopener\">guía del recluta → Enunciados y rúbricas</a>: enunciados, rúbricas, pautas del ePortfolio, plantilla de entrega y ejemplo de examen. Los mismos que en el aula virtual." },
 
   // ───────────────────────────── EVALUACIÓN, TESTS Y EXAMEN ─────────────────────────────
   { id: "evaluacion", p: ["cómo se evalúa la asignatura", "qué cuenta para la nota", "reparto de la nota", "cómo me ponen la nota"],
@@ -547,7 +547,7 @@ window.SG_NEBULA_FAQ = [
     r: "Eso no, recluta: los tests son para que fijes tú los conceptos. Repasa las Sesiones de clase del Archivo y juega el Simulador de vuelo." },
   { id: "examen", p: ["cómo es el examen", "formato del examen", "qué hay que hacer en el examen", "hay que memorizar", "el examen es tipo test", "el examen es de preguntas", "hay preguntas en el examen"],
     claves: ["examen", "formato", "final", "memorizar"],
-    r: "En un grupo <b>PUA no hay examen</b>: la evaluación continua es el 100 % de la nota. En los demás, no se memoriza: se construye. En la semana de exámenes montas <b>en directo</b> una plataforma digital (web o Genially) con portada, logo con la palabra clave, módulos y productos digitales, y la entregas con su <b>enlace público</b>: si no abre, no se puede evaluar. Formato y fechas exactas, en el aula virtual. <a href=\"actividades.html#examen\" target=\"_blank\" rel=\"noopener\">El examen</a>." },
+    r: "En un grupo <b>PUA no hay examen</b>: la evaluación continua es el 100 % de la nota. En los demás, no se memoriza: se construye. En la semana de exámenes montas <b>en directo</b> una plataforma digital (web o Genially) con portada, logo con la palabra clave, módulos y productos digitales, y la entregas con su <b>enlace público</b>: si no abre, no se puede evaluar. Formato y fechas exactas, en el aula virtual. <a href=\"guia-recluta.html#docs\" target=\"_blank\" rel=\"noopener\">El ejemplo de examen</a>." },
   { id: "examen_valor", p: ["cuánto vale el examen", "qué peso tiene el examen", "porcentaje del examen"],
     claves: ["examen", "vale", "peso", "porcentaje", "cuenta"],
     r: "El examen final vale el <b>60 % de la nota</b>. El otro 40 % es la evaluación continua: las dos actividades, los tests de tema y la asistencia en directo. En un grupo <b>PUA no hay examen</b>: la evaluación continua es el 100 %." },
@@ -556,7 +556,7 @@ window.SG_NEBULA_FAQ = [
     r: "En la <b>semana de exámenes</b> (la 16). El día y la hora exactos de tu grupo, en el aula virtual de UNIR. En la 15 hay repaso y simulacro." },
   { id: "examen_preparar", p: ["cómo preparo el examen", "ejemplo de examen", "consejos para el examen"],
     claves: ["preparar", "ejemplo", "examen", "estudiar", "consejos"],
-    r: "Haz el simulacro de la semana 15 (90 minutos de reloj), mira el <a href=\"actividades.html#docs\" target=\"_blank\" rel=\"noopener\">ejemplo de examen</a> y el vídeo «Plan de Ataque», y ten a mano tu Arsenal: lo que ya creaste en los retos se puede reutilizar. Practica el QR y el enlace público." },
+    r: "Haz el simulacro de la semana 15 (90 minutos de reloj), mira el <a href=\"guia-recluta.html#docs\" target=\"_blank\" rel=\"noopener\">ejemplo de examen</a> y el vídeo «Plan de Ataque», y ten a mano tu Arsenal: lo que ya creaste en los retos se puede reutilizar. Practica el QR y el enlace público." },
   { id: "examen_preguntas", p: ["qué preguntas caen en el examen", "dame el examen", "cuál es el caso del examen"],
     claves: ["caen", "preguntas", "examen", "caso", "adelanta"],
     r: "Eso no lo sé ni lo cuento, recluta: el caso se conoce el día del examen. Lo que sí: su formato y el simulacro de la semana 15 para ensayarlo." },

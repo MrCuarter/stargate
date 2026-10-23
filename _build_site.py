@@ -1312,7 +1312,7 @@ pestaña, cómo se registra un reto, qué cuenta para tu nota y en qué se gasta
 
 <nav class="guia-sub" aria-label="Secciones de la guía del recluta"><div class="wrap">
   <a href="#empezar">Primer día</a><a href="#nave">Tu Nave</a><a href="#semana">Cada semana</a><a href="#retos">Los retos</a>
-  <a href="#nota">Tu nota</a><a href="#bitacora">La Bitácora</a><a href="#progreso">Niveles y créditos</a>
+  <a href="#nota">Tu nota</a><a href="#docs">Enunciados y rúbricas</a><a href="#bitacora">La Bitácora</a><a href="#progreso">Niveles y créditos</a>
   <a href="#botin">Tu botín</a><a href="#mercado">Mercado y Zoco</a><a href="#archivo">La historia</a><a href="#enlace">¿Mi enlace abre lo mío?</a><a href="#dudas">Dudas</a>
 </div></nav>
 
@@ -1393,6 +1393,14 @@ Antes, compruébalo en <a href="ayuda.html">¿Mi enlace abre lo mío?</a>: que s
 <div class="grid cols-2">{_gr_act}</div>
 <p class="small">En tu Nave los ves como <b>retos relacionados</b>: en la tarjeta de la entrega (con su <b>cuenta atrás</b>, las semanas antes de entregar) y en la de la Actividad en «Retos», marcados como hechos o pendientes.</p>
 <p class="small"><b>Cada actividad tiene su sesión</b> en tu Nave (El Archivo) desde la semana en que se lanza: qué se entrega, paso a paso con un ejemplo resuelto, lo que hace falta para el 10 y las fechas. Y <b>haz capturas</b> de cada paso: son la prueba de que lo hiciste a tiempo y te salvan si un enlace sale privado.</p>
+</div></section>
+
+<!-- 23-oct · mensaje qtxPlgpGPXywCww687hV: a los reclutas se les daba actividades.html, que es de la zona del profesorado
+     (pide la cuenta del equipo docente). Los mismos documentos oficiales (docs_html), aquí, donde entra el recluta. -->
+<section id="docs"><div class="wrap">
+<div class="eyebrow amber">Documentos oficiales</div><h2>Enunciados, rúbricas y pautas</h2>
+<p class="lead">Los enunciados de las dos Actividades, sus rúbricas, las pautas del ePortfolio y la plantilla de entrega. Son los mismos que en el aula virtual de la UNIR; se entregan siempre por la plataforma de la UNIR.</p>
+<div class="docs">{docs_html}</div>
 </div></section>
 
 <section id="bitacora"><div class="wrap">

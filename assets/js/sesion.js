@@ -2226,7 +2226,7 @@
       +'<section class="ac-caja ep"><p class="ac-pct"><b>20 %</b> Tu ePortfolio</p>'+listaAc(X.D.portfolio)+'</section></div>'
       +'<p class="ac-links">'+(ep?'<a class="btn min" href="'+esc(ep)+'" target="_blank" rel="noopener">Plantilla del ePortfolio ↗</a>':'')
       +(X.a.n===2&&mz?'<a class="btn min" href="'+esc(mz)+'" target="_blank" rel="noopener">Plantilla de la matriz ↗</a>':'')
-      +'<a class="btn min" href="actividades.html#act'+X.a.n+'" target="_blank" rel="noopener">El enunciado completo ↗</a></p></div>'};
+      +'<a class="btn min" href="guia-recluta.html#docs" target="_blank" rel="noopener">Enunciado y rúbrica ↗</a></p></div>'};
   }
   // ── Actividad 1 · paso a paso, con el ejemplo de Pilar
   function nebulaDice(txt){ return '<div class="ac-neb"><img src="assets/img/personajes/nebula.png" alt=""><p><b>NEBULA:</b> '+txt+'</p></div>'; }
