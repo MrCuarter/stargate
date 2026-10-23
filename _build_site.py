@@ -2013,17 +2013,18 @@ def _retos_presenta():
 _TRIPUL_JSON = json.dumps({k: {"nombre": v[0], "rol": v[1], "historia": v[2], "leccion": v[3], "cita": CITAS.get(k, ""),
                               "carta": "assets/img/tarjetas/" + k + "_carta.webp"} for k, v in TRIPULANTES.items()}, ensure_ascii=False)
 # Enlace a la actividad mayor / ePortfolio del que forma parte el reto
+# 23-oct · a la guía del recluta, no a actividades.html (zona del profesorado: al recluta no le abre)
 LINKS = {
- "R1_la-chispa":{"text":"Actividad 1 — imagen con IA","href":"actividades.html#act1"},
- "R2_el-eco-que-ensena":{"text":"el ePortfolio (reto videotutorial)","href":"actividades.html#eportfolio"},
- "R3_la-matriz":{"text":"Actividad 2 — paisaje de aprendizaje","href":"actividades.html#act2"},
- "R4_entorno-de-aula":{"text":"el ePortfolio (tu aula virtual)","href":"actividades.html#eportfolio"},
- "R5_bitacora-medida":{"text":"el ePortfolio (tu web de recursos) y la Actividad 1","href":"actividades.html#eportfolio"},
- "R6_el-juego":{"text":"el ePortfolio (reto juego digital)","href":"actividades.html#eportfolio"},
- "R7_microgamificacion":{"text":"el ePortfolio (reto microgamificación)","href":"actividades.html#eportfolio"},
- "R8_ultimo-umbral":{"text":"la Actividad 2 y la Bitácora","href":"actividades.html#act2"},
- "H2_primera-forja":{"text":"Actividad 1","href":"actividades.html#act1"},
- "H3_cartografo":{"text":"Actividad 2","href":"actividades.html#act2"},
+ "R1_la-chispa":{"text":"Actividad 1 — imagen con IA","href":"guia-recluta.html#docs"},
+ "R2_el-eco-que-ensena":{"text":"el ePortfolio (reto videotutorial)","href":"guia-recluta.html#bitacora"},
+ "R3_la-matriz":{"text":"Actividad 2 — paisaje de aprendizaje","href":"guia-recluta.html#docs"},
+ "R4_entorno-de-aula":{"text":"el ePortfolio (tu aula virtual)","href":"guia-recluta.html#bitacora"},
+ "R5_bitacora-medida":{"text":"el ePortfolio (tu web de recursos) y la Actividad 1","href":"guia-recluta.html#bitacora"},
+ "R6_el-juego":{"text":"el ePortfolio (reto juego digital)","href":"guia-recluta.html#bitacora"},
+ "R7_microgamificacion":{"text":"el ePortfolio (reto microgamificación)","href":"guia-recluta.html#bitacora"},
+ "R8_ultimo-umbral":{"text":"la Actividad 2 y la Bitácora","href":"guia-recluta.html#docs"},
+ "H2_primera-forja":{"text":"Actividad 1","href":"guia-recluta.html#docs"},
+ "H3_cartografo":{"text":"Actividad 2","href":"guia-recluta.html#docs"},
 }
 for _k,_v in CITAS.items(): BADGE_INFO[_k]["cita"]=_v
 for _k,_v in LINKS.items(): BADGE_INFO[_k]["link"]=_v

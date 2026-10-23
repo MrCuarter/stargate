@@ -586,7 +586,7 @@
       "tarea": "Quince minutos, en clase. Trae una idea a medias —un boceto en papel, unas notas, una foto— y hazla realidad con una IA: una imagen, una infografía o el logo de tu palabra clave. Escribe una instrucción con contexto educativo, tipo de imagen y finalidad, y haz al menos una iteración. Sube el antes y el después (enlace o captura). Es el núcleo de la Actividad 1, que parte justo de una imagen generada con IA.",
       "link": {
         "text": "Actividad 1 — imagen con IA",
-        "href": "actividades.html#act1"
+        "href": "guia-recluta.html#docs"
       }
     },
     "R2_el-eco-que-ensena": {
@@ -597,7 +597,7 @@
       "tarea": "Graba un videotutorial corto —de dos a cuatro minutos— sobre un procedimiento de tu área, como si se lo contaras a alguien que hoy no ha podido venir: un guion breve, la grabación (de pantalla o con el móvil) y una edición sencilla (Canva, CapCut o Clipchamp). Puedes apoyarte en una IA para el guion, la voz o los subtítulos. Súbelo donde quieras (YouTube en oculto, Drive con permiso de lectura…) y pega su enlace. Criterio: que se entienda sin ti delante. Llévalo a tu Bitácora: es la hazaña del videotutorial, y la semana que viene, en clase, le meterás las preguntas.",
       "link": {
         "text": "el ePortfolio (reto videotutorial)",
-        "href": "actividades.html#eportfolio"
+        "href": "guia-recluta.html#bitacora"
       }
     },
     "R3_la-matriz": {
@@ -608,7 +608,7 @@
       "tarea": "Completa en Genially el itinerario de tus dos senderos: un punto de partida, la bifurcación del relámpago y, además, una actividad de refuerzo para quien lo necesite y una de ampliación para quien va por delante. Cada estudiante tiene que poder elegir su camino. Pega el enlace (público) y llévalo a tu Bitácora. Es la experiencia de Genially del portfolio y el esqueleto del paisaje de la Actividad 2 (la matriz 8×6 se hace dentro de la Actividad).",
       "link": {
         "text": "Actividad 2 — paisaje de aprendizaje",
-        "href": "actividades.html#act2"
+        "href": "guia-recluta.html#docs"
       }
     },
     "R4_entorno-de-aula": {
@@ -619,7 +619,7 @@
       "tarea": "Monta tu aula en Google Classroom (puede ser cerrada) o en Google Sites: publica una tarea y tres materiales organizados para tu alumnado. Comparte un documento con dos capturas de tu aula —o su enlace, si es abierta— y pégalo aquí. Es la experiencia de Sites o Classroom del portfolio.",
       "link": {
         "text": "el ePortfolio (tu aula virtual)",
-        "href": "actividades.html#eportfolio"
+        "href": "guia-recluta.html#bitacora"
       }
     },
     "R5_bitacora-medida": {
@@ -630,7 +630,7 @@
       "tarea": "Monta el centro de recursos de tu alumnado en una web abierta, con una herramienta distinta a la del reto anterior (Google Sites, Genially…): tres recursos tuyos organizados con criterio y tu rúbrica a la vista. Tiene que abrirse sin tu cuenta: compruébalo en una ventana de incógnito. Pega el enlace y enlázalo desde tu Bitácora. Practicas otra plataforma, esta vez abierta, como la que montarás en el examen.",
       "link": {
         "text": "el ePortfolio (tu web de recursos) y la Actividad 1",
-        "href": "actividades.html#eportfolio"
+        "href": "guia-recluta.html#bitacora"
       }
     },
     "R6_el-juego": {
@@ -641,7 +641,7 @@
       "tarea": "Crea un juego digital (Genially, Wordwall, Educaplay…) con niveles o varias formas de jugarlo, al servicio de un objetivo concreto, y mételo en tu paisaje de aprendizaje. Pega el enlace y llévalo a tu Bitácora. Es la experiencia de juego digital del portfolio.",
       "link": {
         "text": "el ePortfolio (reto juego digital)",
-        "href": "actividades.html#eportfolio"
+        "href": "guia-recluta.html#bitacora"
       }
     },
     "R7_microgamificacion": {
@@ -652,7 +652,7 @@
       "tarea": "Gamifica una tarea real de tu aula: una narrativa corta que la envuelva, una secuencia de tres retos y la recompensa del relámpago. Pega el enlace y llévalo a tu Bitácora. Es una de las hazañas obligatorias de la Bitácora y el esqueleto del examen: tablero de retos y recompensa.",
       "link": {
         "text": "el ePortfolio (reto microgamificación)",
-        "href": "actividades.html#eportfolio"
+        "href": "guia-recluta.html#bitacora"
       }
     },
     "R8_ultimo-umbral": {
@@ -663,7 +663,7 @@
       "tarea": "Publica tu Bitácora completa: las páginas de las dos Actividades, tus experiencias del portfolio —con las tres hazañas: el videotutorial, la microgamificación y una a tu elección— y tu QR. Revisa que todo se abre sin tu cuenta y pega el enlace único. Es el ePortfolio que se evalúa, listo antes del examen.",
       "link": {
         "text": "la Actividad 2 y la Bitácora",
-        "href": "actividades.html#act2"
+        "href": "guia-recluta.html#docs"
       }
     },
     "H1_reclutamiento": {
@@ -681,7 +681,7 @@
       "tarea": "Tu primera obra queda registrada en la Bitácora: la actividad didáctica creada a partir de una imagen con IA.",
       "link": {
         "text": "Actividad 1",
-        "href": "actividades.html#act1"
+        "href": "guia-recluta.html#docs"
       }
     },
     "H3_cartografo": {
@@ -692,7 +692,7 @@
       "tarea": "Dibujas un territorio, no un camino: entregas el paisaje de aprendizaje con su matriz de programación.",
       "link": {
         "text": "Actividad 2",
-        "href": "actividades.html#act2"
+        "href": "guia-recluta.html#docs"
       }
     },
     "H4_tripulacion-cero": {
