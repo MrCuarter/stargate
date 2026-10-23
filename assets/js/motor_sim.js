@@ -20,7 +20,7 @@ const localStorage = (() => { const L = window.localStorage, NO = /^sgEs(Docente
  */
 import { initializeApp, deleteApp } from "./sim/firebase_sim.js?h=a062928790";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, onAuthStateChanged,
-         connectAuthEmulator, reauthenticateWithPopup }
+         connectAuthEmulator, reauthenticateWithPopup, signInAnonymously }
   from "./sim/firebase_sim.js?h=a062928790";
 import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, getCountFromServer, writeBatch, onSnapshot,
          deleteField, connectFirestoreEmulator, serverTimestamp }
@@ -65,7 +65,7 @@ const WEB = SDK.conectar({
   mod: "stargate",
   region: "europe-west1",   // 19-oct · las funciones (GamificaPro docs/TRASLADO_FUNCIONES_EUROPA.md); sin esto, Iowa
   firebase: { initializeApp, getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, getFirestore, getFunctions,
-              connectAuthEmulator, connectFirestoreEmulator, connectFunctionsEmulator },
+              connectAuthEmulator, connectFirestoreEmulator, connectFunctionsEmulator, signInAnonymously },
   config: window.SG_FIREBASE, emu: window.SG_EMU === true, conservarConfig: true,
   // (10-oct, noche · solo en el laboratorio: otros puertos de los emuladores si la batería los pone, para no quitarle el 8080 a
   // las pruebas del despliegue; fuera del laboratorio no cuenta, porque `emu` exige SG_EMU y 127.0.0.1)
@@ -81,7 +81,10 @@ const { EMU, app, auth, db, fns } = WEB;
 let quien;
 const esperando = [];
 onAuthStateChanged(auth, u => {
-  quien = u ? { uid: u.uid, correo: (u.email || "").toLowerCase(), nombre: u.displayName || "", foto: u.photoURL || "" } : null;
+  // 23-oct · LA SESIÓN SIN CUENTA es solo del ticket de invitado (ticket.html?invitado=1, que pone SG_INVITADO). En cualquier otra
+  // página no es nadie: se cierra, y su cierre avisa otra vez con `null`. (Si no, la Nave o la consola verían a «alguien» sin correo.)
+  if (u && u.isAnonymous && !window.SG_INVITADO) { signOut(auth).catch(() => {}); return; }
+  quien = u ? { uid: u.uid, correo: (u.email || "").toLowerCase(), nombre: u.displayName || "", foto: u.photoURL || "", sinCuenta: !!u.isAnonymous } : null;
   document.dispatchEvent(new CustomEvent("sg:sesion", { detail: quien }));
   while (esperando.length) esperando.shift()(quien);
   // 17-oct · las notas del docente fuera de lo que se proyecta (GamificaPro sdk/notas.js → mod_notas/{grupo}; solo el equipo docente)
@@ -91,6 +94,8 @@ onAuthStateChanged(auth, u => {
 const sesion = () => new Promise(ok => (quien !== undefined ? ok(quien) : esperando.push(ok)));
 
 const entrar = () => WEB.entrar();
+/** 23-oct · entrar SIN cuenta (Firebase anónimo): solo para el ticket de invitado; en otra página, onAuthStateChanged lo cierra. */
+const entrarInvitado = () => WEB.entrarInvitado();
 /**
  * Entrar como alguien, SIN ventana de Google: solo existe en el laboratorio (el SDK se niega fuera). El emulador de Auth acepta un
  * «token de Google» que es un JSON sin firmar —en producción esto sería imposible, y por eso no se exporta fuera del laboratorio—.
@@ -2421,7 +2426,7 @@ function cambiarCuenta() { return cuenta().abrir(); }
 
 window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo, cuenta };
-window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, cambiarCuenta, leerPER, tablero, misPERs, sembrarPER, alistar, llamar,
+window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, cambiarCuenta, leerPER, tablero, misPERs, sembrarPER, alistar, llamar, entrarInvitado,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, vigilarMensajesDelSistema, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaInvitar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaBendecir, academiaResponder, buzonComprimir, buzonAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, guardarForoModo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,

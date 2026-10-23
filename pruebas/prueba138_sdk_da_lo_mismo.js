@@ -137,7 +137,11 @@ if (!viejo) {
     // paso del guion los usa)
     const simViejoCuenta = /export const reauthenticateWithPopup/.test(simViejo2c) ? simViejo2c : simViejo2c +
       '\nexport const reauthenticateWithPopup = () => Promise.reject(new Error("En la consola de ensayo no se cambia de cuenta."));\nexport const deleteApp = () => Promise.resolve();\n';
-    const fsv = path.join(tmp, "firebase_sim_antes.js"); fs.writeFileSync(fsv, simViejoCuenta);
+    // (23-oct · y signInAnonymously, para el ticket sin cuenta (ticket.html?invitado=1): el ensayo de antes no lo tenía y el módulo no
+    // cargaba. Ningún paso del guion lo usa)
+    const simViejoInv = /export const signInAnonymously/.test(simViejoCuenta) ? simViejoCuenta : simViejoCuenta +
+      'export const signInAnonymously = () => Promise.reject(new Error("En la consola de ensayo no se entra sin cuenta."));\n';
+    const fsv = path.join(tmp, "firebase_sim_antes.js"); fs.writeFileSync(fsv, simViejoInv);
     for (const opc of [[], ["--buzon"], ["--yo=prueba_triton"]]) {
       const a = correr(fn, opc.concat(["--sim=" + fsv])), b = correr(fn, opc);
       const dist = a.map((x, i) => [x[0], canon(x[1]) === canon((b[i] || [])[1]) && x[0] === (b[i] || [])[0]]).filter((x) => !x[1]).map((x) => x[0]);

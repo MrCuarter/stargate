@@ -12,6 +12,10 @@
  * código». El formulario se envía igual sin decidir nada. Si el servidor no contesta (sin desplegar, sin la pieza), nada de
  * esto se ve y el ticket es el de antes.
  *
+ * 23-oct · SIN CUENTA: ticket.html?per=<grupo>&invitado=1 (y, si se quiere, &c=<Comandante>&tema=<tema>). Para quien no se ha
+ * alistado (Caridad: «para compartir con el alumnado que no tenga acceso a Stargate»): entra sin cuenta (Firebase anónimo),
+ * elige a su Comandante y el planeta, y lo envía sin premio (GamificaPro `modTicket`, accion 'invitado'). Al acabar, la sesión
+ * anónima se cierra; que ya lo envió se recuerda en este navegador (`sgTicketInv:<grupo>:<tema>`).
  * `tema` es la clave («p», «0», «1»…«8») o el texto de la opción del formulario de antes (SG_TICKET_TEMAS): las dos valen.
  * Sin tema, se elige. Al enviarlo se apunta en este navegador (`sgTicket:<grupo>:<opción>`), como hacía el formulario,
  * para que la Nave y la sesión lo den por hecho; y se avisa a la página madre (`sg-ticket-hecho`).
@@ -31,10 +35,12 @@
     return "";
   }
   var TEMA = claveDe(Q.get("tema"));
+  var INVITADO = Q.get("invitado") === "1" && Q.get("demo") === null, COMANDANTE = String(Q.get("c") || "").trim(), GRUPO = null;
 
   function pinta(html) { app.innerHTML = html; }
   function aviso(txt, mal) { pinta('<div class="card tk-aviso' + (mal ? " mal" : "") + '"><p>' + txt + "</p></div>"); }
   function marcarHecho() {
+    if (INVITADO) { try { localStorage.setItem("sgTicketInv:" + PER + ":" + TEMA, "1"); } catch (e) { /* sin almacenamiento */ } return; }
     try { localStorage.setItem("sgTicket:" + PER + ":" + (T[TEMA] || TEMA), "1"); } catch (e) { /* sin almacenamiento */ }
     try { if (window.parent !== window) window.parent.postMessage({ tipo: "sg-ticket-hecho", per: PER, tema: TEMA }, location.origin); } catch (e) { /* nada */ }
   }
@@ -64,7 +70,7 @@
   }
   function pintarInvestigacion() {
     var e = document.getElementById("tk-entra"), hueco = document.getElementById("tk-inv");
-    if (e) e.innerHTML = entradilla();
+    if (e) e.innerHTML = INVITADO ? entradillaInvitado() : entradilla();
     if (!hueco) return;
     var I = window.SG.INV;
     if (INV && invAbierta) {
@@ -103,7 +109,7 @@
   function formulario() {
     var P = window.SG.TK.preguntasDe(TEMA), R = {};
     var html = '<div id="tk-inv" hidden></div><form class="card tk-form" id="tk-f" novalidate><div class="kicker"><img class=ico src="assets/img/iconos/p/ticket.png" alt=""> Ticket de salida</div>'
-      + "<h2>" + esc(T[TEMA] || "El ticket") + '</h2><p class="small muted" id="tk-entra">' + entradilla() + '</p>';
+      + "<h2>" + esc(T[TEMA] || "El ticket") + '</h2><p class="small muted" id="tk-entra">' + (INVITADO ? entradillaInvitado() : entradilla()) + '</p>';
     P.forEach(function (q) {
       html += '<fieldset class="tk-q" data-q="' + esc(q.id) + '"><legend>' + esc(q.texto) + (q.tipo === "escala" ? "" : ' <span class="muted small">(opcional)</span>') + "</legend>";
       if (q.tipo === "escala") {
@@ -122,6 +128,7 @@
     html += '<p class="tk-error" role="alert" hidden></p><button type="submit" class="btn primary">Enviar el ticket</button></form>';
     pinta(html);
     pintarInvestigacion();
+    var otra = app.querySelector("[data-tk-otra]"); if (otra) otra.onclick = elegirInvitado;
     Array.prototype.forEach.call(app.querySelectorAll(".tk-q"), function (fs) {
       var id = fs.getAttribute("data-q");
       Array.prototype.forEach.call(fs.querySelectorAll(".tk-v"), function (b) {
@@ -139,13 +146,15 @@
       if (falta) { err.hidden = false; err.textContent = "Te falta valorar: «" + falta.texto + "»."; return; }
       var envio = {}; P.forEach(function (q) { var v = R[q.id]; if (v != null && v !== "") envio[q.id] = v; });
       boton.disabled = true; boton.textContent = "Enviando…"; err.hidden = true;
-      MOTOR().llamar("modTicket", { accion: "enviar", projectId: PER, tema: TEMA, respuestas: envio }).then(function (r) {
+      (INVITADO ? MOTOR().llamar("modTicket", { accion: "invitado", paso: "enviar", projectId: PER, tema: TEMA, comandante: COMANDANTE, respuestas: envio })
+        : MOTOR().llamar("modTicket", { accion: "enviar", projectId: PER, tema: TEMA, respuestas: envio })).then(function (r) {
         marcarHecho();
+        if (INVITADO) { aviso("<b>¡Ticket enviado!</b> Gracias: " + esc(COMANDANTE) + " lo verá con el de la clase, sin tu nombre."); return salirInvitado(); }
         capsula(r || {});
       }, function (e) {
         boton.disabled = false; boton.textContent = "Enviar el ticket";
         var m = String((e && e.message) || e || "");
-        if (/already-exists|Ya enviaste/i.test(m) || (e && e.code === "functions/already-exists")) { marcarHecho(); return aviso("<b>Ya lo enviaste.</b> ¡Gracias!"); }
+        if (/already-exists|Ya enviaste/i.test(m) || (e && e.code === "functions/already-exists")) { marcarHecho(); salirInvitado(); return aviso("<b>Ya lo enviaste.</b> ¡Gracias!"); }
         err.hidden = false; err.textContent = "No se ha podido enviar: " + m.replace(/^FirebaseError:\s*/, "") + " Vuelve a probar en un momento.";
       });
     };
@@ -212,6 +221,77 @@
     });
   }
 
+  /* ─────────── 23-oct · EL TICKET SIN CUENTA ─────────── */
+  function entradillaInvitado() {
+    return '<b>Sin tu nombre y sin cuenta</b>, en dos minutos. Va a <b>' + esc(COMANDANTE) + '</b>, que lo verá junto al de la clase, '
+      + 'nunca quién lo dijo. <button type="button" class="tk-cambiar" data-tk-otra>Cambiar</button> (Sin premio: la cápsula es de quien juega desde su Nave.)';
+  }
+  /** La sesión anónima no se queda abierta: fuera de aquí, el motor la cerraría igualmente (motor.js, onAuthStateChanged). */
+  function salirInvitado() {
+    var M = MOTOR();
+    if (YO && YO.sinCuenta && M.salir) M.salir().catch(function () { /* nada */ });
+  }
+  function yaEnviadoAqui() { try { return localStorage.getItem("sgTicketInv:" + PER + ":" + TEMA) === "1"; } catch (e) { return false; } }
+  function errorInvitado(e) {
+    var m = String((e && e.message) || e || "");
+    if (/Ya tienes tu Nave/i.test(m)) {
+      return aviso("<b>Ya tienes tu Nave en este grupo.</b> Haz el ticket desde ella: allí tiene premio. "
+        + '<a href="ticket.html?per=' + encodeURIComponent(PER) + (TEMA ? "&tema=" + encodeURIComponent(TEMA) : "") + '">Abrir mi ticket</a>');
+    }
+    if (/not-found|sin cuenta/i.test(m)) return aviso("Este grupo no tiene ticket de salida sin cuenta. Pide el enlace a tu Comandante.", true);
+    aviso("No he podido abrir el ticket ahora mismo (" + esc(m.replace(/^FirebaseError:\s*/, "")) + "). Recarga en un momento.", true);
+  }
+  /** Quién es tu Comandante y de qué planeta es: lo único que hay que elegir (los dos en la misma pantalla). */
+  function elegirInvitado() {
+    var C = GRUPO.comandantes, temas = GRUPO.temas.filter(function (k) { return T[k]; });
+    if (C.indexOf(COMANDANTE) < 0) COMANDANTE = C.length === 1 ? C[0] : "";
+    if (temas.indexOf(TEMA) < 0) TEMA = "";
+    var boton = function (attr, v, txt, si) { return '<button type="button" class="btn" ' + attr + '="' + esc(v) + '" aria-pressed="' + si + '">' + esc(txt) + "</button>"; };
+    pinta('<div class="card"><div class="kicker"><img class=ico src="assets/img/iconos/p/ticket.png" alt=""> Ticket de salida · sin cuenta</div>'
+      + "<h2>" + esc(GRUPO.grupo || "Tu grupo") + "</h2>"
+      + '<p class="small muted">Para quien no juega a STARGATE. Sin tu nombre y sin entrar con ninguna cuenta.</p>'
+      + "<h3>¿Quién es tu Comandante?</h3><div class=\"tk-elige\">" + C.map(function (c) { return boton("data-com", c, c, c === COMANDANTE); }).join("") + "</div>"
+      + "<h3>¿De qué es tu ticket?</h3><div class=\"tk-elige\">" + temas.map(function (k) { return boton("data-tema", k, T[k], k === TEMA); }).join("") + "</div>"
+      + '<p class="tk-error" role="alert" hidden></p><button type="button" class="btn primary" id="tk-seguir">Seguir</button></div>');
+    var marca = function (sel, v) {
+      Array.prototype.forEach.call(app.querySelectorAll("[" + sel + "]"), function (b) {
+        var si = b.getAttribute(sel) === v; b.setAttribute("aria-pressed", String(si)); b.classList.toggle("primary", si);
+      });
+    };
+    marca("data-com", COMANDANTE); marca("data-tema", TEMA);
+    Array.prototype.forEach.call(app.querySelectorAll("[data-com]"), function (b) { b.onclick = function () { COMANDANTE = b.getAttribute("data-com"); marca("data-com", COMANDANTE); }; });
+    Array.prototype.forEach.call(app.querySelectorAll("[data-tema]"), function (b) { b.onclick = function () { TEMA = b.getAttribute("data-tema"); marca("data-tema", TEMA); }; });
+    document.getElementById("tk-seguir").onclick = function () {
+      var err = app.querySelector(".tk-error");
+      if (!COMANDANTE || !TEMA) { err.hidden = false; err.textContent = !COMANDANTE ? "Elige a tu Comandante." : "Elige de qué es tu ticket."; return; }
+      estadoInvitado();
+    };
+  }
+  function estadoInvitado() {
+    if (yaEnviadoAqui()) return aviso("<b>Ya enviaste el ticket de este tema</b> desde este navegador. ¡Gracias!");
+    aviso("Un momento…");
+    MOTOR().llamar("modTicket", { accion: "invitado", paso: "estado", projectId: PER, tema: TEMA }).then(function (r) {
+      if (r && r.hecho) { marcarHecho(); return aviso("<b>Ya enviaste el ticket de este tema.</b> ¡Gracias!"); }
+      formulario();
+    }, errorInvitado);
+  }
+  function arrancarInvitado() {
+    if (!PER) return aviso("Falta el grupo en la dirección del ticket.", true);
+    var M = MOTOR();
+    aviso("Un momento…");
+    M.sesion().then(function (yo) {
+      // (la sesión que acaba de abrir, tal cual: `sesion()` aún podría contestar «nadie» hasta que Firebase avise)
+      return yo ? yo : M.entrarInvitado().then(function (u) { return { uid: u.uid, sinCuenta: true }; });
+    }).then(function (yo) {
+      YO = yo;
+      return M.llamar("modTicket", { accion: "invitado", projectId: PER });
+    }).then(function (g) {
+      GRUPO = g || { comandantes: [], temas: [] };
+      if (!GRUPO.comandantes.length) return aviso("Este grupo aún no tiene Comandantes. Pide el enlace a tu docente.", true);
+      elegirInvitado();
+    }, errorInvitado);
+  }
+
   var YO = null;
   function arrancarTema() {
     if (!TEMA) return elegirTema();
@@ -259,6 +339,7 @@
 
   var lanzado = false;
   function arrancar() {
+    if (INVITADO) return arrancarInvitado();
     if (!PER) return aviso("Falta el grupo en la dirección del ticket.", true);
     var M = MOTOR();
     var una = function (yo) { if (!yo) return puerta(); if (lanzado) return; lanzado = true; YO = yo; arrancarTema(); };

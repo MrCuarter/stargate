@@ -4990,6 +4990,7 @@ _html = head("STARGATE · Ticket de salida",
              "El ticket de salida de cada tema: sin tu nombre y en dos minutos.",
              "reg", publica=True).replace("</head>", _cabeza_motor() + """
 <meta name="robots" content="noindex,nofollow">
+<script>window.SG_INVITADO=/[?&]invitado=1(&|$)/.test(location.search);</script>
 <style>
 .tk-solo body>*:not(#tk-main){display:none!important}
 .tk-solo body{background:transparent}
@@ -5008,6 +5009,9 @@ _html = head("STARGATE · Ticket de salida",
 .tk-aviso.mal p{color:#ffb3a8}
 .tk-tripu{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:rgba(245,176,67,.12);border:1px solid rgba(245,176,67,.45);font-size:15px}
 #tk-inv:not([hidden]){margin:0 0 12px}
+.tk-elige{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:8px;margin:8px 0 14px}
+.tk-elige .btn{justify-content:flex-start;text-align:left;min-height:44px;white-space:normal;min-width:0}
+.tk-elige .btn[aria-pressed=true]{outline:2px solid #37e0ec}
 
 </style>
 </head>""") + '''

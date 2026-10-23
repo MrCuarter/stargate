@@ -2788,6 +2788,12 @@
         mBloque("Para tu alumnado", "", [
           // 16-sep · el alistamiento sale del código del grupo (el mismo enlace que «Copiar invitación»)
           mFila({ ico: ico("brujula"), tit: "Alistarse (con el código)", desc: "Lo que se reparte el primer día.", abrir: alta }),
+          /**
+           * 23-oct · EL TICKET SIN CUENTA (Caridad: «para compartir con el alumnado que no tenga acceso a Stargate»): eligen su
+           * Comandante (sale ya marcado el tuyo) y el planeta, sin premio; lo suyo te llega con el ticket de tu escuadrón.
+           */
+          mFila({ ico: ico("notas"), tit: "El ticket de salida sin cuenta", desc: "Para quien no juega a STARGATE: elige Comandante (sale el tuyo) y planeta, sin premio. Lo ves con el de tu escuadrón.",
+                  abrir: "ticket.html?per=" + P + "&invitado=1&c=" + encodeURIComponent(yo.nombre || "") }),
           mFila({ ico: ico("cohete"), tit: "La Nave del alumnado", desc: "Dentro de tu Genially: cada recluta ve la suya.", abrir: "recluta.html?per=" + P, codigo: "recluta.html?per=" + P + "&embed=1" }),
           mFila({ ico: ico("notas"), tit: "El padlet de la clase", desc: ref ? "Lo abren desde su Nave." : (padlet ? "Lo abren desde su Nave." : "Lo pone el profe referente."), abrir: padlet, edit: editPadlet }),
           // 13-sep · la Nave con tu Comandante de recluta, para ensayar (o enseñarla fuera de la sesión): no guarda nada
