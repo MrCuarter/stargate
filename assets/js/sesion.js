@@ -1230,8 +1230,11 @@
   function urlTicket(opcion){
     return String(window.SG_TICKET_URL).split('{GRUPO}').join(encodeURIComponent(st.per||''))
             .split('{COMANDANTE}').join(encodeURIComponent(elComandante()))
-            .split('{TEMA}').join(encodeURIComponent(opcion));
+            .split('{TEMA}').join(encodeURIComponent(opcion))
+            // 23-oct · en diferido y sin cuenta (el enlace para quien no juega), el ticket sin cuenta: elige Comandante y planeta, sin premio
+            +(sinCuentaEnDiferido()?'&invitado=1':'');
   }
+  function sinCuentaEnDiferido(){ return DIFERIDO && !st.yo && !st.alumno; }
   /** 27-sep · el ticket de esta clase, si lo tiene: {u: dirección, clave: la marca de «enviado» en este navegador} */
   function ticketDe(s){
     if(!window.SG_TICKET_URL||!st.per) return null;
@@ -1255,13 +1258,13 @@
         f.addEventListener('load',function(){ if(++cargas>2) try{ localStorage.setItem(f.getAttribute('data-tk'),'1'); }catch(e){} });
         return null; }, html:
       '<div class="dia ticket ticket-form"><div class="tk-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/ticket.png alt> '+(esPres?'Antes de ir a Fôrge':'Cerramos el tema')+'</div>'
-      +'<h2>'+(esPres?'¿Qué os ha parecido el embarque?':'El ticket de salida')+'</h2><p class="sub">Anónimo y rápido'+(esPres?'. Lo que digáis, lo proyectamos la próxima semana.':': se rellena al acabar cada tema. En la próxima clase proyectaremos lo que digáis.')+' Y quien lo envía abre una cápsula de suministros.</p>'
+      +'<h2>'+(esPres?'¿Qué os ha parecido el embarque?':'El ticket de salida')+'</h2><p class="sub">Anónimo y rápido'+(esPres?'. Lo que digáis, lo proyectamos la próxima semana.':': se rellena al acabar cada tema. En la próxima clase proyectaremos lo que digáis.')+(sinCuentaEnDiferido()?' Sin cuenta: eliges a tu Comandante y va sin premio (la cápsula es de quien juega desde su Nave).':' Y quien lo envía abre una cápsula de suministros.')+'</p>'
       // (`embedded=true` es como Google sirve sus formularios dentro de otra página: sin su cabecera ni su pie)
       +'<iframe class="tk-form" src="'+esc(u+'&embedded=true')+'" title="Ticket de salida" loading="lazy" data-tk="'+esc('sgTicket:'+(st.per||'')+':'+opcion)+'"></iframe>'
       +'<p class="small muted tk-otro">¿No te cabe en la pantalla? <a href="'+esc(u)+'" target="_blank" rel="noopener">Ábrelo en otra pestaña</a>.</p>'
       // 10-oct · Norberto: «anima a rellenar ese ticket de salida e invita a completar el de la primera sesión sobre la
       // presentación». El del embarque sigue abierto (en STARGATE el ticket no tiene ventana): se recuerda al cerrar cada tema.
-      +(!esPres&&tkPres?'<p class="tk-pres">¿No rellenaste el del <b>embarque</b>, el de la primera clase? Sigue abierto: <a href="'+esc(urlTicket(tkPres))+'" target="_blank" rel="noopener">rellénalo también</a>. Cuenta para la raya de tu escuadrón.</p>':'')
+      +(!esPres&&tkPres&&!sinCuentaEnDiferido()?'<p class="tk-pres">¿No rellenaste el del <b>embarque</b>, el de la primera clase? Sigue abierto: <a href="'+esc(urlTicket(tkPres))+'" target="_blank" rel="noopener">rellénalo también</a>. Cuenta para la raya de tu escuadrón.</p>':'')
       +'</div></div>'};
   }
   /**

@@ -8,8 +8,9 @@
  * El servidor es de GamificaPro (`modTicket`, accion 'invitado'; sus pruebas, en tests/functions/modTicket.test.ts y
  * tests/emulador/mod-ticket.test.ts). Aquí, la piel:
  *   1. ticket.html?per=…&invitado=1 entra sin cuenta, deja elegir Comandante y planeta, y envía SIN premio;
- *   2. 🔴 la sesión sin cuenta no se queda en el resto de la web: el motor la cierra fuera del ticket de invitado, y el ticket la
- *      cierra al acabar;
+ *   2. 🔴 la sesión sin cuenta no es nadie en el resto de la web (el motor la ignora fuera del ticket de invitado; no la cierra,
+ *      porque Firebase la comparte entre pestañas y marcos), y el ticket la cierra al acabar;
+ *   2b. en diferido y sin cuenta, la diapositiva del ticket abre el ticket sin cuenta;
  *   3. el docente tiene el enlace en su consola (Enlaces → Para tu alumnado), con su nombre ya marcado; y al lado, el de la
  *      presentación y las sesiones sin cuenta (el de la Nave del recluta: sin las notas del docente);
  *   4. el ticket de siempre no cambia (lo que envía, la cápsula, la investigación).
@@ -37,7 +38,8 @@ c(/Ya tienes tu Nave/.test(TK) && /Abrir mi ticket/.test(TK), "   quien tiene Na
 
 console.log("\n  · 2 · la sesión sin cuenta no se queda");
 c(/<script>window\.SG_INVITADO=\/\[\?&\]invitado=1\(&\|\$\)\/\.test\(location\.search\);<\/script>/.test(TKH), "🔴 ticket.html marca el modo invitado ANTES del motor");
-c(/if \(u && u\.isAnonymous && !window\.SG_INVITADO\) \{ signOut\(auth\)\.catch\(\(\) => \{\}\); return; \}/.test(MOT), "🔴 en cualquier otra página, el motor la cierra y no es nadie");
+c(/if \(u && u\.isAnonymous && !window\.SG_INVITADO\) u = null;/.test(MOT) && !/u\.isAnonymous && !window\.SG_INVITADO\) \{ signOut/.test(MOT),
+  "🔴 en cualquier otra página no es nadie, pero no se cierra (la compartiría la sesión que lleva el ticket dentro, u otra pestaña)");
 c(/sinCuenta: !!u\.isAnonymous/.test(MOT) && /const entrarInvitado = \(\) => WEB\.entrarInvitado\(\);/.test(MOT) && /llamar, entrarInvitado,/.test(MOT), "   el motor sabe entrar sin cuenta (SDK) y lo dice en la sesión");
 c(/signInAnonymously \}\s*\n\s*from "https:\/\/www\.gstatic\.com\/firebasejs\/[\d.]+\/firebase-auth\.js"/.test(MOT) && /connectFunctionsEmulator, signInAnonymously \}/.test(MOT), "   con la función de Firebase, dada al SDK");
 c(/if \(YO && YO\.sinCuenta && M\.salir\) M\.salir\(\)/.test(TK), "   y el ticket la cierra al acabar (solo si era sin cuenta)");
@@ -52,6 +54,13 @@ c(/\.tk-elige\{display:grid;grid-template-columns:repeat\(auto-fill,minmax\(min\
 c(/tit: "La presentación y las sesiones, sin cuenta"/.test(CON) && /abrir: "sesion\.html\?embed=1&diferido=1&per=" \+ P \+ "&pres=1"/.test(CON) &&
   /'sesion\.html\?embed=1&diferido=1&pres=1&per='/.test(L("assets/js/recluta.js")),
   "🔴 y las sesiones sin cuenta: el enlace de la Nave del recluta (sin nada del docente, sin pasar de la semana en curso)");
+
+console.log("\n  · 3b · la diapositiva del ticket, en diferido y sin cuenta");
+const SES = L("assets/js/sesion.js");
+c(/function sinCuentaEnDiferido\(\)\{ return DIFERIDO && !st\.yo && !st\.alumno; \}/.test(SES), "   solo en diferido y sin nadie dentro (ni docente ni recluta)");
+c(/\.split\('\{TEMA\}'\)\.join\(encodeURIComponent\(opcion\)\)[\s\S]{0,200}\+\(sinCuentaEnDiferido\(\)\?'&invitado=1':''\)/.test(SES), "🔴 el ticket de la diapositiva va en modo sin cuenta (con su tema)");
+c(/sinCuentaEnDiferido\(\)\?' Sin cuenta: eliges a tu Comandante y va sin premio/.test(SES) && /tkPres&&!sinCuentaEnDiferido\(\)/.test(SES),
+  "   y no le promete cápsula ni «la raya de tu escuadrón»");
 
 console.log("\n  · 4 · el ticket de siempre, igual");
 c(/MOTOR\(\)\.llamar\("modTicket", \{ accion: "enviar", projectId: PER, tema: TEMA, respuestas: envio \}\)/.test(TK), "   lo que envía la recluta, lo mismo");

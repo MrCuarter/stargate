@@ -82,8 +82,10 @@ let quien;
 const esperando = [];
 onAuthStateChanged(auth, u => {
   // 23-oct · LA SESIÓN SIN CUENTA es solo del ticket de invitado (ticket.html?invitado=1, que pone SG_INVITADO). En cualquier otra
-  // página no es nadie: se cierra, y su cierre avisa otra vez con `null`. (Si no, la Nave o la consola verían a «alguien» sin correo.)
-  if (u && u.isAnonymous && !window.SG_INVITADO) { signOut(auth).catch(() => {}); return; }
+  // página no es nadie (si no, la Nave o la consola verían a «alguien» sin correo). No se cierra desde aquí: Firebase comparte la
+  // sesión entre pestañas y marcos del sitio, y la sesión en diferido que lleva el ticket dentro (o cualquier otra pestaña abierta)
+  // se la cerraría al ticket a medio rellenar. La cierra el ticket al acabar (ticket.js → salirInvitado).
+  if (u && u.isAnonymous && !window.SG_INVITADO) u = null;
   quien = u ? { uid: u.uid, correo: (u.email || "").toLowerCase(), nombre: u.displayName || "", foto: u.photoURL || "", sinCuenta: !!u.isAnonymous } : null;
   document.dispatchEvent(new CustomEvent("sg:sesion", { detail: quien }));
   while (esperando.length) esperando.shift()(quien);
