@@ -1787,8 +1787,11 @@ async function regalarEnClase(perId, fichas, regalo) {
  * aunque la llamada ya se haya cerrado: la clase sigue. Devuelve los uid, en orden de llegada.
  */
 async function presentesDeHoy(perId) {
-  const r = await getDocs(query(collection(db, FICHAJES), where("projectId", "==", perId)));
   const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  // 27-oct · solo los fichajes de hoy, no el curso entero en cada cambio (GamificaPro, docs/AHORRO_MODS.md §1.1, S5; índice
+  // projectId + registeredAt). Sin el índice todavía, como antes: el filtro de abajo deja lo mismo
+  const r = await getDocs(query(collection(db, FICHAJES), where("projectId", "==", perId), where("registeredAt", ">=", hoy)))
+    .catch(() => getDocs(query(collection(db, FICHAJES), where("projectId", "==", perId))));
   const t = x => { const v = x.registeredAt; return v && v.toDate ? v.toDate() : new Date(v || 0); };
   const vistos = {};
   return r.docs.map(d => d.data()).filter(x => t(x) >= hoy)
