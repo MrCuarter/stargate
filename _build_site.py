@@ -3695,6 +3695,20 @@ estaba marcada: se abrirá por la primera página.</p>
 </div>
 </div></section>
 
+<section id="captura"><div class="wrap">
+<div class="eyebrow teal">Una captura</div><h2>Una imagen, <i>con su enlace</i></h2>
+<p class="lead">La Nave no sube imágenes: pide un enlace. Si tu evidencia es una captura o una foto,
+súbela a <b>postimages</b>, que no pide cuenta, y pega el enlace que te da.</p>
+<ol class="pasos-num">
+<li>Entra en <a href="https://postimages.org/es/" target="_blank" rel="noopener"><b>postimages.org</b></a> y pulsa <b>«Elige las imágenes»</b>.</li>
+<li>Elige tu captura. Si son varias, puedes subirlas a la vez.</li>
+<li>Cuando termine, copia el <b>«Enlace directo»</b>, el que empieza por <b>https://i.postimg.cc/</b>.</li>
+<li>Pégalo en la casilla del enlace del reto, en tu Nave, y pulsa «Lo he hecho». Si son dos, el <b>«+»</b> añade otro enlace.</li>
+</ol>
+<p class="small muted">También vale subirla a tu Google Drive y compartirla como «Cualquier persona con el
+enlace», o ponerla en tu Bitácora y pegar el enlace de esa página.</p>
+</div></section>
+
 <section><div class="wrap">
 <div class="card"><h3>Antes de enviar, compruébalo</h3>
 <p class="small">Abre tu propio enlace en una <b>ventana de incógnito</b> (o pásaselo a alguien).

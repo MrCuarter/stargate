@@ -4675,7 +4675,9 @@
     return '<span class="ev-par"><input class="'+clase+(e==='obligatoria'?' obligatoria':'')+'" data-ev="'+esc(id)+'" type="url" inputmode="url" '
       +'placeholder="'+ph+'" autocomplete="off"'+(e==='obligatoria'?' required aria-required="true"':'')+'>'
       +'<button type="button" class="ev-mas" data-evmas="'+esc(id)+'" title="Añadir un segundo enlace" aria-label="Añadir un segundo enlace">+</button>'
-      +'<input class="'+clase+' ev2" data-ev2="'+esc(id)+'" type="url" inputmode="url" placeholder="Otro enlace (opcional)" autocomplete="off" hidden></span>';
+      +'<input class="'+clase+' ev2" data-ev2="'+esc(id)+'" type="url" inputmode="url" placeholder="Otro enlace (opcional)" autocomplete="off" hidden>'
+      // 27-oct · la Nave no sube imágenes (Wynn Xeris: «COMO PEGO UNA CAPTURA EN UN RETO»): una captura va con su enlace de postimages
+      +'<a class="ev-captura" href="ayuda.html#captura" target="_blank" rel="noopener">¿Es una captura? Así pegas su enlace →</a></span>';
   }
   document.addEventListener('click',function(ev){
     var b=ev.target&&ev.target.closest&&ev.target.closest('[data-evmas]'); if(!b) return;
