@@ -26,7 +26,7 @@ console.log("\n  · La Nave: quién firma");
 {
   const ctx = { st: { mensajes: [], yo: { id: "f1" }, d: { tipo: "REGULAR" } }, SIMULACRO: false, esc, window: { SG_RETOS: { REGULAR: [["L1", "Bitácora"], ["A1", "Primer salto"]] } } };
   vm.createContext(ctx);
-  vm.runInContext(trozo(REC, "function avisoMensajes(){", "function vigilarMensajes(){") + "; this.avisoMensajes = avisoMensajes;", ctx);
+  vm.runInContext(trozo(REC, "function mensajeHtml(", "function vigilarMensajes(){") + "; this.avisoMensajes = avisoMensajes;", ctx);
   ctx.st.mensajes = [NEBULA];
   const h = sinEtiquetas(ctx.avisoMensajes());
   c(/Mensaje de NEBULA/.test(h) && !/Comandante/.test(h), "🔴 un mensaje del sistema: «Mensaje de NEBULA», sin «tu Comandante»", h.slice(0, 90));
@@ -35,6 +35,23 @@ console.log("\n  · La Nave: quién firma");
   c(/Mensaje de tu Comandante · Marta/.test(sinEtiquetas(ctx.avisoMensajes())), "   el de un Comandante, como siempre: «Mensaje de tu Comandante · Marta»");
   ctx.st.mensajes = [{ ...NEBULA, modSistema: undefined }];
   c(/Mensaje de NEBULA/.test(sinEtiquetas(ctx.avisoMensajes())) && !/Comandante/.test(sinEtiquetas(ctx.avisoMensajes())), "   los primeros del 7-oct (solo `de: 'NEBULA'`), también como NEBULA");
+}
+
+console.log("\n  · 29-oct · Ver los mensajes anteriores");
+{
+  const ctx = { st: { mensajes: [], historial: [], yo: { id: "f1" }, d: { tipo: "REGULAR" } }, SIMULACRO: false, esc, window: { SG_RETOS: { REGULAR: [["L1", "Bitácora"], ["A1", "Primer salto"]] } } };
+  vm.createContext(ctx);
+  vm.runInContext(trozo(REC, "function mensajeHtml(", "function vigilarMensajes(){") + "; this.avisoMensajes = avisoMensajes; this.mensajeHtml = mensajeHtml;", ctx);
+  c(ctx.avisoMensajes() === "", "🔴 sin mensajes ni leídos, nada (ni botón)");
+  ctx.st.historial = [{ ...CMD, read: false }];
+  c(!/data-msg-antes/.test(ctx.avisoMensajes()), "   con solo uno sin leer, sin botón");
+  ctx.st.historial = [{ ...CMD, read: true }];
+  const h = ctx.avisoMensajes();
+  c(/data-msg-antes/.test(h) && /Ver los mensajes anteriores/.test(h) && !/Mensaje de tu Comandante/.test(h), "🔴 con alguno ya leído, aparece «Ver los mensajes anteriores» (aunque no haya sin leer)");
+  const v = ctx.mensajeHtml({ ...NEBULA, read: true }, false);
+  c(!/data-msg-leido/.test(v) && !/Puedes registrarlo otra vez/.test(v) && /Mensaje de NEBULA/.test(v), "   en la ventana: el mismo mensaje, firmado como siempre, sin «Entendido»");
+  c(/historialAvisos\(perId, "stargate", 30\)/.test(MOT) && /historialAvisos\(perId, "stargate", 30\)/.test(SIM) && /historialMensajes,/.test(MOT) && /historialMensajes,/.test(SIM), "   el motor (y el del ensayo) piden los últimos 30 con la marca stargate y lo exportan");
+  c(/accion === "regalo"|accion==='regalo'/.test(trozo(REC, "function cargarHistorial(", "function botonAnteriores(")), "   los regalos no salen en el historial");
 }
 
 console.log("\n  · El motor: la consola escucha solo las copias del docente");
@@ -47,7 +64,7 @@ for (const [nombre, src] of [["motor.js", MOT], ["motor_sim.js", SIM]]) {
   let vistos = null;
   ctx.f("per-1", (l) => { vistos = l.map((x) => x.id); });
   c(JSON.stringify(llamadas) === JSON.stringify([["per-1", null, "profe"]]) && JSON.stringify(vistos) === '["d1"]', "🔴 " + nombre + ": los del grupo, sin filtrar por la marca, y solo los de `para: 'docente'` con su voz", vistos);
-  c(/avisarRecluta, vigilarMensajes, mensajeLeido, vigilarMensajesDelSistema,/.test(src), "   " + nombre + " lo publica en SG.MOTOR");
+  c(/avisarRecluta, vigilarMensajes, mensajeLeido, historialMensajes, vigilarMensajesDelSistema,/.test(src), "   " + nombre + " lo publica en SG.MOTOR");
 }
 
 console.log("\n  · La consola: arriba, con «Entendido»");

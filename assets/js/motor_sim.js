@@ -524,6 +524,12 @@ function vigilarMensajes(perId, alCambiar) {
 }
 async function mensajeLeido(id) { await RETOS.avisoLeido(id); }
 /**
+ * 29-oct · LOS MENSAJES ANTERIORES (GamificaPro sdk/retos.js → historialAvisos). «Entendido» solo marca el aviso como leído (nunca se
+ * borra), pero la Nave no enseñaba los leídos: quien le daba sin querer no tenía dónde volver a leerlo (le pasó a una estudiante de
+ * DPG1). Los últimos 30 de este grupo con la marca `stargate` (los del Comandante y los de NEBULA), leídos o no, el último arriba.
+ */
+async function historialMensajes(perId) { return RETOS.historialAvisos(perId, "stargate", 30); }
+/**
  * 7-oct · LOS MENSAJES DE NEBULA, EN LA CONSOLA. Norberto: «que no te hagas pasar por el docente, sino como NEBULA. Ese mensaje
  * debe aparecer al profesor responsable y al estudiante». Los escribe el servidor de GamificaPro (functions/modMensajes.js): al
  * recluta, con la marca `stargate` (lo ve en su Nave como los demás); a su Comandante, otro aparte, con `modSistema.para ==
@@ -2432,7 +2438,7 @@ function cambiarCuenta() { return cuenta().abrir(); }
 window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo, cuenta };
 window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, cambiarCuenta, leerPER, tablero, misPERs, sembrarPER, alistar, llamar, entrarInvitado,
-                    guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, vigilarMensajesDelSistema, resolverVale,
+                    guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, historialMensajes, vigilarMensajesDelSistema, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaInvitar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaBendecir, academiaResponder, buzonComprimir, buzonAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, guardarForoModo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,
                     huevosDe, guardarHuevos, premioNuevo, premiosEnlaceDe, guardarPremioEnlace, borrarPremioEnlace, enlacePremio, destinosDe, huellaPremio, reclamarHuevo, abrirHuevo, resolverHeroeRepetido, estadoHuevo, estadoDePremio, cuandoEs, misGruposDeAlumno, grupoPorCodigo, codigoEs, leerGrupo, esDelEquipoDe, pasarAFantasma,

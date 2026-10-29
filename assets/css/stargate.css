@@ -4470,9 +4470,13 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .msg-cmd .mc-cab .btn{margin-left:auto;padding:4px 14px}
 .msg-cmd .mc-ico{font-size:1rem}
 .msg-cmd .mc-que{margin-top:4px;font-size:.95rem}
-.msg-cmd .mc-txt{margin-top:6px;padding:8px 12px;border-left:3px solid var(--teal);background:rgba(0,0,0,.22);border-radius:0 10px 10px 0;font-size:.95rem;line-height:1.5;white-space:pre-line}
+.msg-cmd .mc-txt{overflow-wrap:anywhere;margin-top:6px;padding:8px 12px;border-left:3px solid var(--teal);background:rgba(0,0,0,.22);border-radius:0 10px 10px 0;font-size:.95rem;line-height:1.5;white-space:pre-line}
 .msg-cmd.anulado .mc-txt{border-left-color:var(--amber)}
 .msg-cmd.validado .mc-txt{border-left-color:#4fd18b}
+.msg-antes{margin:0 0 12px;text-align:right}
+.msg-antes .btn{max-width:100%;white-space:normal}
+.msg-historial{display:flex;flex-direction:column;gap:8px;max-height:60svh;overflow-y:auto;text-align:left;min-width:0}
+.msg-historial .msg-cmd{margin:0;min-width:0;overflow-wrap:anywhere}
 
 /* ══════════════════ LOS DESPLEGABLES DE LA CASA (17-sep) ══════════════════
    🔴 Norberto: «no queremos menús grises en ningún sitio». Cada <select> se viste solo (stargate.js): el nativo queda

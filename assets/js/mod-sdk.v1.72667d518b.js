@@ -370,6 +370,14 @@ var alistarse = pieza(function (module, exports) {
       completedMissionIds: [], completedCampaignIds: [], currentPhase: 1, role: "student", createdAt: Date.now(),
     }, extra || {});
   }
+  /**
+   * 16-oct · LOS CAMPOS DEL MOD Y EL CÓDIGO DE CLASE: con un código que vale, `modCodigo` (normalizado, como lo comparan las reglas:
+   * sin espacios y en mayúsculas); sin él, o si no vale, los campos tal cual.
+   */
+  function conCodigo(extra, codigo) {
+    var k = normalizarCodigo(codigo);
+    return k ? Object.assign({}, extra || {}, { modCodigo: k }) : extra;
+  }
   /** ¿Es un «no» de las reglas? (el código de Firestore, o su texto en inglés en clientes viejos) */
   function denegado(e) { return /permission|insufficient/i.test(String(e && (e.code || e.message))); }
 
@@ -498,6 +506,9 @@ var alistarse = pieza(function (module, exports) {
      *   misionAlta: "alta" | null,   el `stargateId` de la misión que se completa al alistarse (la paga el servidor)
      *   esDelMod: (proyecto) → bool, si el grupo no es del mod, `textos.sinGrupo`
      *   unaVez: true,                si ya tiene ficha en el grupo, `textos.yaEsta` (STARGATE lo comprueba en la pantalla)
+     *   codigo: "ABC123",            16-oct · el código de clase con el que llega (el del enlace o el tecleado): la ficha nace con
+     *                                `modCodigo` (normalizado). En los grupos con la pieza `codigoAlta` (DPG) las reglas lo exigen
+     *                                (firestore.rules → codigoAlNacer); en los demás no se mira. Sin él, como antes
      *   textos: {…}, traducir: (e) → Error  (cómo se dice un error de la escritura que no es el alias),
      *   alAvanzar: (paso) → void     «grupo», «ficha», «privado», «alta»
      * } → { ficha: id, proyecto, avisos: [] }
@@ -529,7 +540,7 @@ var alistarse = pieza(function (module, exports) {
         var lote = fs.writeBatch(db);
         var traducir = function (e) { return o.traducir ? o.traducir(e) : e; };
         return reservar(lote, grupo, yo.uid, alias, T).then(function () {
-          lote.set(fichaRef, fichaNueva(yo.uid, grupo, alias, o.ficha));
+          lote.set(fichaRef, fichaNueva(yo.uid, grupo, alias, conCodigo(o.ficha, o.codigo)));
           // 10-oct · y que es de este grupo, en la misma escritura (functions/modMiembros.js): las reglas dejan leer lo del grupo
           // solo a su gente, y así lo lee desde la primera pantalla (sin esperar al disparador del servidor)
           lote.set(fs.doc(db, MIEMBROS, grupo + "__" + yo.uid), { projectId: grupo, uid: yo.uid, fichas: [fichaRef.id], creado: Date.now() });
@@ -605,7 +616,7 @@ var alistarse = pieza(function (module, exports) {
   }
 
   return { COLECCION: COLECCION, GRUPOS: GRUPOS, CODIGOS: CODIGOS, plano: plano, clave: clave, normalizarCodigo: normalizarCodigo,
-    fichaNueva: fichaNueva, TEXTOS: TEXTOS, crear: crear };
+    fichaNueva: fichaNueva, conCodigo: conCodigo, TEXTOS: TEXTOS, crear: crear };
 });
 // ─── fin de la pieza «alistarse» ───
 });
@@ -1076,7 +1087,8 @@ var votacion = pieza(function (module, exports) {
  * Con `crear(ctx)` (ctx = { fs, llamar, sesion }): `ref(grupo, id)`, `votar(grupo, id, opción, tipo)`, `votos(grupo, id)`
  * ({ ficha: opción }), `leer(grupo, id)` ({ evento, votos }), `abrir(grupo, id, evento)` (con su id, una vez), `nueva(grupo,
  * evento)` (con id al azar), `cerrar(grupo, id, extra)`, `borrar(grupo, id)`, `lista(grupo)`, `vigilar(grupo, alCambiar)` (las
- * activas, en directo) y `miPapeleta(grupo, id, ficha)`. Los campos propios del mod (la semana, el modo…) van en el evento.
+ * activas, en directo), `vigilarLigero(grupo, alCambiar)` (lo mismo para el alumnado, sin los recuentos de cada voto; 19-oct) y
+ * `miPapeleta(grupo, id, ficha)`. Los campos propios del mod (la semana, el modo…) van en el evento.
  */
 (function (raiz, fabrica) {
   if (typeof module === "object" && module.exports) module.exports = fabrica();
@@ -1169,6 +1181,31 @@ var votacion = pieza(function (module, exports) {
         alCambiar(r.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }).sort(porCreado));
       }, function () { alCambiar([]); });
     }
+    /**
+     * 19-oct · LAS ACTIVAS, PARA EL ALUMNADO, SIN N×N (S1 de docs/AHORRO_MODS.md; functions/modVotacionSenal.js). Lo mismo que
+     * `vigilar` salvo los recuentos, que el alumnado no pinta: escucha la señal del grupo (`mod_votacion/{grupo}`, 1 documento que
+     * el servidor solo toca cuando cambia algo que se ve) y, con cada cambio, pide las activas una vez. Un voto ya no le llega a
+     * cada Nave abierta. Sin señal, con `ligero: false` (`scripts/votacion-ligera.mjs --apagar`) o si la señal falla, escucha las
+     * votaciones enteras, como `vigilar`. → dejar de escuchar.
+     */
+    function vigilarLigero(grupo, alCambiar) {
+      if (!fs.onSnapshot) throw new Error("GP_SDK.votacion: falta ctx.fs.onSnapshot");
+      var parado = false, entero = null, vez = 0;
+      function todo() { if (!entero) entero = vigilar(grupo, function (l) { if (!parado) alCambiar(l); }); }
+      function pedir() {
+        var mia = ++vez;
+        fs.getDocs(fs.query(col(grupo), fs.where("isActive", "==", true))).then(function (r) {
+          if (!parado && mia === vez) alCambiar(r.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }).sort(porCreado));
+        }, function () { if (!parado && mia === vez) alCambiar([]); });
+      }
+      var pararSenal = fs.onSnapshot(fs.doc(db, "mod_votacion", grupo), function (s) {
+        if (parado) return;
+        if (!s.exists() || s.data().ligero === false) return todo();
+        if (entero) { entero(); entero = null; }
+        pedir();
+      }, function () { if (!parado) todo(); });
+      return function () { parado = true; pararSenal(); if (entero) { entero(); entero = null; } };
+    }
     /** Lo que ya ha votado esa ficha en esa votación (`byOption`). */
     function miPapeleta(grupo, id, fichaId) {
       if (!fichaId) return Promise.resolve({});
@@ -1177,7 +1214,7 @@ var votacion = pieza(function (module, exports) {
     }
 
     return { ref: ref, votar: votar, votos: votos, leer: leer, abrir: abrir, nueva: nueva, cerrar: cerrar, borrar: borrar,
-             lista: lista, vigilar: vigilar, miPapeleta: miPapeleta };
+             lista: lista, vigilar: vigilar, vigilarLigero: vigilarLigero, miPapeleta: miPapeleta };
   }
 
   return { opciones: opciones, votoDe: votoDe, crear: crear };
@@ -1328,8 +1365,9 @@ var retos = pieza(function (module, exports) {
     function consultaAvisos(grupo, uid) {
       return fs.query(fs.collection(db, "notifications"), fs.where("userId", "==", uid), fs.where("projectId", "==", grupo));
     }
-    function sinLeer(docs, campo) {
-      return docs.map(porId).filter(function (x) { return (!campo || x[campo]) && !x.read; })
+    function sinLeer(docs, campo) { return ordenados(docs, campo, true); }
+    function ordenados(docs, campo, soloSinLeer) {
+      return docs.map(porId).filter(function (x) { return (!campo || x[campo]) && !(soloSinLeer && x.read); })
         .sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
     }
     /** Mis avisos sin leer de este grupo (los de `campo`), el último arriba. Sin sesión, []. */
@@ -1346,6 +1384,18 @@ var retos = pieza(function (module, exports) {
       return fs.onSnapshot(consultaAvisos(grupo, uid), function (r) { alCambiar(sinLeer(r.docs, campo)); }, function () { alCambiar([]); });
     }
     function avisoLeido(id) { return fs.updateDoc(fs.doc(db, "notifications", String(id)), { read: true }); }
+    /**
+     * 29-oct · EL HISTORIAL: todos mis avisos de este grupo (los de `campo`), leídos o no, el último arriba, hasta `tope` (de serie 30).
+     * «Entendido» solo marca el aviso como leído (nunca se borra), pero ninguna web enseñaba los leídos: en DPG1 una estudiante le dio
+     * sin querer a los dos del Mentor sobre su enlace y escribió al Correo para que se los volvieran a mandar. Sin sesión, [].
+     */
+    function historialAvisos(grupo, campo, tope) {
+      var n = Math.max(1, Math.floor(Number(tope)) || 30);
+      return Promise.resolve(sesion()).then(function (yo) {
+        if (!yo || !yo.uid) return [];
+        return fs.getDocs(consultaAvisos(grupo, yo.uid)).then(function (r) { return ordenados(r.docs, campo, false).slice(0, n); });
+      });
+    }
     /** 7-oct · Para la consola del docente: los mensajes del sistema sobre su alumnado de este grupo, sin leer, el último arriba. */
     function avisosDelSistema(grupo) {
       return misAvisos(grupo, null).then(function (l) { return l.filter(paraDocente); });
@@ -1447,7 +1497,7 @@ var retos = pieza(function (module, exports) {
     }
 
     return { idMision: idMision, registrar: registrar, desdeLaSesion: desdeLaSesion, anular: anular, otorgar: otorgar,
-             avisar: avisar, misAvisos: misAvisos, vigilarAvisos: vigilarAvisos, avisoLeido: avisoLeido,
+             avisar: avisar, misAvisos: misAvisos, vigilarAvisos: vigilarAvisos, avisoLeido: avisoLeido, historialAvisos: historialAvisos,
              avisosDelSistema: avisosDelSistema, vigilarAvisosDelSistema: vigilarAvisosDelSistema,
              guardarReflexion: guardarReflexion, enlaceDeReflexion: enlaceDeReflexion, reflexionesDe: reflexionesDe,
              misReflexiones: misReflexiones, borrarReflexion: borrarReflexion,
@@ -2632,7 +2682,8 @@ var llave = pieza(function (module, exports) {
  *       por: 'pieza' | 'sin-semana' | 'dada' | 'red' | null (cerrada) · red: el instante del viernes a las 20:00 (ms) o null
  *   GP_SDK.llave.redDeLaSemana(cal, semana, ahora, cfg) → ms | null
  *   GP_SDK.llave.aperturaDeSemana(cal, semana, ahora) → { lunes, texto }: un reto cerrado, «Se abre el lunes 26 de octubre.»
- *   GP_SDK.llave.textoCerrado(que, red) → «Esta sesión se abre cuando tu docente dé la clase en directo, o el viernes 23 de octubre a las 20:00.»
+ *   GP_SDK.llave.textoCerrado(que, red, cfg) → «Esta sesión se abre cuando tu docente dé la clase en directo, o el viernes 23 de octubre a las 20:00.»
+ *       21-oct · con `cfg.docente === false` (DPG1: «el directo es un botón», la semana se abre sola el lunes): «Esta clase se abre el lunes 26 de octubre.»
  *
  * Las horas, en Madrid (Intl), sea cual sea la zona del navegador: el alumnado de Latinoamérica ve la misma llave. El equipo
  * docente lo ve todo siempre (eso lo decide la web: aquí no se sabe quién mira). Sin textos de ningún mod más que el de cerrado.
@@ -2716,11 +2767,13 @@ var llave = pieza(function (module, exports) {
     if (red != null && ahora >= red) return { abierta: true, por: "red", red: red };
     return { abierta: false, por: null, red: red };
   }
-  function textoCerrado(que, red) {
-    if (red == null) return que + " se abre cuando tu docente dé la clase en directo.";
+  function textoCerrado(que, red, cfg) {
+    var sinDocente = !!cfg && cfg.docente === false;
+    if (red == null) return que + (sinDocente ? " aún no ha llegado." : " se abre cuando tu docente dé la clase en directo.");
     var partes = new Intl.DateTimeFormat("es-ES", { timeZone: ZONA, weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })
       .formatToParts(new Date(red)), p = {};
     partes.forEach(function (x) { p[x.type] = x.value; });
+    if (sinDocente) return que + " se abre el " + p.weekday + " " + p.day + " de " + p.month + (p.hour === "00" && p.minute === "00" ? "" : " a las " + p.hour + ":" + p.minute) + ".";
     return que + " se abre cuando tu docente dé la clase en directo, o el " + p.weekday + " " + p.day + " de " + p.month + " a las " + p.hour + ":" + p.minute + ".";
   }
   return { abierta: abierta, redDeLaSemana: redDeLaSemana, textoCerrado: textoCerrado, aperturaDeSemana: aperturaDeSemana,
@@ -2890,8 +2943,8 @@ var SDK = {
   mantenimiento: mantenimiento,
   registro: registro,
   grupos: grupos,
-  sitio: sitio.crear({"mapa":{"stargate_alias":{"nueva":"mod_alias","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_anulaciones":{"nueva":"mod_anulaciones","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_asistencia":{"nueva":"mod_asistencia","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_batallas":{"nueva":"mod_batallas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_buzon":{"nueva":"mod_buzon","mod":"stargate","ids":"azar","porGrupo":false,"fase":"vieja","comun":true},"stargate_comentarios":{"nueva":"mod_comentarios","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_congelados":{"nueva":"mod_congelados","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_directo":{"nueva":"mod_directo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_envivo":{"nueva":"mod_envivo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_formacion":{"nueva":"mod_formacion","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_invitaciones":{"nueva":"mod_invitaciones","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_profes":{"nueva":"mod_profes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_referentes":{"nueva":"mod_referentes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_reflexiones":{"nueva":"mod_reflexiones","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_respuestas":{"nueva":"mod_respuestas","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_rutas":{"nueva":"mod_rutas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_tratos":{"nueva":"mod_tratos","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_zoco":{"nueva":"mod_zoco","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_asedio":{"nueva":"mod_asedio","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_asedio_ataques":{"nueva":"mod_asedio_ataques","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_galeria":{"nueva":"mod_galeria","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_fama":{"nueva":"mod_fama","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"nueva"},"ceniza_clase":{"nueva":"mod_clase","mod":"ceniza","ids":"grupo","porGrupo":true,"fase":"vieja"},"ceniza_formacion":{"nueva":"mod_formacion","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_invitaciones":{"nueva":"mod_invitaciones","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_referentes":{"nueva":"mod_referentes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_juegos":{"nueva":"mod_juegos","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_mesa":{"nueva":"mod_mesa","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_respuestas":{"nueva":"mod_repaso","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardia_partidas":{"nueva":"mod_retaguardia_partidas","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardias":{"nueva":"mod_retaguardias","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_publico":{"nueva":"mod_publico","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_publico_opiniones":{"nueva":"mod_publico_opiniones","mod":"ceniza","ids":"azar","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]}},"novedades":{"2":["coleccionesMod","economiaSoloServidor","ticketMotor","medianocheUnica","bancoMotor","retaguardiaMotor"]},"mods":[{"mod":"stargate","reconocer":"bloque"},{"mod":"ceniza","reconocer":null}]}),
-  llave: Object.assign({}, llave, { porMod: {"ceniza":{"dia":4,"hora":20}} }),
+  sitio: sitio.crear({"mapa":{"stargate_alias":{"nueva":"mod_alias","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_anulaciones":{"nueva":"mod_anulaciones","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_asistencia":{"nueva":"mod_asistencia","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_batallas":{"nueva":"mod_batallas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_buzon":{"nueva":"mod_buzon","mod":"stargate","ids":"azar","porGrupo":false,"fase":"vieja","comun":true},"stargate_comentarios":{"nueva":"mod_comentarios","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_congelados":{"nueva":"mod_congelados","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_directo":{"nueva":"mod_directo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_envivo":{"nueva":"mod_envivo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_formacion":{"nueva":"mod_formacion","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_invitaciones":{"nueva":"mod_invitaciones","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_profes":{"nueva":"mod_profes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_referentes":{"nueva":"mod_referentes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_reflexiones":{"nueva":"mod_reflexiones","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_respuestas":{"nueva":"mod_respuestas","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_rutas":{"nueva":"mod_rutas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_tratos":{"nueva":"mod_tratos","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_zoco":{"nueva":"mod_zoco","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_asedio":{"nueva":"mod_asedio","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_asedio_ataques":{"nueva":"mod_asedio_ataques","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_galeria":{"nueva":"mod_galeria","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_fama":{"nueva":"mod_fama","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"nueva"},"ceniza_clase":{"nueva":"mod_clase","mod":"ceniza","ids":"grupo","porGrupo":true,"fase":"vieja"},"ceniza_formacion":{"nueva":"mod_formacion","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_invitaciones":{"nueva":"mod_invitaciones","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_referentes":{"nueva":"mod_referentes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_profes":{"nueva":"mod_profes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_juegos":{"nueva":"mod_juegos","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_mesa":{"nueva":"mod_mesa","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_respuestas":{"nueva":"mod_repaso","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardia_partidas":{"nueva":"mod_retaguardia_partidas","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardias":{"nueva":"mod_retaguardias","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_publico":{"nueva":"mod_publico","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_publico_opiniones":{"nueva":"mod_publico_opiniones","mod":"ceniza","ids":"azar","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]}},"novedades":{"2":["coleccionesMod","economiaSoloServidor","ticketMotor","medianocheUnica","bancoMotor","retaguardiaMotor"]},"mods":[{"mod":"stargate","reconocer":"bloque"},{"mod":"ceniza","reconocer":null}]}),
+  llave: Object.assign({}, llave, { porMod: {"ceniza":{"dia":0,"hora":0,"docente":false}} }),
   niveles: (function () { niveles.porMod = {"ceniza":{"tabla":[{"nivel":0,"desde":0,"titulo":{"f":"Vagabunda","m":"Vagabundo","n":"Vagabundo/a"}},{"nivel":1,"desde":30,"titulo":{"f":"Vagabunda","m":"Vagabundo","n":"Vagabundo/a"}},{"nivel":2,"desde":70,"titulo":{"f":"Vagabunda","m":"Vagabundo","n":"Vagabundo/a"}},{"nivel":3,"desde":120,"titulo":{"f":"Caminante","m":"Caminante","n":"Caminante"}},{"nivel":4,"desde":180,"titulo":{"f":"Caminante","m":"Caminante","n":"Caminante"}},{"nivel":5,"desde":260,"titulo":{"f":"Porteadora","m":"Porteador","n":"Porteador/a"}},{"nivel":6,"desde":350,"titulo":{"f":"Porteadora","m":"Porteador","n":"Porteador/a"}},{"nivel":7,"desde":460,"titulo":{"f":"Rastreadora","m":"Rastreador","n":"Rastreador/a"}},{"nivel":8,"desde":590,"titulo":{"f":"Rastreadora","m":"Rastreador","n":"Rastreador/a"}},{"nivel":9,"desde":740,"titulo":{"f":"Guía de familia","m":"Guía de familia","n":"Guía de familia"}},{"nivel":10,"desde":910,"titulo":{"f":"Guía de familia","m":"Guía de familia","n":"Guía de familia"}},{"nivel":11,"desde":1100,"titulo":{"f":"Cartógrafa","m":"Cartógrafo","n":"Cartógrafo/a"}},{"nivel":12,"desde":1320,"titulo":{"f":"Cartógrafa","m":"Cartógrafo","n":"Cartógrafo/a"}},{"nivel":13,"desde":1570,"titulo":{"f":"Abanderada","m":"Abanderado","n":"Abanderado/a"}},{"nivel":14,"desde":1860,"titulo":{"f":"Abanderada","m":"Abanderado","n":"Abanderado/a"}},{"nivel":15,"desde":2200,"titulo":{"f":"Maestra de obras","m":"Maestro de obras","n":"Maestro/a de obras"}},{"nivel":16,"desde":2600,"titulo":{"f":"Arquitecta del Camino","m":"Arquitecto del Camino","n":"Arquitecto/a del Camino"}}],"maestria":{"cada":150},"ventajas":{"semana":9,"marco":{"nivel":3,"colores":{"ambar":"#d39b2a","burdeos":"#8e2f3c","pizarra":"#4a6378","musgo":"#5f7a3a","cobre":"#b5653a","hueso":"#e8dcc0","noche":"#2c2f4a","ceniza":"#8a8580"}},"mano":{"nivel":5,"oro":5,"porSemana":1,"recibirPorSemana":2},"guia":{"nivel":9},"pregunta":{"nivel":11,"porSemana":1},"estandarte":{"nivel":13},"reto":{"nivel":16,"max":2},"viento":{"debajo":3,"extra":0.5,"porSemana":1}},"asientos":{"mano":"mod_niveles_mano","viento":"mod_niveles_viento"}}}; return niveles; })()
 };
 if (typeof module === "object" && module.exports) module.exports = SDK;

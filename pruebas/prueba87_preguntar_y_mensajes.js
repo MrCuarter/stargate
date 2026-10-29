@@ -64,7 +64,7 @@ c(/async function avisarRecluta\(perId, userId/.test(M) && /const sg = \{ reto:/
   /RETOS\.avisar\(perId, userId, \{ accion, titulo: tit, texto: t, campo: "stargate", marca: sg \}/.test(M) && /fs\.addDoc\(fs\.collection\(db, "notifications"\), d\)/.test(RT) && /if \(x\.campo\) d\[x\.campo\] = x\.marca/.test(RT)),
   "🔴 el mensaje va a la bandeja de GamificaPro (notifications), marcado como de STARGATE");
 c(/function vigilarMensajes\(perId, alCambiar\)/.test(M) && (/\.filter\(x => x\.stargate && !x\.read\)/.test(M) && /onSnapshot/.test(M.split("function vigilarMensajes")[1] || "") ||
-  /RETOS\.vigilarAvisos\(perId, "stargate", alCambiar, u && u\.uid\)/.test(M) && /\(!campo \|\| x\[campo\]\) && !x\.read/.test(RT) && /fs\.onSnapshot\(consultaAvisos\(grupo, uid\)/.test(RT)),
+  /RETOS\.vigilarAvisos\(perId, "stargate", alCambiar, u && u\.uid\)/.test(M) && /\(!campo \|\| x\[campo\]\) && !(\(soloSinLeer && x\.read\)|x\.read)/.test(RT) && /fs\.onSnapshot\(consultaAvisos\(grupo, uid\)/.test(RT)),
   "   la Nave lo escucha en directo, solo los suyos sin leer");
 c(/avisarRecluta, vigilarMensajes, mensajeLeido/.test(M), "   y el motor lo exporta");
 c(/function avisoMensajes\(\)/.test(N) && /avisoCongelado\(\)\+avisoMensajes\(\)/.test(N), "🔴 la Nave lo enseña arriba, junto a los avisos importantes");

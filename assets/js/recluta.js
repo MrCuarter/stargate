@@ -2255,32 +2255,54 @@
    * que ha puesto un enlace incorrecto: se desmarca la misión y se da una razón al estudiante». Arriba del todo, porque
    * un reto que desaparece sin explicación parece un fallo de la web; se va al pulsar «Entendido» (y ya no vuelve).
    */
+  function mensajeHtml(x, conBoton){
+    var RET=(window.SG_RETOS||{})[(st.d&&st.d.tipo)||'REGULAR']||[];
+    var s=x.stargate||{}, anul=s.accion==='anulado', val=s.accion==='validado';
+    // 7-oct · los mensajes del sistema (GamificaPro, functions/modMensajes.js) los firma NEBULA, no tu Comandante. Norberto: «que
+    // no te hagas pasar por el docente, sino como NEBULA». Su marca es `modSistema.voz` (`GP_SDK.retos.remitente` en el paquete
+    // nuevo); los primeros del 7-oct solo traían `de: 'NEBULA'`.
+    var voz=(x.modSistema&&x.modSistema.voz)||(s.de==='NEBULA'?'NEBULA':'');
+    var r=RET.filter(function(f){ return f[0]===s.reto; })[0];
+    var cuando=x.createdAt?new Date(x.createdAt):null;
+    return '<div class="card msg-cmd'+(anul?' anulado':val?' validado':'')+'" role="status">'
+      +'<p class="mc-cab"><span class="mc-ico" aria-hidden="true">'+(anul?'↩':val?'<img class=ico src=assets/img/iconos/p/hecho.png alt>':'<img class=ico src=assets/img/iconos/p/envivo.png alt>')+'</span>'
+      +'<b>'+(voz?'Mensaje de '+esc(voz):'Mensaje de tu Comandante'+(s.de?' · '+esc(s.de):''))+'</b>'
+      +(cuando?'<span class="mc-cuando">'+esc(cuando.toLocaleDateString('es-ES',{day:'numeric',month:'short'}))+', '+esc(cuando.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}))+'</span>':'')
+      // (el «Entendido», en la misma línea: una fila entera para un botón era aire)
+      +(conBoton?'<button type="button" class="btn min" data-msg-leido="'+esc(x.id)+'">Entendido</button>':'')+'</p>'
+      +(s.reto?'<p class="mc-que">'+(anul?'Ha anulado tu reto ':val?'Ha validado tu reto ':'Sobre tu reto ')+'<b>'+esc(s.reto)+(r?' · '+esc(r[1]):'')+'</b>.'
+        +(anul&&conBoton?' Puedes registrarlo otra vez cuando lo tengas bien.':'')+'</p>':'')
+      +(x.message?'<p class="mc-txt">«'+esc(x.message)+'»</p>':'')+'</div>';
+  }
+  /**
+   * 29-oct · «VER LOS MENSAJES ANTERIORES». «Entendido» solo los da por leídos (nunca se borran), pero la Nave no los enseñaba:
+   * una estudiante de DPG1 le dio sin querer a los dos del Mentor y escribió al Correo para que se los mandaran otra vez. En cuanto
+   * hay alguno leído, el botón abre los últimos 30 (leídos o no, el último arriba). Los regalos no son un texto: se abren aparte.
+   */
+  st.historial=st.historial||[];
+  function cargarHistorial(){
+    var M=window.SG&&window.SG.MOTOR;
+    if(!motorNuevo()||!per||SIMULACRO||enDemo()||!M||!M.historialMensajes) return;
+    M.historialMensajes(per).then(function(l){
+      var h=(l||[]).filter(function(x){ return !(x.stargate&&x.stargate.accion==='regalo'); });
+      var antes=st.historial.filter(function(x){return x.read;}).length>0, ahora=h.some(function(x){return x.read;});
+      st.historial=h;
+      if(antes!==ahora) render();
+    }).catch(function(){});
+  }
+  function botonAnteriores(){
+    if(!st.yo||SIMULACRO||!st.historial.some(function(x){return x.read;})) return '';
+    return '<p class="msg-antes"><button type="button" class="btn min" data-msg-antes><img class=ico src=assets/img/iconos/p/envivo.png alt> Ver los mensajes anteriores</button></p>';
+  }
   function avisoMensajes(){
     var L=st.mensajes||[];
-    if(!L.length||!st.yo||SIMULACRO) return '';
-    var RET=(window.SG_RETOS||{})[(st.d&&st.d.tipo)||'REGULAR']||[];
-    return L.slice(0,3).map(function(x){
-      var s=x.stargate||{}, anul=s.accion==='anulado', val=s.accion==='validado';
-      // 7-oct · los mensajes del sistema (GamificaPro, functions/modMensajes.js) los firma NEBULA, no tu Comandante. Norberto: «que
-      // no te hagas pasar por el docente, sino como NEBULA». Su marca es `modSistema.voz` (`GP_SDK.retos.remitente` en el paquete
-      // nuevo); los primeros del 7-oct solo traían `de: 'NEBULA'`.
-      var voz=(x.modSistema&&x.modSistema.voz)||(s.de==='NEBULA'?'NEBULA':'');
-      var r=RET.filter(function(f){ return f[0]===s.reto; })[0];
-      var cuando=x.createdAt?new Date(x.createdAt):null;
-      return '<div class="card msg-cmd'+(anul?' anulado':val?' validado':'')+'" role="status">'
-        +'<p class="mc-cab"><span class="mc-ico" aria-hidden="true">'+(anul?'↩':val?'<img class=ico src=assets/img/iconos/p/hecho.png alt>':'<img class=ico src=assets/img/iconos/p/envivo.png alt>')+'</span>'
-        +'<b>'+(voz?'Mensaje de '+esc(voz):'Mensaje de tu Comandante'+(s.de?' · '+esc(s.de):''))+'</b>'
-        +(cuando?'<span class="mc-cuando">'+esc(cuando.toLocaleDateString('es-ES',{day:'numeric',month:'short'}))+', '+esc(cuando.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}))+'</span>':'')
-        // (el «Entendido», en la misma línea: una fila entera para un botón era aire)
-        +'<button type="button" class="btn min" data-msg-leido="'+esc(x.id)+'">Entendido</button></p>'
-        +(s.reto?'<p class="mc-que">'+(anul?'Ha anulado tu reto ':val?'Ha validado tu reto ':'Sobre tu reto ')+'<b>'+esc(s.reto)+(r?' · '+esc(r[1]):'')+'</b>.'
-          +(anul?' Puedes registrarlo otra vez cuando lo tengas bien.':'')+'</p>':'')
-        +(x.message?'<p class="mc-txt">«'+esc(x.message)+'»</p>':'')+'</div>';
-    }).join('');
+    if(!st.yo||SIMULACRO) return '';
+    return L.slice(0,3).map(function(x){ return mensajeHtml(x,true); }).join('')+botonAnteriores();
   }
   function vigilarMensajes(){
     if(!motorNuevo()||!per||st.paraMensajes||SIMULACRO||enDemo()) return;
     var M=window.SG&&window.SG.MOTOR; if(!M||!M.vigilarMensajes) return;
+    cargarHistorial();
     st.paraMensajes=M.vigilarMensajes(per, function(todos){
       // los regalos no son un texto que leer: se ABREN (abajo, abrirRegalos)
       var lista=todos.filter(function(x){ return !(x.stargate&&x.stargate.accion==='regalo'); });
@@ -2351,7 +2373,21 @@
     b.disabled=true;
     // se quita ya de la vista; la marca de leído va detrás (si fallara, volvería a salir la próxima vez: mejor eso que perderlo)
     st.mensajes=(st.mensajes||[]).filter(function(x){return x.id!==id;}); render();
-    if(M&&M.mensajeLeido) M.mensajeLeido(id).catch(function(){});
+    if(M&&M.mensajeLeido) M.mensajeLeido(id).then(cargarHistorial,function(){});
+  });
+  document.addEventListener('click', function(ev){
+    var b=ev.target&&ev.target.closest?ev.target.closest('[data-msg-antes]'):null; if(!b||!window.SG||!window.SG.preguntar) return;
+    var M=window.SG.MOTOR; if(!M||!M.historialMensajes||!per) return;
+    b.disabled=true;
+    M.historialMensajes(per).then(function(l){
+      b.disabled=false;
+      l=(l||[]).filter(function(x){ return !(x.stargate&&x.stargate.accion==='regalo'); });
+      window.SG.preguntar({ quien:'Tu Nave', titulo:'Mensajes anteriores', si:'Cerrar', no:'', clase:'sgp-ancha',
+        html:l.length?'<div class="msg-historial">'+l.map(function(x){ return mensajeHtml(x,false); }).join('')+'</div>':'<p>Todavía no tienes mensajes.</p>' });
+    },function(){
+      b.disabled=false;
+      window.SG.preguntar({ titulo:'No se han podido cargar', texto:'Prueba otra vez en un momento.', si:'Entendido', no:'' });
+    });
   });
   function avisoPase(){
     var L=st.llamada;
