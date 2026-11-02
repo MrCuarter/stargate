@@ -2260,22 +2260,52 @@
     var ok = document.getElementById("ht-foro-ok"); if (ok) ok.onclick = function () { guarda(document.getElementById("ht-foro-in").value.trim()); };
     var of = document.getElementById("ht-foro-of"); if (of) of.onclick = function () { guarda(""); };
     // «Ver todos»: los de todas las semanas del curso, con el tuyo marcado, en una ventana
+    // 🔴 2-nov · Y SE EDITA CUALQUIER SEMANA (Anita, BZc9E4DiGbmo1MWXU8JO: «los fines de semana suelo dejarlo todo preparado con antelación»; en DPG
+    // ya se podía). Se guarda igual que el de esta semana y su escuadrón no lo ve hasta que llega: modForoSemana sella las que faltan.
     var todos = document.getElementById("ht-foro-todos");
-    if (todos) todos.onclick = function () {
+    var abrirTodos = function (abierta) {
       var SEMS = window.SG_SEMANAS || [], mios = (FICHA && FICHA.foros) || {}, yoN = miNombreAqui();
       var firma = function (txt) { return window.SG.firmaComandante(txt, yoN); };
-      modalFicha('<div class="fi-cab"><h3>' + ico("mensaje") + ' Los mensajes del foro</h3>' +
-          '<p class="small muted">Uno por semana, ya firmados por ti. Los que hayas escrito tú salen marcados y valen en todos tus grupos.</p>' +
+      var m = modalFicha('<div class="fi-cab"><h3>' + ico("mensaje") + ' Los mensajes del foro</h3>' +
+          '<p class="small muted">Uno por semana, ya firmados por ti. Los que hayas escrito tú salen marcados y valen en todos tus grupos. Puedes dejar preparada cualquier semana: tu escuadrón no la verá hasta que llegue.</p>' +
           '<button type="button" class="c-modal-x" data-cerrar-ficha aria-label="Cerrar">✕</button></div>' +
         '<div class="foro-todos">' + SEMS.map(function (x) {
-          var t = mios[String(x.sem)] || firma(x.foro || "");
+          var t = mios[String(x.sem)] || firma(x.foro || ""), n = Number(x.sem);
           if (!t) return "";
-          return '<details class="foro-una"' + (Number(x.sem) === Number(sem) ? " open" : "") + '><summary><b>Semana ' + x.sem + '</b> · ' + esc(x.tema) +
+          return '<details class="foro-una"' + (n === Number(abierta) ? " open" : "") + '><summary><b>Semana ' + x.sem + '</b> · ' + esc(x.tema) +
             (mios[String(x.sem)] ? ' <span class="ht-mio">tuyo</span>' : '') + '</summary>' +
             '<div class="foro-msg abierto">' + esc(t).replace(/\n/g, "<br>") + '</div>' +
-            '<p><button type="button" class="btn min" data-copiado="✓ Copiado" data-copiar="' + esc(t) + '">Copiar</button></p></details>';
+            '<p class="pt-fila"><button type="button" class="btn min" data-copiado="✓ Copiado" data-copiar="' + esc(t) + '">Copiar</button>' +
+              (MOTOR.guardarForo ? ' <button type="button" class="btn min" data-foro-editar aria-expanded="false">' + ico("editar") + ' Editar</button>' : '') + '</p>' +
+            (MOTOR.guardarForo ? '<div class="ht-foro-caja" data-foro-sem="' + n + '" hidden><label>Tu mensaje para la semana ' + n + '<textarea rows="8" maxlength="4000">' + esc(t) + '</textarea></label>' +
+              '<p class="pt-fila"><button type="button" class="btn primary" data-foro-guardar>Guardar para todos mis grupos</button>' +
+              (mios[String(x.sem)] ? ' <button type="button" class="btn min" data-foro-generico>Volver al genérico</button>' : '') +
+              '<span class="small m-sec-msg" aria-live="polite"></span></p></div>' : '') + '</details>';
         }).join("") + '</div>');
+      var guardaSem = function (caja, v) {
+        var n = Number(caja.getAttribute("data-foro-sem")), aqui = caja.querySelector(".m-sec-msg");
+        aqui.textContent = "Guardando…";
+        MOTOR.guardarForo(n, v).then(function (foros) {
+          if (FICHA) FICHA.foros = foros;
+          aviso(v ? "Guardado: la semana " + n + " es la tuya en todos tus grupos." : "Quitado: la semana " + n + " vuelve al mensaje genérico.", true);
+          pintar(); abrirTodos(n);
+        }, function (e) { aqui.textContent = "No se ha podido guardar: " + (e.message || e); });
+      };
+      Array.prototype.forEach.call(m.querySelectorAll("[data-foro-editar]"), function (b) {
+        b.onclick = function () {
+          var caja = b.closest(".foro-una").querySelector(".ht-foro-caja");
+          caja.hidden = !caja.hidden; b.setAttribute("aria-expanded", String(!caja.hidden));
+          if (!caja.hidden) caja.querySelector("textarea").focus();
+        };
+      });
+      Array.prototype.forEach.call(m.querySelectorAll("[data-foro-guardar]"), function (b) {
+        b.onclick = function () { var caja = b.closest(".ht-foro-caja"); guardaSem(caja, caja.querySelector("textarea").value.trim()); };
+      });
+      Array.prototype.forEach.call(m.querySelectorAll("[data-foro-generico]"), function (b) {
+        b.onclick = function () { guardaSem(b.closest(".ht-foro-caja"), ""); };
+      });
     };
+    if (todos) todos.onclick = function () { abrirTodos(sem); };
   }
   function semanaDeReto(r, tipo, mapa) {
     if (tipo === "PUA") return Number(r.tema || 0);          // en PUA, cada tema es su semana

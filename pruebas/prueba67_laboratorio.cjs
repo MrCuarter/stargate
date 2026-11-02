@@ -5220,6 +5220,22 @@ const REG = {};   // cifras que se apuntan para el informe
       c("   y la Nave lo enseña marcado como tuyo", await rp.hasta("/tuyo/i.test((document.querySelector('.ht-foro-cab')||{}).textContent||'')", 20));
       await rp.js("var b=document.getElementById('ht-foro-of'); if(b) b.click(); 1"); await dormir(2500);
       c("   «Volver al oficial» lo quita", !((await leerDoc("mod_profes/stargate__" + uid)) || {}).foros || !(((await leerDoc("mod_profes/stargate__" + uid)) || {}).foros || {})["10"]);
+      // 🔴 2-nov · Anita: desde «Ver todos» se deja preparada cualquier semana, también las que aún no han llegado
+      await rp.js("document.getElementById('ht-foro-todos').click(); 1");
+      const hayTodos = await rp.hasta("document.querySelectorAll('.foro-una [data-foro-editar]').length > 1", 10);
+      await rp.js("var u=document.querySelector('.ht-foro-caja[data-foro-sem=\"11\"]').closest('.foro-una'); u.open=true; u.querySelector('[data-foro-editar]').click(); 1");
+      for (const [w, h, movil] of [[320, 640, true], [360, 740, true], [768, 1024, false]]) {
+        await rp.tamano(w, h, movil); await dormir(400);
+        c(`   la ventana de editar cabe a ${w}×${h}`, await rp.js("(function(){var m=document.querySelector('.c-modal-caja'),a=innerWidth;return document.documentElement.scrollWidth<=a&&[].every.call(m.querySelectorAll('.foro-una[open] .ht-foro-caja *'),function(e){var r=e.getBoundingClientRect();return !r.width||r.right<=a+1;});})()"));
+      }
+      await rp.tamano(1280, 800, false); await dormir(300);
+      await rp.js("var u=document.querySelector('.ht-foro-caja[data-foro-sem=\"11\"]'); u.querySelector('textarea').value='Equipo: la semana que viene, ya preparada. — Rita'; u.querySelector('[data-foro-guardar]').click(); 1");
+      await dormir(3000);
+      c("🔴 desde «Ver todos» se edita una semana que aún no ha llegado", hayTodos && /ya preparada/.test((((await leerDoc("mod_profes/stargate__" + uid)) || {}).foros || {})["11"] || ""));
+      c("   y sale marcada como tuya, en la misma ventana", await rp.hasta("/tuyo/i.test((document.querySelector('.c-modal-caja .foro-una[open] summary')||{}).textContent||'')", 10));
+      await rp.js("document.querySelector('.ht-foro-caja[data-foro-sem=\"11\"] [data-foro-generico]').click(); 1"); await dormir(2500);
+      c("   «Volver al genérico» la quita", !(((await leerDoc("mod_profes/stargate__" + uid)) || {}).foros || {})["11"]);
+      await rp.js("var x=document.querySelector('[data-cerrar-ficha]'); if(x) x.click(); 1"); await dormir(300);
       // el enlace del panel
       await rp.js("document.getElementById('pt-panel-ed').click(); document.getElementById('pt-panel-in').value='https://view.genially.com/lab-portada'; document.getElementById('pt-panel-ok').click(); 1");
       await dormir(3000);

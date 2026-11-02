@@ -29,6 +29,7 @@ c(/MOTOR\.guardarForoModo\(PER, gen\)/.test(CONS) && /async function guardarForo
 c(/id="ht-foro-previa"/.test(CONS) && /inp\.oninput = verPrevia/.test(CONS), "   al editar, vista previa con la misma carta");
 c(/id="ht-foro-of">Volver al genérico</.test(CONS), "   y «Volver al genérico» por semana");
 c(/"foro\.html\?per=" \+ P \+ escForo\(\) \+ "&embed=1"/.test(CONS), "   el código del foro del grupo lleva SU escuadrón (`&esc=`)");
+c(/data-foro-editar/.test(CONS) && /MOTOR\.guardarForo\(n, v\)/.test(CONS) && /data-foro-sem="' \+ n \+ '"/.test(CONS), "🔴 2-nov · «Ver todos» edita cualquier semana (Anita: dejarlas preparadas el fin de semana)");
 
 // ── 2 · lo que ve el alumnado: la Nave y el foro del grupo
 c(/function foroPropio\(esc, n\)/.test(REC) && /foroPropio\(suEsc\.id, Number\(sm\.sem\)\)\)\|\|sm\.foro/.test(REC), "🔴 la Nave: la orden de la semana de su comandante, o la de siempre");
