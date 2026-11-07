@@ -146,9 +146,10 @@ window.SG_NEBULA_FAQ = [
   { id: "reto_equivocado", p: ["me equivoqué al registrar un reto", "marqué un reto sin querer", "cómo deshago un reto", "quiero cancelar un reto", "me he equivocado de enlace", "puse mal el enlace del reto", "cambiar el enlace de un reto"],
     claves: ["equivoque", "marcar", "deshacer", "cancelar", "querer", "error", "anular"],
     r: "En el reto hecho tienes <b>«No lo he hecho todavía»</b>: lo cancela y devuelve los xp y créditos. Si ya te gastaste esos créditos, lo decide tu Comandante: escríbele. Él también puede anularlo desde tu ficha.", ir: "retos" },
-  { id: "reto_cambiar_enlace", p: ["cómo cambio el enlace de un reto", "me olvidé de poner el enlace", "pegué mal el enlace", "añadir otro enlace"],
-    claves: ["cambiar", "enlace", "olvide", "mal", "corregir", "anadir"],
-    r: "No hace falta deshacer nada: en el reto hecho tienes <b>«Cambiar enlace»</b> (o «Guardar enlace»). Pega el bueno y listo.", ir: "retos" },
+  // 7-nov · Norberto: los enlaces de los retos y Actividades de STARGATE se cambian siempre que haga falta; la entrega del aula de la UNIR, por el foro
+  { id: "reto_cambiar_enlace", p: ["cómo cambio el enlace de un reto", "me olvidé de poner el enlace", "pegué mal el enlace", "añadir otro enlace", "puedo editar el enlace de la actividad"],
+    claves: ["cambiar", "enlace", "olvide", "mal", "corregir", "anadir", "editar", "modificar"],
+    r: "Sí, siempre que lo necesites, y sin deshacer nada ni perder premio: abre el reto hecho (pone «Ya lo tienes registrado»), pega el bueno en su casilla y pulsa <b>«Cambiar enlace»</b> (o «Guardar enlace»). Tu Comandante verá el nuevo. Si lo que quieres cambiar es la entrega de la Actividad en el aula de la UNIR, eso no es de la Nave: consúltalo con tu Comandante en el foro de la asignatura.", ir: "retos" },
   { id: "reto_anulado", p: ["me han anulado un reto", "por qué me quitaron los puntos", "me han quitado xp", "el profe anuló mi reto"],
     claves: ["anulado", "quitado", "quitaron", "anulo", "validado"],
     r: "Tu docente ve cada enlace: si no abre o no es lo que pide el reto, puede anularlo con su porqué (y se van sus xp y créditos). Revisa el motivo, arregla el enlace y vuelve a registrarlo; si no lo entiendes, pregúntale." },
