@@ -18,15 +18,15 @@ const localStorage = (() => { const L = window.localStorage, NO = /^sgEs(Docente
  * terminar deja `window.SG.MOTOR` y avisa con el evento `sg:motor` para que el resto de la web
  * —que son scripts normales— sepa que ya puede usarlo.
  */
-import { initializeApp, deleteApp } from "./sim/firebase_sim.js?h=a062928790";
+import { initializeApp, deleteApp } from "./sim/firebase_sim.js?h=fb300ca29e";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, onAuthStateChanged,
          connectAuthEmulator, reauthenticateWithPopup, signInAnonymously }
-  from "./sim/firebase_sim.js?h=a062928790";
+  from "./sim/firebase_sim.js?h=fb300ca29e";
 import { getFirestore, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, getCountFromServer, writeBatch, onSnapshot,
          deleteField, connectFirestoreEmulator, serverTimestamp }
-  from "./sim/firebase_sim.js?h=a062928790";
+  from "./sim/firebase_sim.js?h=fb300ca29e";
 import { getFunctions, httpsCallable, connectFunctionsEmulator }
-  from "./sim/firebase_sim.js?h=a062928790";
+  from "./sim/firebase_sim.js?h=fb300ca29e";
 
 /**
  * 7-oct · EL SDK DE CLIENTE DE GAMIFICAPRO (su docs/PLAN_CENTRALIZAR.md, fase 5): las semanas, `llamar` y `miPapel` vienen en

@@ -74,13 +74,16 @@
     tema: [
       { id: "general", tipo: "escala", texto: "Valora la satisfacción general del desarrollo de la clase" },
       { id: "herramientas", tipo: "escala", texto: "Valora la utilidad de las herramientas vistas" },
-      { id: "teoria", tipo: "escala", texto: "Valora los contenidos teóricos" },
+      // 7-nov · «Ahora trabajamos con 4P y no impartimos teoría»: fuera «Valora los contenidos teóricos» (`teoria`, a RETIRADAS);
+      // en su sitio, la de DPG. Id nuevo para no mezclar las dos en una columna (GamificaPro functions/mods/stargate.js).
+      { id: "entendido", tipo: "escala", texto: "¿Cuánto has entendido de este tema?" },
       { id: "practica", tipo: "escala", texto: "Valora las estrategias prácticas" },
       SEGUIDO,
       { id: "positivo", tipo: "texto", texto: "Algo positivo: algo que has aprendido, que te ha sorprendido o que has descubierto" },
       { id: "mejorar", tipo: "texto", texto: "Algo a mejorar: una duda, un comentario, un problema o una sugerencia" }]
   };
-  var RETIRADAS = { tema: [{ id: "duda", tipo: "texto", texto: "¿Alguna duda o comentario?" }] };
+  var RETIRADAS = { tema: [{ id: "duda", tipo: "texto", texto: "¿Alguna duda o comentario?" },
+    { id: "teoria", tipo: "escala", texto: "Valora los contenidos teóricos" }] };
   function preguntasDe(tema) { return PREGUNTAS[String(tema)] || PREGUNTAS.tema; }
   /** Las preguntas con las que se LEE lo guardado de un tema: las de hoy y las retiradas. */
   function preguntasLeidas(tema) {
@@ -113,7 +116,7 @@
    */
   var ELIGE = /Selecciona el tema|profesor o profesora|prefieres que transcurran|C[oó]mo has seguido/i;
   var CORTO = [[/^Algo positivo/i, "Lo positivo"], [/^Algo a mejorar/i, "A mejorar"], [/utilidad de las herramientas/i, "La utilidad de lo visto"], [/satisfacci[oó]n general del desarrollo/i, "La clase, en general"],
-    [/contenidos te[oó]ricos/i, "La teoría"], [/estrategias pr[aá]cticas/i, "La práctica"], [/grado de participaci[oó]n/i, "Vuestra participación"],
+    [/contenidos te[oó]ricos/i, "La teoría"], [/entendido de este tema/i, "Lo entendido"], [/estrategias pr[aá]cticas/i, "La práctica"], [/grado de participaci[oó]n/i, "Vuestra participación"],
     [/utilidad de la actividad/i, "La actividad, ¿os sirvió?"], [/calidad de la actividad que has entregado/i, "Vuestra entrega"],
     [/puntuaci[oó]n obtenida/i, "La nota"], [/vibraciones te ha transmitido/i, "La presentación"], [/utilidad que percibes del temario/i, "El temario"],
     [/conocimientos iniciales/i, "Lo que sabíais al empezar"], [/se ha hablado de la misi[oó]n/i, "Se habló de la misión"],

@@ -413,7 +413,7 @@ async function sembrarTickets(ini) {
   const NOTAS = [
     ["Valora la utilidad de las herramientas que has visto", 0],
     ["Valora la satisfacción general del desarrollo de la clase", 1],
-    ["Valora los contenidos teóricos", 2],
+    ["¿Cuánto has entendido de este tema?", 2],
     ["Valora las estrategias prácticas", 1],
     ["Valora el grado de participación del grupo", 2]
   ];

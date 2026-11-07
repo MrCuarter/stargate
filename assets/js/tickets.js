@@ -185,7 +185,7 @@ var sp=document.getElementById('selPer');if(sp)sp.onchange=function(){st.per=thi
       for(i=0;i<cuantos;i++){var o={};o[PR]=P[i%2];o[S]=nom;
         o['Valora la utilidad de las herramientas o estrategias vistas en clase']=rr(3,5);
         o['Valora la satisfacción general del desarrollo de la clase']=rr(3,5);
-        o['Valora la satisfacción con los contenidos teóricos vistos en clase sobre este tema']=rr(2,5);
+        o['¿Cuánto has entendido de este tema?']=rr(2,5);
         o['Valora tu grado de participación en clase']=rr(1,4);
         if(i%4===0){o['¿Alguna duda? ¿Te ha quedado alguna duda o quieres hacernos llegar algún comentario?']=DUDAS[dud%DUDAS.length];dud++;}
         out.push({fecha:new Date(Date.now()-((ti*30)+i)*864e5).toISOString(),fila:fila,
