@@ -752,16 +752,33 @@
    * hasta `hasta`. Nunca encima de su bienvenida (si la está viendo, sale otro día), ni de la ventana de respuestas del buzón
    * (aviso-buzon.js: espera a que la cierre), ni en la demostración, el ensayo o Gestionar grupos. El siguiente anuncio: otra `clave`.
    */
-  var ANUNCIO = { clave: "ticket-sin-cuenta", hasta: "2026-11-20", titulo: "Nuevo: el ticket y las sesiones, sin cuenta",
-    html: "<p>Quien no juega a STARGATE ya puede ver la presentación y las sesiones dadas, y hacer el ticket de salida, <b>sin entrar con ninguna cuenta</b>. " +
-      "El ticket va sin premio y te llega junto al de tu escuadrón.</p><p>Los dos enlaces, en <b>Enlaces → Para tu alumnado</b>.</p>" };
+  /*
+   * 🔴 8-nov · y ahora pueden ser varios: sale el PRIMERO que toque y no se haya visto (uno por visita; el siguiente, la próxima
+   * vez que entre). `per`: solo en ese grupo. El del informe de la Misión 1 (Norberto: «un aviso único al docente la próxima vez
+   * que entre: que tiene lista la sesión del informe, dónde está y que puede lanzarla en clase si quiere»).
+   */
+  var ANUNCIOS = [
+    { clave: "informe-mision1", per: "per-16450", hasta: "2026-11-30", titulo: "Lista: la sesión del informe de la Misión 1",
+      html: "<p>Tienes montada una sesión aparte con el informe de la Actividad 1: las cifras, la tripulación destacada y las cinco averías " +
+        "con su vídeo tutorial. <b>No entra en la sesión de la semana</b>: la lanzas en clase si quieres.</p>" +
+        "<p>Está en el banner de tu grupo, junto a <b>Empezar la clase</b>: «Informe de la Misión 1».</p>",
+      boton: { texto: "Abrir el informe", alPulsar: function () { window.open("informe-mision1.html", "_blank", "noopener"); } } },
+    { clave: "ticket-sin-cuenta", hasta: "2026-11-20", titulo: "Nuevo: el ticket y las sesiones, sin cuenta",
+      html: "<p>Quien no juega a STARGATE ya puede ver la presentación y las sesiones dadas, y hacer el ticket de salida, <b>sin entrar con ninguna cuenta</b>. " +
+        "El ticket va sin premio y te llega junto al de tu escuadrón.</p><p>Los dos enlaces, en <b>Enlaces → Para tu alumnado</b>.</p>",
+      boton: { texto: "Ver los enlaces", alPulsar: function () { TAB = "mios"; if (alDia()) pintar(); else releerYPintar(); } } }
+  ];
+  // las sesiones aparte de cada grupo, en su banner: [página, rótulo, para qué]
+  var INFORMES = { "per-16450": [["informe-mision1.html", "Informe de la Misión 1", "La clase de corrección de la Actividad 1: cifras, tripulación destacada y las cinco averías con su vídeo. Opcional: no entra en la sesión de la semana"]] };
   function quizaAnuncio(intentos) {
     var A = window.GP && window.GP.anuncio;
     if (!A || GESTION || ENSAYA || !PER || !YO || !YO.correo || document.querySelector(".bc-capa")) return;
     intentos = intentos || 0;
     if (document.querySelector(".sgav-fondo")) { if (intentos < 90) setTimeout(function () { quizaAnuncio(intentos + 1); }, 2000); return; }
-    A.mostrar({ clave: ANUNCIO.clave, quien: YO.correo, hasta: ANUNCIO.hasta, titulo: ANUNCIO.titulo, html: ANUNCIO.html,
-      boton: { texto: "Ver los enlaces", alPulsar: function () { TAB = "mios"; if (alDia()) pintar(); else releerYPintar(); } } });
+    ANUNCIOS.some(function (x) {
+      if (x.per && x.per !== PER) return false;
+      return A.mostrar({ clave: x.clave, quien: YO.correo, hasta: x.hasta, titulo: x.titulo, html: x.html, boton: x.boton });
+    });
   }
   /**
    * 🔴 7-oct · LO QUE NEBULA LE HA DICHO A TU ALUMNADO. Norberto (de baja, con Claude de asistente): «que no te hagas pasar por el
@@ -1088,7 +1105,12 @@
         botonCfgSesion(PER) + botonVentana("sesion.html?per=" + PER, "sesion_" + PER, "la sesión") +
         // 26-sep · la presentación de la asignatura (sesión 1), siempre a mano: en la semana 1 es la primera clase
         '<a class="gp-b gr-pres' + (sem <= 1 ? ' hoy' : '') + '" href="sesion.html?per=' + esc(PER) + '&pres=1" target="_blank" rel="noopener" title="La sesión 1: la asignatura, sus notas y sus fechas, y el embarque en STARGATE">' +
-          '<img class="ico" src="assets/img/iconos/p/notas.png" alt=""> La presentación' + (sem <= 1 ? ' <em>sesión 1</em>' : '') + '</a></div>' +
+          '<img class="ico" src="assets/img/iconos/p/notas.png" alt=""> La presentación' + (sem <= 1 ? ' <em>sesión 1</em>' : '') + '</a>' +
+        // 8-nov · las sesiones aparte de este grupo (el informe de la Misión 1): opcionales, no entran en la de la semana
+        (INFORMES[PER] || []).map(function (x) {
+          return '<a class="gp-b gr-pres" href="' + esc(x[0]) + '" target="_blank" rel="noopener" title="' + esc(x[2]) + '">' +
+            '<img class="ico" src="assets/img/iconos/p/notas.png" alt=""> ' + esc(x[1]) + '</a>';
+        }).join('') + '</div>' +
       // 28-sep · la recuperación: un curso terminado se reabre (hasta una fecha) para quien va a la recuperación
       (sem > total ? '<div class="gr-recu">' + (pAqui.fase === "recuperacion"
           ? ico("envivo") + ' <span>En recuperación hasta el <b>' + esc(fechaCorta(pAqui.recuperacionHasta)) + '</b>: su alumnado puede registrar retos.</span> <button type="button" class="btn min" id="gr-recu-cerrar">Cerrar la recuperación</button>'

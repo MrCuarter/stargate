@@ -4229,6 +4229,26 @@ al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></heade
 html=(SESION.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"'))
 open(os.path.join(HERE,"sesion.html"),"w",encoding="utf-8").write(html); print("escrito: sesion.html")
 
+# ================= 8-nov · EL INFORME DE LA MISIÓN 1 (CCD, Actividad 1): la clase de corrección, para proyectar =================
+# Norberto: «Es una sesión aparte, opcional, que el docente lanza desde la consola cuando quiera; no todos los docentes querrán
+# enseñarla». No entra en sesion.html: se abre desde el banner del grupo (consola.js → INFORMES) y lo avisa una vez el anuncio
+# breve (consola.js → ANUNCIOS). Misma puerta que la sesión (puerta=True: solo profesorado) y noindex. Los datos, en
+# _informe_mision1.py; lo pinta assets/js/informe.js. 🔴 Privacidad: nombre de pila + inicial, ejemplos anónimos, sin notas.
+from _informe_mision1 import INFORME as _INFORME
+INFORME_M1 = head("STARGATE · Informe de la Misión 1", "La clase de corrección de la Actividad 1 de CCD, para proyectar: cifras, tripulación destacada y las cinco averías con su vídeo tutorial.", "cla", puerta=True).replace("</head>", '<meta name="robots" content="noindex,nofollow">\n</head>', 1) + f'''
+<header class="hero corto inf-hero"><div class="kicker">Solo profesorado · sesión aparte</div><h1>Informe de la Misión 1</h1>
+<p>La clase de corrección de la Actividad 1, lista para proyectar: lo que brilla y las cinco averías con su vídeo.
+Pasa con las flechas <b>←</b> y <b>→</b>; <b>F</b>, pantalla completa.</p>
+<p class="small muted">Opcional: no entra en la sesión de la semana. Solo nombres de pila con la inicial; los ejemplos de las averías son anónimos y no hay notas.</p>
+<p><button type="button" class="btn primary" data-inf-proyectar>Proyectar a pantalla completa</button></p></header>
+<section><div class="wrap"><div id="informe-app"></div>
+<script>window.SG_INFORME={json.dumps(_INFORME, ensure_ascii=False)};</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<script src="assets/js/informe.js?v={_ver("assets/js/informe.js")}" defer></script>
+</div></section>
+''' + FOOT
+open(os.path.join(HERE,"informe-mision1.html"),"w",encoding="utf-8").write(INFORME_M1.replace('assets/css/stargate.css"','assets/css/stargate.css?v='+vc+'"').replace('assets/js/stargate.js"','assets/js/stargate.js?v='+vj+'"').replace('assets/js/tour.js"','assets/js/tour.js?v='+vt+'"')); print("escrito: informe-mision1.html")
+
 # ================= 20-sep · EL PRESTRENO: la presentación para el equipo docente =================
 # 🔴 Norberto: «monta la presentación. Debe ser visual, usar los recursos de STARGATE, interactiva… como las
 # sesiones semanales. La diferencia clave: está orientada a docentes primerizos que van a impartir la asignatura
