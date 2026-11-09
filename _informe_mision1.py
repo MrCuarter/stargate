@@ -90,7 +90,7 @@ INFORME = {
        ["↻", "Después, <b>iterar</b>: mirar la imagen, apuntar qué falla y pedir el cambio concreto."],
      ],
      "boton": "Constructor de prompts CRAFT",
-     "video": ["0tIb0_Rp12A", "Un prompt con método: CRAFT para crear imágenes educativas con IA"]},
+     "video": ["kgxQG6ARymQ", "Un prompt con método: CRAFT para crear imágenes educativas con IA"]},
     {"k": "apa", "rot": "APA 7", "titulo": "Citar la IA en APA 7",
      "cifra": "68 de 81", "dato": "citaron la IA, pero muchas referencias ponían el producto como autor o les faltaban datos.",
      "pasa": "El fallo estrella: poner el producto como autor («ChatGPT, 2026»). El autor es la empresa (OpenAI, Microsoft, "
@@ -108,7 +108,7 @@ INFORME = {
        ["", "<b>Pie de figura</b>: <i>Figura 1.</i> Título. Imagen generada con ChatGPT (OpenAI, 2026)."],
      ],
      "boton": "Generador de la referencia APA",
-     "video": ["NU0VLueCcMQ", "Cómo citar la IA en APA 7: ChatGPT, Copilot, Gemini y Canva"]},
+     "video": ["3VF5bJgH6j8", "Cómo citar la IA en APA 7: ChatGPT, Copilot, Gemini y Canva"]},
     {"k": "indice", "rot": "Índice", "titulo": "Índice automático y figuras numeradas",
      "pre": "Solo", "cifra": "1 de cada 4", "dato": "trabajos tenía un índice generado automáticamente.",
      "pasa": "El índice escrito a mano no se actualiza y se nota. Con los estilos de título se genera solo. Igual con figuras "
@@ -126,7 +126,7 @@ INFORME = {
        ["+", "Pasarse de páginas por las capturas <b>no resta</b>: lo que no quepa, al ePortfolio."],
      ],
      "boton": "Pasos para Word y Google Docs",
-     "video": ["NMNkcDST2-M", "Índice automático y figuras numeradas en Word y Google Docs"]},
+     "video": ["ewLd6WajhEw", "Índice automático y figuras numeradas en Word y Google Docs"]},
     {"k": "eportfolio", "rot": "ePortfolio", "titulo": "Un ePortfolio que se abre",
      "pre": "En", "cifra": "1 trabajo", "dato": "el ePortfolio no se podía abrir sin permisos (editor de Genially, Drive o Sites privados, enlaces de Microsoft de la UNIR).",
      "pasa": "Si el enlace pide iniciar sesión o lleva al editor, el docente ve una puerta cerrada, y lo que no se ve no se "
@@ -144,7 +144,7 @@ INFORME = {
        ["U", "Con la cuenta de la UNIR a veces solo se comparte dentro de la universidad: usar la <b>cuenta personal</b>."],
      ],
      "boton": "Pasos por plataforma",
-     "video": ["F340_NWtcm0", "Que tu ePortfolio se abra: comparte bien Genially, Canva, Sites y Drive"]},
+     "video": ["Xt67ffAMSHo", "Que tu ePortfolio se abra: comparte bien Genially, Canva, Sites y Drive"]},
     {"k": "reflexion", "rot": "Reflexión", "titulo": "Una reflexión con chicha",
      "pre": "En", "cifra": "57 de 71", "dato": "trabajos corregidos la reflexión se quedaba en lo general.",
      "pasa": "«La IA es muy útil, pero hay que usarla con criterio» lo podría firmar cualquiera. La reflexión que vale es la "
