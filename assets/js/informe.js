@@ -1,7 +1,7 @@
 // STARGATE — EL INFORME DE LA MISIÓN 1 (CCD, Actividad 1), PARA PROYECTAR. informe-mision1.html[#d3]
 //
 // 🔴 8-nov-2026 · Norberto: la clase de corrección de la Actividad 1, montada «con el estilo de sesion.html»: portada,
-// cifras, la tripulación destacada (nombre de pila + inicial y su ePortfolio), las cinco averías con su dato, un ejemplo real
+// cifras, la tripulación destacada (nombre de pila + inicial y su actividad, que se ve incrustada), las cinco averías con su dato, un ejemplo real
 // anónimo, cómo se repara y el vídeo tutorial incrustado, y el cierre con el QR a la página de clase. Los datos, en
 // _informe_mision1.py (window.SG_INFORME).
 //
@@ -43,11 +43,12 @@
     if (!grupo.length) return;
     S.push({ rot: 'Tripulación ' + (g + 1), html:
       '<div class="inf-d inf-trip"><div class="inf-cab"><div><div class="kicker">Señal destacada · ' + (g + 1) + ' de 2</div>' +
-        '<h2>Tripulación destacada</h2></div><p class="inf-cab-p">' + TR.length + ' trabajos en la galería de lo mejor. Pulsa su ePortfolio: se abre aparte.</p></div>' +
+        '<h2>Tripulación destacada</h2></div><p class="inf-cab-p">' + TR.length + ' trabajos en la galería de lo mejor. Pulsa «Ver su actividad»: se abre aquí mismo.</p></div>' +
         '<div class="inf-cartas">' + grupo.map(function (p, i) {
           return '<article class="inf-carta" style="--i:' + i + '"><h3>' + esc(p[0]) + '</h3>' +
             '<p class="inf-act">' + esc(p[1]) + '</p><p class="inf-por">' + esc(p[2]) + '</p>' +
-            '<a class="inf-ep" href="' + esc(p[3]) + '" target="_blank" rel="noopener">Ver su ePortfolio <span aria-hidden="true">↗</span></a></article>';
+            (p[4] ? '<button type="button" class="inf-ep" data-visor="' + TR.indexOf(p) + '">Ver su actividad</button>'
+                  : '<a class="inf-ep" href="' + esc(p[3]) + '" target="_blank" rel="noopener">Ver su actividad <span aria-hidden="true">↗</span></a>') + '</article>';
         }).join('') + '</div></div>' });
   });
 
@@ -129,8 +130,39 @@
     '</div>';
   var mazo = root.querySelector('#mazo'), hoja = root.querySelector('.inf-hoja');
 
+  // ---------------------------------------------------------------- el visor: la actividad, incrustada en la diapositiva
+  // (9-nov · Norberto: «que al hacer clic se abra el artefacto del estudiante en esa ventana»). Va dentro de #mazo para que
+  // también se vea en pantalla completa. Google Sites no deja incrustarse (X-Frame-Options DENY): esos se abren aparte.
+  var visor = null, foco = null;
+  function abrirVisor(k) {
+    var p = TR[k]; if (!p || !p[4]) return;
+    cerrarVisor();
+    foco = document.activeElement;
+    visor = document.createElement('div');
+    visor.className = 'inf-visor';
+    visor.setAttribute('role', 'dialog'); visor.setAttribute('aria-modal', 'true'); visor.setAttribute('aria-label', 'Actividad de ' + p[0]);
+    visor.innerHTML =
+      '<div class="inf-visor-cab"><div class="inf-visor-t"><b>' + esc(p[0]) + '</b><span>' + esc(p[1]) + '</span></div>' +
+        '<a class="inf-visor-b" href="' + esc(p[3]) + '" target="_blank" rel="noopener">Abrir aparte <span aria-hidden="true">↗</span></a>' +
+        '<button type="button" class="inf-visor-b cerrar" aria-label="Cerrar (Esc)">✕ Cerrar</button></div>' +
+      '<div class="inf-visor-marco"><p class="inf-visor-carga">Cargando la actividad…<br><small>Si no aparece, pulsa «Abrir aparte».</small></p>' +
+        '<iframe src="' + esc(p[4]) + '" title="Actividad de ' + esc(p[0]) + '" allow="fullscreen; autoplay; clipboard-write" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe></div>';
+    mazo.appendChild(visor);
+    visor.querySelector('.cerrar').onclick = cerrarVisor;
+    visor.onclick = function (e) { if (e.target === visor) cerrarVisor(); };
+    requestAnimationFrame(function () { if (visor) visor.classList.add('abierto'); });
+    visor.querySelector('.cerrar').focus({ preventScroll: true });
+  }
+  function cerrarVisor() {
+    if (!visor) return;
+    visor.remove(); visor = null;
+    try { (foco && foco.isConnected ? foco : mazo).focus({ preventScroll: true }); } catch (e) {}
+  }
+  hoja.addEventListener('click', function (e) { var b = e.target.closest('[data-visor]'); if (b) abrirVisor(+b.getAttribute('data-visor')); });
+
   function ir(i) {
     i = Math.max(0, Math.min(S.length - 1, i));
+    cerrarVisor();
     st.i = i;
     var s = S[i];
     hoja.innerHTML = s.html;
@@ -191,6 +223,7 @@
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     var t = e.target;
     if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+    if (visor) { if (e.key === 'Escape') { e.preventDefault(); cerrarVisor(); } return; }
     if (e.key === 'Escape' && document.body.classList.contains('proyectando')) { document.body.classList.remove('proyectando'); marcar(); return; }
     // (en un botón o enlace, el espacio y el Intro son suyos)
     if ((e.key === ' ' || e.key === 'Enter') && t && t.closest && t.closest('a,button,[role=button]')) return;

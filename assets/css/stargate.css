@@ -8473,6 +8473,20 @@ body .gpp{--gpp-fondo:#0d1420;--gpp-tinta:#e9f0f6;--gpp-suave:#9fb2c2;--gpp-acen
 .inf-por{margin:0;font-size:.74em;color:var(--mut);line-height:1.38;flex:1}
 .inf-ep{align-self:flex-start;font-size:.68em;font-weight:700;color:#05222a;background:var(--teal);border-radius:.6em;padding:.4em .85em;text-decoration:none}
 .inf-ep:hover{box-shadow:0 .4em 1.4em rgba(55,224,236,.35)}
+button.inf-ep{border:0;cursor:pointer;font-family:inherit;line-height:inherit}
+/* visor de la actividad (9-nov): dentro del mazo, también en pantalla completa */
+.inf-visor{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;gap:10px;padding:14px;background:rgba(4,8,14,.94);opacity:0;transition:opacity .2s}
+.inf-visor.abierto{opacity:1}
+.inf-visor-cab{display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:wrap}
+.inf-visor-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.inf-visor-t b{color:var(--teal);font-size:18px}
+.inf-visor-t span{color:#cfe9ef;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inf-visor-b{min-height:40px;display:inline-flex;align-items:center;gap:6px;padding:0 16px;border-radius:10px;font-family:inherit;font-weight:700;font-size:15px;line-height:1;text-decoration:none;cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.06);color:#eafcff}
+.inf-visor-b.cerrar{background:var(--teal);color:#05222a;border-color:transparent}
+.inf-visor-marco{position:relative;flex:1;min-height:0;border-radius:12px;overflow:hidden;background:#fff}
+.inf-visor-marco iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.inf-visor-carga{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0;color:#334;font-size:17px;text-align:center}
+@media (prefers-reduced-motion:reduce){.inf-visor{transition:none}}
 /* averías */
 .inf-av{flex-direction:row;align-items:stretch;gap:2.2em;padding-top:2.6em}
 .inf-izq{flex:0 0 25.5em;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:.5em}
