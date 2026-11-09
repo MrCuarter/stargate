@@ -76,6 +76,19 @@
     S.push({ rot: a.rot, k: a.k, ejemplos: a.ejemplos, html: '<div class="inf-d inf-av' + (a.video ? '' : ' sin-video') + '">' + izq + der + '</div>' });
   });
 
+  // 9-nov · las buenas prácticas (la de compartir un genially desde una página concreta): mismo esqueleto que una avería, en verde
+  (D.practicas || []).forEach(function (b) {
+    var izq = '<div class="inf-izq"><div class="kicker inf-k-bp">Buena práctica</div><h2>' + esc(b.titulo) + '</h2>' +
+      '<div class="inf-dato bp">' + b.para + '</div><p class="inf-pasa">' + esc(b.pasa) + '</p>' +
+      '<h4>Así se hace</h4><ul class="inf-rep">' + b.pasos.map(function (r) { return '<li><i>' + esc(r[0]) + '</i><span>' + r[1] + '</span></li>'; }).join('') + '</ul></div>';
+    var der = '<div class="inf-der"><div class="yt inf-yt" data-id="' + esc(b.video[0]) + '" role="button" tabindex="0" aria-label="Reproducir el vídeo: ' + esc(b.video[1]) + '">' +
+        '<img src="assets/img/informe/' + esc(b.k) + '.jpg" alt="" loading="lazy"><span class="play" aria-hidden="true">▶</span>' +
+        '<span class="cap"><em>Vídeo tutorial · 1 min</em><b>' + esc(b.video[1]) + '</b></span></div>' +
+      '<div class="inf-usos"><h4>Dónde usarlo</h4><ul>' + b.usos.map(function (u) { return '<li><b>' + esc(u[0]) + '</b> ' + esc(u[1]) + '</li>'; }).join('') + '</ul></div>' +
+      '<a class="btn inf-ir" href="https://youtu.be/' + esc(b.video[0]) + '" target="_blank" rel="noopener">Verlo en YouTube <span aria-hidden="true">↗</span></a></div>';
+    S.push({ rot: b.rot, k: b.k, html: '<div class="inf-d inf-av inf-bp">' + izq + der + '</div>' });
+  });
+
   var C = D.cierre;
   S.push({ rot: 'Rumbo a la M2', html:
     '<div class="inf-d inf-cierre"><div class="inf-txt"><div class="kicker">Fin del informe</div><h1>' + esc(C.titulo) + '</h1>' +

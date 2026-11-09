@@ -8523,6 +8523,16 @@ button.inf-ep{border:0;cursor:pointer;font-family:inherit;line-height:inherit}
 .inf .btn.inf-ir{align-self:flex-start;font-size:.7em;padding:.65em 1.15em;border-radius:.7em}
 .inf-av.sin-video .inf-der{justify-content:center}
 .inf-av.sin-video .inf-antes,.inf-av.sin-video .inf-mejor{font-size:.74em}
+/* 9-nov · buena práctica: la misma hoja que una avería, en verde azulado */
+.inf-k-bp{color:var(--teal)!important}
+.inf-k-bp:before{content:"✦ "}
+.inf-dato.bp{border-left-color:var(--teal);background:rgba(55,224,236,.08)}
+.inf-dato.bp b{font-family:inherit;font-size:1em;color:#eafcff;font-weight:700;margin:0}
+.inf-usos{border:1px solid var(--line);border-radius:.9em;background:rgba(255,255,255,.025);padding:.7em .95em}
+.inf-usos h4{margin:0 0 .35em;font-size:.6em;letter-spacing:.2em;text-transform:uppercase;color:var(--teal)}
+.inf-usos ul{list-style:none;margin:0;padding:0;display:grid;gap:.3em}
+.inf-usos li{font-size:.72em;line-height:1.35;color:var(--ink)}
+.inf-usos li b{color:var(--teal2);margin-right:.25em}
 /* cierre */
 .inf-cierre{flex-direction:row;align-items:center;gap:3em}
 .inf-cierre .inf-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:.5em}
@@ -8557,6 +8567,7 @@ button.inf-ep{border:0;cursor:pointer;font-family:inherit;line-height:inherit}
   .inf-izq{flex:none}
   .inf-dato{font-size:.92em}.inf-pasa{font-size:.92em}.inf-rep li{font-size:.86em}
   .inf-antes,.inf-mejor,.inf-av.sin-video .inf-antes,.inf-av.sin-video .inf-mejor{font-size:.82em}
+  .inf-usos li{font-size:.86em}
   .inf-otro{position:static;margin-top:.6em;font-size:.75em}
   .inf .btn.inf-ir{font-size:.85em}
   .inf-resumen{grid-template-columns:1fr;font-size:.88em}

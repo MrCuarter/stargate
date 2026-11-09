@@ -164,6 +164,27 @@ INFORME = {
      "boton": "La reflexión, en la página de clase",
      "video": None},
   ],
+  # 9-nov · Norberto: «Usa este enlace para añadir a las diapositivas como buenas prácticas […] Es para que aprendan a compartir
+  # un genially desde una página concreta. Es necesario para retos, portfolios… así al hacer clic vamos a la página que debemos
+  # corregir». Los pasos, de la descripción del propio vídeo (Genially en 1 minuto, tutorial 28).
+  "practicas": [
+    {"k": "pagina", "rot": "Buena práctica", "titulo": "Compartir desde una página concreta",
+     "para": "Retos, ePortfolios, entregas: al hacer clic, el docente llega <b>directo a la página que tiene que corregir</b>, sin buscarla entre las demás.",
+     "pasa": "Un enlace normal abre siempre la portada. Si la actividad está en la página 12 de un genially de 17, quien corrige "
+             "tiene que ir pasando hasta encontrarla. Con un enlace a esa página, empieza justo ahí.",
+     "pasos": [
+       ["1", "En la vista del genially <b>publicado</b>: los <b>tres puntos</b> (abajo a la derecha)."],
+       ["2", "<b>Página</b>: escribe el número de la que quieres enseñar."],
+       ["3", "<b>Compartir</b> › marca «<b>Compartir desde esta página</b>» › <b>Copiar enlace</b>."],
+       ["✓", "El enlace termina en <b>?idSlide=…</b>: quien lo abre empieza en esa página. Pruébalo en incógnito."],
+     ],
+     "usos": [
+       ["Retos", "el enlace de cada reto, a la página del reto."],
+       ["ePortfolio", "cada actividad, con su propia página."],
+       ["Entregas", "en la tarea, el enlace a lo que se corrige."],
+     ],
+     "video": ["mTLXwh8RhnY", "Compartir desde una página concreta · Genially en 1 minuto"]},
+  ],
   "cierre": {
     "titulo": "Rumbo a la Misión 2",
     "texto": "Todo lo de hoy, con herramientas para copiar y pegar, en la página de clase.",
