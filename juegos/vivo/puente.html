@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>El Puente · sesión en vivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css?v=b7ccd456b2">
+<style>
+.capa{grid-template-rows:auto 1fr auto;gap:12px}
+.titulo h1{font-size:clamp(40px,9vw,150px);line-height:.95;color:#fff;text-shadow:0 0 40px var(--mundo),0 4px 30px #000}
+.titulo .tema{font-size:clamp(15px,2vw,30px);margin-top:6px;text-shadow:0 2px 10px #000}
+.titulo .trip{font-family:Orbitron,sans-serif;font-size:clamp(11px,1.2vw,16px);letter-spacing:.14em;color:var(--mundo);margin-top:4px;text-shadow:0 2px 10px #000}
+.fases{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.fases span{font-family:Orbitron,sans-serif;font-size:clamp(10px,1vw,14px);letter-spacing:.12em;padding:6px 12px;border-radius:99px;border:1px solid var(--borde);background:rgba(2,10,22,.6);opacity:.55}
+.fases span.si{opacity:1;border-color:var(--ambar);color:var(--ambar);box-shadow:0 0 18px rgba(255,194,74,.35)}
+.reloj{align-self:center;font-family:Orbitron,sans-serif;font-size:clamp(46px,11vw,190px);font-weight:800;color:#fff;text-shadow:0 0 40px var(--mundo),0 4px 30px #000;opacity:0;transition:opacity .5s;line-height:1}
+.reloj.si{opacity:1}
+.reloj small{display:block;font-size:clamp(11px,1.2vw,16px);letter-spacing:.22em;color:var(--ambar);font-weight:600}
+#voz{max-width:min(100%,58ch);animation:entra .5s}
+</style>
+</head>
+<body class="proyector">
+<canvas class="lienzo" id="gl"></canvas>
+<canvas class="lienzo" id="orb"></canvas>
+<div class="capa">
+  <div class="titulo">
+    <div class="kicker">La Constancia · Puente de mando</div>
+    <h1 id="mundo">—</h1>
+    <div class="tema" id="tema"></div>
+    <div class="trip" id="trip"></div>
+    <div class="fases" id="fases"></div>
+  </div>
+  <div class="reloj" id="reloj"><small>MISIÓN EN CURSO</small><span id="tiempo">10:00</span></div>
+  <div class="caja-voz" id="voz"><div class="quien" id="quien">NEBULA</div><p id="dice"></p></div>
+</div>
+<div class="sala-info"><b id="abordo">0</b><span>A BORDO · SALA <i id="salan" style="font-style:normal"></i></span></div>
+<div class="mando">
+  <button id="b-ant" aria-label="Planeta anterior">Anterior</button><button id="b-sig" aria-label="Planeta siguiente">Siguiente</button>
+  <button id="b-fase" class="principal">Fase siguiente</button>
+  <button id="b-min">Misión: 10 min</button>
+  <button id="b-vaeon" class="peligro">Vaeon interrumpe</button>
+  <span class="hueco"></span>
+  <button id="b-sim">Simular clase</button><button id="b-son" aria-pressed="false">Sonido</button>
+  <a class="boton" id="a-movil" target="_blank" rel="noopener">Móvil de prueba</a>
+  <a class="boton" id="a-frag">Fragmento</a><a class="boton" id="a-salir" href="index.html?v=b7ccd456b2">Salir</a>
+  <small>H oculta · F pantalla completa</small>
+</div>
+<script src="nucleo.js?v=b7ccd456b2"></script>
+<script>
+(async () => {
+  await F.arranque();
+  const $ = F.$, M = F.MUNDOS, FASES = ["Llegada", "Informe", "Misión", "Cierre"];
+  let tema = Math.max(0, Math.min(7, (+F.Q.get("t") || 1) - 1)), fase = 0, minutos = 10, finMision = 0;
+  let zoom = .05, warp = 1, est = 0, estObj = 0, interHasta = 0, inter = false, pulso = 1, vaeonTxt = "", nebulaTxt = "";
+
+  const frag = `
+uniform vec2 uC; uniform float uZ,uEst,uWarp,uPulso; uniform vec3 uA,uB,uCc; uniform vec4 uP;
+mat2 rot(float a){ float c=cos(a),s=sin(a); return mat2(c,-s,s,c); }
+void main(){
+  vec2 px=gl_FragCoord.xy; vec2 uv=(px-.5*uR)/uR.y;
+  float fila=floor(px.y/14.);
+  uv.x+=step(.9,h21(vec2(fila,floor(uT*10.))))*uEst*.08*(h21(vec2(fila,7.))-.5);
+  // cielo: nebulosa y dos capas de estrellas que se estiran al llegar
+  float l=length(uv); vec2 su=uv/max(l,1e-4)*pow(l,1.-.55*uWarp);
+  vec3 col=vec3(.004,.012,.03);
+  float nb=fbm2(su*1.6+vec2(uT*.008,0.));
+  col+=vec3(.05,.09,.2)*pow(nb,2.2)*1.4+uCc*.07*pow(fbm2(su*2.3+9.),3.);
+  for(int i=0;i<2;i++){
+    vec2 g=su*(46.+38.*float(i))+float(i)*17.; vec2 id=floor(g); vec2 f=fract(g)-.5; float r=h21(id);
+    vec2 o=(vec2(h21(id+3.1),h21(id+5.7))-.5)*.6;
+    float s=smoothstep(.09*r+.015,0.,length(f-o))*step(.7,r);
+    col+=s*(.5+.5*sin(uT*(1.+r*3.)+r*40.))*mix(vec3(.7,.85,1.),vec3(1.,.9,.75),h21(id+9.))*(1.+uWarp*2.);
+  }
+  // planeta
+  vec2 q=(uv-uC)/uZ; float d=length(q);
+  vec3 L=normalize(vec3(-.55,.42,.72));
+  if(d<1.){
+    vec3 n=vec3(q,sqrt(1.-d*d)); vec3 p=n; p.yz=rot(.38)*p.yz; p.xz=rot(uT*.05)*p.xz;
+    vec3 w=p*uP.x; float wp=fbm3(w+vec3(0.,uT*.006,0.)); float f=fbm3(w+wp*1.6);
+    float banda=.5+.5*sin(p.y*13.+f*6.+wp*3.); f=mix(f,banda*.75+f*.25,uP.y);
+    vec3 s=mix(uA,uB,smoothstep(.28,.6,f)); s=mix(s,uCc,smoothstep(.6,.92,f)*.75);
+    float cr=pow(1.-abs(2.*fbm3(w*1.6+4.)-1.),10.);
+    vec3 emis=uCc*cr*uP.z*2.6*(.7+.3*sin(uT*1.3+f*18.));
+    float dif=max(dot(n,L),0.); float dif2=max(dot(n,normalize(vec3(.8,-.25,.35))),0.)*.12;
+    vec3 pc=s*(.035+1.2*dif)+s*uCc*dif2+emis*(1.-dif*.5);
+    float nub=smoothstep(.55,.82,fbm3(p*3.1+vec3(uT*.015,0.,0.)+f));
+    pc=mix(pc,vec3(dif),nub*.28*(1.-uP.z));
+    float rim=pow(1.-n.z,2.6); pc+=uCc*rim*(.18+.95*dif);
+    col=pc;
+  } else {
+    col+=uCc*.5*exp(-(d-1.)*7.)*(.35+.65*max(dot(normalize(vec3(q,.3)),L),0.));
+  }
+  // anillo (delante en la mitad inferior, detrás en la superior)
+  if(uP.w>.5){
+    vec2 a=rot(-.32)*q; a.y/=.26; float rr=length(a);
+    float m=smoothstep(1.32,1.4,rr)*smoothstep(2.15,2.05,rr)*(.55+.45*sin(rr*46.))*(.6+.4*n2(vec2(rr*30.,1.)));
+    if(d>=1.||a.y<0.) col=mix(col,mix(uB,uCc,.6)*1.1,m*.75);
+  }
+  // pulso de la tripulación: una onda que sale del planeta
+  col+=uCc*exp(-abs(d-1.-uPulso*2.6)*16.)*(1.-uPulso)*1.2;
+  col=1.-exp(-col*1.7);
+  col*=1.-.45*dot(uv,uv);
+  col=estatica(col,px,uEst);
+  gl_FragColor=vec4(col,1.);
+}`;
+  const G = F.gl($("gl"), frag), orb = $("orb"), o2 = orb.getContext("2d");
+
+  /* ── sala ── */
+  const S = F.sala("puente", () => ({ tema, fase, nebula: nebulaTxt, inter, vaeon: vaeonTxt, fin: fase === 2 ? finMision : 0 }), (m, p, nuevo) => {
+    if (nuevo) { p.d.rad = 1.22 + (S.gente.size % 4) * .16 + Math.random() * .08; p.d.vel = .12 + Math.random() * .1; p.d.luz = 1; }
+    if (m.t === "pulso") { p.d.luz = 1; pulso = 0; if (inter) estObj = Math.max(0, estObj - .06); }
+    $("abordo").textContent = S.gente.size;
+  });
+  $("salan").textContent = F.SALA;
+  $("a-movil").href = F.url("movil.html?v=b7ccd456b2");
+
+  function decir(texto, deVaeon) {
+    $("voz").classList.toggle("vaeon", !!deVaeon); $("quien").textContent = deVaeon ? "VAEON" : "NEBULA";
+    if (!deVaeon) nebulaTxt = texto; F.escribir($("dice"), texto, 24);
+  }
+  function textoFase() {
+    const m = M[tema];
+    return [
+      `Aproximación a ${m.n}. Reclutas, ocupad vuestro puesto: os veo llegar uno a uno.`,
+      `${m.n}. ${m.tema}. Aquí ${m.quien} aprendió que ${m.leccion}.`,
+      "Misión en curso. Lo que hagáis hoy, que quede escrito.",
+      `Fin de la sesión. Lo de hoy, a la Bitácora. Queda un fragmento de ${m.quien} por recuperar.`
+    ][fase];
+  }
+  function pintar(llegada) {
+    const m = M[tema]; document.documentElement.style.setProperty("--mundo", F.css(m.c));
+    $("mundo").textContent = m.n; $("tema").textContent = `Tema ${tema + 1} · ${m.tema}`; $("trip").textContent = `${m.quien.toUpperCase()} · ${m.rol.toUpperCase()}`;
+    $("fases").innerHTML = FASES.map((f, i) => `<span class="${i === fase ? "si" : ""}">${f.toUpperCase()}</span>`).join("");
+    $("reloj").classList.toggle("si", fase === 2);
+    $("a-frag").href = F.url("fragmento.html?v=b7ccd456b2", { f: tema + 1 });
+    $("b-fase").textContent = fase === 3 ? "Volver a la llegada" : "Fase siguiente";
+    if (llegada) { zoom = .05; warp = 1; }
+    decir(textoFase()); F.sonido.campana(fase === 2 ? 330 : 440, 1.6); S.emitir();
+  }
+  function ponerTema(t) { tema = (t + 8) % 8; fase = 0; pintar(true); }
+  function siguienteFase() { fase = (fase + 1) % 4; if (fase === 2) finMision = Date.now() + minutos * 60000; pintar(fase === 0); }
+  function vaeon() {
+    if (inter) return;
+    inter = true; vaeonTxt = F.VAEON[(Math.random() * F.VAEON.length) | 0]; interHasta = performance.now() + 14000; estObj = 1;
+    decir(vaeonTxt + " Reclutas: sostened la señal desde vuestros puestos.", true); S.emitir();
+  }
+
+  $("b-ant").onclick = () => ponerTema(tema - 1); $("b-sig").onclick = () => ponerTema(tema + 1);
+  $("b-fase").onclick = siguienteFase; $("b-vaeon").onclick = vaeon;
+  $("b-min").onclick = () => { minutos = { 5: 10, 10: 15, 15: 20, 20: 5 }[minutos]; $("b-min").textContent = `Misión: ${minutos} min`; if (fase === 2) finMision = Date.now() + minutos * 60000; };
+  $("b-sim").onclick = () => S.simular(24);
+  $("b-son").onclick = e => F.sonido.alternar(e.currentTarget);
+  addEventListener("keydown", e => {
+    if (e.key === "ArrowRight") ponerTema(tema + 1); if (e.key === "ArrowLeft") ponerTema(tema - 1);
+    if (e.key === " ") { e.preventDefault(); siguienteFase(); } if (e.key === "v" || e.key === "V") vaeon();
+  });
+
+  /* ── bucle ── */
+  let antes = performance.now(), tBots = 0;
+  function bucle(ahora) {
+    const dt = Math.min(.05, (ahora - antes) / 1000); antes = ahora;
+    const W = innerWidth, H = innerHeight, asp = W / H, retrato = asp < 1;
+    const zObj = retrato ? .2 : .3, cx = retrato ? 0 : asp * .17, cy = retrato ? -.02 : -.02;
+    zoom += (zObj - zoom) * Math.min(1, dt * 1.1); warp += (0 - warp) * Math.min(1, dt * 1.3);
+    if (inter && (ahora >= interHasta || estObj <= .02)) { inter = false; estObj = 0; decir("Señal restablecida. Gracias, reclutas."); F.sonido.campana(660, 1.8); S.emitir(); }
+    const enInter = inter;
+    est += (estObj - est) * Math.min(1, dt * 3); pulso = Math.min(1, pulso + dt * .9);
+    // los bots laten; en la interferencia, sostienen la señal
+    tBots += dt; if (tBots > .35) { tBots = 0; const b = S.bots(); if (b.length && Math.random() < (enInter ? .9 : .12)) S.recibir({ t: "pulso", id: b[(Math.random() * b.length) | 0].id }); }
+    if (fase === 2) { const q = Math.max(0, Math.round((finMision - Date.now()) / 1000)); $("tiempo").textContent = `${String((q / 60) | 0).padStart(2, "0")}:${String(q % 60).padStart(2, "0")}`; if (q === 0 && !bucle.avisado) { bucle.avisado = 1; F.sonido.campana(523, 3); decir("Tiempo. Cerrad lo que tengáis: lo imperfecto compartido también cuenta."); } } else bucle.avisado = 0;
+    F.sonido.nivel(est, .4 + .4 * (1 - warp));
+    const m = M[tema];
+    if (G) G.dibujar({ uC: [cx, cy], uZ: zoom, uEst: est, uWarp: warp, uPulso: pulso, uA: m.a, uB: m.b, uCc: m.c, uP: m.sh });
+    // tripulación en órbita
+    const dpr = Math.min(devicePixelRatio || 1, 2); if (orb.width !== Math.round(W * dpr) || orb.height !== Math.round(H * dpr)) { orb.width = Math.round(W * dpr); orb.height = Math.round(H * dpr); }
+    o2.setTransform(dpr, 0, 0, dpr, 0, 0); o2.clearRect(0, 0, W, H);
+    const px = W / 2 + cx * H, py = H / 2 - cy * H, R = zoom * H, color = F.css(m.c), fs = Math.max(11, Math.min(18, W / 90));
+    o2.font = `600 ${fs}px "Exo 2", sans-serif`; o2.textAlign = "center";
+    for (const p of S.gente.values()) {
+      p.fase += dt * p.d.vel; p.d.luz = Math.max(0, p.d.luz - dt * .8);
+      const a = p.fase, rx = R * p.d.rad, x0 = Math.cos(a) * rx, y0 = Math.sin(a) * rx * .3, c = Math.cos(-.32), s = Math.sin(-.32);
+      const x = px + x0 * c - y0 * s, y = py + x0 * s + y0 * c, detras = Math.sin(a) < 0;
+      if (detras && Math.hypot(x - px, y - py) < R) continue;
+      const al = (detras ? .35 : 1) * (1 - est * .7), r = 4.5 + p.d.luz * 6;
+      const g = o2.createRadialGradient(x, y, 0, x, y, r * 4); g.addColorStop(0, `rgba(255,255,255,${al})`); g.addColorStop(.3, color.replace("rgb", "rgba").replace(")", `,${al * .8})`)); g.addColorStop(1, "rgba(0,0,0,0)");
+      o2.fillStyle = g; o2.beginPath(); o2.arc(x, y, r * 4, 0, 7); o2.fill();
+      if (!detras) { o2.fillStyle = `rgba(232,246,255,${.85 * al})`; o2.fillText(p.alias, x, y - r * 2 - 6); }
+    }
+    requestAnimationFrame(bucle);
+  }
+  pintar(true); requestAnimationFrame(bucle);
+  window.__p = { vaeon, siguienteFase, ponerTema, S, est: () => est };
+})();
+</script>
+</body>
+</html>

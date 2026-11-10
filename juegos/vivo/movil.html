@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tu puesto · STARGATE</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css?v=b7ccd456b2">
+<style>
+body{min-height:100dvh;height:auto;background:radial-gradient(ellipse at 50% 0,color-mix(in srgb,var(--mundo) 22%,#01040c),#01040c 70%) fixed;transition:background .6s}
+main{max-width:520px;margin:0 auto;min-height:100dvh;padding:max(14px,env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));display:grid;grid-template-rows:auto 1fr;gap:14px}
+.cab{display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:.14em;color:var(--ambar)}
+.cab b{color:var(--texto);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+#vista{display:grid;gap:14px;align-content:center;min-width:0}
+#vista>*{min-width:0}
+h1{font-size:clamp(26px,9vw,44px);color:#fff;text-shadow:0 0 26px var(--mundo);overflow-wrap:anywhere}
+.sub{font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:.14em;color:var(--mundo)}
+.tarj{background:rgba(2,10,22,.8);border:1px solid var(--borde);border-radius:16px;padding:14px 16px;font-size:17px}
+.tarj.vaeon{border-color:var(--rojo);background:rgba(24,4,10,.85)}
+.tarj .q{font-family:Orbitron,sans-serif;font-size:10px;letter-spacing:.2em;color:var(--cian);margin-bottom:4px}
+.tarj.vaeon .q{color:var(--rojo)}
+input[type=text],textarea{width:100%;min-height:48px;border-radius:12px;border:1px solid var(--borde);background:#06121f;color:var(--texto);padding:10px 14px;font:600 17px "Exo 2",sans-serif;resize:none}
+.gordo{min-height:56px;font-size:15px;width:100%}
+.orbe{width:min(64vw,240px);aspect-ratio:1;border-radius:50%;justify-self:center;border:2px solid var(--mundo);background:radial-gradient(circle at 35% 30%,#fff,var(--mundo) 30%,#02060f 75%);color:#001018;font-size:15px;font-weight:800;white-space:normal;box-shadow:0 0 40px color-mix(in srgb,var(--mundo) 60%,transparent);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:transform .12s,box-shadow .2s;text-shadow:0 1px 6px rgba(255,255,255,.7)}
+.orbe:active,.orbe.on{transform:scale(.94);box-shadow:0 0 80px 10px var(--mundo)}
+.orbe.rojo{border-color:var(--rojo);background:radial-gradient(circle at 35% 30%,#fff,var(--rojo) 30%,#14020a 75%)}
+.frase{min-height:3.2em;font-size:19px;font-weight:700;line-height:1.35;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+.frase span{background:rgba(255,226,168,.95);color:#2a1600;border-radius:8px;padding:4px 9px;animation:entra .25s}
+.fichas{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.fichas button{font-family:"Exo 2",sans-serif;font-size:17px;font-weight:700;letter-spacing:0;min-height:48px;padding:8px 14px;white-space:normal}
+.fichas button.mal{animation:tiembla .3s;border-color:var(--rojo)}
+.fichas button:disabled{visibility:hidden}
+.nota{font-size:14px;opacity:.75;text-align:center}
+.cita{font-size:22px;font-weight:700;line-height:1.3;color:#fff;text-shadow:0 0 24px rgba(255,200,120,.7)}
+ul.mias{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+ul.mias li{background:rgba(255,226,168,.94);color:#2a1600;border-radius:10px;padding:6px 12px;font-weight:600;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<main>
+  <div class="cab"><span>STARGATE · SALA <i id="salan" style="font-style:normal"></i></span><b id="yo"></b></div>
+  <div id="vista"></div>
+</main>
+<script src="nucleo.js?v=b7ccd456b2"></script>
+<script>
+(async () => {
+  const $ = F.$, M = F.MUNDOS, V = $("vista");
+  let id; try { id = sessionStorage.getItem("furia_id"); if (!id) { id = "m-" + Math.random().toString(36).slice(2, 9); sessionStorage.setItem("furia_id", id); } } catch (e) { id = "m-" + Math.random().toString(36).slice(2, 9); }
+  let alias = ""; try { alias = localStorage.getItem("furia_alias") || ""; } catch (e) {}
+  let dentro = false, E = null, clave = "", visto = 0, mano = false, pos = 0;
+  // lo mío en esta pantalla y esta ronda (en la web, es lo que se escribe en mi documento de la sala)
+  let st = { furia: 1, ses: "", ronda: 0, pu: 0, ln: -1, ma: 0, vo: [] };
+  $("salan").textContent = F.PER ? "DE TU GRUPO" : F.SALA;
+  const h = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  const mundo = i => document.documentElement.style.setProperty("--mundo", F.css(M[i].c));
+  const vibra = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
+
+  /* ── el canal: en la web, el del motor (mi ficha de recluta); en el borrador, entre pestañas ── */
+  await F.arranque();
+  const WEB = !!F.M;
+  let C = null, yo = null, base = 0;
+  const alEstado = m => {
+    if (!m || m.t !== "estado") return;
+    const vivo = F.VIVO.includes(m.modo) && (!m.ts || Date.now() - m.ts < 3 * 3600e3);
+    if (WEB && !vivo) { location.replace(F.url("../directo/alumno.html?v=b7ccd456b2")); return; }   // el Comandante ha vuelto al juego del final
+    if (!vivo) return;
+    E = m; visto = Date.now();
+    if (m.ses !== st.ses || m.ronda !== st.ronda) { st = { furia: 1, ses: m.ses, ronda: m.ronda, pu: m.ses === st.ses ? st.pu : 0, ln: -1, ma: 0, vo: [] }; mano = false; clave = ""; if (dentro) { subir(); if (!WEB) enviar({ t: "hola" }); } }
+    if (dentro) pintar();
+  };
+  const subir = () => { if (WEB && C && yo) C.enviar({ t: "pts", puntos: base, stats: st }); };
+  const enviar = m => { if (!WEB) C.enviar(Object.assign({ id, alias }, m)); };
+  // cada gesto: se apunta en lo mío y viaja (en la web, mis cifras; en el borrador, el suceso suelto)
+  const gesto = {
+    pulso() { st.pu++; subir(); enviar({ t: "pulso" }); },
+    linea(n) { st.ln = n; subir(); enviar({ t: "linea", n }); },
+    mano(on) { st.ma = on ? 1 : 0; subir(); enviar({ t: "mano", on }); },
+    voz(texto) { st.vo.push(texto); subir(); enviar({ t: "voz", texto }); }
+  };
+  if (WEB) {
+    try { yo = await F.M.directoYo(F.PER); } catch (e) { yo = null; }
+    C = F.M.directoCanal(F.PER, false, yo, alEstado);
+    F.alSalir(C);
+    let antes = null; if (yo) { try { antes = await C.mio(); } catch (e) { antes = null; } }
+    base = antes ? Number(antes.puntos) || 0 : 0;
+    alias = yo ? yo.alias : "Invitado"; dentro = true; $("yo").textContent = alias;
+    if (yo) C.enviar(Object.assign({ t: "hola" }, yo, { listo: !!(antes && antes.listo === true) }));
+    if (st.ses) subir();
+    pintar();
+  } else {
+    C = F.canal(alEstado);
+    entrada();
+  }
+
+  function entrada() {
+    V.innerHTML = "";
+    V.append(h("div", "sub", "LA CONSTANCIA TE ESPERA"), h("h1", "", "Ocupa tu puesto"));
+    const i = h("input"); i.type = "text"; i.maxLength = 16; i.placeholder = "Tu nombre de recluta"; i.value = alias; i.setAttribute("aria-label", "Tu nombre de recluta"); i.autocomplete = "off";
+    const b = h("button", "principal gordo", "Subir a bordo"); b.type = "button";
+    const ir = () => { alias = (i.value.trim() || "Recluta").slice(0, 16); try { localStorage.setItem("furia_alias", alias); } catch (e) {} dentro = true; $("yo").textContent = alias; enviar({ t: "hola" }); clave = ""; pintar(); };
+    b.onclick = ir; i.onkeydown = e => { if (e.key === "Enter") ir(); };
+    V.append(i, b, h("p", "nota", "Deja esta pantalla abierta: es tu puesto durante la sesión."));
+  }
+
+  function pintar() {
+    if (!E || (!WEB && Date.now() - visto > 4000)) { if (clave !== "espera") { clave = "espera"; V.innerHTML = ""; V.append(h("div", "sub", "SIN SEÑAL DEL PUENTE"), h("h1", "", "Esperando…"), h("p", "nota", "En cuanto tu Comandante abra la sesión, aparecerá aquí.")); } return; }
+    const k = E.modo + "|" + E.ronda + "|" + (E.modo === "puente" ? [E.tema, E.fase, E.inter] : E.modo === "fragmento" ? [E.f, E.fase, E.n, st.ln >= E.n] : [E.pregunta, E.alba, st.vo.length]).join("|");
+    if (E.modo !== "fragmento" || E.fase !== "manos") soltar();
+    if (k !== clave) { clave = k; V.innerHTML = ""; ({ puente: vPuente, fragmento: vFragmento, ashan: vAshan }[E.modo] || (() => {}))(); if (WEB && !yo) V.append(h("p", "nota", "Estás mirando sin ficha de recluta: lo que pulses no cuenta.")); }
+    const c = $("cuenta"); if (c) c.textContent = E.modo === "fragmento" ? (E.fase === "manos" ? `${E.manos} manos de ${E.falta}` : `${E.hechos} de ${E.falta} reclutas`) : E.modo === "ashan" ? `${E.voces} de ${E.meta} voces` : `${E.n} a bordo`;
+  }
+
+  function vPuente() {
+    const m = M[E.tema]; mundo(E.tema);
+    V.append(h("div", "sub", ["LLEGADA", "INFORME", "MISIÓN", "CIERRE"][E.fase] + " · TEMA " + (E.tema + 1)), h("h1", "", m.n));
+    const t = h("div", "tarj" + (E.inter ? " vaeon" : "")); t.append(h("div", "q", E.inter ? "VAEON" : "NEBULA"), h("p", "", E.inter ? E.vaeon : E.nebula)); V.append(t);
+    const b = h("button", "orbe" + (E.inter ? " rojo" : ""), E.inter ? "Sostén la señal: pulsa" : "Enviar pulso"); b.type = "button";
+    let ult = 0; b.onpointerdown = e => { e.preventDefault(); if (Date.now() - ult < 140) return; ult = Date.now(); gesto.pulso(); vibra(15); };
+    b.onkeydown = e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); gesto.pulso(); } };
+    V.append(b, h("p", "nota", E.inter ? "Cada pulso empuja a la Estática." : "Tu luz gira alrededor del planeta en la pantalla grande.")); const c = h("p", "nota"); c.id = "cuenta"; V.append(c);
+  }
+
+  function vFragmento() {
+    const m = M[E.f]; mundo(E.f);
+    V.append(h("div", "sub", `FRAGMENTO ${E.f + 1} · ${m.rol.toUpperCase()}`), h("h1", "", m.quien));
+    const c = h("p", "nota"); c.id = "cuenta";
+    if (E.fase === "espera") { V.append(h("div", "tarj", "Hay un recuerdo bajo la Estática. Espera la orden del puente.")); return; }
+    if (E.fase === "fin") { V.append(h("p", "cita", `«${m.voz}»`), h("div", "tarj", `Fragmento recuperado. ${m.quien} vuelve a estar a bordo.`)); return; }
+    if (E.fase === "manos") {
+      V.append(h("div", "tarj", `Para oír a ${m.quien} hacen falta todas las manos. Mantén el dedo, sin soltar.`));
+      const b = h("button", "orbe", "Mantén pulsado"); b.type = "button"; b.oncontextmenu = e => e.preventDefault();
+      const dentroB = () => { if (mano) return; mano = true; b.classList.add("on"); gesto.mano(true); vibra(20); };
+      const fuera = () => { if (mano) { mano = false; b.classList.remove("on"); gesto.mano(false); } };
+      b.onpointerdown = e => { e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch (x) {} dentroB(); };
+      b.onpointerup = b.onpointercancel = b.onlostpointercapture = fuera;
+      b.onkeydown = e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); dentroB(); } }; b.onkeyup = fuera; b.onblur = fuera;
+      V.append(b, c); return;
+    }
+    // fase "linea": ordenar las palabras de la frase clave
+    if (st.ln >= E.n) { V.append(h("div", "tarj", "Página reconstruida. Espera a tu tripulación: hace falta la mayoría."), c); return; }
+    const palabras = m.p[E.n][1].split(" "), orden = palabras.map((p, i) => i).sort(() => Math.random() - .5), nLinea = E.n; pos = 0;
+    V.append(h("div", "tarj", "Ordena las palabras para reconstruir la página."));
+    const frase = h("div", "frase tarj"); frase.setAttribute("aria-live", "polite"); const fichas = h("div", "fichas");
+    orden.forEach(i => {
+      const b = h("button", "", palabras[i]); b.type = "button";
+      b.onclick = () => {
+        if (palabras[i] !== palabras[pos]) { b.classList.remove("mal"); void b.offsetWidth; b.classList.add("mal"); vibra(40); return; }
+        frase.append(h("span", "", palabras[pos])); b.disabled = true; pos++;
+        if (pos >= palabras.length) { gesto.linea(nLinea); vibra([30, 40, 30]); setTimeout(pintar, 500); }
+      };
+      fichas.append(b);
+    });
+    V.append(frase, fichas, c);
+  }
+
+  function vAshan() {
+    document.documentElement.style.setProperty("--mundo", E.alba ? "rgb(255,200,120)" : "rgb(150,160,175)");
+    V.append(h("div", "sub", "ASHAN · EL MUNDO SILENCIADO"));
+    const t = h("div", "tarj vaeon"); t.append(h("div", "q", "VAEON PREGUNTA"), h("p", "", E.pregunta)); V.append(t);
+    if (E.alba) V.append(h("p", "cita", "«Tu mundo puede volver a hablar.»"));
+    if (st.vo.length < 3) {
+      const a = h("textarea"); a.maxLength = 90; a.rows = 3; a.placeholder = "Tu respuesta, en una frase"; a.setAttribute("aria-label", "Tu respuesta");
+      const b = h("button", "principal gordo", "Enviar mi voz"); b.type = "button";
+      b.onclick = () => { const x = a.value.replace(/\s+/g, " ").trim().slice(0, 90); if (x.length < 3) { a.focus(); return; } gesto.voz(x); vibra(25); pintar(); };
+      V.append(a, b, h("p", "nota", "Tu frase se verá en la pantalla de la clase, con tu nombre."));
+    } else V.append(h("p", "nota", "Ya has dejado tus tres voces. Mira la pantalla grande."));
+    if (st.vo.length) { const ul = h("ul", "mias"); st.vo.forEach(x => ul.append(h("li", "", x))); V.append(ul); }
+    const c = h("p", "nota"); c.id = "cuenta"; V.append(c);
+  }
+  function soltar() { if (mano) { mano = false; gesto.mano(false); } }
+
+  setInterval(() => { if (!dentro) return; if (!WEB) { enviar({ t: "latido" }); if (mano) enviar({ t: "mano", on: true }); } pintar(); }, 2500);
+  addEventListener("pagehide", soltar);
+})();
+</script>
+</body>
+</html>

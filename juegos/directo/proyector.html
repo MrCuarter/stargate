@@ -6,11 +6,12 @@
 <title>En directo · docente</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="directo.css?v=4ae11d2607">
+<link rel="stylesheet" href="directo.css?v=b7ccd456b2">
 <style>
 html,body{overflow:hidden;height:100%}
 main{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:14px}
 #preparar{width:min(1240px,98vw);max-height:96vh;overflow:auto;display:grid;grid-template-columns:1.25fr 1fr;gap:16px;padding:16px 18px}
+.vivo{margin-top:12px;padding-top:10px;border-top:1px solid rgba(95,244,255,.25)}.vivo p{font-size:14px;margin:4px 0}
 #preparar h1{margin:2px 0 8px;color:var(--cian);font-size:clamp(20px,2.4vw,30px)}
 .atajos{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
 .atajos button{padding:8px 12px;font-size:13px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:#0d2236;color:#e8f6ff;border:1px solid var(--ambar)}
@@ -151,6 +152,11 @@ canvas.lienzo{position:fixed;inset:0;width:100%;height:100%}
       </div>
       <details class="mas" id="como"><summary id="como-t">Cómo se juega</summary><p id="como-p"></p></details>
       <details class="mas"><summary>Para la clase de teoría</summary><p id="teoria"></p></details>
+      <div class="vivo oculto" id="vivo">
+        <div class="kicker">En vivo con la historia</div>
+        <p>Tres momentos de pantalla grande y móviles con la Tripulación Cero. La clase entra igual: desde su Nave, «En directo».</p>
+        <div class="botones" style="margin-top:6px"><a class="boton sec" id="v-puente">El Puente</a><a class="boton sec" id="v-fragmento">Fragmento vivo</a><a class="boton sec" id="v-ashan">Ashan vuelve a hablar</a></div>
+      </div>
     </div>
     <div class="lado">
       <div class="codigo-l"><span>Sala de espera</span><small>desde la Nave, código</small><b id="codigo">····</b></div>
@@ -184,6 +190,6 @@ canvas.lienzo{position:fixed;inset:0;width:100%;height:100%}
 </div></details>
 <div id="destello"></div>
 <div id="aviso"></div>
-<script type="module" src="proyector.js?v=4ae11d2607"></script>
+<script type="module" src="proyector.js?v=b7ccd456b2"></script>
 </body>
 </html>

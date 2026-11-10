@@ -5,7 +5,7 @@
 //   · Duelo (por equipos): acertar deja elegir: EMPUJAR la baliza o SABOTEAR a la otra escuadrilla (una tormenta de estática).
 // ?sesion=1 → dentro de la sesión: entras solo, con tu alias y tu personaje (en la Nave salen de tu ficha), y la sala de espera
 // trae el ticket de salida. Sin ?sesion, la pantalla de «Únete» (desde la Nave, con el código).
-import { conectar, esperarMotor, conServidor, motor, PER, preguntasDelServidor, responderAlServidor, imagen, EN_WEB, AV, AVATARES, TEMAS, MODOS, EQUIPOS, VALOR, temasDe, kDe, ponerEquipos, emblema } from './canal.js?v=4ae11d2607';
+import { conectar, esperarMotor, conServidor, motor, PER, preguntasDelServidor, responderAlServidor, imagen, EN_WEB, AV, AVATARES, TEMAS, MODOS, EQUIPOS, VALOR, temasDe, kDe, ponerEquipos, emblema } from './canal.js?v=b7ccd456b2';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -116,6 +116,13 @@ function pintarEspera() {
 function alMensaje(m) {
   if (!m) return;
   if (m.t === 'estado') {
+    // 10-nov · EN VIVO CON LA HISTORIA (juegos/vivo): si el Comandante ha lanzado El Puente, un Fragmento o Ashan, la sala trae su
+    // `modo` y este móvil pasa a esa experiencia (vuelve solo cuando el Comandante regresa al juego). Un estado viejo no cuenta.
+    if (m.modo && m.ts && Date.now() - m.ts < 3 * 3600e3 && ['puente', 'fragmento', 'ashan'].includes(m.modo)) {
+      const u = new URL('../vivo/movil.html?v=b7ccd456b2', location.href);
+      new URLSearchParams(location.search).forEach((v, k) => { if (k !== 'v' && !u.searchParams.has(k)) u.searchParams.set(k, v); });
+      location.replace(u.href); return;
+    }
     const antes = est; est = m; ultimoEstado = performance.now(); $('conexion').classList.add('oculto');
     ponerEquipos(m.eqs); // el Duelo: los dos escuadrones invitados que ha elegido la pantalla
     // lo que el Comandante toca en caliente se cuenta aquí también (la dificultad y el reloj llegan con el estado)
@@ -155,7 +162,7 @@ async function empezar() {
   const temas = temasDe(c, est.temaSemana); temasJuego = temas;
   if (WEB) banco = await pedirPreguntas(temas);
   if (WEB && SOLO && !ataque) setTimeout(finSolo, 50); // el Asedio no está abierto (o no hay sesión): se dice y ya
-  else if (temas.length) try { const { PREGUNTAS } = await import(EN_WEB ? '../ruta/preguntas.js?v=4ae11d2607' : '../ruta-estatica/preguntas.js?v=4ae11d2607'); banco = temas.flatMap((t) => PREGUNTAS[t] || []).filter((q) => q.tipo === 'una' && !q.visual).sort(() => Math.random() - 0.5); } catch (e) { banco = []; }
+  else if (temas.length) try { const { PREGUNTAS } = await import(EN_WEB ? '../ruta/preguntas.js?v=b7ccd456b2' : '../ruta-estatica/preguntas.js?v=b7ccd456b2'); banco = temas.flatMap((t) => PREGUNTAS[t] || []).filter((q) => q.tipo === 'una' && !q.visual).sort(() => Math.random() - 0.5); } catch (e) { banco = []; }
   document.body.classList.add('juego');
   ticketAbierto = !$('panel-ticket').classList.contains('oculto');
   for (const id of ['espera', 'fin', 'entrar', 'panel-ticket']) $(id).classList.add('oculto'); document.querySelector('main').classList.remove('con-ticket');

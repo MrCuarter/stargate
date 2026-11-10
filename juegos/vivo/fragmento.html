@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Fragmento vivo · la clase recupera un recuerdo</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css?v=b7ccd456b2">
+<style>
+.capa{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);grid-template-rows:auto 1fr;gap:clamp(10px,2vw,30px);align-items:start}
+.cab{grid-column:1/-1}
+.cab h1{font-size:clamp(30px,min(6vw,9.5vh),96px);color:#fff;text-shadow:0 0 40px rgba(255,200,120,.6),0 4px 30px #000;line-height:1}
+.cab .rol{font-family:Orbitron,sans-serif;font-size:clamp(11px,1.3vw,18px);letter-spacing:.16em;color:var(--mundo);margin-top:6px;text-shadow:0 2px 10px #000}
+.pars{display:grid;gap:clamp(8px,1.2vw,16px);align-content:start}
+.par{background:rgba(2,6,14,.74);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:clamp(10px,1.3vw,18px) clamp(12px,1.6vw,24px);font-size:clamp(15px,min(1.6vw,2.8vh),28px);line-height:1.38;color:#5d7686;overflow-wrap:anywhere;transition:border-color .6s,background .6s,color .6s;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.par.ahora{border-color:var(--ambar);box-shadow:0 0 30px rgba(255,194,74,.18)}
+.par.ok{color:#fff;border-color:rgba(255,220,160,.55);background:rgba(30,18,6,.62)}
+.par .avance{display:block;font-family:Orbitron,sans-serif;font-size:clamp(10px,1vw,14px);letter-spacing:.14em;color:var(--ambar);margin-top:6px}
+.lado{display:grid;gap:14px;justify-items:center;align-content:center;height:100%}
+.manos{position:relative;width:min(100%,clamp(170px,24vw,380px));aspect-ratio:1;border-radius:50%;display:grid;place-items:center;opacity:0;transition:opacity .6s;background:conic-gradient(rgba(255,220,150,.9) calc(var(--p,0)*1turn),rgba(255,255,255,.08) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 8px),#000 calc(100% - 7px));mask:radial-gradient(farthest-side,transparent calc(100% - 8px),#000 calc(100% - 7px))}
+.manos-w{position:relative;width:min(100%,clamp(150px,24vw,380px),28vh);aspect-ratio:1;opacity:0;transition:opacity .6s}
+.manos-w.si,.manos-w.si .manos{opacity:1}
+.manos-w .manos{position:absolute;inset:0;width:auto}
+.manos-w i{position:absolute;left:50%;top:50%;width:13%;aspect-ratio:1;margin:-6.5%;border-radius:50%;background:#1c2a38;border:2px solid rgba(255,255,255,.25);transform:rotate(calc(var(--i)*45deg)) translateY(-290%);transition:background .3s,box-shadow .3s}
+.manos-w i.si{background:#ffe2a8;box-shadow:0 0 24px 6px rgba(255,200,110,.8);border-color:#fff}
+.manos-w .cta{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-family:Orbitron,sans-serif}
+.manos-w .cta b{display:block;font-size:clamp(24px,min(4.4vw,7vh),70px);color:#fff}
+.manos-w .cta span{font-size:clamp(9px,1vw,13px);letter-spacing:.16em;color:var(--ambar)}
+#voz{width:100%}
+.cita{grid-column:1/-1;align-self:center;text-align:center;display:none;animation:entra 1s}
+.cita.si{display:block}
+.cita blockquote{margin:0 auto;max-width:26ch;font-size:clamp(24px,4.6vw,72px);line-height:1.2;font-weight:700;color:#fff;text-shadow:0 0 50px rgba(255,200,120,.8),0 4px 26px rgba(60,30,0,.9)}
+.cita cite{display:block;margin-top:14px;font-family:Orbitron,sans-serif;font-style:normal;letter-spacing:.2em;font-size:clamp(11px,1.4vw,20px);color:#3a1d00;background:rgba(255,226,168,.92);padding:6px 14px;border-radius:99px;width:max-content;max-width:100%;margin-inline:auto}
+.cita .formula{margin-top:clamp(12px,2vw,28px);font-size:clamp(15px,2vw,30px);color:#fff;text-shadow:0 2px 14px rgba(60,30,0,.95);min-height:1.5em}
+.susurro{position:fixed;right:clamp(14px,3vw,44px);bottom:84px;max-width:min(80vw,30ch);text-align:right;font-style:italic;font-size:clamp(14px,1.6vw,24px);color:#ff9aad;text-shadow:0 2px 12px #000;opacity:0;pointer-events:none}
+.susurro.si{animation:sus 7s}
+@keyframes sus{0%,100%{opacity:0}15%,80%{opacity:.9}}
+body.fin .pars,body.fin .lado{display:none}
+@media (max-width:820px){.capa{grid-template-columns:minmax(0,1fr)}.lado{grid-row:3}.manos-w{width:min(60vw,220px)}}
+</style>
+</head>
+<body class="proyector">
+<canvas class="lienzo" id="gl"></canvas>
+<div class="capa">
+  <div class="cab">
+    <div class="kicker" id="kick">Los Fragmentos de la Cero</div>
+    <h1 id="nombre">—</h1>
+    <div class="rol" id="rol"></div>
+  </div>
+  <div class="pars" id="pars"></div>
+  <div class="lado">
+    <div class="manos-w" id="manos"><div class="manos"></div><div class="cta"><div><b id="mn">0</b><span id="mt">MANOS DE 8</span></div></div></div>
+    <div class="caja-voz" id="voz"><div class="quien">NEBULA</div><p id="dice"></p></div>
+  </div>
+  <div class="cita" id="cita"><blockquote id="frase"></blockquote><cite id="autor"></cite><p class="formula" id="formula"></p></div>
+</div>
+<div class="susurro" id="sus"></div>
+<div class="sala-info"><b id="abordo">0</b><span>RECLUTAS · SALA <i id="salan" style="font-style:normal"></i></span></div>
+<div class="mando">
+  <button id="b-ant" aria-label="Fragmento anterior">Anterior</button><button id="b-sig" aria-label="Fragmento siguiente">Siguiente</button>
+  <button id="b-go" class="principal">Empezar</button>
+  <button id="b-salta">Dar por recuperada</button>
+  <span class="hueco"></span>
+  <button id="b-sim">Simular clase</button><button id="b-son" aria-pressed="false">Sonido</button>
+  <a class="boton" id="a-movil" target="_blank" rel="noopener">Móvil de prueba</a>
+  <a class="boton" id="a-puente">Puente</a><a class="boton" id="a-salir" href="index.html?v=b7ccd456b2">Salir</a>
+  <small>H oculta · F pantalla completa</small>
+</div>
+<script src="nucleo.js?v=b7ccd456b2"></script>
+<script>
+(async () => {
+  await F.arranque();
+  const $ = F.$, M = F.MUNDOS;
+  let f = Math.max(0, Math.min(7, (+F.Q.get("f") || 1) - 1)), fase = "espera", n = 0, hechos = new Set(), manos = new Set(), tManos = 0, mem = 0, memObj = 0, uManos = 0, uFin = 0, tSus = 0, cambio = 0;
+
+  const frag = `
+uniform float uMem,uManos,uFin; uniform vec3 uCc;
+void main(){
+  vec2 px=gl_FragCoord.xy; vec2 uv=(px-.5*uR)/uR.y;
+  // el recuerdo avanza como papel que se "des-quema": un frente irregular con borde de brasa
+  vec2 w=uv*1.7; float f=fbm2(w+fbm2(w*1.3+uT*.03)*1.2);
+  float campo=f*.75+length(uv)*.45, umbral=.13+uMem*1.2;
+  float rec=smoothstep(umbral+.015,umbral-.015,campo);
+  float borde=exp(-abs(campo-umbral)*36.);
+  // lo recordado: blanco dorado, sobreexpuesto, con motas que suben
+  float luz=fbm2(uv*2.2+vec2(uT*.05,-uT*.03));
+  vec3 oro=mix(vec3(.34,.17,.05),vec3(1.,.84,.58),smoothstep(.2,.75,luz)); oro+=vec3(1.,.95,.85)*pow(luz,4.)*1.1; oro=mix(oro,uCc,.14);
+  oro*=.85+.25*uManos+.2*uFin;
+  vec2 g=uv*17.+vec2(0.,-uT*.22); vec2 id=floor(g); vec2 fr=fract(g)-.5; float r=h21(id);
+  oro+=vec3(1.,.9,.7)*smoothstep(.07,0.,length(fr-(vec2(h21(id+2.),h21(id+4.))-.5)*.7))*step(.8,r)*(.5+.5*sin(uT*2.+r*30.));
+  // lo olvidado: la Estática
+  vec3 gris=vec3(.12)+.07*fbm2(uv*3.+uT*.02); gris=estatica(gris,px,1.)*.3;
+  vec3 col=mix(gris,oro,rec);
+  col+=vec3(1.,.42,.08)*borde*1.5+vec3(1.,.8,.4)*pow(borde,3.)*1.5;
+  float d=length(uv);
+  col+=vec3(1.,.85,.55)*uManos*exp(-abs(d-.3-.05*sin(uT*3.))*12.)*.5;
+  col+=vec3(1.,.9,.7)*uFin*exp(-d*2.2)*.4;
+  col=1.-exp(-col*1.5); col*=1.-.42*dot(uv,uv);
+  gl_FragColor=vec4(col,1.);
+}`;
+  const G = F.gl($("gl"), frag);
+  const presentes = () => Math.max(1, S.gente.size), faltaLinea = () => Math.max(1, Math.ceil(presentes() * .6)), faltaManos = () => Math.max(1, Math.ceil(presentes() * .8));
+
+  const S = F.sala("fragmento", () => ({ f, fase, n, hechos: hechos.size, falta: fase === "manos" ? faltaManos() : faltaLinea(), manos: manos.size }), (m, p, nuevo) => {
+    if (m.t === "linea" && fase === "linea" && m.n === n) hechos.add(p.id);
+    if (m.t === "mano") m.on ? manos.add(p.id) : manos.delete(p.id);
+    if (m.t === "adios") { hechos.delete(p.id); manos.delete(p.id); }
+    $("abordo").textContent = S.gente.size;
+  });
+  $("salan").textContent = F.SALA; $("a-movil").href = F.url("movil.html?v=b7ccd456b2");
+
+  const decir = t => F.escribir($("dice"), t, 22);
+  function montar() {
+    const m = M[f]; document.documentElement.style.setProperty("--mundo", F.css(m.c));
+    fase = "espera"; n = 0; hechos.clear(); manos.clear(); tManos = 0; memObj = 0; uFin = 0; document.body.classList.remove("fin"); S.nuevaRonda();
+    $("kick").textContent = `Fragmento ${f + 1} · Los Fragmentos de la Cero`; $("nombre").textContent = m.quien; $("rol").textContent = `${m.rol.toUpperCase()} · ${m.n.toUpperCase()}`;
+    $("pars").innerHTML = m.p.map((_, i) => `<div class="par" id="par${i}"><span class="tx"></span><span class="avance"></span></div>`).join("");
+    $("manos").classList.remove("si"); $("cita").classList.remove("si"); $("b-go").textContent = "Empezar"; $("b-salta").disabled = true; $("b-salta").textContent = "Dar por recuperada";
+    $("a-puente").href = F.url("puente.html?v=b7ccd456b2", { t: f + 1 });
+    decir(`Hay un recuerdo de ${m.quien} bajo la Estática. Solo vuelve si lo reconstruís entre todos, desde vuestros puestos.`); S.emitir();
+  }
+  function empezar() { if (fase !== "espera") { montar(); return; } fase = "linea"; n = 0; hechos.clear(); cambio = performance.now(); prepararBots(); $("b-go").textContent = "Reiniciar"; $("b-salta").disabled = false; decir("Primera página. Ordenad las palabras en vuestras pantallas."); S.emitir(); }
+  function prepararBots() { const t = performance.now(); S.bots().forEach(b => { b.d.cuando = t + 3500 + Math.random() * 9000; b.d.mano = t + 1500 + Math.random() * 5000; }); }
+  function lineaRecuperada() {
+    const el = $("par" + n); el.classList.remove("ahora"); el.classList.add("ok"); el.querySelector(".avance").textContent = "";
+    F.escribir(el.querySelector(".tx"), M[f].p[n][0], 16); F.sonido.campana(392 * Math.pow(1.122, n * 2), 2.4);
+    n++; hechos.clear(); cambio = performance.now(); prepararBots();
+    if (n >= M[f].p.length) { fase = "manos"; $("manos").classList.add("si"); $("b-salta").textContent = "Dar la voz"; decir(`Falta su voz. Para oír a ${M[f].quien} hacen falta todas las manos: mantened el dedo en la pantalla, a la vez.`); }
+    else decir(["", "Segunda página. La Estática aprieta: no la soltéis.", "Última página. Ya casi se le oye."][n] || "Seguid.");
+    S.emitir();
+  }
+  function final() {
+    const m = M[f]; fase = "fin"; document.body.classList.add("fin"); $("cita").classList.add("si"); $("b-salta").disabled = true; $("b-salta").textContent = "Dar por recuperada";
+    $("autor").textContent = m.quien.toUpperCase(); $("formula").textContent = ""; F.sonido.campana(523, 4);
+    F.escribir($("frase"), `«${m.voz}»`, 42, () => setTimeout(() => F.escribir($("formula"), `Fragmento recuperado. ${f === 6 ? "La capitana " : ""}${m.quien} vuelve a estar a bordo.${f === 7 ? " Tripulación Cero: completa." : ""}`, 30), 900));
+    S.emitir();
+  }
+  $("b-go").onclick = empezar;
+  $("b-salta").onclick = () => { if (fase === "linea") lineaRecuperada(); else if (fase === "manos") final(); };
+  $("b-ant").onclick = () => { f = (f + 7) % 8; montar(); }; $("b-sig").onclick = () => { f = (f + 1) % 8; montar(); };
+  $("b-sim").onclick = () => { S.simular(22); setTimeout(prepararBots, 7000); };
+  $("b-son").onclick = e => F.sonido.alternar(e.currentTarget);
+  addEventListener("keydown", e => { if (e.key === " ") { e.preventDefault(); empezar(); } });
+
+  // los 8 puntos del círculo de manos
+  for (let i = 0; i < 8; i++) { const d = document.createElement("i"); d.style.setProperty("--i", i); $("manos").appendChild(d); }
+
+  let antes = performance.now(), tTexto = 0;
+  function bucle(ahora) {
+    const dt = Math.min(.05, (ahora - antes) / 1000); antes = ahora;
+    const total = M[f].p.length;
+    if (fase === "linea") {
+      S.bots().forEach(b => { if (b.d.cuando && ahora > b.d.cuando) { b.d.cuando = 0; hechos.add(b.id); } });
+      const frac = Math.min(1, hechos.size / faltaLinea()); memObj = (n + frac * .85) / (total + 1);
+      tTexto += dt; if (tTexto > .09) { tTexto = 0;
+        M[f].p.forEach((p, i) => { if (i < n) return; const el = $("par" + i); el.classList.toggle("ahora", i === n); el.querySelector(".tx").textContent = F.ruidoTexto(p[0], i === n ? .12 + frac * .6 : .04); });
+        $("par" + n).querySelector(".avance").textContent = `${hechos.size} DE ${faltaLinea()} RECLUTAS LA HAN RECONSTRUIDO`;
+      }
+      if (hechos.size >= faltaLinea() && ahora - cambio > 1200) lineaRecuperada();
+      tSus += dt; if (tSus > 15) { tSus = 0; const s = $("sus"); s.textContent = "— " + F.VAEON[(Math.random() * F.VAEON.length) | 0]; s.classList.remove("si"); void s.offsetWidth; s.classList.add("si"); }
+    } else if (fase === "espera") {
+      tTexto += dt; if (tTexto > .09) { tTexto = 0; M[f].p.forEach((p, i) => { $("par" + i).querySelector(".tx").textContent = F.ruidoTexto(p[0], .04); }); }
+    } else if (fase === "manos") {
+      S.bots().forEach(b => { if (ahora > b.d.mano) { if (manos.has(b.id)) { if (Math.random() < dt * .08) { manos.delete(b.id); b.d.mano = ahora + 700 + Math.random() * 900; } } else manos.add(b.id); } });
+      const need = faltaManos(), ok = manos.size >= need; tManos = ok ? tManos + dt : Math.max(0, tManos - dt * 2);
+      const enc = Math.min(8, Math.floor(8 * manos.size / need)); [...$("manos").querySelectorAll("i")].forEach((d, i) => d.classList.toggle("si", i < enc));
+      $("mn").textContent = manos.size; $("mt").textContent = `MANOS DE ${need}`; $("manos").querySelector(".manos").style.setProperty("--p", Math.min(1, tManos / 3));
+      memObj = (total + Math.min(1, manos.size / need) * .5) / (total + 1);
+      if (tManos >= 3) final();
+    } else memObj = 1;
+    mem += (memObj - mem) * Math.min(1, dt * 1.6);
+    uManos += ((fase === "manos" ? Math.min(1, manos.size / faltaManos()) : 0) - uManos) * Math.min(1, dt * 3);
+    uFin += ((fase === "fin" ? 1 : 0) - uFin) * Math.min(1, dt * .8);
+    F.sonido.nivel(1 - mem, mem);
+    if (G) G.dibujar({ uMem: mem, uManos, uFin, uCc: M[f].c });
+    requestAnimationFrame(bucle);
+  }
+  montar(); requestAnimationFrame(bucle);
+  window.__f = { S, empezar, estado: () => ({ fase, n, hechos: hechos.size, manos: manos.size, mem }) };
+})();
+</script>
+</body>
+</html>

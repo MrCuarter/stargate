@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ashan vuelve a hablar · la pregunta de Vaeon</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css?v=b7ccd456b2">
+<style>
+.capa{grid-template-rows:auto minmax(0,1fr) auto;gap:12px}
+.preg{max-width:min(100%,70ch)}
+.preg p{font-size:clamp(20px,3.2vw,52px);min-height:0;font-weight:700;line-height:1.15}
+.cuenta{font-family:Orbitron,sans-serif;font-size:clamp(11px,1.3vw,18px);letter-spacing:.16em;color:var(--ambar);margin-top:8px;text-shadow:0 2px 10px #000}
+.muro{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-end;align-items:flex-end;overflow:hidden;pointer-events:auto;min-height:0}
+.voz{background:rgba(255,226,168,.94);color:#2a1600;border-radius:12px 12px 12px 2px;padding:6px 12px;font-size:clamp(13px,1.5vw,22px);font-weight:600;max-width:min(100%,34ch);overflow-wrap:anywhere;animation:sube 1.2s cubic-bezier(.2,.9,.3,1);box-shadow:0 0 22px rgba(255,200,110,.55);cursor:pointer;border:0;font-family:"Exo 2",sans-serif;text-align:left;min-height:0;white-space:normal;letter-spacing:0;display:block}
+.voz small{display:block;font-size:.62em;opacity:.65;font-weight:700;letter-spacing:.08em}
+.voz:hover{outline:2px solid var(--rojo)}
+@keyframes sube{from{opacity:0;transform:translateY(60px) scale(.8)}}
+#final{display:none;max-width:min(100%,60ch);border-left-color:#ffe2a8;animation:entra 1s}
+#final.si{display:block}
+#final .quien{color:#ffe2a8}
+body.alba .preg{opacity:.55}
+</style>
+</head>
+<body class="proyector">
+<canvas class="lienzo" id="gl"></canvas>
+<div class="capa">
+  <div>
+    <div class="kicker">Ashan · el mundo que la Estática silenció</div>
+    <div class="caja-voz vaeon preg" style="margin-top:8px"><div class="quien">VAEON PREGUNTA</div><p id="preg"></p></div>
+    <div class="cuenta" id="cuenta"></div>
+  </div>
+  <div class="muro" id="muro" aria-label="Voces de la clase. Pulsa una para retirarla."></div>
+  <div class="caja-voz" id="final"><div class="quien" id="fq">NOA LIETH · MENSAJE ENTREGADO</div><p id="ft"></p></div>
+</div>
+<div class="sala-info"><b id="abordo">0</b><span>RECLUTAS · SALA <i id="salan" style="font-style:normal"></i></span></div>
+<div class="mando">
+  <button id="b-otra" class="principal">Otra pregunta</button><button id="b-escribe">Escribir pregunta</button>
+  <button id="b-copia">Copiar voces</button><button id="b-vacia">Empezar de cero</button>
+  <span class="hueco"></span>
+  <button id="b-sim">Simular clase</button><button id="b-son" aria-pressed="false">Sonido</button>
+  <a class="boton" id="a-movil" target="_blank" rel="noopener">Móvil de prueba</a>
+  <a class="boton" id="a-puente">Puente</a><a class="boton" id="a-salir" href="index.html?v=b7ccd456b2">Salir</a>
+  <small>Pulsa una voz para retirarla · H oculta</small>
+</div>
+<script src="nucleo.js?v=b7ccd456b2"></script>
+<script>
+(async () => {
+  await F.arranque();
+  const $ = F.$;
+  let iP = 0, pregunta = F.PREGUNTAS[0], voces = [], alba = false, luz = 0, uAlba = 0, tBot = 0;
+
+  const frag = `
+uniform float uLuz,uAlba;
+void main(){
+  vec2 px=gl_FragCoord.xy; vec2 uv=px/uR.y; vec2 c=(px-.5*uR)/uR.y; float y=uv.y;
+  vec3 noche=mix(vec3(.07,.075,.085),vec3(.02,.022,.03),y);
+  vec3 dia=mix(vec3(1.,.6,.28),vec3(.14,.24,.5),smoothstep(.12,.95,y));
+  vec3 col=mix(noche,dia,uAlba);
+  col+=vec3(1.,.82,.5)*uAlba*exp(-length(c-vec2(0.,-.2))*3.2)*1.3;
+  col+=vec3(.06)*fbm2(c*2.+uT*.02)*(1.-uAlba);
+  vec3 niebla=mix(vec3(.09,.095,.105),vec3(.9,.55,.3),uAlba*.8);
+  // tres capas de ciudad: de lejos a cerca. Cada voz enciende ventanas.
+  for(int i=0;i<3;i++){
+    float fi=float(i);
+    float x=uv.x*(9.-fi*2.6)+fi*37.3; float id=floor(x), fx=fract(x);
+    float h=(.3+.45*h21(vec2(id,fi+1.)))*(1.-fi*.24);
+    h+=.05*step(.82,h21(vec2(id,fi+9.)))*step(.4,fx)*step(fx,.6);          // torretas
+    float m=step(y,h)*step(.05,fx)*step(fx,.95);
+    vec2 wg=vec2(fx*(5.+fi),y*(34.-fi*6.)); vec2 wid=floor(wg), wf=fract(wg);
+    float vent=step(.22,wf.x)*step(wf.x,.78)*step(.28,wf.y)*step(wf.y,.8)*step(y,h-.012);
+    float azar=h21(wid+vec2(id*7.3,fi*3.1));
+    float enc=step(azar,uLuz*(.5+.2*fi));
+    vec3 cuerpo=mix(vec3(.03,.034,.042),vec3(.055,.06,.075),fi*.5)*(1.+uAlba*1.5);
+    vec3 v=mix(cuerpo*.6,vec3(1.,.76,.4)*(1.05+.25*sin(uT*1.7+azar*40.)),enc);
+    col=mix(col,mix(cuerpo,v,vent),m);
+    col=mix(col,niebla,.2*(1.-uAlba*.5)*(1.-m*.6));
+  }
+  // la antena quemada, en el centro: al alba vuelve a emitir
+  float ant=step(abs(c.x),.006+.012*smoothstep(.36,-.5,c.y))*step(c.y,.36);
+  ant=max(ant,step(abs(c.y-.22),.004)*step(abs(c.x),.05)); ant=max(ant,step(abs(c.y-.3),.004)*step(abs(c.x),.03));
+  col=mix(col,vec3(.015,.012,.012)+vec3(.5,.3,.1)*uAlba*.3,ant);
+  float d=length(c-vec2(0.,.36)), onda=fract(uT*.35);
+  col+=vec3(.55,.95,1.)*uAlba*(exp(-abs(d-onda*.9)*26.)*(1.-onda)+exp(-d*26.)*1.4);
+  col+=vec3(1.,.2,.05)*(1.-uAlba)*exp(-d*60.)*(.3+.3*sin(uT*5.))*.5;       // brasa en la punta
+  col=1.-exp(-col*1.5); col*=1.-.38*dot(c,c);
+  col=estatica(col,px,(1.-uLuz)*.8*(1.-uAlba));
+  gl_FragColor=vec4(col,1.);
+}`;
+  const G = F.gl($("gl"), frag);
+  const meta = () => Math.max(6, S.gente.size);
+
+  const S = F.sala("ashan", () => ({ pregunta, voces: voces.length, meta: meta(), alba }), (m, p) => {
+    if (m.t === "voz" && m.texto) anadir(p, String(m.texto).replace(/\s+/g, " ").trim().slice(0, 90));
+    $("abordo").textContent = S.gente.size; contar();
+  });
+  $("salan").textContent = F.SALA; $("a-movil").href = F.url("movil.html?v=b7ccd456b2"); $("a-puente").href = F.url("puente.html?v=b7ccd456b2");
+
+  function contar() { $("cuenta").textContent = alba ? `${voces.length} VOCES · ASHAN VUELVE A HABLAR` : `${voces.length} DE ${meta()} VOCES PARA ENCENDER ASHAN`; }
+  function anadir(p, texto) {
+    if (!texto || voces.filter(v => v.id === p.id).length >= 3) return;
+    const v = { id: p.id, alias: p.alias, texto }; voces.push(v);
+    const b = document.createElement("button"); b.type = "button"; b.className = "voz"; b.textContent = texto; const s = document.createElement("small"); s.textContent = p.alias.toUpperCase(); b.appendChild(s);
+    b.title = "Retirar esta voz"; b.onclick = () => { voces = voces.filter(x => x !== v); b.remove(); contar(); };
+    const muro = $("muro"); muro.appendChild(b);
+    const tope = muro.getBoundingClientRect().top - 2;
+    while (muro.children.length > 1 && muro.firstChild.getBoundingClientRect().top < tope) muro.firstChild.remove();   // las más antiguas dejan sitio (siguen contando)
+    F.sonido.campana(330 + (voces.length % 8) * 44, 1.4); contar();
+    if (!alba && voces.length >= meta()) amanecer();
+  }
+  function amanecer() {
+    alba = true; document.body.classList.add("alba"); $("final").classList.add("si"); F.sonido.campana(523, 5);
+    F.escribir($("ft"), "«Tu mundo puede volver a hablar. Ven a escucharlo.» Cuarenta años tarde, el mensaje está entregado. Lo que habéis escrito hoy, a la Bitácora.", 30); contar(); S.emitir();
+  }
+  function reiniciar() { S.nuevaRonda(); voces = []; alba = false; document.body.classList.remove("alba"); $("final").classList.remove("si"); $("muro").innerHTML = ""; S.bots().forEach(b => b.d.dicho = false); contar(); S.emitir(); }
+  function poner(q) { pregunta = q; F.escribir($("preg"), q, 28); reiniciar(); }
+
+  $("b-otra").onclick = () => { iP = (iP + 1) % F.PREGUNTAS.length; poner(F.PREGUNTAS[iP]); };
+  $("b-escribe").onclick = () => { const q = prompt("Escribe la pregunta que Vaeon lanza a la clase:", pregunta); if (q && q.trim()) poner(q.trim().slice(0, 140)); };
+  $("b-vacia").onclick = reiniciar;
+  $("b-copia").onclick = e => {
+    const txt = `${pregunta}\n\n` + voces.map(v => `- ${v.texto} (${v.alias})`).join("\n"), b = e.currentTarget;
+    (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => b.textContent = "Copiadas", () => b.textContent = "No se pudo copiar").finally(() => setTimeout(() => b.textContent = "Copiar voces", 1800));
+  };
+  $("b-sim").onclick = () => S.simular(16);
+  $("b-son").onclick = e => F.sonido.alternar(e.currentTarget);
+
+  let antes = performance.now();
+  function bucle(ahora) {
+    const dt = Math.min(.05, (ahora - antes) / 1000); antes = ahora;
+    tBot += dt; if (tBot > 1.1) { tBot = 0; const libres = S.bots().filter(b => !b.d.dicho); if (libres.length && Math.random() < .8) { const b = libres[(Math.random() * libres.length) | 0]; b.d.dicho = true; S.recibir({ t: "voz", id: b.id, texto: F.VOCES_BOT[(Math.random() * F.VOCES_BOT.length) | 0] }); } }
+    luz += (Math.min(1, voces.length / meta()) - luz) * Math.min(1, dt * 1.5); uAlba += ((alba ? 1 : 0) - uAlba) * Math.min(1, dt * .5);
+    F.sonido.nivel((1 - luz) * (1 - uAlba), luz);
+    if (G) G.dibujar({ uLuz: luz, uAlba });
+    requestAnimationFrame(bucle);
+  }
+  F.escribir($("preg"), pregunta, 28); contar(); requestAnimationFrame(bucle);
+  window.__a = { S, estado: () => ({ voces: voces.length, alba, luz }) };
+})();
+</script>
+</body>
+</html>
