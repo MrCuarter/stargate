@@ -653,7 +653,15 @@
     var M=window.SG&&window.SG.MOTOR, mando=el.querySelector('#ses-ll'), caja=el.querySelector('#ses-ll-gente');
     if(MAPA_PRUEBA && !st.alumno && st.per===(window.SG_PER_DEMO||'demo-stargate')) return llamadaDePrueba(el, mando, caja);
     if(st.alumno) return llamadaAlumno(M, mando);
-    if(!M||!M.llamadaAbierta||!st.per){ mando.innerHTML='<p class="sub">Ábrela desde tu Genially o desde tu Nave.</p>'; return null; }
+    if(!M||!M.llamadaAbierta||!st.per){
+      mando.innerHTML='<p class="sub">Ábrela desde tu Genially o desde tu Nave.</p>';
+      // 11-nov · la ventana de la presentación arranca de cero y el motor (Firebase) puede llegar después de pintar la diapositiva:
+      // sin esto se quedaba sin la llamada y sin el globo hasta cambiar de diapositiva. Cuando llega, se monta otra vez.
+      if(!M&&st.per){ var sigue=true, otra=null, alMotor=function(){ if(sigue&&el.isConnected) otra=montarLlamada(el); };
+        document.addEventListener('sg:motor', alMotor, {once:true});
+        return function(){ sigue=false; document.removeEventListener('sg:motor', alMotor); if(otra) try{ otra(); }catch(e){} }; }
+      return null;
+    }
     var reloj=null, vivo=true, vistos={};
     var globo=globoDeLaLlamada(el, { vacio:'Esperando al primero…', sinCiudad:true });
     var cerrada=function(){
@@ -3023,15 +3031,18 @@
   function presOn(on){
     PZ.on=!!on;
     document.body.classList.toggle('ses-mando-on', PZ.on);
+    // 11-nov · en la sesión abierta en «ventana aparte» (embed) el icono no se pintaba: presentando, no había cómo volver a una pantalla
+    var ctl=root.querySelector('.ses-ctl');
+    if(PZ.on&&ctl&&!ctl.querySelector('[data-ses-presentar]')){ var cu=ctl.querySelector('.cuenta'); ctl.insertAdjacentHTML('beforeend', presBoton()); if(cu) ctl.appendChild(cu); }
     Array.prototype.forEach.call(document.querySelectorAll('[data-ses-presentar]'),function(b){ b.classList.toggle('on', PZ.on); });
     var p=document.getElementById('ses-mando');
     if(PZ.on&&!p){
       p=document.createElement('aside'); p.id='ses-mando'; p.className='ses-mando'; p.setAttribute('aria-label','Tu centro de mando');
       p.innerHTML='<div class="ses-mando-cab"><b>Presentando en otra ventana</b><span>Comparte o proyecta esa ventana: desde aquí la pasas y sale al momento.</span>'
-        +'<button type="button" class="btn min" data-ses-mando-cerrar>Cerrar la presentación</button></div>'
+        +'<button type="button" class="btn min" data-ses-mando-cerrar>Volver a una pantalla</button></div>'
         +'<div class="ses-mando-sig"><small id="ses-mando-sig-t">La siguiente</small><div class="ses-mando-mini" id="ses-mando-mini"></div></div><div class="ses-mando-notas" id="ses-mando-notas"></div>';
       root.parentNode.insertBefore(p, root.nextSibling);
-      p.querySelector('[data-ses-mando-cerrar]').onclick=presCerrar;
+      p.querySelector('[data-ses-mando-cerrar]').onclick=presUna;
     }
     if(p) p.hidden=!PZ.on;
     if(p&&PZ.on&&window.GP&&window.GP.divisor) window.GP.divisor.poner('#mazo .lienzo', { antes:p, clave:'sg-mando', reserva:56, min:200, texto:'Arrastra para agrandar o achicar la diapositiva (doble clic: el tamaño de serie)' });   // (19-oct · GamificaPro sdk/divisor.js)
@@ -3057,6 +3068,10 @@
     PZ.m.abierta(w); return true;
   }
   function presCerrar(){ if(PZ.m) PZ.m.cerrar(); presOn(false); }
+  /** Volver a una pantalla (el icono y el botón del mando): cierra la presentación y, si «dos pantallas» estaba recordado, recuerda «una»
+   *  (11-nov · antes el botón del mando no lo cambiaba y «Emitir en directo» volvía a abrir la ventana: «no me deja cambiar a una pantalla»). */
+  function presUna(){ presCerrar(); if(GPP&&GPP.recordado(PRES_CLAVE)) GPP.recordar(PRES_CLAVE,'simple'); }
+  function presBoton(){ return '<button type="button" class="ses-ic ses-pres'+(PZ.on?' on':'')+'" data-ses-presentar title="Una o dos pantallas: la presentación en una ventana aparte (la que compartes) y esta como tu mando" aria-label="Presentar en otra ventana">'+IC_DOS+'</button>'; }
   function presAyuda(){
     GPP.ayuda({ nombre:'Presentación · STARGATE', nota:'El mando va en esta ventana: comparte solo la de la presentación.', alAbrir:presAbrir });
   }
@@ -3073,7 +3088,7 @@
   document.addEventListener('click', function(ev){
     if(!ev.target.closest||!ev.target.closest('[data-ses-presentar]')||!GPP||!PZ.m) return;
     ev.preventDefault();
-    if(PZ.on){ presCerrar(); if(GPP.recordado(PRES_CLAVE)) GPP.recordar(PRES_CLAVE,'simple'); } else presElegir('presentador');
+    if(PZ.on) presUna(); else presElegir('presentador');
   });
   function enPantalla(){ return !!(document.fullscreenElement||document.webkitFullscreenElement)||document.body.classList.contains('proyectando'); }
   function controles(){
@@ -3091,7 +3106,7 @@
       // 28-sep · NEBULA, otra vez: repite la guía de lo que hay en pantalla (la primera vez sale sola)
       +(!st.alumno&&st.per&&st.yo&&window.SG&&SG.GUIA?'<button type="button" class="ses-ic ses-guia" id="ses-guia" title="Guíame otra vez (NEBULA)" aria-label="Guíame otra vez"><img src="assets/img/personajes/nebula.png" alt="" width="20" height="20" style="object-fit:contain"></button>':'')
       +(!st.alumno?'<button type="button" class="ses-ic ses-son'+(suenaSesion()?'':' mudo')+'" id="ses-son" title="'+(suenaSesion()?'Quitar el sonido (M)':'Poner el sonido (M)')+'" aria-label="'+(suenaSesion()?'Quitar el sonido':'Poner el sonido')+'">'+(suenaSesion()?IC_SON:IC_MUDO)+'</button>':'')
-      +(!st.alumno&&!EMBED&&window.GP&&window.GP.presentador?'<button type="button" class="ses-ic ses-pres'+(PZ.on?' on':'')+'" data-ses-presentar title="Una o dos pantallas: la presentación en una ventana aparte (la que compartes) y esta como tu mando" aria-label="Presentar en otra ventana">'+IC_DOS+'</button>':'')
+      +(!st.alumno&&(!EMBED||VENTANA||PZ.on)&&window.GP&&window.GP.presentador?presBoton():'')
       +(!st.alumno&&window.GP&&window.GP.notas?'<button type="button" class="ses-ic ses-notas" data-notas-ventana title="Notas en otra ventana (la que no compartes)" aria-label="Notas en otra ventana">'+IC_NOTAS+'</button>':'')
       +'<button type="button" class="ses-ic" id="ses-pantalla" title="'+(fs?'Salir de pantalla completa (F)':'Pantalla completa (F)')+'" aria-label="'+(fs?'Salir de pantalla completa':'Pantalla completa')+'">'+(fs?IC_SALIR:IC_PANTALLA)+'</button>'
       +'<div class="cuenta">'+(st.i+1)+' / '+st.slides.length+'</div></div>';
