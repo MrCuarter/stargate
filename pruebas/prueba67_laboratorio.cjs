@@ -2398,6 +2398,9 @@ const REG = {};   // cifras que se apuntan para el informe
       const F0 = await foto(), S0 = F0.S;
       const semHoy = SS.semanaDelCurso(S0.inicio, S0.pausas || []);
       const futura = SS.inicioDeSemana(S0.inicio, semHoy + 2, S0.pausas || []);   // la semana que empieza dentro de dos
+      // 11-nov · «una semana más tarde» es la siguiente semana LECTIVA: si cae en una no lectiva (las dos de Navidad, que el grupo
+      // ya trae de serie), salta detrás. Con la semana 1 hace nueve semanas, desde noviembre los cierres caen en Navidad.
+      const tarde = (iso, ps) => { let x = SS.masDias(iso, 7); while (ps.some(p => x >= p && x < SS.masDias(p, 7))) x = SS.masDias(x, 7); return x; };
       const rita = await nueva("Rita y el calendario");
       await rita.ir("entrar.html"); await rita.entrarComo("rita@lab.test", "Rita Referente");
       // 19-sep · editar el calendario, en «Gestionar grupos» (verlo sigue en la Nave, para todos)
@@ -2432,7 +2435,7 @@ const REG = {};   // cifras que se apuntan para el informe
       c("calendario · «Guardar» → «Calendario guardado: N fechas recalculadas»", await rita.hasta("/Calendario guardado: \\d+ fechas/.test((document.getElementById('c-aviso')||{}).innerText||'')", 25),
         await rita.js("(document.getElementById('c-aviso')||{}).innerText||''"));
       const F1 = await foto(), S1 = F1.S;
-      c("🔴 calendario · el grupo guarda la pausa y el capítulo abierto", JSON.stringify(S1.pausas) === JSON.stringify([futura]) && S1.capitulosAbiertos && Number(S1.capitulosAbiertos.c7) === semHoy,
+      c("🔴 calendario · el grupo guarda la pausa y el capítulo abierto", JSON.stringify(S1.pausas) === JSON.stringify(SS.limpias(S0.inicio, (S0.pausas || []).concat([futura]))) && S1.capitulosAbiertos && Number(S1.capitulosAbiertos.c7) === semHoy,
         JSON.stringify([S1.pausas, S1.capitulosAbiertos]));
       const ses = await nueva("Rita proyecta la semana en que abrió el Arsenal");
       await ses.ir("entrar.html"); await ses.entrarComo("rita@lab.test", "Rita Referente");
@@ -2446,23 +2449,23 @@ const REG = {};   // cifras que se apuntan para el informe
         await ses.js("performance.getEntriesByType('resource').some(function(e){ return /tableroStargate\\?per=[^&]*&t=/.test(e.name); })"));
       c("calendario · la sesión proyectada de ESTA semana presenta el Arsenal abierto antes de tiempo («Lo nuevo»)", /Arsenal/.test(loNuevo), loNuevo.slice(0, 200));
       await ses.cerrar();
-      c("🔴 calendario · el cierre de retos y el de canje, una semana más tarde", S1.cierre === SS.masDias(S0.cierre, 7) && S1.cierreCanje === SS.masDias(S0.cierreCanje, 7),
+      c("🔴 calendario · el cierre de retos y el de canje, una semana más tarde", S1.cierre === tarde(S0.cierre, S1.pausas) && S1.cierreCanje === tarde(S0.cierreCanje, S1.pausas),
         S0.cierre + "→" + S1.cierre + " · " + S0.cierreCanje + "→" + S1.cierreCanje);
       const lim = new Date(futura + "T00:00:00").getTime(), hoyMs = SS.fecha(new Date()).getTime();
       const esSorteo = k => /__sorteo/.test(k);
       const malR = Object.keys(F0.rw).filter(k => !esSorteo(k)).filter(k => {
         const [d0, u0, tipo] = F0.rw[k], [d1, u1] = F1.rw[k];
-        const esperado = tipo === "nota" ? Math.min(d0 < lim ? d0 : new Date(SS.masDias(SS.iso(d0), 7) + "T00:00:00").getTime(), hoyMs)
-                                        : d0 < lim ? d0 : new Date(SS.masDias(SS.iso(d0), 7) + "T00:00:00").getTime();
+        const esperado = tipo === "nota" ? Math.min(d0 < lim ? d0 : new Date(tarde(SS.iso(d0), S1.pausas) + "T00:00:00").getTime(), hoyMs)
+                                        : d0 < lim ? d0 : new Date(tarde(SS.iso(d0), S1.pausas) + "T00:00:00").getTime();
         return d1 !== esperado || u1 !== new Date(S1.cierreCanje + "T00:00:00").getTime();
       });
       c("🔴 calendario · el Mercado: lo de antes de la pausa igual, lo de después una semana más tarde, y el Arsenal ya a la venta", malR.length === 0 && Object.keys(F0.rw).length > 5,
         malR.map(k => k.split("__")[1] + ":" + SS.iso(F0.rw[k][0]) + "→" + SS.iso(F1.rw[k][0])).join(" "));
       const kS = Object.keys(F0.rw).filter(esSorteo)[0];
       c("🔴 calendario · el Gran Sorteo: se sigue vendiendo desde su semana (antes de la pausa) y se sortea una semana más tarde",
-        !!kS && F1.rw[kS][0] === F0.rw[kS][0] && F1.rw[kS][1] === new Date(SS.masDias(SS.iso(F0.rw[kS][1]), 7) + "T00:00:00").getTime(),
+        !!kS && F1.rw[kS][0] === F0.rw[kS][0] && F1.rw[kS][1] === new Date(tarde(SS.iso(F0.rw[kS][1]), S1.pausas) + "T00:00:00").getTime(),
         kS + " · " + (kS ? SS.iso(F0.rw[kS][1]) + "→" + SS.iso(F1.rw[kS][1]) : ""));
-      const malC = Object.keys(F0.cp).filter(k => F1.cp[k] !== (F0.cp[k] < lim ? F0.cp[k] : new Date(SS.masDias(SS.iso(F0.cp[k]), 7) + "T00:00:00").getTime()));
+      const malC = Object.keys(F0.cp).filter(k => F1.cp[k] !== (F0.cp[k] < lim ? F0.cp[k] : new Date(tarde(SS.iso(F0.cp[k]), S1.pausas) + "T00:00:00").getTime()));
       c("calendario · los planetas: los que vienen detrás de la pausa, una semana más tarde", malC.length === 0 && Object.keys(F0.cp).length > 3, malC.join(","));
       // la Nave de una alumna: la semana de hoy no cambia (la pausa es futura) y el Arsenal ya se ve
       if (!(await fichaDe("tea@lab.test", P))) { const alta = await nueva("Tea se alista"); await alistar(alta, "tea@lab.test", "Tea Prueba", "Tea Tempo", 0); await alta.cerrar(); }
@@ -2496,7 +2499,8 @@ const REG = {};   // cifras que se apuntan para el informe
       const F2 = await foto();
       c("🔴 calendario · al deshacerlo, TODAS las fechas vuelven exactamente a las de antes",
         JSON.stringify(F2.rw) === JSON.stringify(F0.rw) && JSON.stringify(F2.cp) === JSON.stringify(F0.cp) && F2.S.cierre === S0.cierre && F2.S.cierreCanje === S0.cierreCanje
-        && (F2.S.pausas || []).length === 0 && !(F2.S.capitulosAbiertos || {}).c7);
+        && JSON.stringify(F2.S.pausas || []) === JSON.stringify(S0.pausas || []) && !(F2.S.capitulosAbiertos || {}).c7,
+        JSON.stringify([F2.S.pausas, F2.S.cierre, F2.S.cierreCanje]));
       // Ajustes ya no mueve la fecha a medias: manda al calendario
       await rita.js("document.querySelector('.pest[data-tab=\"ajustes\"]').click(); 1"); await rita.hasta("!!document.getElementById('s-guardar')", 15);
       c("calendario · en «Ajustes» ya no se cambia la semana 1 (solo se ve) y un botón lleva al calendario",

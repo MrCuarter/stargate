@@ -911,8 +911,14 @@
       listo = fetch(PUBLICA + "?per=" + encodeURIComponent(per)).then(function (r) { return r.json(); }).then(function (d) {
         if (d.error) throw new Error(d.error);
         crudo = d;
-        var M = window.SG && window.SG.MOTOR;
-        var quien = M && M.sesion ? M.sesion().catch(function () { return null; }) : Promise.resolve(null);
+        // 11-nov · el motor es un módulo y puede llegar DESPUÉS que esto: se le espera (sg:motor) hasta 4 s; sin él (dentro de un
+        // Genially, sin motor), «Tu Comandante». Antes se miraba una sola vez y, si aún no estaba, a Rita le salía «Tu Comandante».
+        var motor = new Promise(function (ok) {
+          if (window.SG && window.SG.MOTOR) return ok(window.SG.MOTOR);
+          var t = setTimeout(function () { ok(window.SG && window.SG.MOTOR || null); }, 4000);
+          document.addEventListener("sg:motor", function () { clearTimeout(t); ok(window.SG && window.SG.MOTOR || null); }, { once: true });
+        });
+        var quien = motor.then(function (M) { return M && M.sesion ? M.sesion().catch(function () { return null; }) : null; });
         return Promise.all([esperarTraductor(), quien]).then(function (r) {
           var yo = r[1];
           // «Cmdte. Rita» si se sabe quién es; si no (sin sesión, dentro de un Genially), «Tu Comandante»
