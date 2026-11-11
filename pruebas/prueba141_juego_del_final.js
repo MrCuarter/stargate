@@ -41,15 +41,20 @@ const CANAL = funcion(MOTOR, "directoCanal");
   // 8-oct (tarde) · dónde lee (mod_directo) y lo que quita al leer, de motor.js tal cual
   const SITIOS = (MOTOR.match(/\nconst ENVIVO = [^\n]*\nconst comoAntes = [^\n]*\n/) || [""])[0];
   c(/DIRECTO = "mod_directo"/.test(SITIOS) && /const comoAntes/.test(SITIOS), "   la sala del juego, de motor.js: mod_directo (con lo que se quita al leer)");
-  const montar = (conLlamar) => new Function("auth", "db", "doc", "collection", "query", "where", "onSnapshot", "getDoc", "setDoc", "addDoc", "updateDoc", "deleteDoc", "llamar",
+  // 11-nov · el aula (GamificaPro docs/SALAS_POR_AULA.md): `aulasDe` del motor, de mentira (sin escuadrones, como un grupo de un solo
+  // Comandante: no manda `aulas`), y GP.directo de verdad (assets/js/directo.js) para leer lo de su aula
+  const GPD_WEB = (() => { const w = {}; new Function("window", L("assets/js/directo.js"))(w); return w.GP.directo; })();
+  const montar = (conLlamar, opc) => new Function("auth", "db", "doc", "collection", "query", "where", "onSnapshot", "getDoc", "setDoc", "addDoc", "updateDoc", "deleteDoc", "llamar",
+    "window", "aulasDe", "deMiAula",
     SITIOS + "\n" + CANAL + "\nreturn directoCanal;")(
     { currentUser: { uid: "yo" } }, {},
     (...a) => ({ doc: a.slice(1).join("/") }), (...a) => ({ col: a.slice(1).join("/") }), (...a) => ({ q: a }), (...a) => ({ w: a }),
-    (ref, ok1) => { oyendo.push(ref.doc || ref.col || (ref.q && ref.q[0].col)); return () => {}; },
+    (opc && opc.onSnapshot) || ((ref, ok1) => { oyendo.push(ref.doc || ref.col || (ref.q && ref.q[0].col)); return () => {}; }),
     async (ref) => ({ exists: () => true, data: () => ({ actualizado: Date.now(), listo: true, puntos: 12, stats: { a: 1 } }) }),
     (...a) => { escrituras.push(["setDoc", a]); return Promise.resolve(); }, (...a) => { escrituras.push(["addDoc", a]); return Promise.resolve(); },
     (...a) => { escrituras.push(["updateDoc", a]); return Promise.resolve(); }, (...a) => { escrituras.push(["deleteDoc", a]); return Promise.resolve(); },
-    conLlamar || (async (fn, d) => { llamadas.push([fn, JSON.parse(JSON.stringify(d))]); return { ok: true }; }));
+    conLlamar || (async (fn, d) => { llamadas.push([fn, JSON.parse(JSON.stringify(d))]); return { ok: true }; }),
+    { GP: { directo: GPD_WEB } }, (opc && opc.aulasDe) || (async () => ({ docente: false, aulas: [], aula: null })), (d, aula, partes) => GPD_WEB.vistaDeAula(d, aula, partes));
   const directoCanal = montar();
   const antes = () => llamadas.splice(0, llamadas.length);
 
@@ -167,7 +172,7 @@ const CANAL = funcion(MOTOR, "directoCanal");
   if (!GPD) console.log("   (sin la carpeta de gamificapro al lado: la configuración del servidor no se comprueba aquí)");
   else {
     const S = fs.readFileSync(path.join(GPD, "functions", "mods", "stargate.js"), "utf8");
-    c(/directo: \{\s*coleccion: 'mod_directo',\s*sello: true,\s*(?:\/\/[^\n]*\n\s*)?cambio: 'modCambiado',\s*partes: \{ estado: 'documento' \},\s*sinCongelar: true,\s*respuestas: \{ forma: 'jugador', sub: 'jugadores', puntos: 100000, avatar: 300 \},\s*eventos: \{ sub: 'eventos', alumno: \['sabotaje'\] \},/.test(S),
+    c(/directo: \{\s*coleccion: 'mod_directo',\s*(?:porAula: true,\s*)?sello: true,\s*(?:\/\/[^\n]*\n\s*)?cambio: 'modCambiado',\s*partes: \{ estado: 'documento' \},\s*sinCongelar: true,\s*respuestas: \{ forma: 'jugador', sub: 'jugadores', puntos: 100000, avatar: 300 \},\s*eventos: \{ sub: 'eventos', alumno: \['sabotaje'\] \},/.test(S),
       "   la sala: el estado como documento entero (con su sello), sin congelados, el jugador (puntos hasta 100.000, avatar de 300) y solo el sabotaje del alumnado");
     const MC = fs.readFileSync(path.join(GPD, "functions", "modClase.js"), "utf8");
     c(/accion === 'evento'|\/\/ evento/.test(MC) && /ev\.alumno \|\| \[\]\)\.includes\(t\)/.test(MC) && /t\.length > 40/.test(MC), "   y modClase deja al alumnado los tipos de «alumno» y corta el tipo de suceso a 40 letras");
@@ -188,6 +193,41 @@ const CANAL = funcion(MOTOR, "directoCanal");
   c(/if \(x\.sala === "directo"\) return directo\(x, per, ahora\);/.test(SIMF) && /function directo\(x, per, ahora\)/.test(SIMF), "   modClase contesta a la sala «directo»");
   c(/Esto es del equipo docente del grupo\./.test(SIMF) && /Eso solo lo puede mandar el equipo docente\./.test(SIMF) && /Esa ficha no es tuya en este grupo\./.test(SIMF) && /Esos puntos no valen\./.test(SIMF) && /Ese avatar no vale\./.test(SIMF),
     "   con las mismas negativas que el servidor (solo el docente pone el estado, el alumnado solo el sabotaje, su ficha, los puntos y el avatar)");
+
+  console.log("\n  🔴 11-nov · Dos Comandantes juegan a la vez en el mismo grupo (PER 16450: Los Porqués y Los Cartógrafos)");
+  {
+    // una sala de mentira que reparte a cada escucha lo que se le dé: el documento (con `aulas`), los sucesos y los jugadores
+    const oyentes = { sala: [], eventos: [], jugadores: [] };
+    const onSnapshot = (ref, ok1) => { const k = ref.doc ? "sala" : ref.col && /jugadores$/.test(ref.col) ? "jugadores" : "eventos"; oyentes[k].push(ok1); return () => {}; };
+    const llamadasN = [];
+    const deNorberto = montar(async (fn, d) => { llamadasN.push(JSON.parse(JSON.stringify(d))); return { ok: true }; },
+      { onSnapshot, aulasDe: async () => ({ docente: true, aulas: ["esc_porques"], aula: "esc_porques" }) });
+    const deUnRecluta = montar(async () => ({ ok: true }), { onSnapshot, aulasDe: async () => ({ docente: false, aulas: [], aula: "esc_carto" }) });
+    const vistoN = [], vistoR = [];
+    const N = deNorberto("per-16450", true, null, (m) => vistoN.push(m));
+    const R = deUnRecluta("per-16450", false, { id: "fc", alias: "Carto", avatar: "" }, (m) => vistoR.push(m));
+    const doc = { aulas: { esc_porques: { estado: { fase: "juego", de: "Norberto" }, t: 5 }, esc_carto: { estado: { fase: "preparar", de: "Caridad" }, t: 9 } },
+      estado: { fase: "preparar", de: "Caridad" } };
+    oyentes.sala.forEach((f) => f({ exists: () => true, data: () => doc }));
+    const cambio = (x) => ({ type: "added", doc: { data: () => x } });
+    oyentes.jugadores.forEach((f) => f({ docChanges: () => [cambio({ fichaId: "fp", aula: "esc_porques", alias: "P", listo: true, actualizado: Date.now() }),
+      cambio({ fichaId: "fc", aula: "esc_carto", alias: "C", listo: true, actualizado: Date.now() }), cambio({ fichaId: "fv", alias: "Vieja", listo: true, actualizado: Date.now() })] }));
+    oyentes.eventos.forEach((f) => f({ docChanges: () => [cambio({ t: "sabotaje", aula: "esc_carto", datos: {} }), cambio({ t: "final", aulas: ["esc_porques"], datos: {} }),
+      cambio({ t: "bomba", datos: {} })] }));
+    await espera(20);
+    const estados = (v) => v.filter((m) => m.t === "estado").map((m) => m.de);
+    c(canon(estados(vistoN)) === canon(["Norberto"]) && canon(estados(vistoR)) === canon(["Caridad"]),
+      "🔴 cada pantalla y cada móvil siguen el estado de SU aula (no el último que se escribió)", { N: estados(vistoN), R: estados(vistoR) });
+    const holas = vistoN.filter((m) => m.t === "hola").map((m) => m.id);
+    c(canon(holas) === canon(["fp", "fv"]), "🔴 la pantalla de Norberto cuenta a los suyos (y a un jugador de antes, sin aula), no a los de Caridad", holas);
+    const sucesosN = vistoN.filter((m) => m.t !== "estado" && m.t !== "hola" && m.t !== "pts").map((m) => m.t);
+    const sucesosR = vistoR.filter((m) => m.t !== "estado").map((m) => m.t);
+    c(canon(sucesosN) === canon(["final", "bomba"]) && canon(sucesosR) === canon(["sabotaje", "bomba"]),
+      "   los sucesos: el sabotaje de un recluta de Caridad no llega a la pantalla de Norberto; el final de Norberto no llega al móvil de Caridad", { sucesosN, sucesosR });
+    N.enviar({ t: "estado", fase: "juego" }); N.enviar({ t: "bomba" }); await espera(1200);
+    c(llamadasN.length === 2 && llamadasN.every((d) => canon(d.aulas) === canon(["esc_porques"])), "   y todo lo que escribe su pantalla va con sus escuadrones (`aulas`)", llamadasN);
+    N.cerrar(); R.cerrar();
+  }
 
   console.log("\n  Batería 141 · el juego del final, por el servidor");
   console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");

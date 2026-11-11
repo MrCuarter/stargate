@@ -8,7 +8,7 @@
  *     presentación por BroadcastChannel (el mismo navegador: al momento y sin servidor); si no le llega nada, por la nube.
  *     Mientras está abierta, la web esconde su panel de notas de la pantalla proyectada (`alCambiar({ ventana })`).
  *   · «Mandarlas al móvil o al iPad»: un QR y un enlace a la misma vista en otro dispositivo. La presentación escribe la diapositiva
- *     que va en `mod_notas/{grupo}` y la vista la escucha. Solo entra quien inicia sesión y es del equipo docente del grupo: las
+ *     que va en `mod_notas/{grupo}__{uid}` (11-nov: una por docente; antes, una por grupo) y la vista la escucha. Solo entra quien inicia sesión y es del equipo docente del grupo: las
  *     reglas (firestore.rules → mod_notas) no dejan leerla a nadie más; el alumnado, nunca.
  * Sirve igual en directo, en la vista previa y en el simulacro (ahí, sin nube: solo la ventana).
  *
@@ -145,6 +145,9 @@
     // el perfil del docente (mod_profes/{mod}__{uid}): con `uid`, `correo` y `mod` (lo que piden las reglas para escribirlo)
     var PERFIL = o.uid && o.mod ? o.doc(o.db, "mod_profes", String(o.mod) + "__" + String(o.uid)) : null;
     var firmaPerfil = function () { return { uid: String(o.uid), correo: String(o.correo || ""), mod: String(o.mod) }; };
+    // 🔴 11-nov · LAS NOTAS, DE CADA DOCENTE (docs/SALAS_POR_AULA.md): `mod_notas/{grupo}__{uid}`. Con dos docentes dando clase a la vez en
+    // el mismo grupo, las de uno le llegaban al móvil del otro (era un documento por grupo). Sin uid (no pasa en las webs), el de antes.
+    var NOTAS = function (per) { return o.doc(o.db, COLECCION, String(per) + (o.uid ? "__" + String(o.uid) : "")); };
     NUBE = {
       perfil: !!PERFIL,
       escucharPerfil: function (fn) {
@@ -167,15 +170,15 @@
       // (con merge: el `pedido` del móvil se queda hasta que la presentación lo recoge)
       guardar: function (per, p) {
         var datos = Object.assign({}, p, { projectId: String(per), t: o.serverTimestamp() });
-        return o.setDoc(o.doc(o.db, COLECCION, String(per)), datos, { merge: true });
+        return o.setDoc(NOTAS(per), datos, { merge: true });
       },
       // 17-oct · «Al chat» desde el móvil: el pedido va al documento y la presentación (que lo escucha) lo manda al chat de la clase
       pedir: function (per, texto) {
         var pedido = { texto: String(texto || "").slice(0, 600), id: Math.random().toString(36).slice(2, 12), ms: Date.now() };
-        return o.setDoc(o.doc(o.db, COLECCION, String(per)), { projectId: String(per), pedido: pedido, t: o.serverTimestamp() }, { merge: true });
+        return o.setDoc(NOTAS(per), { projectId: String(per), pedido: pedido, t: o.serverTimestamp() }, { merge: true });
       },
       escuchar: function (per, fn, fallo) {
-        return o.onSnapshot(o.doc(o.db, COLECCION, String(per)), function (s) { fn(s && s.exists() ? s.data() : null); }, fallo);
+        return o.onSnapshot(NOTAS(per), function (s) { fn(s && s.exists() ? s.data() : null); }, fallo);
       },
     };
   }

@@ -1242,8 +1242,46 @@ function vigilarVotacionesAlumno(perId, alCambiar) {
  */
 const ENVIVO = "mod_envivo", RESPUESTAS = "mod_respuestas", DIRECTO = "mod_directo";
 const comoAntes = (d) => { if (!d) return d; const x = Object.assign({}, d); delete x.mod; delete x.espejoDe; delete x.espejoHora; return x; };
+/**
+ * 🔴 11-nov · UNA SALA POR AULA (GamificaPro docs/SALAS_POR_AULA.md; Norberto: «puede darse el caso de que dos profesores tengan clase a la
+ * misma hora»). En PER 16450 proyectan a la vez Norberto (Los Porqués) y Caridad (Los Cartógrafos): el aula es el ESCUADRÓN. Cada
+ * Comandante escribe con sus escuadrones (`aulas`) y cada cual lee lo de su aula (GP.directo.vistaDeAula, assets/js/directo.js).
+ *   aulasDe(perId) → { docente, aulas, aula }: `aulas`, a las que emite un Comandante (sus escuadrones: `teacherName` = su nombre en el
+ *   equipo, o su correo en `assignedTeacherEmails`; sin ninguno, «_», todo el grupo); `aula`, la que lee (la 1.ª suya, o la de la ficha
+ *   del recluta; sin ninguna, null: lo más reciente). Una vez por grupo y sesión.
+ */
+const AULAS = new Map();
+function aulasDe(perId) {
+  if (!perId) return Promise.resolve({ docente: false, aulas: [], aula: null });
+  if (!AULAS.has(perId)) AULAS.set(perId, (async () => {
+    const yo = await sesion();
+    if (!yo) return { docente: false, aulas: [], aula: null };
+    const proy = await getDoc(doc(db, "projects", perId)).then(s => (s.exists() ? s.data() : null), () => null);
+    if (proy && esDelEquipoDe(proy, yo)) {
+      const priv = await getDoc(doc(db, "projects", perId, "privado", "stargate")).catch(() => null);
+      const docentes = (priv && priv.exists() ? priv.data().docentes : (proy.stargate || {}).docentes) || [];
+      const mio = docentes.filter(d => String(d.correo || "").toLowerCase() === yo.correo)[0];
+      const nombre = (mio && mio.nombre) || yo.nombre || "";
+      const ids = (proy.factions || []).filter(f => f && f.id && ((nombre && f.teacherName === nombre) ||
+        (f.assignedTeacherEmails || []).map(e => String(e).toLowerCase()).indexOf(yo.correo) >= 0)).map(f => String(f.id));
+      const D = window.GP && window.GP.directo, aulas = D && D.aulasParaEmitir ? D.aulasParaEmitir(ids) : (ids.length ? ids : ["_"]);
+      return { docente: true, aulas, aula: ids[0] || null };
+    }
+    const r = await getDocs(query(collection(db, "student_profiles"), where("projectId", "==", perId), where("userId", "==", yo.uid))).catch(() => null);
+    const f = r && !r.empty ? r.docs[0].data() : {};
+    return { docente: false, aulas: [], aula: String(f.squadId || f.factionId || "") || null };
+  })().catch(() => { AULAS.delete(perId); return { docente: false, aulas: [], aula: null }; }));
+  return AULAS.get(perId);
+}
+/** Lo de mi aula (sin GP.directo cargado, la sala tal cual: lo de antes). */
+const deMiAula = (d, aula, partes) => { const D = window.GP && window.GP.directo; return D && D.vistaDeAula ? D.vistaDeAula(d, aula, partes) : d; };
+const conAulas = async (perId, datos) => { const a = await aulasDe(perId); return a.docente && a.aulas.length ? Object.assign({ aulas: a.aulas }, datos) : datos; };
 function vigilarEnVivo(perId, alCambiar) {
-  return onSnapshot(doc(db, ENVIVO, perId), s => alCambiar(s.exists() ? comoAntes(s.data()) : {}), () => alCambiar({}));
+  // (11-nov · lo de mi aula: la sesión y la pregunta de MI Comandante; hasta saber mi aula, nada, para no enseñar la del otro)
+  let aula, crudo = null, listo = false, llego = false;
+  const dar = () => { if (listo && llego) alCambiar(crudo ? deMiAula(crudo, aula, ["sesion", "pregunta"]) : {}); };
+  aulasDe(perId).then(a => { aula = a.aula; listo = true; dar(); });
+  return onSnapshot(doc(db, ENVIVO, perId), s => { llego = true; crudo = s.exists() ? comoAntes(s.data()) : null; dar(); }, () => { llego = true; crudo = null; dar(); });
 }
 /**
  * 8-oct · LO EN VIVO LO ESCRIBE EL SERVIDOR (GamificaPro: `modClase`, sala «envivo» del mod; PLAN_CENTRALIZAR §1e y fase 6): los
@@ -1255,7 +1293,7 @@ let colaEnVivo = Promise.resolve();
 function publicarEnVivo(perId, cambios) {
   const hecha = colaEnVivo.catch(() => {}).then(async () => {
     for (const parte of Object.keys(cambios || {}))
-      await llamar("modClase", { accion: "poner", projectId: perId, sala: "envivo", parte, valor: cambios[parte] });
+      await llamar("modClase", await conAulas(perId, { accion: "poner", projectId: perId, sala: "envivo", parte, valor: cambios[parte] }));
   });
   colaEnVivo = hecha;
   return hecha;
@@ -1263,10 +1301,10 @@ function publicarEnVivo(perId, cambios) {
 async function lanzarPregunta(perId, texto, por) {
   const t = String(texto || "").trim().slice(0, 300);
   if (!t) throw new Error("Escribe la pregunta.");
-  const r = await llamar("modClase", { accion: "pregunta", projectId: perId, sala: "envivo", texto: t, por: String(por || "").slice(0, 80) });
+  const r = await llamar("modClase", await conAulas(perId, { accion: "pregunta", projectId: perId, sala: "envivo", texto: t, por: String(por || "").slice(0, 80) }));
   return r.id;
 }
-async function cerrarPregunta(perId) { await llamar("modClase", { accion: "cerrarPregunta", projectId: perId, sala: "envivo" }); }
+async function cerrarPregunta(perId) { await llamar("modClase", await conAulas(perId, { accion: "cerrarPregunta", projectId: perId, sala: "envivo" })); }
 // (`alias` ya no viaja: el servidor pone el de la ficha, que es el que exigían las reglas)
 async function responderPregunta(perId, preguntaId, fichaId, alias, texto) {
   const u = auth.currentUser;
@@ -2353,19 +2391,38 @@ async function directoYo(perId) {
 function directoCanal(perId, esDocente, yo, alMensaje) {
   const u = auth.currentUser, t0 = Date.now(), fuera = [];
   const sala = doc(db, DIRECTO, perId);
-  let ultimo = 0, pendiente = null, reloj = null, miDoc = null, cola = Promise.resolve(), ultimoEstado = "";
+  let ultimo = 0, pendiente = null, reloj = null, miDoc = null, cola = Promise.resolve(), ultimoEstado = "", parado = false;
   // escribir como mucho una vez por segundo por documento (se guarda solo lo último)
   const tanda = (fn) => { pendiente = fn; if (reloj) return; const t = Math.max(0, 1000 - (Date.now() - ultimo));
     reloj = setTimeout(() => { reloj = null; ultimo = Date.now(); const f = pendiente; pendiente = null; f && f().catch(() => {}); }, t); };
-  fuera.push(onSnapshot(sala, (s) => { const d = s.exists() ? s.data() : null; if (d && d.estado) alMensaje(Object.assign({ t: "estado" }, d.estado)); }, () => {}));
+  /*
+   * 🔴 11-nov · POR AULA (GamificaPro docs/SALAS_POR_AULA.md): cada Comandante juega con SU escuadrón aunque otro juegue a la vez en el
+   * mismo grupo. Su pantalla escribe el estado y lo suyo con sus `aulas`, y solo cuenta a los jugadores y los sabotajes de ellas; cada
+   * móvil lee el estado de su aula y no atiende lo que el otro Comandante manda a su clase. Hasta saber el aula, no se atiende nada.
+   */
+  const D = window.GP && window.GP.directo, esMia = (a, mias) => (D && D.esDeMisAulas ? D.esDeMisAulas(a, mias) : true);
+  let A = null;
+  const listo = aulasDe(perId).then((a) => { A = a; return a; });
+  const misAulas = () => (A ? (esDocente ? A.aulas : (A.aula ? [A.aula] : [])) : []);
+  // (las escuchas se abren ya; lo que llega se atiende cuando se sabe el aula, en el orden en que llegó)
+  const tras = (f) => listo.then(() => { if (!parado) f(); });
+  fuera.push(onSnapshot(sala, (s) => { const d0 = s.exists() ? s.data() : null; tras(() => {
+    const d = d0 ? deMiAula(d0, A.aula, ["estado"]) : null; if (d && d.estado) alMensaje(Object.assign({ t: "estado" }, d.estado)); }); }, () => {}));
   fuera.push(onSnapshot(query(collection(db, DIRECTO, perId, "eventos"), where("creado", ">", t0 - 2000)), (r) => {
-    r.docChanges().forEach((c) => { if (c.type === "added") { const e = c.doc.data(); alMensaje(Object.assign({}, e.datos || {}, { t: e.t })); } });
+    const nuevos = r.docChanges().filter((c) => c.type === "added").map((c) => c.doc.data());
+    tras(() => nuevos.forEach((e) => {
+      // lo del Comandante, si es para mis aulas; lo del alumnado (un sabotaje), si es de mi aula
+      if (Array.isArray(e.aulas) && e.aulas.length && !e.aulas.some((a) => esMia(a, misAulas()))) return;
+      if (e.aula && !esMia(e.aula, misAulas())) return;
+      alMensaje(Object.assign({}, e.datos || {}, { t: e.t })); }));
   }, () => {}));
   if (esDocente) fuera.push(onSnapshot(collection(db, DIRECTO, perId, "jugadores"), (r) => {
-    r.docChanges().forEach((c) => { if (c.type === "removed") return; const j = c.doc.data();
+    const js = r.docChanges().filter((c) => c.type !== "removed").map((c) => c.doc.data());
+    tras(() => js.forEach((j) => {
       if (Date.now() - (Number(j.actualizado) || 0) > 20 * 60 * 1000) return;   // (restos de otra clase)
+      if (!esMia(j.aula, A.aulas)) return;   // (11-nov · de otro escuadrón: juega con su Comandante)
       alMensaje({ t: "hola", id: j.fichaId, alias: j.alias, avatar: j.avatar, listo: j.listo === true });
-      alMensaje({ t: "pts", id: j.fichaId, puntos: j.puntos || 0, stats: j.stats || {} }); });
+      alMensaje({ t: "pts", id: j.fichaId, puntos: j.puntos || 0, stats: j.stats || {} }); }));
   }, () => {}));
   const limpio = (o) => JSON.parse(JSON.stringify(o));
   /**
@@ -2374,7 +2431,7 @@ function directoCanal(perId, esDocente, yo, alMensaje) {
    * tanda») van EN ORDEN, una llamada tras otra: antes las escrituras de Firestore salían en el orden en que se pedían, y con
    * llamadas sueltas un estado viejo podría pisar a uno nuevo. Los sucesos son independientes, como cuando eran addDoc.
    */
-  const alServidor = (datos) => llamar("modClase", Object.assign({ projectId: perId, sala: "directo" }, datos));
+  const alServidor = (datos) => listo.then(() => llamar("modClase", Object.assign({ projectId: perId, sala: "directo" }, esDocente && A && A.aulas.length ? { aulas: A.aulas } : {}, datos)));
   const enOrden = (f) => { const hecha = cola.catch(() => {}).then(f); cola = hecha; return hecha; };
   function enviar(m) {
     if (!u || !m || !m.t) return;
@@ -2415,7 +2472,8 @@ function directoCanal(perId, esDocente, yo, alMensaje) {
       if (!miDoc) miDoc = { fichaId: yo.id, avatar: String(yo.avatar || "").slice(0, 300), listo: d.listo === true, puntos: Number(d.puntos) || 0, stats: d.stats || {} };
       return d; } catch (e) { return null; }
   }
-  return { enviar, mio, cerrar: () => fuera.forEach((f) => { try { f(); } catch (e) { /* nada */ } }) };
+  // (11-nov · `aulas`: las de este Comandante, para el premio del final —stargateDirecto paga solo a los suyos—)
+  return { enviar, mio, aulas: () => listo.then((a) => (a.docente ? a.aulas : [])), cerrar: () => { parado = true; fuera.forEach((f) => { try { f(); } catch (e) { /* nada */ } }); } };
 }
 
 /**
@@ -2455,6 +2513,6 @@ window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, cambiarCuenta, l
                     vigilarVotaciones, vigilarVotacionesAlumno, vigilarEnVivo, publicarEnVivo, apuntarFallo, lanzarPregunta, cerrarPregunta, responderPregunta, vigilarRespuestas, quitarRespuesta, miRespuesta,
                     referenteGlobal, crearInvitacion, leerInvitacion, canjearInvitacion, invitaciones, referentes, ponerReferente,
                     profes, anotarConexion, fichaDocenteRef, fichaDocenteDatos, todosLosGrupos, VITALICIOS: REFERENTES_VITALICIOS,
-                    directoYo, directoCanal, pasarEscuadron, escuadronNuevo, apoyarEscuadron,
+                    directoYo, directoCanal, aulasDe, pasarEscuadron, escuadronNuevo, apoyarEscuadron,
                     db, auth, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch };
 document.dispatchEvent(new CustomEvent("sg:motor"));

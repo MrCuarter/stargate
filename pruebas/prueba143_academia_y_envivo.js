@@ -34,6 +34,8 @@ const funcion = n => { const i = MOTOR.search(new RegExp("\\n(async )?function "
 const una = n => { const i = MOTOR.indexOf("\nasync function " + n + "("); assert.ok(i >= 0, n); const j = MOTOR.indexOf("\n}", i); return MOTOR.slice(i, j + 2); };
 const linea = n => { const i = MOTOR.indexOf("\nasync function " + n + "("); assert.ok(i >= 0, n); return MOTOR.slice(i, MOTOR.indexOf("\n", i + 1)); };
 const cuerpo = [
+  // 11-nov · el aula (GamificaPro docs/SALAS_POR_AULA.md): `conAulas` de motor.js tal cual, con un `aulasDe` de mentira (un Comandante sin escuadrones)
+  (MOTOR.match(/\nconst conAulas = [^\n]*\n/) || [""])[0], "const aulasDe = async () => (globalThis.AULAS_DE_PRUEBA || { docente: true, aulas: [], aula: null });",
   "let colaEnVivo = Promise.resolve();", funcion("publicarEnVivo"), una("lanzarPregunta"), linea("cerrarPregunta"), una("responderPregunta"), linea("quitarRespuesta"),
   una("academiaGuardar"), una("academiaTodos"), una("academiaEditar"), linea("academiaQuitar"), una("academiaResponder"), una("academiaProfes"),
   'const ACADEMIA_CAMPOS = ["alias", "pasos", "diseno", "preguntas", "feedback", "avance"];',
@@ -64,6 +66,17 @@ const M = new Function("llamar", "auth", "sesion", cuerpo)(async (fn, d) => {
     ["modClase", { accion: "responder", projectId: "g1", sala: "envivo", pregunta: "pabc", fichaId: "f1", texto: "Esto" }],
     ["modClase", { accion: "quitarRespuesta", projectId: "g1", sala: "envivo", id: "g1__pabc__f1" }]]),
   "🔴 la sesión, la pregunta, su cierre, la respuesta y su retirada, por modClase (sala envivo), con los datos de siempre", llamadas);
+  // 🔴 11-nov · un Comandante con su escuadrón (GamificaPro docs/SALAS_POR_AULA.md): todo lo suyo va con `aulas`; responder y quitar, no
+  globalThis.AULAS_DE_PRUEBA = { docente: true, aulas: ["esc_porques"], aula: "esc_porques" };
+  await M.publicarEnVivo("g1", { sesion: { k: "n1" } });
+  await M.lanzarPregunta("g1", "¿Y esto?", "Norberto");
+  await M.cerrarPregunta("g1");
+  globalThis.AULAS_DE_PRUEBA = { docente: false, aulas: [], aula: "esc_porques" };
+  await M.publicarEnVivo("g1", { sesion: { k: "recluta" } });
+  delete globalThis.AULAS_DE_PRUEBA;
+  const conAulasN = antes().map(([, d]) => d.aulas || null);
+  c(canon(conAulasN) === canon([["esc_porques"], ["esc_porques"], ["esc_porques"], null]),
+    "🔴 dos Comandantes en el mismo grupo: la sesión, la pregunta y su cierre van con los escuadrones de quien proyecta (sin escuadrón o sin ser docente, sin `aulas`)", conAulasN);
   // dos publicaciones seguidas salen EN ORDEN aunque la primera tarde más (antes las escrituras de Firestore salían en orden)
   const orden = [];
   const L2 = new Function("llamar", "auth", "sesion", cuerpo)(async (fn, d) => { if (d.valor.k === "primera") await new Promise(r => setTimeout(r, 30)); orden.push(d.valor.k); return { ok: true }; }, {}, async () => null);
@@ -100,7 +113,7 @@ const M = new Function("llamar", "auth", "sesion", cuerpo)(async (fn, d) => {
   c(sinEscribir.every(nombre => !/\b(setDoc|updateDoc|deleteDoc|addDoc)\(/.test(funcion2(nombre))),
     "🔴 ni un setDoc, updateDoc o deleteDoc en ninguna de esas nueve funciones");
   function funcion2(n) { const i = MOTOR.search(new RegExp("\\n(async )?function " + n + "\\(")); const j = MOTOR.indexOf("\n}", i); return MOTOR.slice(i, j + 2); }
-  c(/function vigilarEnVivo\(perId, alCambiar\) \{\n  return onSnapshot\(doc\(db, ENVIVO, perId\)/.test(MOTOR) && /function vigilarRespuestas\(/.test(MOTOR) && /async function academiaMia\(\) \{[\s\S]{0,200}getDoc\(academiaRef\(yo\.uid\)\)/.test(MOTOR) &&
+  c(/function vigilarEnVivo\(perId, alCambiar\) \{[\s\S]{0,600}return onSnapshot\(doc\(db, ENVIVO, perId\)/.test(MOTOR) && /function vigilarRespuestas\(/.test(MOTOR) && /async function academiaMia\(\) \{[\s\S]{0,200}getDoc\(academiaRef\(yo\.uid\)\)/.test(MOTOR) &&
     /function academiaEscuchar\(fn\)[\s\S]{0,300}onSnapshot\(academiaRef\(yo\.uid\)/.test(MOTOR) &&
     // (8-oct, tanda 2c · de donde diga el mapa: mod_formacion/stargate__<uid>, leído como la vieja)
     /const FORMACION = SDK\.sitio\("stargate_formacion", null\);\nconst academiaRef = \(uid\) => doc\(db, FORMACION\.coleccion, FORMACION\.id\(uid\)\);/.test(MOTOR),
@@ -149,13 +162,13 @@ const M = new Function("llamar", "auth", "sesion", cuerpo)(async (fn, d) => {
       /hilo: \{ campo: 'mando', max: 200, texto: 2000, de: 80, firma: 'El Mando' \}/.test(S), "   la Academia: sus campos y topes (los de las reglas), quién la lee y quién la gestiona (el Mando), y el hilo");
     const CAMPOS = (MOTOR.match(/const ACADEMIA_CAMPOS = \[([^\]]*)\]/) || ["", ""])[1].replace(/["\s]/g, "").split(",").sort();
     c(canon(CAMPOS) === canon(["alias", "avance", "diseno", "feedback", "pasos", "preguntas"]), "   y los campos que filtra la web son los que el servidor deja guardar", CAMPOS);
-    c(/envivo: \{\s*coleccion: 'mod_envivo',\s*sello: true,\s*partes: \{ sesion: 'mezcla' \},\s*sesion: 'sesion',\s*pregunta: \{ campo: 'pregunta', texto: 300, por: 80 \},\s*sinCongelar: true,\s*respuestas: \{ forma: 'texto', coleccion: 'mod_respuestas', texto: 280 \},/.test(S),
+    c(/envivo: \{\s*coleccion: 'mod_envivo',\s*(porAula: true,\s*)?sello: true,\s*partes: \{ sesion: 'mezcla' \},\s*sesion: 'sesion',\s*pregunta: \{ campo: 'pregunta', texto: 300, por: 80 \},\s*sinCongelar: true,\s*respuestas: \{ forma: 'texto', coleccion: 'mod_respuestas', texto: 280 \},/.test(S),
       "   lo en vivo: la sala (con su sello), la sesión que se mezcla, la pregunta (300 y 80), sin congelados y la respuesta de texto (280)");
     // 8-oct (tarde, tanda 1 de «adelantar lo de Navidad») · donde escribe el servidor es donde lee la web
     c(/const ENVIVO = "mod_envivo", RESPUESTAS = "mod_respuestas", DIRECTO = "mod_directo";/.test(MOTOR) && /directo: \{\s*coleccion: 'mod_directo',/.test(S),
       "🔴 la web lee lo en vivo y el juego del final de mod_envivo, mod_respuestas y mod_directo: donde los escribe el servidor");
     c(/const comoAntes = \(d\) => \{[^\n]*delete x\.mod; delete x\.espejoDe; delete x\.espejoHora;/.test(MOTOR) &&
-      /alCambiar\(s\.exists\(\) \? comoAntes\(s\.data\(\)\) : \{\}\)/.test(MOTOR) && /\.\.\.comoAntes\(d\.data\(\)\)/.test(MOTOR) && /const d = comoAntes\(s\.data\(\)\);/.test(MOTOR),
+      /crudo = s\.exists\(\) \? comoAntes\(s\.data\(\)\) : null;/.test(MOTOR) && /\.\.\.comoAntes\(d\.data\(\)\)/.test(MOTOR) && /const d = comoAntes\(s\.data\(\)\);/.test(MOTOR),
       "   y quita al leer lo que pone el motor (su `mod` y lo del espejo): la sala, las respuestas, la mía y lo mío del juego, como antes");
   }
 

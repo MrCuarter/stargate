@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Fragmento vivo · la clase recupera un recuerdo</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilo.css?v=623d779442">
+<link rel="stylesheet" href="estilo.css?v=3f87a39721">
 <style>
 .capa{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);grid-template-rows:auto 1fr;gap:clamp(10px,2vw,30px);align-items:start}
 .cab{grid-column:1/-1}
@@ -63,10 +63,10 @@ body.fin .pars,body.fin .lado{display:none}
   <span class="hueco"></span>
   <button id="b-sim">Simular clase</button><button id="b-son" aria-pressed="false">Sonido</button>
   <a class="boton" id="a-movil" target="_blank" rel="noopener">Móvil de prueba</a>
-  <a class="boton" id="a-puente">Puente</a><a class="boton" id="a-salir" href="index.html?v=623d779442">Salir</a>
+  <a class="boton" id="a-puente">Puente</a><a class="boton" id="a-salir" href="index.html?v=3f87a39721">Salir</a>
   <small>H oculta · F pantalla completa</small>
 </div>
-<script src="nucleo.js?v=623d779442"></script>
+<script src="nucleo.js?v=3f87a39721"></script>
 <script>
 (async () => {
   await F.arranque();
@@ -107,7 +107,7 @@ void main(){
     if (m.t === "adios") { hechos.delete(p.id); manos.delete(p.id); }
     $("abordo").textContent = S.gente.size;
   });
-  $("salan").textContent = F.SALA; $("a-movil").href = F.url("movil.html?v=623d779442");
+  $("salan").textContent = F.SALA; $("a-movil").href = F.url("movil.html?v=3f87a39721");
 
   const decir = t => F.escribir($("dice"), t, 22);
   function montar() {
@@ -116,7 +116,7 @@ void main(){
     $("kick").textContent = `Fragmento ${f + 1} · Los Fragmentos de la Cero`; $("nombre").textContent = m.quien; $("rol").textContent = `${m.rol.toUpperCase()} · ${m.n.toUpperCase()}`;
     $("pars").innerHTML = m.p.map((_, i) => `<div class="par" id="par${i}"><span class="tx"></span><span class="avance"></span></div>`).join("");
     $("manos").classList.remove("si"); $("cita").classList.remove("si"); $("b-go").textContent = "Empezar"; $("b-salta").disabled = true; $("b-salta").textContent = "Dar por recuperada";
-    $("a-puente").href = F.url("puente.html?v=623d779442", { t: f + 1 });
+    $("a-puente").href = F.url("puente.html?v=3f87a39721", { t: f + 1 });
     decir(`Hay un recuerdo de ${m.quien} bajo la Estática. Solo vuelve si lo reconstruís entre todos, desde vuestros puestos.`); S.emitir();
   }
   function empezar() { if (fase !== "espera") { montar(); return; } fase = "linea"; n = 0; hechos.clear(); cambio = performance.now(); prepararBots(); $("b-go").textContent = "Reiniciar"; $("b-salta").disabled = false; decir("Primera página. Ordenad las palabras en vuestras pantallas."); S.emitir(); }

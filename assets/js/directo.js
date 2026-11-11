@@ -6,6 +6,19 @@
  * queda para todos (docs/PLAN_CENTRALIZAR.md §6): DPG (clase.js) y STARGATE (sesion.js) la usan igual; cada web pone su piel y sus
  * textos («Tu Comandante», «Tu Mentor/a»).
  *
+ * 🔴 11-nov · UNA SALA EN DIRECTO POR AULA, NO POR GRUPO (docs/SALAS_POR_AULA.md). Norberto: «puede darse el caso de que dos profesores
+ * tengan clase a la misma hora». El aula es el alumnado de un docente: su escuadrón (STARGATE) o su columna (DPG); `_`, todo el grupo.
+ * La sala guarda lo que se pisaba en `aulas.<aula>.<parte>` (y plano, como antes, mientras dure la transición). Cada web escribe con sus
+ * `aulas` y lee con estas (la gemela del servidor: functions/modClaseAulaLogica.js; tests/functions/mod-clase-aula.test.ts las compara):
+ *   GP.directo.deMiAula(doc, parte, aula) → la parte para quien tiene `aula`: la más reciente entre la suya y `_` (sin aula, la más
+ *                                        reciente de todas); si el documento no tiene `aulas`, la plana, como siempre; si las tiene y
+ *                                        ninguna es para mí, undefined (el otro docente proyecta para SU aula).
+ *   GP.directo.vistaDeAula(doc, aula, partes) → una copia del documento con esas partes cambiadas por las de mi aula: se pone en la
+ *                                        escucha de la sala y el resto de la web sigue leyendo `doc.sesion`, `doc.estado`… como antes.
+ *   GP.directo.esDeMisAulas(aula, mias) → ¿este jugador o suceso es para mí? (sin aula apuntada —lo de antes—, sí).
+ *   GP.directo.aulasParaEmitir(mias)  → las aulas que manda el docente al escribir (sin ninguna, ['_']: todo el grupo).
+ *   GP.directo.aulasLimpias(x)         → sin repetir, solo ids que valen, como mucho 20.
+ *
  * Lo puro (lo prueba tests/sdk/directo.test.ts):
  *   GP.directo.ocurrencia(ks, i)      → { k, n }: la diapositiva `i` de la lista de claves `ks` y qué vez es (una clave puede repetirse).
  *   GP.directo.indiceDe(ks, k, n)     → la posición de la vez `n` de `k` en `ks`, o -1.
@@ -448,7 +461,43 @@
     });
   }
 
-  return { ocurrencia: ocurrencia, indiceDe: indiceDe, dondeVa: dondeVa, firma: firma, emisor: emisor, SUENA: SUENA, dormir: dormir, despertar: despertar,
+  // ── 🔴 11-nov · una sala por aula, no por grupo (docs/SALAS_POR_AULA.md; la gemela del servidor: functions/modClaseAulaLogica.js)
+  var AULA = /^[A-Za-z0-9_-]{1,60}$/, TODO = "_", MAX_AULAS = 20;
+  function esMapa(x) { return !!x && typeof x === "object" && !Array.isArray(x); }
+  function aulasLimpias(x) {
+    var r = [];
+    (Array.isArray(x) ? x : []).forEach(function (a) { if (r.length < MAX_AULAS && typeof a === "string" && AULA.test(a) && r.indexOf(a) < 0) r.push(a); });
+    return r;
+  }
+  function tAula(x) { var t = esMapa(x) ? Number(x.t) : NaN; return isFinite(t) ? t : 0; }
+  function deMiAula(doc, parte, aula) {
+    if (!esMapa(doc)) return undefined;
+    var A = esMapa(doc.aulas) ? doc.aulas : null;
+    if (!A || !Object.keys(A).length) return doc[parte];
+    var mia = typeof aula === "string" && aula ? aula : null, claves = mia ? [mia, TODO] : Object.keys(A), mejor, tMejor = -1;
+    claves.forEach(function (k) {
+      var x = Object.prototype.hasOwnProperty.call(A, k) ? A[k] : null;
+      if (!esMapa(x) || x[parte] === undefined) return;
+      if (tAula(x) > tMejor) { mejor = x[parte]; tMejor = tAula(x); }
+    });
+    return mejor;
+  }
+  function vistaDeAula(doc, aula, partes) {
+    if (!esMapa(doc)) return doc;
+    var out = {}; Object.keys(doc).forEach(function (k) { out[k] = doc[k]; });
+    (partes || []).forEach(function (p) { var v = deMiAula(doc, p, aula); if (v === undefined) delete out[p]; else out[p] = v; });
+    return out;
+  }
+  function esDeMisAulas(aulaDeEl, misAulas) {
+    var mias = Array.isArray(misAulas) ? misAulas : [];
+    if (!aulaDeEl || !mias.length || mias.indexOf(TODO) >= 0) return true;
+    return mias.indexOf(aulaDeEl) >= 0;
+  }
+  /** Lo que mandan las webs al escribir: las aulas del docente, o `_` (todo el grupo) si no lleva ninguna. */
+  function aulasParaEmitir(mias) { var a = aulasLimpias(mias); return a.length ? a : [TODO]; }
+
+  return { deMiAula: deMiAula, vistaDeAula: vistaDeAula, aulasLimpias: aulasLimpias, esDeMisAulas: esDeMisAulas, aulasParaEmitir: aulasParaEmitir, TODO_EL_GRUPO: TODO,
+           ocurrencia: ocurrencia, indiceDe: indiceDe, dondeVa: dondeVa, firma: firma, emisor: emisor, SUENA: SUENA, dormir: dormir, despertar: despertar,
            sala: sala, deLaSala: deLaSala, trabajos: trabajos, punto: punto, textoPremio: textoPremio, premios: premios,
            restos: restos, textoRestos: textoRestos, empezarDeCero: empezarDeCero, enDirecto: enDirecto, porFichar: porFichar, marcaFichaje: marcaFichaje,
            DURACIONES: DURACIONES, nuevo: nuevo, vivo: vivo, deColumna: deColumna, paraColumna: paraColumna, directoDe: directoDe, cubre: cubre,

@@ -5892,6 +5892,97 @@ const REG = {};   // cifras que se apuntan para el informe
       c("versiones (" + V + ") · sin errores en la página", !rita.errores.filter(e => !/Failed to load resource|permission/i.test(e)).length, rita.errores[0] || "");
       await rita.cerrar();
     }
+    // ============================================================ 54 · 🔴 11-nov · DOS COMANDANTES A LA VEZ EN EL MISMO GRUPO
+    // GamificaPro docs/SALAS_POR_AULA.md. Norberto: «puede darse el caso de que dos profesores tengan clase a la misma hora». PER 16450:
+    // Norberto (Los Porqués) y Caridad (Los Cartógrafos). Aquí Rita (escuadrón Alfa) y Caridad (Beta), cada una con su recluta, contra el
+    // motor de verdad y desde las páginas (SG.MOTOR, con su aula sacada del grupo): lo proyectado, la pregunta y el juego del final.
+    if (hacer(54)) {
+      const P = "lab-dos-cmd", A = admin(), fsA = A.firestore();
+      const RITA = ["rita@lab.test", "Rita Referente"], CARI = ["caridad@lab.test", "Caridad Cartógrafa"];
+      const UNO = ["uno-alfa@lab.test", "Uno Alfa"], DOS = ["dos-beta@lab.test", "Dos Beta"];
+      const entra = async (n, q, pag) => { const p = await nueva(n); await p.ir("entrar.html"); await p.entrarComo(q[0], q[1]); await p.ir(pag); await p.hasta("!!(window.SG && window.SG.MOTOR && window.SG.MOTOR.aulasDe && window.GP && window.GP.directo)", 40); return p; };
+      // el grupo: una copia de lab-clase con dos Comandantes y un escuadrón cada una (por su correo, como en gestion.html)
+      const base = (await fsA.collection("projects").doc("lab-clase").get()).data();
+      const rita = await entra("Rita proyecta a Alfa (54)", RITA, "sesion.html?per=lab-clase");
+      const cari = await entra("Caridad proyecta a Beta (54)", CARI, "entrar.html");
+      const uno = await entra("Uno, recluta de Alfa (54)", UNO, "entrar.html"), dos = await entra("Dos, recluta de Beta (54)", DOS, "entrar.html");
+      const uidDe = async (q) => (await A.auth().getUserByEmail(q[0])).uid;
+      await fsA.collection("projects").doc(P).set(Object.assign({}, base, { name: "LAB · dos Comandantes", coTeacherEmails: [RITA[0], CARI[0]],
+        factions: [{ id: "esc-alfa", name: "Alfa", teacherName: "", assignedTeacherEmails: [RITA[0]] }, { id: "esc_beta", name: "Beta", teacherName: CARI[1], assignedTeacherEmails: [CARI[0]] }] }));
+      await fsA.collection("projects").doc(P).collection("privado").doc("stargate").set({ docentes: [{ nombre: RITA[1], correo: RITA[0] }, { nombre: CARI[1], correo: CARI[0] }] });
+      for (const [q, esc, alias] of [[UNO, "esc-alfa", "Uno Alfa"], [DOS, "esc_beta", "Dos Beta"]]) {
+        await fsA.collection("student_profiles").doc(P + "-" + esc).set({ projectId: P, userId: await uidDe(q), displayName: alias, squadId: esc, factionId: esc, totalPoints: 0, coins: 0 });
+      }
+      // (la puerta de lectura de las salas es mod_miembros/{grupo}__{uid}, que la pone una función al nacer la ficha: con el emulador
+      // en frío tarda; sin esperarla, la Nave abre su escucha antes y se queda sin permiso: 11-nov, primera pasada)
+      for (const q of [UNO, DOS]) { const m = fsA.collection("mod_miembros").doc(P + "__" + (await uidDe(q)));
+        for (let i = 0; i < 60 && !(await m.get()).exists; i++) await new Promise((ok) => setTimeout(ok, 500)); }
+      await uno.ir("recluta.html?per=" + P); await dos.ir("recluta.html?per=" + P);
+      await rita.ir("sesion.html?per=" + P); await cari.ir("sesion.html?per=" + P);
+      for (const p of [rita, cari, uno, dos]) await p.hasta("!!(window.SG && window.SG.MOTOR && window.SG.MOTOR.aulasDe && window.GP && window.GP.directo)", 40);
+      const llama = (p, expr) => p.js(`(async function(){ try { var M = window.SG.MOTOR; var r = await (${expr}); return JSON.stringify(r === undefined ? null : r); } catch (e) { return "ERROR " + e.message; } })()`, 60000);
+      const aulas = await Promise.all([rita, cari, uno, dos].map((p) => llama(p, "M.aulasDe(" + JSON.stringify(P) + ")")));
+      c("🔴 dos Comandantes · cada página sabe su aula: Rita emite a Alfa, Caridad a Beta; cada recluta lee la de su escuadrón",
+        /"aulas":\["esc-alfa"\]/.test(aulas[0]) && /"aulas":\["esc_beta"\]/.test(aulas[1]) && /"aula":"esc-alfa"/.test(aulas[2]) && /"aula":"esc_beta"/.test(aulas[3]), aulas.join(" · "));
+      // lo que proyecta cada una (como sesion.js: publicarEnVivo), una detrás de otra: la última ya no se lo lleva todo
+      const ahora = Date.now();
+      await llama(rita, "M.publicarEnVivo(" + JSON.stringify(P) + ", { sesion: { activa: true, t: " + ahora + ", sem: 3, k: 'portada', i: 0, por: 'Rita' } })");
+      await llama(cari, "M.publicarEnVivo(" + JSON.stringify(P) + ", { sesion: { activa: true, t: " + (ahora + 1) + ", sem: 7, k: 'reto', i: 4, por: 'Caridad' } })");
+      await llama(rita, "M.publicarEnVivo(" + JSON.stringify(P) + ", { sesion: { k: 'mapa', i: 2 } })");
+      const ve = (p) => p.js(`new Promise(function (ok) { var parar = window.SG.MOTOR.vigilarEnVivo(${JSON.stringify(P)}, function (d) { setTimeout(function () { parar && parar(); }, 0); ok(JSON.stringify({ s: d.sesion || null, p: d.pregunta || null, dbg: { aulas: d.aulas ? Object.keys(d.aulas) : 'sin', act: d.actualizado || null, ahora: Date.now() } })); }); })`, 30000);
+      let vUno = JSON.parse(await ve(uno)), vDos = JSON.parse(await ve(dos));
+      c("🔴 dos Comandantes · Uno (Alfa) sigue a Rita y Dos (Beta) a Caridad, aunque Rita escribió la última",
+        vUno.s && vUno.s.por === "Rita" && vUno.s.k === "mapa" && vUno.s.sem === 3 && vDos.s && vDos.s.por === "Caridad" && vDos.s.k === "reto" && vDos.s.sem === 7, JSON.stringify([vUno, vDos]));
+      const sala = (await fsA.collection("mod_envivo").doc(P).get()).data() || {};
+      c("   en mod_envivo, un trozo por escuadrón (y la plana, la de la última, para una web vieja en caché)",
+        sala.aulas && sala.aulas["esc-alfa"].sesion.k === "mapa" && sala.aulas.esc_beta.sesion.k === "reto" && sala.sesion.k === "mapa" && sala.aulaViva === true, JSON.stringify(Object.keys(sala.aulas || {})));
+      // la Nave de cada recluta: «Tu Comandante está proyectando la sesión»
+      const banda = (p) => p.js("((document.querySelector('.envivo-banda') || {}).innerText || '').replace(/\\s+/g, ' ')");
+      await uno.hasta("/proyectando/.test((document.querySelector('.envivo-banda') || {}).innerText || '')", 25);
+      await dos.hasta("/proyectando/.test((document.querySelector('.envivo-banda') || {}).innerText || '')", 25);
+      c("dos Comandantes · en la Nave de los dos, «Tu Comandante está proyectando la sesión»", /proyectando/.test(await banda(uno)) && /proyectando/.test(await banda(dos)), (await banda(uno)) + " | " + (await banda(dos)));
+      // Caridad cierra: Dos deja de verlo; Uno, no
+      await llama(cari, "M.publicarEnVivo(" + JSON.stringify(P) + ", { sesion: { activa: false, t: Date.now() } })");
+      vUno = JSON.parse(await ve(uno)); vDos = JSON.parse(await ve(dos));
+      await dos.hasta("!/proyectando/.test((document.querySelector('.envivo-banda') || {}).innerText || '')", 25);
+      c("🔴 dos Comandantes · Caridad cierra su directo: el de Rita sigue para Alfa (y la Nave de Dos deja de decir «proyectando»)",
+        vUno.s.activa === true && vUno.s.por === "Rita" && vDos.s.activa === false && /proyectando/.test(await banda(uno)) && !/proyectando/.test(await banda(dos)), JSON.stringify([vUno.s, vDos.s]));
+      // la pregunta en directo: cada una la suya, y cada recluta responde a la de su Comandante
+      const pR = JSON.parse(await llama(rita, "M.lanzarPregunta(" + JSON.stringify(P) + ", '¿Qué es un QR?', 'Rita')"));
+      const pC = JSON.parse(await llama(cari, "M.lanzarPregunta(" + JSON.stringify(P) + ", '¿Y un PLE?', 'Caridad')"));
+      vUno = JSON.parse(await ve(uno)); vDos = JSON.parse(await ve(dos));
+      c("🔴 dos Comandantes · la pregunta: Uno ve la de Rita y Dos la de Caridad", vUno.p && vUno.p.id === pR && vDos.p && vDos.p.id === pC, JSON.stringify([pR, pC, vUno.p, vDos.p]));
+      const rU = await llama(uno, "M.responderPregunta(" + JSON.stringify(P) + ", " + JSON.stringify(pR) + ", " + JSON.stringify(P + "-esc-alfa") + ", '', 'Un código')");
+      const rD = await llama(dos, "M.responderPregunta(" + JSON.stringify(P) + ", " + JSON.stringify(pC) + ", " + JSON.stringify(P + "-esc_beta") + ", '', 'Mi entorno')");
+      c("dos Comandantes · y los dos responden a la suya (la de Rita no estaba en la plana: la plana es la de Caridad)", !/^ERROR/.test(rU) && !/^ERROR/.test(rD), rU + " · " + rD);
+      await llama(rita, "M.cerrarPregunta(" + JSON.stringify(P) + ")");
+      vUno = JSON.parse(await ve(uno)); vDos = JSON.parse(await ve(dos));
+      c("🔴 dos Comandantes · Rita cierra la suya: la de Caridad sigue abierta", vUno.p && vUno.p.abierta === false && vDos.p && vDos.p.abierta === true, JSON.stringify([vUno.p, vDos.p]));
+      // el juego del final: dos pantallas a la vez, cada una con los suyos
+      const abrir = (p, docente) => p.js(`(async function(){ var M = window.SG.MOTOR, yo = ${docente ? "null" : "await M.directoYo(" + JSON.stringify(P) + ")"};
+        window.__m = []; window.__c = M.directoCanal(${JSON.stringify(P)}, ${docente}, yo, function (m) { window.__m.push(m); }); return yo ? yo.id : 'docente'; })()`, 30000);
+      await abrir(rita, true); await abrir(cari, true); await abrir(uno, false); await abrir(dos, false);
+      await rita.js("window.__c.enviar({ t: 'estado', fase: 'juego', de: 'Rita' }); 1"); await cari.js("window.__c.enviar({ t: 'estado', fase: 'preparar', de: 'Caridad' }); 1");
+      await uno.js("window.__c.enviar({ t: 'hola' }); 1"); await dos.js("window.__c.enviar({ t: 'hola' }); 1");
+      await dormir(5000);
+      const mensajes = async (p) => JSON.parse(await p.js("JSON.stringify(window.__m)"));
+      const [mR, mC, mU, mD] = await Promise.all([rita, cari, uno, dos].map(mensajes));
+      const holas = (m) => [...new Set(m.filter((x) => x.t === "hola").map((x) => x.id))];
+      const ultimo = (m) => (m.filter((x) => x.t === "estado").pop() || {}).de;
+      c("🔴 dos Comandantes · el juego del final: la pantalla de Rita cuenta a Uno y la de Caridad a Dos (nadie juega en la clase de otra)",
+        JSON.stringify(holas(mR)) === JSON.stringify([P + "-esc-alfa"]) && JSON.stringify(holas(mC)) === JSON.stringify([P + "-esc_beta"]), JSON.stringify([holas(mR), holas(mC)]));
+      c("🔴 dos Comandantes · y cada móvil sigue la pantalla de su Comandante", ultimo(mU) === "Rita" && ultimo(mD) === "Caridad", JSON.stringify([ultimo(mU), ultimo(mD)]));
+      const js = (await fsA.collection("mod_directo").doc(P).collection("jugadores").get()).docs.map((d) => [d.id, d.data().aula]).sort();
+      c("   cada jugador lleva su escuadrón (lo pone el servidor, de su ficha)", JSON.stringify(js) === JSON.stringify([[P + "-esc-alfa", "esc-alfa"], [P + "-esc_beta", "esc_beta"]]), JSON.stringify(js));
+      // el premio del final (como juegos/directo/proyector.js): Rita premia y solo cobra Uno
+      const premio = await llama(rita, "M.aulasDe(" + JSON.stringify(P) + ").then(function (a) { return M.llamar('stargateDirecto', { accion: 'premiar', projectId: " + JSON.stringify(P) + ", partida: 'd-lab-54', modo: 'carrera', podio: [], aulas: a.aulas }); })");
+      const cobra = async (f) => (await fsA.collection("xp_ledger").doc("stargate_directo_" + P + "_d-lab-54_" + f).get()).exists;
+      c("🔴 dos Comandantes · el premio del final de Rita paga a los suyos y no a los de Caridad", /"pagados":1/.test(premio) && (await cobra(P + "-esc-alfa")) && !(await cobra(P + "-esc_beta")), premio);
+      for (const p of [rita, cari, uno, dos]) await p.js("window.__c && window.__c.cerrar(); 1");
+      c("dos Comandantes · sin errores en las páginas", [rita, cari, uno, dos].every((p) => !p.errores.filter((e) => !/Failed to load resource|permission/i.test(e)).length),
+        [rita, cari, uno, dos].map((p) => p.errores[0] || "").join(" | "));
+      for (const p of [rita, cari, uno, dos]) await p.cerrar();
+    }
   } catch (e) {
     c("la batería no puede reventar", false, e.message);
   } finally {

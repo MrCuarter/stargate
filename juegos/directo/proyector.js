@@ -4,7 +4,7 @@
 // El proyector es quien manda: decide cuándo empieza y acaba, suma, ordena y reparte. Los móviles solo mandan lo suyo.
 // ?sesion=1&c=XXXX&tema=6 → dentro de la sesión (la sala es la de la clase y el tema de la semana viene dado).
 import { conectar, esperarMotor, conServidor, motor, PER, nuevoCodigo, imagen, AV, AVATARES, TEMAS, MODOS, DURACIONES, PREGUNTAS, FRECUENCIAS, INTENSIDAD, CFG_INICIAL, ATAJOS, EQUIPOS, VALOR, metaCarrera, BALIZA, PREMIO, EN_WEB,
-  ESCUADRONES, IMG_ESC, ponerEquipos, emblema, DIFICULTAD, kDe, MANDO } from './canal.js?v=623d779442';
+  ESCUADRONES, IMG_ESC, ponerEquipos, emblema, DIFICULTAD, kDe, MANDO } from './canal.js?v=3f87a39721';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -36,13 +36,13 @@ $('codigo').textContent = codigo;
 const VIVO_GRUPOS = ['per-16450', 'demo-stargate'];
 if (WEB && VIVO_GRUPOS.includes(PER)) {
   const aVivo = (ruta) => { const u = new URL(ruta, location.href); new URLSearchParams(location.search).forEach((v, k) => { if (k !== 'v' && !u.searchParams.has(k)) u.searchParams.set(k, v); }); u.searchParams.set('t', TEMA_SEMANA || 1); u.searchParams.set('f', TEMA_SEMANA || 1); return u.href; };
-  $('v-puente').href = aVivo('../vivo/puente.html?v=623d779442'); $('v-fragmento').href = aVivo('../vivo/fragmento.html?v=623d779442'); $('v-ashan').href = aVivo('../vivo/ashan.html?v=623d779442');
+  $('v-puente').href = aVivo('../vivo/puente.html?v=3f87a39721'); $('v-fragmento').href = aVivo('../vivo/fragmento.html?v=3f87a39721'); $('v-ashan').href = aVivo('../vivo/ashan.html?v=3f87a39721');
   $('vivo').classList.remove('oculto');
 }
-$('b-movil').href = `alumno.html?c=${codigo}&v=623d779442` + (EN_SESION ? `&sesion=1&tema=${TEMA_SEMANA}` : '') + (PER ? `&per=${encodeURIComponent(PER)}` : '');
+$('b-movil').href = `alumno.html?c=${codigo}&v=3f87a39721` + (EN_SESION ? `&sesion=1&tema=${TEMA_SEMANA}` : '') + (PER ? `&per=${encodeURIComponent(PER)}` : '');
 // ── EL QR de la sala de espera. En el borrador, la página del móvil con el código; en la web, la Nave del recluta (la
 // entrada «En directo» de su Nave usa la sala del grupo: no hace falta código). Se genera aquí, sin servicios de fuera.
-const urlMovil = WEB ? new URL('../../recluta.html?per=' + encodeURIComponent(PER), location.href).href : new URL(`alumno.html?c=${codigo}&v=623d779442`, location.href).href;
+const urlMovil = WEB ? new URL('../../recluta.html?per=' + encodeURIComponent(PER), location.href).href : new URL(`alumno.html?c=${codigo}&v=3f87a39721`, location.href).href;
 $('qr-t').innerHTML = WEB ? 'Desde el móvil: escanea, entra en <b>tu Nave</b> y pulsa <b>En directo</b>.' : `Desde el móvil: escanea o entra con el código <b>${codigo}</b>.`;
 function pintarQR() {
   try { const q = window.qrcode(0, 'M'); q.addData(urlMovil); q.make(); $('qr').innerHTML = q.createSvgTag({ cellSize: 4, margin: 2, scalable: true }) + `<div class="qr-pie">${WEB ? 'Tu Nave → En directo' : 'Código ' + codigo}</div>`; }
@@ -166,7 +166,7 @@ setInterval(emitir, 500);
 function precargarDefensa() {
   if (cargandoD) return cargandoD;
   const ruta = EN_WEB ? '../ruta/' : '../ruta-estatica/', sala = EN_WEB ? '../joran/' : '../sala-joran/';
-  cargandoD = import('./defensa3d.js?v=623d779442').then((M) => M.montarDefensa($('lienzo3d'), { ruta, sala })).then((d) => { D = d; for (const j of dentro()) D.jugador(j.id, j.alias, AV(j.avatar)); return d; })
+  cargandoD = import('./defensa3d.js?v=3f87a39721').then((M) => M.montarDefensa($('lienzo3d'), { ruta, sala })).then((d) => { D = d; for (const j of dentro()) D.jugador(j.id, j.alias, AV(j.avatar)); return d; })
     .catch((e) => { console.error(e); aviso('No se pudo cargar la escena 3D', '#ff4d6d', 3); });
   return cargandoD;
 }
@@ -272,8 +272,10 @@ function acabar(gana) {
 async function premiarEnServidor(fin) {
   const equipos = Object.fromEntries([...jugadores.values()].filter((j) => !j.bot).map((j) => [j.id, j.equipo || null]));
   try {
-    const r = await motor().llamar('stargateDirecto', { accion: 'premiar', projectId: PER, partida: 'd' + inicio, modo: fin.modo, gana: fin.gana === true,
-      podio: (fin.podio || []).filter((id) => !String(id).startsWith('bot')), equipo: fin.equipo || null, equipos });
+    // 11-nov · con los escuadrones de este Comandante (GamificaPro docs/SALAS_POR_AULA.md): paga solo a los suyos y gasta solo su cupo
+    const M = motor(), aulas = M && M.aulasDe ? (await M.aulasDe(PER)).aulas : [];
+    const r = await M.llamar('stargateDirecto', { accion: 'premiar', projectId: PER, partida: 'd' + inicio, modo: fin.modo, gana: fin.gana === true,
+      podio: (fin.podio || []).filter((id) => !String(id).startsWith('bot')), equipo: fin.equipo || null, equipos, ...(aulas.length ? { aulas } : {}) });
     const p = document.querySelector('#fin .premio');
     if (p) p.insertAdjacentHTML('beforeend', r && r.ok ? (r.repetida ? '' : ` <small>· pagado a ${r.pagados} ${r.pagados === 1 ? 'recluta' : 'reclutas'}</small>`) : ` <small>· ${esc((r && r.motivo) || 'sin premio')}</small>`);
   } catch (e) { const p = document.querySelector('#fin .premio'); if (p) p.insertAdjacentHTML('beforeend', ' <small>· no se ha podido pagar</small>'); }

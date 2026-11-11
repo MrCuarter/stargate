@@ -4950,6 +4950,8 @@ def _cabeza_motor():
         '<script src="' + _v("assets/js/secreto.js") + '" defer></script>'
         '<script src="' + _v("motor/paquete.js") + '" defer></script>'
         '<script src="' + _v("motor/tablero.js") + '" defer></script>'
+        # 11-nov · una sala por aula (GamificaPro docs/SALAS_POR_AULA.md): motor.js lee lo de tu escuadrón con GP.directo.vistaDeAula
+        '<script src="' + _v("assets/js/directo.js") + '" defer></script>'
         '<script type="module" src="' + _v("assets/js/motor.js") + '"></script>')
 
 def _cabeza_fuente():
@@ -4973,7 +4975,7 @@ def _cabeza_fuente():
         '<script src="' + _v("assets/js/fiesta.js") + '" defer></script>'
         '<script>(function(){var q=new URLSearchParams(location.search);'
         'if(((q.get("motor")||window.SG_MOTOR||"apps")+"").toLowerCase()!=="firestore")return;'
-        '["' + _v("motor/paquete.js") + '","' + _v("motor/tablero.js") + '"].forEach(function(u){'
+        '["' + _v("motor/paquete.js") + '","' + _v("motor/tablero.js") + '","' + _v("assets/js/directo.js") + '"].forEach(function(u){'
         'var e=document.createElement("script");e.src=u;e.defer=true;document.head.appendChild(e);});'
         # El catálogo lo pide motor.js, que se carga justo debajo. Pedirlo también aquí hacía dos
         # descargas del mismo fichero en cada visita.

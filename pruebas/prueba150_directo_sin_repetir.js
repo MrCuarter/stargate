@@ -28,11 +28,12 @@ const SITIOS = (MOTOR.match(/\nconst ENVIVO = [^\n]*\nconst comoAntes = [^\n]*\n
 function montar(llamar) {
   const escuchas = [];
   const fn = new Function("auth", "db", "doc", "collection", "query", "where", "onSnapshot", "getDoc", "setDoc", "addDoc", "updateDoc", "deleteDoc", "llamar",
+    "window", "aulasDe", "deMiAula",   // (11-nov · el aula: un grupo de un solo Comandante, sin escuadrones)
     SITIOS + "\n" + CANAL + "\nreturn directoCanal;")(
     { currentUser: { uid: "yo" } }, {},
     (...a) => ({ doc: a.slice(1).join("/") }), (...a) => ({ col: a.slice(1).join("/") }), (...a) => ({ q: a }), (...a) => ({ w: a }),
     () => { const e = { abierta: true }; escuchas.push(e); return () => { e.abierta = false; }; },
-    async () => ({ exists: () => false }), null, null, null, null, llamar);
+    async () => ({ exists: () => false }), null, null, null, null, llamar, {}, async () => ({ docente: true, aulas: [], aula: null }), (d) => d);
   return { directoCanal: fn, escuchas };
 }
 

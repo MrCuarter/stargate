@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>El Puente · sesión en vivo</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilo.css?v=623d779442">
+<link rel="stylesheet" href="estilo.css?v=3f87a39721">
 <style>
 .capa{grid-template-rows:auto 1fr auto;gap:12px}
 .titulo h1{font-size:clamp(40px,9vw,150px);line-height:.95;color:#fff;text-shadow:0 0 40px var(--mundo),0 4px 30px #000}
@@ -34,8 +34,8 @@
 @media (orientation:portrait){.holo{height:min(100%,30vw,40vh)}}
 .holo .holo-pie{position:absolute;left:0;right:0;bottom:0;text-align:center;font-family:Orbitron,sans-serif;font-size:clamp(9px,.9vw,12px);letter-spacing:.2em;color:var(--cian);opacity:.8;text-shadow:0 2px 10px #000}
 </style>
-<script src="../../assets/js/mapaMundo.js?v=623d779442"></script>
-<script src="../../assets/js/mapaMundoTierra.js?v=623d779442"></script>
+<script src="../../assets/js/mapaMundo.js?v=3f87a39721"></script>
+<script src="../../assets/js/mapaMundoTierra.js?v=3f87a39721"></script>
 </head>
 <body class="proyector">
 <canvas class="lienzo" id="gl"></canvas>
@@ -61,10 +61,10 @@
   <span class="hueco"></span>
   <button id="b-sim">Simular clase</button><button id="b-son" aria-pressed="false">Sonido</button>
   <a class="boton" id="a-movil" target="_blank" rel="noopener">Móvil de prueba</a>
-  <a class="boton" id="a-frag">Fragmento</a><a class="boton" id="a-salir" href="index.html?v=623d779442">Salir</a>
+  <a class="boton" id="a-frag">Fragmento</a><a class="boton" id="a-salir" href="index.html?v=3f87a39721">Salir</a>
   <small>H oculta · F pantalla completa</small>
 </div>
-<script src="nucleo.js?v=623d779442"></script>
+<script src="nucleo.js?v=3f87a39721"></script>
 <script>
 (async () => {
   await F.arranque();
@@ -177,7 +177,7 @@ void main(){
   });
   $("salan").textContent = F.SALA;
   H.arrancar();
-  $("a-movil").href = F.url("movil.html?v=623d779442");
+  $("a-movil").href = F.url("movil.html?v=3f87a39721");
 
   function decir(texto, deVaeon) {
     $("voz").classList.toggle("vaeon", !!deVaeon); $("quien").textContent = deVaeon ? "VAEON" : "NEBULA";
@@ -197,7 +197,7 @@ void main(){
     $("mundo").textContent = m.n; $("tema").textContent = `Tema ${tema + 1} · ${m.tema}`; $("trip").textContent = `${m.quien.toUpperCase()} · ${m.rol.toUpperCase()}`;
     $("fases").innerHTML = FASES.map((f, i) => `<span class="${i === fase ? "si" : ""}">${f.toUpperCase()}</span>`).join("");
     $("reloj").classList.toggle("si", fase === 2); H.ver(fase === 0);
-    $("a-frag").href = F.url("fragmento.html?v=623d779442", { f: tema + 1 });
+    $("a-frag").href = F.url("fragmento.html?v=3f87a39721", { f: tema + 1 });
     $("b-fase").textContent = fase === 3 ? "Volver a la llegada" : "Fase siguiente";
     if (llegada) { zoom = .05; warp = 1; }
     decir(textoFase()); F.sonido.campana(fase === 2 ? 330 : 440, 1.6); S.emitir();
