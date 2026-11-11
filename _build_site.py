@@ -187,6 +187,10 @@ GB.copiar_pieza(HERE, "anuncio.js", os.path.join(HERE, "assets", "js", "anuncio.
 # diapositivas» abierta desde la clase, las notas del presentador de cada diapositiva, con «Editar» y «Volver al texto original»
 # (las de cada docente, en su perfil: GP.notas). La carga sesion.html.
 GB.copiar_pieza(HERE, "mazo.js", os.path.join(HERE, "assets", "js", "mazo.js"), decir=print)
+# 11-nov · LA LECCIÓN, EL BLOQUE CENTRAL SIN GENIALLY (GamificaPro sdk/leccion.js, `GP.leccion`): cada tipo de diapositiva (tarjetas,
+# piezas, matriz, ejemplos, manos a la obra, galería, IA y lista) a partir del dato (LECCIONES) y quién la ve (LECCION_AULAS). Aquí solo
+# el dato, la piel (stargate.css, «LA LECCIÓN») y la llamada (sesion.js → leccionDe, diasLeccion). La carga sesion.html.
+GB.copiar_pieza(HERE, "leccion.js", os.path.join(HERE, "assets", "js", "leccion.js"), decir=print)
 # y el guion de cada diapositiva (_guiones_sg.json: {clave: [líneas]}; la clave, la `k` de la diapositiva, o «s3:k» / «act1:k» / «pres:k»
 # para una sesión concreta, que gana a la general). Solo lo ve el docente, en sus notas.
 GUIONES_SG = json.load(open(os.path.join(HERE, "_guiones_sg.json"), encoding="utf-8")) if os.path.exists(os.path.join(HERE, "_guiones_sg.json")) else {}
@@ -4231,6 +4235,7 @@ al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></heade
 <script src="assets/js/presentador.js" defer></script>
 <script src="assets/js/divisor.js" defer></script>
 <script src="assets/js/mazo.js" defer></script>
+<script src="assets/js/leccion.js" defer></script>
 <script>window.SG_GUIONES={json.dumps(GUIONES_SG, ensure_ascii=False)};</script>
 <script src="assets/js/origen.js" defer></script>
 <script src="assets/js/origen-sg.js" defer></script>

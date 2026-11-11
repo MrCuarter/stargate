@@ -1482,9 +1482,10 @@ LECCION_AULAS = [("per-16450", "Norberto Cuartero"), ("demo-stargate", None)]
 # enlace va a la galería; «Me he atascado» se cuenta y se nombra en la diapositiva para ir a ayudarle.
 PRACTICA_EN_VIVO = dict(prefijo="Manos a la obra · ", texto="pega aquí el enlace de lo que has creado cuando lo tengas.",
                         atascado="Me he atascado", voy="Voy bien")
-# Cada lección, por semana del grupo (REGULAR). Tipos de diapositiva (los pinta sesion.js, diasLeccion):
+# Cada lección, por semana del grupo (REGULAR). Tipos de diapositiva (los pinta la pieza del motor, GamificaPro sdk/leccion.js;
+# sesion.js → diasLeccion le pone la piel):
 #   tarjetas · (kicker, titulo, tarjetas=[(titulo, texto)], pie)            · todas iguales, de un vistazo
-#   piezas   · las 8 inteligencias y los 6 niveles de Bloom (de INTELIGENCIAS y BLOOM: un dato, un sitio)
+#   piezas   · (talentos, niveles, pie) las 8 inteligencias y los 6 niveles de Bloom (de INTELIGENCIAS y BLOOM: un dato, un sitio)
 #   matriz   · la matriz 8×6 con un ejemplo: cada casilla con actividad se pulsa y se lee
 #   ejemplos · tarjetas con «Verlo aquí» (visor dentro de la diapositiva) y «Abrir aparte»
 #   manos    · manos a la obra: pasos numerados, consejo y cronómetro (el del relámpago)
@@ -1534,7 +1535,8 @@ LECCIONES = {
         pie="Paisaje = inteligencias múltiples (Gardner) + taxonomía de Bloom, sobre una imagen interactiva (Hernando, 2016)."),
    dict(tipo="piezas", notas=["Pregunta rápida: ¿con qué inteligencia te sientes más cómodo/a?", "Bloom va de abajo arriba: recordar es lo más fácil; crear, lo más difícil."], rot="Las dos piezas", kicker="Lo mínimo", titulo="Las dos piezas del paisaje",
         talentos="Las 8 inteligencias de Gardner: **el talento** con el que se trabaja",
-        niveles="Los 6 niveles de Bloom: **la dificultad**, de recordar a crear"),
+        niveles="Los 6 niveles de Bloom: **la dificultad**, de recordar a crear",
+        pie="Cada actividad del paisaje es **un cruce**: un talento × un nivel."),
    dict(tipo="matriz", rot="La matriz", kicker="Míralo hecho", titulo="La matriz de programación, con un ejemplo",
         ejemplo="a2",   # el huerto de Patricia: el MISMO de la sesión de la Actividad 2 (SESION_ACTIVIDAD["a2"]["ejemplo"])
         notas=["Pulsa casillas de distintas filas y columnas: variedad en talento y en dificultad.", "El color es el tipo: obligatoria, optativa, voluntaria.", "En la Actividad 2 bastan 6 cruces; no hay que llenar las 48."],
