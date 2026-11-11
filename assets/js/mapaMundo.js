@@ -318,13 +318,62 @@
     return Object.keys(p).map(function (c) { return '<path class="gpmm-pais' + (hay[c] ? " gpmm-hay" : "") + '" data-p="' + esc(c) + '" d="' + p[c] + '"/>'; }).join("");
   }
 
+  /**
+   * 🔴 11-nov · EL PULSO DE LAS ANIMACIONES. Norberto, con dos pantallas: «la de compartir con el estudiante no se movía ni se veía nada
+   * en la bola del mundo». La ventana de la presentación, compartida desde detrás del mando (o en otro escritorio), el navegador la da
+   * por escondida: no le da fotogramas (requestAnimationFrame) aunque quien la comparte sí la sigue viendo, y frena sus setTimeout a uno
+   * por segundo. Así que: a la vista, requestAnimationFrame; escondida, el reloj de un worker (los relojes de un worker no se frenan) y,
+   * sin worker, setTimeout. GP.mapaMundo.pulso(f) → id (f(t) una vez, como requestAnimationFrame) · GP.mapaMundo.quitarPulso(id).
+   */
+  var pulso = (function () {
+    var cola = {}, n = 0, hay = 0, raf = 0, wk = null, sinWk = false, reloj = false, to = 0, doc = W && W.document, PASO = 33;
+    function oculta() { return !!(doc && (doc.hidden === true || doc.visibilityState === "hidden")); }
+    function ahora() { return W && W.performance && W.performance.now ? W.performance.now() : Date.now(); }
+    function correr() {
+      raf = 0; to = 0;
+      var l = cola, t = ahora(); cola = {}; hay = 0;
+      Object.keys(l).forEach(function (k) { try { l[k](t); } catch (e) { /* una que falle no para a las demás */ } });
+      if (!hay) apagarReloj();
+    }
+    function trabajador() {
+      if (wk || sinWk) return wk;
+      try {
+        var url = W.URL.createObjectURL(new W.Blob(["var i=0;onmessage=function(e){clearInterval(i);i=e.data?setInterval(function(){postMessage(0)},e.data):0}"], { type: "text/javascript" }));
+        wk = new W.Worker(url); wk.onmessage = function () { if (reloj && hay) correr(); };
+      } catch (e) { wk = null; sinWk = true; }
+      return wk;
+    }
+    function encenderReloj() {
+      if (reloj) return; reloj = true;
+      var w = trabajador();
+      if (w) try { w.postMessage(PASO); return; } catch (e) { /* sin worker: setTimeout */ }
+      (function vuelta() { if (!reloj) return; to = setTimeout(function () { if (reloj && hay) correr(); if (reloj) vuelta(); }, PASO); })();
+    }
+    function apagarReloj() {
+      if (!reloj) return; reloj = false;
+      if (wk) try { wk.postMessage(0); } catch (e) { /* nada */ }
+      if (to) { clearTimeout(to); to = 0; }
+    }
+    function mover() {
+      if (!hay) { if (raf) { W.cancelAnimationFrame(raf); raf = 0; } apagarReloj(); return; }
+      if (oculta()) { if (raf) { W.cancelAnimationFrame(raf); raf = 0; } encenderReloj(); }
+      else { apagarReloj(); if (!raf) raf = W.requestAnimationFrame(correr); }
+    }
+    if (doc && doc.addEventListener) doc.addEventListener("visibilitychange", mover);
+    return {
+      puede: function () { return !!(W && W.requestAnimationFrame); },
+      pedir: function (f) { var id = ++n; cola[id] = f; hay++; mover(); return id; },
+      quitar: function (id) { if (id && cola[id]) { delete cola[id]; hay--; } if (!hay) mover(); },
+    };
+  })();
+
   function crear(el, o) {
     o = o || {};
     var doc = el.ownerDocument, T = Object.assign({}, T0, o.textos || {}), np = o.nombrePais || nombrePaisDe;
     var tierra = o.tierra || (W && W.GP_MAPA_TIERRA) || { paises: {} };
     var modo = o.encuadre === "mundo" ? "mundo" : "auto", controles = o.controles !== false, mover = o.mover !== false, libre = null, libreG = null;
     var gente = [], vistos = null, vb = [0, 0, ANCHO, ALTO], anim = 0, nuevos = {}, avisos = {}, zMax = o.zoomMax || 14;
-    var rafG = W && W.requestAnimationFrame ? function (f) { return W.requestAnimationFrame(f); } : null;
+    var rafG = pulso.puede() ? pulso.pedir : null;   // (11-nov · el pulso: también con la ventana escondida que se comparte)
     function reducido() { return !!(W && W.matchMedia && W.matchMedia("(prefers-reduced-motion: reduce)").matches); }
     function ahora() { return W && W.performance && W.performance.now ? W.performance.now() : Date.now(); }
     // 10-nov · EL GLOBO: lo pide `o.globo` (true o { lon, lat, acercar, ascuas }). Sin lienzo de dibujo (canvas 2D), el mapa plano de siempre.
@@ -390,8 +439,18 @@
       vacio.hidden = gente.some(valida);
     }
     function ponerVb(v) { vb = v; svg.setAttribute("viewBox", v.join(" ")); }
+    // 🔴 11-nov · SIN TAMAÑO TODAVÍA (la caja escondida al crearlo: p. ej. la ventana de la presentación con la página aún cerrada): antes
+    // solo lo arreglaba el ResizeObserver, que con la ventana escondida (compartida desde detrás) no salta, y el globo no se pintaba nunca.
+    // Ahora, además, se vuelve a mirar cada poco hasta que tenga tamaño (o se destruya).
+    var esperaTam = 0, muerto = false, pidiendo = false;
+    function esperarTam() {
+      if (esperaTam || muerto || pidiendo) return;
+      pidiendo = true;   // (un setTimeout que contestara en el acto no da vueltas sin fin)
+      esperaTam = setTimeout(function () { esperaTam = 0; if (!muerto && !pidiendo) maquetar(false); }, 400);
+      pidiendo = false;
+    }
     function maquetar(conAnim) {
-      var mm = medidas(); if (mm.w && mm.h) el.classList.toggle("gpmm-mini", mm.w < 240 || mm.h < 120);   // en miniatura (la diapositiva en pequeño) no caben los botones
+      var mm = medidas(); if (mm.w && mm.h) el.classList.toggle("gpmm-mini", mm.w < 240 || mm.h < 120); else esperarTam();   // en miniatura (la diapositiva en pequeño) no caben los botones
       if (forma === "globo") return gMaquetar(conAnim);
       var m = medidas(); if (!m.w || !m.h) return;
       var d = destino(m), desde = vb.slice();
@@ -476,7 +535,7 @@
       if (pista) pista.hidden = f !== "globo";
       pines._firma = ""; vistosAntes = false;
       if (anim) { (W && W.cancelAnimationFrame || clearTimeout)(anim); anim = 0; }
-      if (G && f !== "globo" && G.raf) { if (W && W.cancelAnimationFrame) W.cancelAnimationFrame(G.raf); G.raf = 0; }
+      if (G && f !== "globo" && G.raf) { pulso.quitar(G.raf); G.raf = 0; }
       marcarForma();
     }
     function marcarForma() {
@@ -689,7 +748,7 @@
     function gPaso() {
       G.raf = 0;
       if (forma !== "globo" || !G.base) return;
-      var m = medidas(); if (!m.w || !m.h) return;   // escondido: se para solo (al volver lo arrancan `poner` o el cambio de tamaño)
+      var m = medidas(); if (!m.w || !m.h) { esperarTam(); return; }   // sin tamaño: se para y se vuelve a mirar cada poco (esperarTam)
       var t = ahora(), red = reducido(), vivo = !!(G.tr || G.vel || gesto);
       if (!vivo && G.tPint && t - G.tPint < 30 && rafG) { G.raf = rafG(gPaso); return; }   // parado solo late: con 30 fotogramas va de sobra
       var dt = Math.min(80, Math.max(0, t - (G.t || t))), b = G.base; G.t = t;
@@ -893,10 +952,10 @@
         return api;
       },
       destruir: function () {
-        el.removeEventListener("click", alClic); doc.removeEventListener("keydown", alTecla); clearTimeout(reloj);
+        el.removeEventListener("click", alClic); doc.removeEventListener("keydown", alTecla); clearTimeout(reloj); muerto = true; clearTimeout(esperaTam);
         if (ro) ro.disconnect(); else if (W) W.removeEventListener("resize", alTamano);
         if (anim && W && W.cancelAnimationFrame) W.cancelAnimationFrame(anim);
-        if (G && G.raf && W && W.cancelAnimationFrame) W.cancelAnimationFrame(G.raf);
+        if (G && G.raf) { pulso.quitar(G.raf); G.raf = 0; }
         forma = "plano";
         el.innerHTML = ""; ["gpmm", "gpmm-llena", "gpmm-mueve", "gpmm-en-globo", "gpmm-brilla"].forEach(function (c) { el.classList.remove(c); });
       },
@@ -911,5 +970,6 @@
 
   return { proyectar: proyectar, ANCHO: ANCHO, ALTO: ALTO, LAT_N: LAT_N, LAT_S: LAT_S, porCiudad: porCiudad, agrupar: agrupar, encuadre: encuadre,
     resumenPaises: resumenPaises, nombrePais: nombrePaisDe, crear: crear, CSS: CSS,
-    desproyectar: desproyectar, vec: vec, girar: girar, encuadreGlobo: encuadreGlobo, anillosDe: anillosDe };
+    desproyectar: desproyectar, vec: vec, girar: girar, encuadreGlobo: encuadreGlobo, anillosDe: anillosDe,
+    pulso: pulso.pedir, quitarPulso: pulso.quitar };
 });

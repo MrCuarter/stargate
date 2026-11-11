@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Tu puesto · STARGATE</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilo.css?v=3f87a39721">
+<link rel="stylesheet" href="estilo.css?v=3632f99d19">
 <style>
 body{min-height:100dvh;height:auto;background:radial-gradient(ellipse at 50% 0,color-mix(in srgb,var(--mundo) 22%,#01040c),#01040c 70%) fixed;transition:background .6s}
 main{max-width:520px;margin:0 auto;min-height:100dvh;padding:max(14px,env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));display:grid;grid-template-rows:auto 1fr;gap:14px}
@@ -41,7 +41,7 @@ ul.mias li{background:rgba(255,226,168,.94);color:#2a1600;border-radius:10px;pad
   <div class="cab"><span>STARGATE · SALA <i id="salan" style="font-style:normal"></i></span><b id="yo"></b></div>
   <div id="vista"></div>
 </main>
-<script src="nucleo.js?v=3f87a39721"></script>
+<script src="nucleo.js?v=3632f99d19"></script>
 <script>
 (async () => {
   const $ = F.$, M = F.MUNDOS, V = $("vista");
@@ -62,7 +62,7 @@ ul.mias li{background:rgba(255,226,168,.94);color:#2a1600;border-radius:10px;pad
   const alEstado = m => {
     if (!m || m.t !== "estado") return;
     const vivo = F.VIVO.includes(m.modo) && (!m.ts || Date.now() - m.ts < 3 * 3600e3);
-    if (WEB && !vivo) { location.replace(F.url("../directo/alumno.html?v=3f87a39721")); return; }   // el Comandante ha vuelto al juego del final
+    if (WEB && !vivo) { location.replace(F.url("../directo/alumno.html?v=3632f99d19")); return; }   // el Comandante ha vuelto al juego del final
     if (!vivo) return;
     E = m; visto = Date.now();
     if (m.ses !== st.ses || m.ronda !== st.ronda) { st = { furia: 1, ses: m.ses, ronda: m.ronda, pu: m.ses === st.ses ? st.pu : 0, ln: -1, ma: 0, vo: [] }; mano = false; clave = ""; if (dentro) { subir(); if (!WEB) enviar({ t: "hola" }); } }

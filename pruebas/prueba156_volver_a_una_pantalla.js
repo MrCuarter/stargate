@@ -48,5 +48,11 @@ c(/GPP\.mando\(\{ per:st\.per\|\|'demo', ignorar:GPP\.recordado\(PRES_CLAVE\)!==
 const PJ = fs.readFileSync(path.join(__dirname, "..", "assets/js/presentador.js"), "utf8");
 c(/m\.tipo === "sigues"\) post\(\{ tipo: "aqui" \}\)/.test(PJ) && /ESPERA = 75000/.test(PJ), "🔴 sin temblor: la presentación contesta al «sigues» del mando y sin señal se esperan 75 s (pieza de GamificaPro)");
 c(/calla = true; mirar\(\); \}/.test(PJ), "   tras «una pantalla», el mando calla hasta que se piden dos otra vez");
+// 5 · 11-nov (tras la clase) · «la de compartir con el estudiante no se movía ni se veía nada en la bola del mundo» ni la llegada del Puente
+const MM = fs.readFileSync(path.join(__dirname, "..", "assets/js/mapaMundo.js"), "utf8");
+const PU = fs.readFileSync(path.join(__dirname, "..", "juegos/vivo/puente.html"), "utf8");
+c(/var rafG = pulso\.puede\(\) \? pulso\.pedir : null;/.test(MM) && /new W\.Worker\(url\)/.test(MM), "🔴 el globo late con el pulso de GamificaPro: con la ventana escondida (compartida desde detrás), el reloj de un worker");
+c(/else esperarTam\(\);/.test(MM), "🔴 creado sin tamaño (la página aún cerrada), se vuelve a mirar cada poco: no depende solo del ResizeObserver");
+c(/const latir = \(window\.GP && window\.GP\.mapaMundo && window\.GP\.mapaMundo\.pulso\)/.test(PU) && /pintar\(true\); latir\(bucle\);/.test(PU) && !/requestAnimationFrame\(bucle\)/.test(PU), "🔴 El Puente (la Tierra al planeta) late con el mismo pulso");
 console.log("\n  " + ok + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);
