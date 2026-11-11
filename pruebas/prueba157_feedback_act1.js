@@ -1,6 +1,6 @@
 'use strict';
 /**
- * BATERÍA 156 · EL FEEDBACK DE LA ACTIVIDAD 1, PARA EL ALUMNADO (11-nov)
+ * BATERÍA 157 · EL FEEDBACK DE LA ACTIVIDAD 1, PARA EL ALUMNADO (11-nov)
  * ------------------------------------------------------------------------------------------------
  * Norberto, en clase: «cuando inicien sesión solo mi grupo, ponles que el comandante les diga revisa el feedback de la actividad 1
  * y que lo puedan consultar en el panel, al igual que pueden consultar otras actividades».
@@ -45,6 +45,6 @@ c(/Number\(a\.n\)===1 && feedbackM1\(\)\) out\.push\(\{u:URL_FEEDBACK_M1/.test(N
 c(/data-fbm1-ver/.test(NAVE_JS) && /st\.arSes=URL_FEEDBACK_M1; irA\('archivo'\)/.test(NAVE_JS), "   «Ver el feedback» lo abre en el panel");
 c(/try\{ return localStorage\.getItem/.test(NAVE_JS), "   el «ya lo he visto», con try (sin almacenamiento, sale igual)");
 
-console.log("\n  Batería 156 · El feedback de la Actividad 1, para el alumnado");
+console.log("\n  Batería 157 · El feedback de la Actividad 1, para el alumnado");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 if (fallos.length) process.exit(1);
