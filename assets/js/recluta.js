@@ -1935,7 +1935,11 @@
       html+='<div class="card ev-pregunta"><div class="eyebrow amber">Pregunta en directo'+(p.por?' · '+esc(p.por):'')+'</div>'
         +'<h3>'+esc(p.texto)+'</h3>'
         +(ENV.mia?'<p class="small ev-mia">Tu respuesta: «'+esc(ENV.mia.texto)+'». Puedes cambiarla mientras siga abierta.</p>':'')
-        +'<textarea id="ev-resp" maxlength="280" rows="3" aria-label="Tu respuesta" placeholder="Escribe tu respuesta (tu Comandante la verá al momento, con tu alias)">'+esc(ENV.borrador||(ENV.mia?ENV.mia.texto:''))+'</textarea>'
+        // 11-nov (2) · el tablero de «Manos a la obra» (SG_PRACTICA): dos botones, y el enlace en la caja de siempre
+        +(esPracticaEV(p)?'<p class="ev-prac"><button type="button" class="btn" data-ev-prac="'+esc(PRAC.voy)+'">'+esc(PRAC.voy)+'</button>'
+          +'<button type="button" class="btn" data-ev-prac="'+esc(PRAC.atascado)+'">'+esc(PRAC.atascado)+'</button></p>'
+          +'<p class="small muted">Cuando lo tengas, pega abajo el <b>enlace</b> de lo que has creado: irá a la galería de la clase.</p>':'')
+        +'<textarea id="ev-resp" maxlength="280" rows="3" aria-label="Tu respuesta" placeholder="Escribe tu respuesta (tu Comandante la verá al momento, con tu alias)">'+esc(ENV.borrador||(ENV.mia&&!(esPracticaEV(p)&&!/https?:\/\//i.test(ENV.mia.texto))?ENV.mia.texto:''))+'</textarea>'
         +'<p class="ev-acc"><button type="button" class="btn primary" id="ev-enviar"'+(ENV.enviando?' disabled':'')+'>'+(ENV.mia?'Cambiar mi respuesta':'Enviar respuesta')+'</button>'
         +'<span class="small muted" id="ev-msg"></span></p></div>';
     }
@@ -1949,6 +1953,17 @@
     }
     return html||'<div class="card"><p class="muted">Ahora mismo no hay nada en directo.</p></div>';
   }
+  var PRAC=window.SG_PRACTICA||{prefijo:'Manos a la obra · ', atascado:'Me he atascado', voy:'Voy bien'};
+  function esPracticaEV(p){ return !!(p&&String(p.texto||'').indexOf(PRAC.prefijo)===0); }
+  document.addEventListener('click', function(ev){
+    var b=ev.target&&ev.target.closest&&ev.target.closest('[data-ev-prac]'); if(!b) return;
+    var p=preguntaAbierta(), M=window.SG&&window.SG.MOTOR, msg=document.getElementById('ev-msg'), txt=b.getAttribute('data-ev-prac');
+    if(!p||!M) return;
+    b.disabled=true; if(msg) msg.textContent='Enviando…';
+    M.responderPregunta(per, p.id, st.yo.ficha, st.yo.alias||'', txt).then(function(){
+      ENV.mia={texto:txt}; render(); aviso(txt===PRAC.atascado?'<b>Avisado.</b> Tu Comandante sabe que te has atascado.':'<b>Hecho.</b> Tu Comandante sabe que vas bien.');
+    }, function(e){ b.disabled=false; if(msg) msg.textContent='No se ha podido enviar: '+(e&&e.message||e); });
+  });
   document.addEventListener('input', function(ev){ if(ev.target&&ev.target.id==='ev-resp') ENV.borrador=ev.target.value; });
   document.addEventListener('click', function(ev){
     var b=ev.target&&ev.target.closest&&ev.target.closest('#ev-enviar'); if(!b) return;

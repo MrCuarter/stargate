@@ -2778,10 +2778,15 @@
         +'<div class="lc-visor" hidden><div class="lc-visor-barra"><b class="lc-visor-t"></b><a class="btn min lc-visor-ap" target="_blank" rel="noopener">Abrir aparte &#8599;</a>'
         +'<button type="button" class="btn min lc-visor-x">Cerrar</button></div><iframe title="Ejemplo" allowfullscreen allow="fullscreen"></iframe></div>'+cierra};
     }
-    if(d.tipo==='manos') return {montar:montarCrono, html: abre
+    if(d.tipo==='manos') return {montar:ambos(montarCrono, montarPractica('manos')), html: abre
       +'<div class="lc-manos"><ol class="lc-pasos">'+(d.pasos||[]).map(function(p, i){
-        return '<li style="--i:'+i+'"><b class="lc-num">'+(i+1)+'</b><div><b>'+esc(p[0])+'</b> '+fuerte(p[1])+'</div></li>'; }).join('')+'</ol>'
-      +'<div class="lc-lado">'+cronoRelampago(Number(d.minutos)||20).replace(/(<div class="rc-eyebrow">)[\s\S]*?(<\/div>)/, '$1<img class=ico src=assets/img/iconos/p/tiempo.png alt> El reloj de la práctica$2')+(d.consejo?'<p class="lc-consejo"><img class=ico src=assets/img/iconos/p/diana.png alt> '+fuerte(d.consejo)+'</p>':'')+'</div></div>'+cierra};
+        return '<li style="--i:'+i+'"><b class="lc-num">'+(i+1)+'</b><div><b>'+esc(p[0])+'</b> '+fuerte(p[1])+'</div></li>'; }).join('')
+      // (el consejo, en el hueco que dejan siete pasos en dos columnas: el lado queda para el reloj y el tablero)
+      +(d.consejo?'<li class="lc-consejo" style="--i:'+(d.pasos||[]).length+'"><img class=ico src=assets/img/iconos/p/diana.png alt> <div>'+fuerte(d.consejo)+'</div></li>':'')+'</ol>'
+      +'<div class="lc-lado">'+cronoRelampago(Number(d.minutos)||20).replace(/(<div class="rc-eyebrow">)[\s\S]*?(<\/div>)/, '$1<img class=ico src=assets/img/iconos/p/tiempo.png alt> El reloj de la práctica$2')+lcPracticaHtml('manos')+'</div></div>'+cierra};
+    if(d.tipo==='galeria') return {montar:ambos(montarVisor, montarPractica('galeria')), html: abre+lcPracticaHtml('galeria')
+      +'<div class="lc-visor" hidden><div class="lc-visor-barra"><b class="lc-visor-t"></b><a class="btn min lc-visor-ap" target="_blank" rel="noopener">Abrir aparte &#8599;</a>'
+      +'<button type="button" class="btn min lc-visor-x">Cerrar</button></div><iframe title="Lo que ha creado" allowfullscreen allow="fullscreen"></iframe></div>'+cierra};
     if(d.tipo==='ia') return {montar:montarCopiar, html: abre
       +'<div class="lc-ia"><div class="lc-prompt"><div class="lc-prompt-t"><b>El prompt</b><button type="button" class="btn min" data-lc-copiar>Copiar</button></div>'
       +'<p class="lc-prompt-x">'+esc(d.prompt)+'</p></div>'
@@ -2792,6 +2797,86 @@
       +'<p class="lc-pie lc-cuenta" aria-live="polite"></p>'+cierra};
     return null;
   }
+  /**
+   * ════════ 🔴 11-nov (2) · LA PRÁCTICA EN VIVO: «ME HE ATASCADO» Y LA GALERÍA ════════
+   *
+   * Sobre la pregunta en directo de siempre (lanzarPregunta / vigilarRespuestas / responderPregunta): sin servidor nuevo. El
+   * docente abre «el tablero» en «Manos a la obra» (una pregunta cuyo texto empieza por SG_PRACTICA.prefijo); a cada recluta le
+   * salta en la Nave y en la sesión con «Voy bien», «Me he atascado» y una caja para pegar su enlace (lo puede cambiar). Aquí:
+   * cuántos van bien, cuántos tienen ya enlace y QUIÉN está atascado; y en la galería, los enlaces, con el visor.
+   * Solo el docente con grupo y en directo (no en diferido ni en la presentación del alumnado).
+   */
+  var LC_PRAC=window.SG_PRACTICA||{prefijo:'Manos a la obra · ', texto:'', atascado:'Me he atascado', voy:'Voy bien'};
+  function esPractica(p){ return !!(p&&p.id&&String(p.texto||'').indexOf(LC_PRAC.prefijo)===0); }
+  /** voy · atascado · enlace (con su url) */
+  function estadoPractica(txt){
+    var t=String(txt||'').trim(), u=t.match(/https?:\/\/[^\s<>"']+/i);
+    if(u) return {k:'enlace', url:u[0].replace(/[).,;]+$/,'')};
+    if(t.toLowerCase()===String(LC_PRAC.atascado).toLowerCase()||/atascad/i.test(t)) return {k:'atascado'};
+    return {k:'voy', txt:t};
+  }
+  function practicaPosible(){ return !st.alumno && !!st.per && !DIFERIDO && !!(window.SG&&window.SG.MOTOR&&window.SG.MOTOR.vigilarEnVivo); }
+  function lcPracticaHtml(modo){
+    if(practicaPosible()) return '<div class="lc-practica lc-pr-'+modo+'" aria-live="polite"><p class="lc-pr-cargando">Conectando con la clase…</p></div>';
+    if(st.alumno && modo==='manos') return '<p class="lc-pr-al">Cuando tu Comandante abra el tablero, te saldrá abajo: <b>«'+esc(LC_PRAC.voy)+'»</b>, <b>«'+esc(LC_PRAC.atascado)+'»</b> o pega tu enlace.</p>';
+    if(modo==='galeria') return '<p class="lc-pr-al">La galería se llena en clase con los enlaces que pegáis en «Manos a la obra».</p>';
+    return '';
+  }
+  function montarPractica(modo){
+    return function(el){
+      var caja=el.querySelector('.lc-practica'), M=window.SG&&window.SG.MOTOR;
+      if(!caja||!M||!practicaPosible()) return null;
+      var cur={p:null, de:'', resp:[], ocupado:false}, pararR=null, vivo=true;
+      var pinta=function(){
+        if(!vivo) return;
+        var p=cur.p, abierta=!!(p&&p.abierta&&esPractica(p)), mia=cur.de&&p&&p.id===cur.de;
+        var R=mia?cur.resp:[], E=R.map(function(r){ return {r:r, e:estadoPractica(r.texto)}; });
+        var cuenta=function(k){ return E.filter(function(x){ return x.e.k===k; }); };
+        var en=cuenta('enlace'), at=cuenta('atascado'), vo=cuenta('voy');
+        var h='';
+        if(modo==='manos'){
+          if(!abierta) h+='<button type="button" class="btn primary" data-lc-pr="abrir"'+(cur.ocupado?' disabled':'')+'>Abrir el tablero en sus móviles</button>'
+            +'<p class="lc-pr-pista">Les sale en la Nave y en la sesión: «'+esc(LC_PRAC.voy)+'», «'+esc(LC_PRAC.atascado)+'» o pegar su enlace.'
+            +(p&&p.abierta&&!esPractica(p)?' <b>Cierra la pregunta en directo que tienes abierta.</b>':'')+'</p>';
+          else h+='<div class="lc-pr-cifras"><span class="lc-pr-c ok"><b>'+en.length+'</b> con enlace</span><span class="lc-pr-c voy"><b>'+vo.length+'</b> '+esc(LC_PRAC.voy.toLowerCase())+'</span>'
+            +'<span class="lc-pr-c at"><b>'+at.length+'</b> atascado'+(at.length===1?'':'s')+'</span></div>'
+            +(at.length?'<p class="lc-pr-nombres"><b>A ayudar:</b> '+at.map(function(x){ return '<span>'+esc(x.r.alias||'?')+'</span>'; }).join('')+'</p>':'')
+            +'<button type="button" class="btn min" data-lc-pr="cerrar"'+(cur.ocupado?' disabled':'')+'>Cerrar el tablero</button>';
+        } else {
+          h+='<p class="lc-pr-pista"><b>'+en.length+'</b> enlace'+(en.length===1?'':'s')+(abierta?' · el tablero sigue abierto: van llegando':'')+'</p>';
+          h+=en.length?'<div class="lc-galeria">'+en.map(function(x, i){
+              var host=''; try{ host=new URL(x.e.url).hostname.replace(/^www\./,''); }catch(e){}
+              var gen=/(^|\.)genial(ly)?\.(com|ly)$/.test(host);
+              return '<div class="lc-gal-t" style="--i:'+i+'"><b>'+esc(x.r.alias||'Recluta')+'</b><span>'+esc(host)+'</span><div class="lc-bots">'
+                +(gen?'<button type="button" class="btn primary min" data-lc-ver="'+esc(x.e.url)+'" data-lc-tit="'+esc(x.r.alias||'')+'">Verlo aquí</button>':'')
+                +'<a class="btn min" href="'+esc(x.e.url)+'" target="_blank" rel="noopener">Abrir aparte &#8599;</a></div></div>'; }).join('')+'</div>'
+            :'<p class="lc-pr-vacia">Aún no ha llegado ningún enlace. '+(abierta?'En cuanto lo peguen, aparece aquí.':'Abre el tablero en «Manos a la obra».')+'</p>';
+        }
+        if(caja.getAttribute('data-h')!==h){ caja.setAttribute('data-h', h); caja.innerHTML=h; }
+      };
+      var pararE=M.vigilarEnVivo(st.per, function(d){
+        var p=(d||{}).pregunta; cur.p=(p&&p.id)?p:null;
+        if(esPractica(cur.p) && cur.p.id!==cur.de){
+          cur.de=cur.p.id; cur.resp=[]; if(pararR) pararR();
+          pararR=M.vigilarRespuestas(st.per, cur.p.id, function(l){ cur.resp=l||[]; pinta(); });
+        }
+        pinta();
+      });
+      caja.addEventListener('click', function(e){
+        var b=e.target.closest&&e.target.closest('[data-lc-pr]'); if(!b) return;
+        e.stopPropagation();
+        var a=b.getAttribute('data-lc-pr'); cur.ocupado=true; pinta();
+        var hecho=function(){ cur.ocupado=false; pinta(); };
+        var fallo=function(err){ cur.ocupado=false; pinta(); if(window.SG&&window.SG.avisar) window.SG.avisar('No ha funcionado', (err&&err.message)||String(err), true); };
+        if(a==='abrir') M.lanzarPregunta(st.per, LC_PRAC.prefijo+LC_PRAC.texto, st.miNombre||'').then(hecho, fallo);
+        else if(a==='cerrar') M.cerrarPregunta(st.per).then(hecho, fallo);
+      });
+      return function(){ vivo=false; try{ if(pararE) pararE(); if(pararR) pararR(); }catch(e){} };
+    };
+  }
+  /** Dos montajes en uno (el cronómetro y el tablero), con su limpieza. */
+  function ambos(f, g){ return function(el){ var a=f(el), b=g(el); return function(){ if(a) a(); if(b) b(); }; }; }
+
   function montarMatriz(A){
     return function(el){
       var det=el.querySelector('.lc-mz-det'); if(!det) return null;
@@ -3598,7 +3683,18 @@
     // 16-oct · el plan B: si no tiene la diapositiva del docente, lo dice (nunca se queda quieto en silencio) y le pone al día
     if(vivo&&SEG.perdido) html+='<div class="ses-al-perdido" role="status"><b>Tu Comandante está en «'+esc(SEG.perdido.rot||'otra diapositiva')+'»</b>'
       +'<p>Esa aún no te ha llegado.</p><button type="button" class="btn primary" id="ses-al-aldia">Ponerme al día</button></div>';
-    if(p&&p.abierta&&p.id){
+    if(p&&p.abierta&&p.id&&esPractica(p)){
+      // 11-nov (2) · el tablero de la práctica: dos botones y su enlace; se cambia cuantas veces haga falta mientras siga abierto
+      var yaE=SEG.mia?estadoPractica(SEG.mia.texto):null;
+      html+='<div class="ses-al-pq ses-al-prac'+(SEG.mia?'':' abierta')+'"><b>Manos a la obra</b>'
+        +(yaE?'<p class="ses-al-mia">'+(yaE.k==='enlace'?'Tu enlace ya está en la galería.':yaE.k==='atascado'?'Tu Comandante sabe que te has atascado: va para allá.':'Tu Comandante sabe que vas bien.')+'</p>':'<p>¿Cómo vas?</p>')
+        +'<div class="ses-al-prac-b"><button type="button" class="btn" data-ses-prac="'+esc(LC_PRAC.voy)+'">'+esc(LC_PRAC.voy)+'</button>'
+        +'<button type="button" class="btn" data-ses-prac="'+esc(LC_PRAC.atascado)+'">'+esc(LC_PRAC.atascado)+'</button></div>'
+        +'<input id="ses-al-resp" type="url" inputmode="url" maxlength="280" placeholder="Pega aquí el enlace de lo que has creado" aria-label="El enlace de lo que has creado">'
+        +'<button type="button" class="btn primary" id="ses-al-enviar">Enviar el enlace</button>'
+        +'<span class="ses-al-msg" id="ses-al-msg"></span></div>';
+    }
+    else if(p&&p.abierta&&p.id){
       var pend=!SEG.mia;
       html+='<div class="ses-al-pq'+(pend?' abierta':'')+'"><b>Pregunta en directo</b><p>'+esc(p.texto)+'</p>'
         +(pend?'<textarea id="ses-al-resp" maxlength="280" rows="2" placeholder="Tu respuesta"></textarea><button type="button" class="btn primary" id="ses-al-enviar">Enviar</button>'
@@ -3620,10 +3716,17 @@
     if(crVivo){ relojAlumno(); if(!SEG.relojIv) SEG.relojIv=setInterval(relojAlumno, 500); }
     var ad=caja.querySelector('#ses-al-aldia'); if(ad) ad.onclick=function(){ ad.disabled=true; location.reload(); };
     var v=caja.querySelector('#ses-al-volver'); if(v) v.onclick=function(){ SEG.on=true; var s2=SEG.d.sesion; if(s2){ var i=indiceDe(s2.k,s2.n); if(i>=0) ir(i,false,true); } pintarSeguir(); };
+    Array.prototype.forEach.call(caja.querySelectorAll('[data-ses-prac]'), function(b){ b.onclick=function(){
+      var M=window.SG&&window.SG.MOTOR, txt=b.getAttribute('data-ses-prac'), msg=caja.querySelector('#ses-al-msg');
+      b.disabled=true; if(msg) msg.textContent='Enviando…';
+      M.responderPregunta(st.per, p.id, st.ficha, aliasMio(), txt).then(function(){ SEG.mia={texto:txt}; caja.removeAttribute('data-html'); pintarSeguir(); },
+        function(e){ b.disabled=false; if(msg) msg.textContent='No se ha podido enviar: '+(e&&e.message||e); });
+    }; });
     var en=caja.querySelector('#ses-al-enviar');
     if(en) en.onclick=function(){
       var M=window.SG&&window.SG.MOTOR, txt=(caja.querySelector('#ses-al-resp').value||'').trim(), msg=caja.querySelector('#ses-al-msg');
       if(!txt){ msg.textContent='Escribe algo antes de enviar.'; return; }
+      if(esPractica(p) && !/https?:\/\//i.test(txt)){ msg.textContent='Pega el enlace completo (empieza por https://).'; return; }
       en.disabled=true; msg.textContent='Enviando…';
       M.responderPregunta(st.per, p.id, st.ficha, aliasMio(), txt).then(function(){ SEG.mia={texto:txt}; pintarSeguir(); },
         function(e){ en.disabled=false; msg.textContent='No se ha podido enviar: '+(e&&e.message||e); });

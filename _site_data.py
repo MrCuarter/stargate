@@ -1475,6 +1475,13 @@ SESION_SECCIONES = [
 # LECCION_AULAS: dónde sale, de estreno. (PER, Comandante): None = todo el grupo. En PER 16450 están Norberto (grupos 25 y 55,
 # «Norberto Cuartero») y Caridad: solo el aula de él. `?leccion=1` en la URL la enseña en cualquier grupo, para mirarla.
 LECCION_AULAS = [("per-16450", "Norberto Cuartero"), ("demo-stargate", None)]
+# 11-nov (2) · LA PRÁCTICA EN VIVO: «me he atascado» y la galería (Norberto eligió estas dos de las cuatro propuestas). Va sobre la
+# pregunta en directo que ya existía (modClase, sala envivo: lanzarPregunta / responderPregunta / vigilarRespuestas): sin
+# servidor nuevo. El docente la abre desde «Manos a la obra»; al recluta le salta en la Nave y en la sesión con dos botones
+# (los textos de abajo, tal cual) y una caja para pegar su enlace; puede cambiarla mientras siga abierta. Una respuesta con
+# enlace va a la galería; «Me he atascado» se cuenta y se nombra en la diapositiva para ir a ayudarle.
+PRACTICA_EN_VIVO = dict(prefijo="Manos a la obra · ", texto="pega aquí el enlace de lo que has creado cuando lo tengas.",
+                        atascado="Me he atascado", voy="Voy bien")
 # Cada lección, por semana del grupo (REGULAR). Tipos de diapositiva (los pinta sesion.js, diasLeccion):
 #   tarjetas · (kicker, titulo, tarjetas=[(titulo, texto)], pie)            · todas iguales, de un vistazo
 #   piezas   · las 8 inteligencias y los 6 niveles de Bloom (de INTELIGENCIAS y BLOOM: un dato, un sitio)
@@ -1483,6 +1490,7 @@ LECCION_AULAS = [("per-16450", "Norberto Cuartero"), ("demo-stargate", None)]
 #   manos    · manos a la obra: pasos numerados, consejo y cronómetro (el del relámpago)
 #   ia       · la IA como ayudante: el prompt para copiar y lo que decide tu criterio
 #   lista    · la lista de comprobación (se marca en pantalla; no se guarda)
+#   galeria  · lo que han creado: los enlaces que pegan en el tablero de la práctica (PRACTICA_EN_VIVO), con el visor
 LECCIONES = {
  5: dict(tema=3, parte="Tema 3 · 1.ª parte", titulo="Que el alumnado decida", dias=[
    dict(tipo="tarjetas", rot="Lineal o interactivo", kicker="Lo mínimo", titulo="¿Qué hace interactivo un recurso?",
@@ -1548,6 +1556,8 @@ LECCIONES = {
                ("El color dice el tipo", "uno para **obligatoria**, otro para **optativa**, otro para **voluntaria**, y una leyenda."),
                ("Publícalo", "en **público**, copia el enlace, ábrelo en una ventana de **incógnito** e incrústalo en tu Bitácora.")],
         consejo="Hoy basta con **tres actividades colocadas**: el resto, en casa, ya dentro de la Actividad 2."),
+   dict(tipo="galeria", rot="La galería", kicker="La galería", titulo="Lo que habéis creado",
+        notas=["Se llena con los enlaces que pegan en el tablero de «Manos a la obra».", "Abre dos o tres con «Verlo aquí» y comentadlos: qué funciona y qué cambiaríais."]),
    dict(tipo="ia", notas=["Copia el prompt y pruébalo en directo con un tema que te digan.", "Recalca el criterio: la IA propone, el docente decide, y se cita."], rot="La IA y tu matriz", kicker="La IA, de ayudante", titulo="La IA te ayuda a llenar la matriz… y decide tú",
         prompt="Actúa como docente de [etapa y curso]. Mi unidad es «[tema]» y el objetivo es: [objetivo]. Propón una "
                "actividad para cada uno de estos cruces de la matriz de programación: [inteligencia × nivel de Bloom], "

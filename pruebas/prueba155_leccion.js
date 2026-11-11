@@ -13,12 +13,12 @@ const R = path.join(__dirname, "..");
 const L = f => fs.readFileSync(path.join(R, f), "utf8");
 let ok = 0; const fallos = [];
 const c = (cond, txt, dato) => { if (cond) ok++; else fallos.push(txt); console.log("   " + (cond ? "✓" : "✗") + " " + txt + (cond || dato === undefined ? "" : "  →  " + dato)); };
-const global = (html, nombre) => { const m = html.match(new RegExp("window\\." + nombre + "=([\\s\\S]*?);window\\.")); return m ? vm.runInNewContext("(" + m[1] + ")") : null; };
+const global = (html, nombre) => { const m = html.match(new RegExp("window\\." + nombre + "=([\\s\\S]*?);(?:window\\.|<\\/script>)")); return m ? vm.runInNewContext("(" + m[1] + ")") : null; };
 
 const SESH = L("sesion.html"), SES = L("assets/js/sesion.js"), CSS = L("assets/css/stargate.css");
 const LEC = global(SESH, "SG_LECCIONES") || {}, AULAS = global(SESH, "SG_LECCION_AULAS") || [], ACT = global(SESH, "SG_SES_ACT") || {};
 const MZ = global(SESH, "SG_MATRIZ") || {};
-const TIPOS = ["tarjetas", "piezas", "matriz", "ejemplos", "manos", "ia", "lista"];
+const TIPOS = ["tarjetas", "piezas", "matriz", "ejemplos", "manos", "galeria", "ia", "lista"];
 
 console.log("  El dato");
 c(LEC["5"] && LEC["6"], "hay lección en las semanas 5 y 6 (el Tema 3, en dos partes)", Object.keys(LEC));
@@ -69,13 +69,68 @@ c(/k:'lc-'\+\(i\+1\), sec:'despegue', t:'pr'/.test(SES), "   cada diapositiva co
 c(/G\[sl\.k\]\|\|sl\.guion\)/.test(SES) && S6.every(d => (d.notas || []).length), "   las notas del presentador de la semana 6, por defecto en cada diapositiva");
 c(/class="dia leccion lct-'\+esc\(d\.tipo\)/.test(SES), "   la clase del tipo lleva prefijo propio (lct-): «lc-tarjetas» en la diapositiva la volvía rejilla");
 c(/function montarVisor[\s\S]*removeEventListener\('keydown', tecla, true\)/.test(SES), "   el visor de ejemplos se cierra con Esc y suelta el teclado al salir");
-c(/cronoRelampago\(Number\(d\.minutos\)\|\|20\)/.test(SES) && /montar:montarCrono, html: abre/.test(SES), "   manos a la obra usa el cronómetro del relámpago");
+c(/cronoRelampago\(Number\(d\.minutos\)\|\|20\)/.test(SES) && /montar:ambos\(montarCrono, montarPractica\('manos'\)\), html: abre/.test(SES), "   manos a la obra usa el cronómetro del relámpago");
 
 console.log("  Que se vea en cualquier pantalla");
 c(/\.lc-tarjetas\{display:grid;grid-template-columns:repeat\(var\(--n,3\),minmax\(0,1fr\)\)/.test(CSS), "tarjetas iguales en rejilla (minmax(0,1fr))");
 c(/@media \(max-width:900px\),\(max-height:560px\)\{ \.dia\.leccion\{overflow-y:auto/.test(CSS), "   en pantallas pequeñas o bajas, se desliza dentro de su diapositiva (no se corta)");
 c(/@media \(max-width:620px\)\{ body \.mazo \.dia\.leccion\{padding:54px/.test(CSS), "   en el móvil, por debajo de la barra de arriba");
 c(/\.lc-lista input\{width:22px;height:22px/.test(CSS) && /\.lc-bots \.btn\{min-height:40px\}/.test(CSS), "   zonas de pulsar de 40 px");
+
+console.log("  La práctica en vivo: «me he atascado» y la galería (11-nov, 2)");
+const PR = global(SESH, "SG_PRACTICA") || {};
+const REC = L("recluta.html"), RJ = L("assets/js/recluta.js");
+c(PR.prefijo && PR.atascado && PR.voy, "el dato SG_PRACTICA, en la sesión", JSON.stringify(PR));
+c(JSON.stringify(global(REC, "SG_PRACTICA") || {}) === JSON.stringify(PR), "   y el mismo en la Nave del recluta");
+c(S6.map(d => d.tipo).join(",").indexOf("manos,galeria") >= 0, "   la galería va justo detrás de «Manos a la obra»");
+// se ejecuta el bloque tal cual, con un motor y un DOM de mentira
+const bloque = (SES.match(/  var LC_PRAC=[\s\S]*?function ambos\(f, g\)\{[^\n]*\n/) || [""])[0];
+c(!!bloque, "sesion.js tiene el bloque de la práctica");
+const llamadas = [];
+let alEnVivo = null, alResp = null;
+const M = {
+  vigilarEnVivo: (per, f) => { alEnVivo = f; return () => llamadas.push("paraE"); },
+  vigilarRespuestas: (per, id, f) => { alResp = f; llamadas.push("vigila:" + id); return () => llamadas.push("paraR"); },
+  lanzarPregunta: (per, txt, por) => { llamadas.push("lanza:" + txt + "|" + por); return Promise.resolve("q1"); },
+  cerrarPregunta: () => { llamadas.push("cierra"); return Promise.resolve(); },
+};
+const caja = () => { const o = { innerHTML: "", at: {}, getAttribute: k => o.at[k], setAttribute: (k, v) => { o.at[k] = v; }, addEventListener: (t, f) => { o.click = f; }, querySelector: () => o }; return o; };
+const mk = (st, dif) => {
+  const ctx = { window: { SG_PRACTICA: PR, SG: { MOTOR: M } }, st, DIFERIDO: !!dif, URL, esc: s => String(s == null ? "" : s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])) };
+  vm.runInNewContext(bloque + ";this.F={montarPractica,lcPracticaHtml,estadoPractica,esPractica,practicaPosible};", ctx);
+  return ctx.F;
+};
+const F = mk({ per: "per-16450", miNombre: "Norberto Cuartero" });
+c(F.practicaPosible() && /lc-practica lc-pr-manos/.test(F.lcPracticaHtml("manos")), "   el docente con grupo, en directo: sale el tablero");
+c(!mk({ per: "per-16450", alumno: true }).practicaPosible() && !mk({ per: "per-16450" }, true).practicaPosible(), "   el recluta y el diferido: no (al recluta, cómo responder)");
+c(F.estadoPractica("Me he atascado").k === "atascado" && F.estadoPractica("Voy bien").k === "voy" && F.estadoPractica("mira https://view.genially.com/abc).").url === "https://view.genially.com/abc",
+  "   cada respuesta se lee como «voy», «atascado» o «enlace» (y el enlace, limpio)");
+const cj = caja(), el = { querySelector: () => cj };
+const parar = F.montarPractica("manos")(el);
+const enVivoManos = alEnVivo;
+alEnVivo({ pregunta: null });
+c(/Abrir el tablero en sus móviles/.test(cj.innerHTML), "   sin tablero abierto: «Abrir el tablero en sus móviles»");
+cj.click({ target: { closest: () => ({ getAttribute: () => "abrir" }) }, stopPropagation() {} });
+c(llamadas.some(x => x === "lanza:" + PR.prefijo + PR.texto + "|Norberto Cuartero"), "   y lo abre como pregunta en directo, con el prefijo y su nombre", llamadas.join(" · "));
+alEnVivo({ pregunta: { id: "q1", abierta: true, texto: PR.prefijo + PR.texto } });
+alResp([{ alias: "Ana", texto: "Voy bien" }, { alias: "Luis", texto: "Me he atascado" }, { alias: "Eva", texto: "https://view.genially.com/xyz" }, { alias: "Leo <b>", texto: "me he atascado" }]);
+c(/<b>1<\/b> con enlace/.test(cj.innerHTML) && /<b>1<\/b> voy bien/.test(cj.innerHTML) && /<b>2<\/b> atascados/.test(cj.innerHTML), "   cuenta: 1 con enlace, 1 va bien, 2 atascados", cj.innerHTML.slice(0, 300));
+c(/A ayudar:.*Luis.*Leo &lt;b&gt;/.test(cj.innerHTML) && !/Ana<\/span>/.test(cj.innerHTML), "   y nombra solo a quien se ha atascado (escapado)");
+const cg = caja(); F.montarPractica("galeria")({ querySelector: () => cg });
+alEnVivo({ pregunta: { id: "q1", abierta: true, texto: PR.prefijo + PR.texto } });
+alResp([{ alias: "Eva", texto: "https://view.genially.com/xyz" }, { alias: "Pablo", texto: "https://sites.google.com/view/pablo" }, { alias: "Luis", texto: "Me he atascado" }]);
+c(/<b>2<\/b> enlaces/.test(cg.innerHTML) && (cg.innerHTML.match(/lc-gal-t/g) || []).length === 2 && !/Luis/.test(cg.innerHTML), "la galería: solo los enlaces (2), con su alias");
+c((cg.innerHTML.match(/data-lc-ver=/g) || []).length === 1 && (cg.innerHTML.match(/Abrir aparte/g) || []).length === 2, "   «Verlo aquí» solo para Genially (los demás no se dejan incrustar); «Abrir aparte», todos");
+enVivoManos({ pregunta: { id: "q2", abierta: true, texto: "¿Otra pregunta?" } });
+c(/Cierra la pregunta en directo que tienes abierta/.test(cj.innerHTML), "   si hay otra pregunta abierta, lo dice en vez de pisarla");
+if (parar) parar();
+c(llamadas.indexOf("paraE") >= 0 && llamadas.indexOf("paraR") >= 0, "   al salir de la diapositiva deja de escuchar");
+console.log("  El recluta responde con dos botones");
+c(/data-ses-prac="'\+esc\(LC_PRAC\.voy\)/.test(SES) && /data-ses-prac="'\+esc\(LC_PRAC\.atascado\)/.test(SES), "en la sesión que sigue: «Voy bien» y «Me he atascado»");
+c(/esPractica\(p\) && !\/https\?:/.test(SES), "   el enlace, completo (https://)");
+c(/data-ev-prac="'\+esc\(PRAC\.voy\)/.test(RJ) && /data-ev-prac="'\+esc\(PRAC\.atascado\)/.test(RJ), "   y en su Nave, los mismos botones");
+c(/ENV\.mia&&!\(esPracticaEV\(p\)&&!\/https\?:/.test(RJ), "   la caja del enlace no se rellena con «Voy bien»");
+c(/@media \(prefers-reduced-motion:reduce\)\{ \.lc-gal-t\{animation:none\} \}/.test(CSS) && /\.lc-practica \.btn\{min-height:40px\}/.test(CSS), "   botones de 40 px y sin animación para quien la quita");
 
 console.log("\n  Batería 155 · La lección");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
