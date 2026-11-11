@@ -3011,7 +3011,9 @@
   function presIniciar(){
     if(PZ.ini||!GPP||st.alumno) return; PZ.ini=true;
     if(PRES){ PZ.p=GPP.presentacion({ per:st.per||'demo', alEstado:seguirMando, alAcc:function(a){ var m=/^yt:(\d+)$/.exec(a), y=m&&root.querySelectorAll('.lienzo .yt')[+m[1]]; if(y) y.click(); } }); return; }
-    PZ.m=GPP.mando({ per:st.per||'demo', alCambiar:presOn, alPide:presMandar,
+    // (11-nov · al cargar, una presentación que ya estaba abierta no enciende el mando sola, salvo con «dos pantallas» recordado: la que
+    // Chrome reabre al reiniciar como pestaña normal lo hacía temblar. Para volver a ella, el icono: reutiliza esa misma ventana)
+    PZ.m=GPP.mando({ per:st.per||'demo', ignorar:GPP.recordado(PRES_CLAVE)!=='presentador', alCambiar:presOn, alPide:presMandar,
       alTecla:function(key, shift){ document.dispatchEvent(new KeyboardEvent('keydown',{key:key, shiftKey:shift})); } });
     // (en el mando, el vídeo suena en la presentación)
     document.addEventListener('click', function(ev){

@@ -21,7 +21,7 @@
  *       de Zoom, Meet y Teams (`nombre`: el título de la ventana que se elige) y, con `url`, el QR del mando para el móvil y «Esta
  *       pantalla, como presentación». Sin `url`, `nota` (por qué aquí no hay mando en el móvil).
  *   GP.presentador.abrir(url, nombre)       → la emergente (o null si el navegador la bloquea).
- *   GP.presentador.mando({ per, alCambiar(vivo), alTecla(key, shift), alPide() }) → { mandar(estado), acc(a), abierta(win), cerrar(),
+ *   GP.presentador.mando({ per, ignorar, alCambiar(vivo), alTecla(key, shift), alPide() }) → { mandar(estado), acc(a), abierta(win), cerrar(),
  *       vivo(), destruir() }: en la ventana del docente. `vivo()`, si hay una presentación abierta (late cada 3 s y contesta al «¿sigues?»
  *       del mando cada 2 s; a los 75 s sin señal, o al momento si se despide, deja de contar). `alPide()`: la presentación acaba de abrir y pide el estado.
  *   GP.presentador.presentacion({ per, alEstado(e), alAcc(a) }) → { tecla(key, shift), destruir() }: en la emergente. Late, se despide
@@ -66,10 +66,14 @@
     // pregunta «¿sigues?» y la presentación contesta al momento (un mensaje no se frena como un reloj); y sin señal se espera 75 s,
     // más que el freno del navegador (1 min). Cerrarla sigue contando al momento: se despide.
     var ESPERA = 75000;
+    // 🔴 11-nov (2) · y tras «una pantalla», CALLA: una presentación suelta (p. ej. la que Chrome reabre al reiniciar como pestaña
+    // normal, que ya no se puede cerrar sola) no vuelve a encender el mando hasta que se pidan dos pantallas (abierta). o.ignorar: empieza así.
+    var calla = !!o.ignorar;
     function vivoAhora() { return (!!win && !win.closed) || (latido > 0 && Date.now() - latido < ESPERA); }
     function mirar() { var v = vivoAhora(); if (v !== on) { on = v; if (!on) win = null; if (typeof o.alCambiar === "function") o.alCambiar(on); } }
     if (bc) bc.onmessage = function (ev) {
       var m = ev && ev.data; if (!m) return;
+      if ((m.tipo === "hola" || m.tipo === "aqui") && calla) return;
       if (m.tipo === "hola") { latido = Date.now(); mirar(); if (typeof o.alPide === "function") o.alPide(); }
       else if (m.tipo === "aqui") { latido = Date.now(); mirar(); }
       else if (m.tipo === "adios") { latido = 0; setTimeout(mirar, 60); }
@@ -80,8 +84,8 @@
     return {
       mandar: function (estado) { if (on && estado) post({ tipo: "estado", e: estado }); },
       acc: function (a) { post({ tipo: "acc", a: String(a || "") }); },
-      abierta: function (w) { win = w || null; mirar(); },
-      cerrar: function () { post({ tipo: "cierra" }); try { if (win) win.close(); } catch (e) { /* nada */ } win = null; latido = 0; mirar(); },
+      abierta: function (w) { win = w || null; calla = false; mirar(); },
+      cerrar: function () { post({ tipo: "cierra" }); try { if (win) win.close(); } catch (e) { /* nada */ } win = null; latido = 0; calla = true; mirar(); },
       vivo: function () { return on; },
       destruir: function () { clearInterval(vigia); if (bc) try { bc.close(); } catch (e) { /* nada */ } },
     };

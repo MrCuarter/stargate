@@ -43,5 +43,10 @@ c(/document\.addEventListener\('sg:motor', alMotor, \{once:true\}\)/.test(llamad
 c(/sigue=false; document\.removeEventListener\('sg:motor', alMotor\); if\(otra\)/.test(llamada), "   al irse de la diapositiva antes de que llegue, deja de esperar y apaga lo montado");
 c(/if\(sigue&&el\.isConnected\) otra=montarLlamada\(el\)/.test(llamada), "   solo se monta si la diapositiva sigue en pantalla");
 
+// 4 · al cargar, una presentación suelta no enciende el mando (salvo «dos pantallas» recordado)
+c(/GPP\.mando\(\{ per:st\.per\|\|'demo', ignorar:GPP\.recordado\(PRES_CLAVE\)!=='presentador',/.test(S), "🔴 al cargar, el mando no se enciende por una presentación suelta (la que Chrome reabre al reiniciar), salvo con «dos pantallas» recordado");
+const PJ = fs.readFileSync(path.join(__dirname, "..", "assets/js/presentador.js"), "utf8");
+c(/m\.tipo === "sigues"\) post\(\{ tipo: "aqui" \}\)/.test(PJ) && /ESPERA = 75000/.test(PJ), "🔴 sin temblor: la presentación contesta al «sigues» del mando y sin señal se esperan 75 s (pieza de GamificaPro)");
+c(/calla = true; mirar\(\); \}/.test(PJ), "   tras «una pantalla», el mando calla hasta que se piden dos otra vez");
 console.log("\n  " + ok + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);
