@@ -15,6 +15,9 @@
  *   manos    · pasos=[[titulo, texto]], minutos, consejo              manos a la obra: pasos numerados (el consejo, en el hueco del
  *                                                                     último) y el cronómetro; al lado, lo que añada el mod (extras)
  *   galeria  · (nada más: lo pone el mod en o.extras.galeria)        lo que ha creado la clase, con el mismo visor de los ejemplos
+ *   matrizvivo · pie (y o.extras.matrizvivo: el control en vivo)     11-nov · la matriz DE LA CLASE: la rejilla vacía de o.matriz que
+ *                                                                     se llena con GP.leccion.cruces(el, lista); al pulsar una casilla,
+ *                                                                     sus ideas con quién las mandó. Sin extras, no sale
  *   ia       · prompt, criterio=[texto]                               el prompt para copiar y lo que decide el criterio docente
  *   lista    · items=[texto]                                          la lista de comprobación (se marca en pantalla; no se guarda)
  * En los textos, **así** va en negrita (o.fuerte); lo demás, texto (sin HTML de nadie).
@@ -25,6 +28,11 @@
  *       o null. Quién la ve es CONFIGURACIÓN del mod: `aulas` = [[grupo, docente]] (docente null = todo el grupo); `fuera` = este
  *       grupo no la lleva (p. ej., un tipo de grupo con otro calendario). En la URL, `?leccion=1` la enseña en cualquier grupo y
  *       `?leccion=0` la quita (`param` cambia el nombre).
+ *   GP.leccion.resumenCruces(lista, columnas, filas) → { cruces, casillas, vacias: { columnas, filas } }: cuántos cruces, cuántas
+ *       casillas distintas y qué columnas y filas nadie ha tocado (lista = [{ col, fila, texto, quien }]; lo que no cae en la
+ *       rejilla no cuenta).
+ *   GP.leccion.cruces(el, lista)        → pinta esa lista en la rejilla de «matrizvivo» (el = la diapositiva montada) y devuelve
+ *       su resumen. Lo llama el mod cada vez que llegan respuestas.
  *   GP.leccion.dias(L, o)               → [{ k, tipo, rot, guion, html, montar? }] y lo de `o.base` (lo que el mod pone en cada
  *       diapositiva: su sección, su tiempo…). `montar(el)` engancha lo que se pulsa y devuelve con qué soltarlo (o null).
  *       Opciones (todas con valor por defecto; la piel es del mod):
@@ -52,13 +60,15 @@
   if (raiz) { raiz.GP = raiz.GP || {}; if (!raiz.GP.leccion) raiz.GP.leccion = L; }
 })(typeof window !== "undefined" ? window : null, function (W) {
   "use strict";
-  var TIPOS = ["tarjetas", "piezas", "matriz", "ejemplos", "manos", "galeria", "ia", "lista"];
+  var TIPOS = ["tarjetas", "piezas", "matriz", "matrizvivo", "ejemplos", "manos", "galeria", "ia", "lista"];
   var TEXTOS = {
     verAqui: "Verlo aquí", aparte: "Abrir aparte ↗", cerrar: "Cerrar", visor: "Ejemplo", visorGaleria: "Lo que ha creado",
     pista: "Pulsa una casilla de color para leer su actividad.", matrizAria: "Matriz de programación",
     prompt: "El prompt", copiar: "Copiar", copiado: "Copiado", copiaAMano: "Selecciónalo y cópialo", criterio: "Y lo decide tu criterio",
     listo: "Todo listo: ya puedes entregarlo.", cuenta: function (n, t) { return n + " de " + t + " comprobado" + (n === 1 ? "" : "s"); },
     tipos: { obligatoria: "Obligatoria", optativa: "Optativa", voluntaria: "Voluntaria" },
+    mzvAria: "La matriz de la clase", mzvPista: "Cuando lleguen cruces, pulsa una casilla para leer sus ideas.",
+    mzvVacia: "Nadie ha elegido este cruce todavía.", mzvIdeas: function (n) { return n + " idea" + (n === 1 ? "" : "s"); }, mzvSin: "vacía",
     reloj: "El reloj de la práctica", empezar: "▶ Empezar", pausa: "Pausa", reiniciar: "Reiniciar"
   };
   var CLASES = { dia: "lc-dia lct-{tipo}", kicker: "lc-kicker", boton: "lc-btn lc-btn-base", botonPrincipal: "lc-btn lc-btn-base lc-btn-p" };
@@ -175,6 +185,21 @@
         '<div class="lc-lado">' + reloj + xhtml + "</div></div>" + fin };
     }
 
+    if (d.tipo === "matrizvivo") {
+      if (!X) return null;
+      var IMv = M.columnas || [], BLv = M.filas || [], cortov = M.corto || {};
+      var rej = '<div class="lc-mz lc-mzv-rej" role="grid" aria-label="' + esc(T.mzvAria) + '"><div class="lc-mz-esq"></div>' + IMv.map(function (im) {
+        return '<div class="lc-mz-col" data-mzv-col="' + esc(im) + '" title="' + esc(im) + '"><span class="lc-largo">' + esc(im) + '</span><span class="lc-corto">' + esc(cortov[im] || im) + "</span></div>"; }).join("");
+      BLv.forEach(function (bl) {
+        rej += '<div class="lc-mz-fila" data-mzv-fila="' + esc(bl) + '">' + esc(bl) + "</div>";
+        IMv.forEach(function (im) {
+          rej += '<div class="lc-mz-c" role="button" tabindex="0" data-mzv-im="' + esc(im) + '" data-mzv-bl="' + esc(bl) + '" aria-label="' + esc(im + " × " + bl + ": " + T.mzvSin) + '"></div>'; });
+      });
+      rej += "</div>";
+      return { montar: juntos(montarMatrizVivo(T, IMv, BLv), X.montar), html: abre + xhtml +
+        '<div class="lc-mz-zona">' + rej + '<div class="lc-mz-det" aria-live="polite"><p class="lc-mz-pista">' + esc(T.mzvPista) + "</p></div></div>" + pie + fin };
+    }
+
     if (d.tipo === "galeria") {
       if (!X) return null;
       return { montar: juntos(montarVisor, X.montar), html: abre + xhtml + visor(T, K, T.visorGaleria) + fin };
@@ -220,6 +245,55 @@
       });
       return null;
     };
+  }
+  // 11-nov · la matriz de la clase: la rejilla se llena con lo que pase el mod (GP.leccion.cruces); al pulsar, sus ideas
+  function resumenCruces(lista, columnas, filas) {
+    columnas = columnas || []; filas = filas || [];
+    var L = (lista || []).filter(function (c) { return c && columnas.indexOf(c.col) >= 0 && filas.indexOf(c.fila) >= 0; }), vistas = {};
+    L.forEach(function (c) { vistas[c.col + "|" + c.fila] = 1; });
+    return { cruces: L.length, casillas: Object.keys(vistas).length,
+      vacias: { columnas: columnas.filter(function (x) { return !L.some(function (c) { return c.col === x; }); }),
+                filas: filas.filter(function (x) { return !L.some(function (c) { return c.fila === x; }); }) } };
+  }
+  function montarMatrizVivo(T, columnas, filas) {
+    return function (el) {
+      var rej = el.querySelector(".lc-mzv-rej"); if (!rej) return null;
+      var S = el._gplMzv = { T: T, columnas: columnas, filas: filas, lista: [], sel: null };
+      var elegir = function (x) { S.sel = { col: x.getAttribute("data-mzv-im"), fila: x.getAttribute("data-mzv-bl") }; cruces(el, S.lista); };
+      var dentro = cierra(el, "[data-mzv-im]");
+      rej.addEventListener("click", function (e) { var x = dentro(e); if (!x) return; e.stopPropagation(); elegir(x); });
+      rej.addEventListener("keydown", function (e) { var x = dentro(e); if (!x || (e.key !== "Enter" && e.key !== " ")) return; e.preventDefault(); e.stopPropagation(); elegir(x); });
+      return function () { el._gplMzv = null; };
+    };
+  }
+  function cruces(el, lista) {
+    var S = el && el._gplMzv; if (!S) return resumenCruces(lista, [], []);
+    var T = S.T, L = (lista || []).filter(function (c) { return c && S.columnas.indexOf(c.col) >= 0 && S.filas.indexOf(c.fila) >= 0; });
+    S.lista = L;
+    var por = {}; L.forEach(function (c) { var k = c.col + "|" + c.fila; (por[k] = por[k] || []).push(c); });
+    var R = resumenCruces(L, S.columnas, S.filas);
+    Array.prototype.forEach.call(el.querySelectorAll("[data-mzv-im]"), function (x) {
+      var im = x.getAttribute("data-mzv-im"), bl = x.getAttribute("data-mzv-bl"), C = por[im + "|" + bl] || [];
+      var sel = S.sel && S.sel.col === im && S.sel.fila === bl;
+      var h = C.length ? "<span>" + esc(C[0].texto) + "</span>" + (C.length > 1 ? '<b class="lc-mzv-n">' + C.length + "</b>" : "") : "";
+      var cls = "lc-mz-c" + (C.length ? " lc-mzv-con" : "") + (sel ? " sel" : "");
+      if (x.className !== cls) x.className = cls;
+      if (x.getAttribute("data-h") !== h) { x.setAttribute("data-h", h); x.innerHTML = h; }
+      x.setAttribute("aria-label", im + " × " + bl + ": " + (C.length ? T.mzvIdeas(C.length) : T.mzvSin));
+    });
+    var marca = function (sel, attr, vacias) { Array.prototype.forEach.call(el.querySelectorAll(sel), function (x) {
+      var v = L.length > 0 && vacias.indexOf(x.getAttribute(attr)) >= 0;
+      if (x.classList) x.classList.toggle("lc-mzv-vacia", v); }); };
+    marca("[data-mzv-col]", "data-mzv-col", R.vacias.columnas); marca("[data-mzv-fila]", "data-mzv-fila", R.vacias.filas);
+    var det = el.querySelector(".lc-mz-det");
+    if (det) {
+      var C = S.sel ? por[S.sel.col + "|" + S.sel.fila] || [] : null;
+      det.innerHTML = !S.sel ? '<p class="lc-mz-pista">' + esc(T.mzvPista) + "</p>"
+        : '<div class="lc-mz-cruce">' + esc(S.sel.col) + " × " + esc(S.sel.fila) + "</div>" + (C.length
+          ? '<ul class="lc-mzv-ideas">' + C.map(function (c) { return "<li><b>" + esc(c.quien || "") + "</b>" + esc(c.texto) + "</li>"; }).join("") + "</ul>"
+          : "<p>" + esc(T.mzvVacia) + "</p>");
+    }
+    return R;
   }
   function montarVisor(el) {
     var v = el.querySelector(".lc-visor"); if (!v) return null;
@@ -343,6 +417,15 @@
     ".lc-mz-det p{margin:0 0 10px;color:var(--gpl-texto,#d5e2ec);line-height:1.5}" +
     ".lc-mz-pista{color:var(--gpl-suave,#9fb2c2)!important}" +
     ".lc-mz-cruce{color:var(--gpl-acento2,#5ad0eb);font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}" +
+    ".lc-mzv-rej .lc-mz-c{position:relative;color:var(--gpl-fuerte,#fff);padding:3px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;cursor:pointer}" +
+    ".lc-mzv-rej .lc-mz-c.lc-mzv-con{background:var(--gpl-mzv,rgba(53,214,195,.26));border-color:var(--gpl-acento2,#5ad0eb)}" +
+    ".lc-mzv-rej .lc-mz-c span{overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow-wrap:anywhere}" +
+    ".lc-mzv-rej .lc-mz-c:hover,.lc-mzv-rej .lc-mz-c.sel,.lc-mzv-rej .lc-mz-c:focus-visible{outline:2px solid var(--gpl-fuerte,#fff);outline-offset:1px}" +
+    ".lc-mzv-n{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;padding:0 5px;border-radius:999px;background:var(--gpl-calido,#f5b043);color:#111;font-size:.75rem;line-height:22px}" +
+    ".lc-mzv-rej .lc-mzv-vacia{color:var(--gpl-aviso,#ff9b8a);text-decoration:underline dotted}" +
+    ".lc-mzv-ideas{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:8px;max-height:min(46svh,360px);overflow-y:auto}" +
+    ".lc-mzv-ideas li{line-height:1.45;color:var(--gpl-texto,#d5e2ec);overflow-wrap:anywhere}" +
+    ".lc-mzv-ideas b{display:block;color:var(--gpl-acento2,#5ad0eb);font-size:.85rem}" +
     ".lc-tipo{display:inline-block;padding:3px 10px;border-radius:999px;border:1px solid;font-weight:700;font-size:.85rem}" +
     ".lc-leyenda{display:flex;flex-wrap:wrap;gap:14px;margin:0;color:var(--gpl-suave,#9fb2c2);font-size:.92rem}" +
     ".lc-leyenda span{display:inline-flex;align-items:center;gap:6px}" +
@@ -392,7 +475,7 @@
       ".lc-lista,.lc-chips{grid-template-columns:minmax(0,1fr)}" +
       ".lc-mz{grid-template-columns:76px repeat(8,minmax(0,1fr));gap:2px;font-size:.75rem}" +
       ".lc-mz-col{writing-mode:vertical-rl;transform:rotate(180deg);justify-self:center;max-height:70px}" +
-      "button.lc-mz-c span{display:none}" +
+      "button.lc-mz-c span,.lc-mzv-rej .lc-mz-c span{display:none}" +
       ".lc-mz-c{min-height:34px}" +
       ".lc-mz-fila{padding:2px 3px}" +
     "}" +
@@ -407,5 +490,6 @@
     D.head.appendChild(s);   // al final, como las demás piezas: la piel del mod manda con más especificidad (p. ej. «.mi-dia .lc-tarjeta») o con --gpl-*
   }
 
-  return { TIPOS: TIPOS, TEXTOS: TEXTOS, CLASES: CLASES, CSS: CSS, elegir: elegir, dias: dias, estilo: estilo, fuerte: fuerteBase, esc: esc };
+  return { TIPOS: TIPOS, TEXTOS: TEXTOS, CLASES: CLASES, CSS: CSS, elegir: elegir, dias: dias, estilo: estilo, fuerte: fuerteBase, esc: esc,
+    resumenCruces: resumenCruces, cruces: cruces };
 });

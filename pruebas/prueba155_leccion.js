@@ -22,7 +22,7 @@ const global = (html, nombre) => { const m = html.match(new RegExp("window\\." +
 const SESH = L("sesion.html"), SES = L("assets/js/sesion.js"), CSS = L("assets/css/stargate.css"), LECJS = L("assets/js/leccion.js");
 const LEC = global(SESH, "SG_LECCIONES") || {}, AULAS = global(SESH, "SG_LECCION_AULAS") || [], ACT = global(SESH, "SG_SES_ACT") || {};
 const MZ = global(SESH, "SG_MATRIZ") || {};
-const TIPOS = ["tarjetas", "piezas", "matriz", "ejemplos", "manos", "galeria", "ia", "lista"];
+const TIPOS = ["tarjetas", "piezas", "matriz", "matrizvivo", "ejemplos", "manos", "galeria", "ia", "lista"];
 
 console.log("  El dato");
 c(LEC["5"] && LEC["6"], "hay lección en las semanas 5 y 6 (el Tema 3, en dos partes)", Object.keys(LEC));
@@ -81,10 +81,11 @@ const codigo = [
   trozo(/function esc\(s\)\{[^\n]*\n/), trozo(/function fuerte\(t\)\{[^\n]*\n/), trozo(/function cronoRelampago\(min\)\{[\s\S]*?\n  \}/),
   trozo(/var LC_ICONO=[^\n]*\n/), trozo(/var LC_CORTO=\{[\s\S]*?\};/), trozo(/function diasLeccion\(s, L\)\{[\s\S]*?\n  \}/),
   trozo(/  var LC_PRAC=[\s\S]*?\n  function montarPractica\(modo\)\{[\s\S]*?\n  \}\n/),
+  trozo(/  var LC_MZV=[\s\S]*?\n  function montarMatrizVivo\(el\)\{[\s\S]*?\n  \}\n/),
 ].join("\n");
 c(["function diasLeccion", "function cronoRelampago", "function montarPractica"].every(x => codigo.indexOf(x) >= 0), "sesion.js tiene diasLeccion (la llamada), el cronómetro del relámpago y la práctica en vivo");
 const diasDe = (st) => {
-  const ctx = vm.createContext({ window: { SG_MATRIZ: MZ, SG_SES_ACT: ACT, SG_PRACTICA: global(SESH, "SG_PRACTICA") || {}, SG: { MOTOR: { vigilarEnVivo() {} } }, L5: LEC["5"], L6: LEC["6"] },
+  const ctx = vm.createContext({ window: { SG_MATRIZ: MZ, SG_SES_ACT: ACT, SG_PRACTICA: global(SESH, "SG_PRACTICA") || {}, SG_MATRIZ_VIVO: global(SESH, "SG_MATRIZ_VIVO") || {}, SG: { MOTOR: { vigilarEnVivo() {} } }, L5: LEC["5"], L6: LEC["6"] },
     st, DIFERIDO: false, URL, montarCrono: function montarCrono() {}, capaFondo: () => '<div class="dia-fondo" aria-hidden="true"></div>' });
   vm.runInContext(LECJS, ctx);
   try { vm.runInContext(codigo + ";r6=diasLeccion({sem:6}, window.L6);r5=diasLeccion({sem:5}, window.L5)", ctx); } catch (e) { c(false, "diasLeccion se ejecuta", e.message); }
@@ -183,6 +184,58 @@ c(/esPractica\(p\) && !\/https\?:/.test(SES), "   el enlace, completo (https://)
 c(/data-ev-prac="'\+esc\(PRAC\.voy\)/.test(RJ) && /data-ev-prac="'\+esc\(PRAC\.atascado\)/.test(RJ), "   y en su Nave, los mismos botones");
 c(/ENV\.mia&&!\(esPracticaEV\(p\)&&!\/https\?:/.test(RJ), "   la caja del enlace no se rellena con «Voy bien»");
 c(/@media \(prefers-reduced-motion:reduce\)\{ \.lc-gal-t\{animation:none\} \}/.test(CSS) && /\.lc-practica \.btn\{min-height:40px\}/.test(CSS), "   botones de 40 px y sin animación para quien la quita");
+
+console.log("  La matriz de la clase, en vivo (11-nov, 3)");
+const MV = global(SESH, "SG_MATRIZ_VIVO") || {};
+c(MV.prefijo && MV.tema && MV.separa && MV.por, "el dato SG_MATRIZ_VIVO, en la sesión", JSON.stringify(MV).slice(0, 120));
+c(JSON.stringify(MV.inteligencias) === JSON.stringify(MZ.inteligencias) && JSON.stringify(MV.bloom) === JSON.stringify(MZ.bloom), "   con las mismas inteligencias y niveles de la matriz (un dato, un sitio)");
+c(JSON.stringify(global(REC, "SG_MATRIZ_VIVO") || {}) === JSON.stringify(MV), "   y el mismo en la Nave del recluta");
+c(S6.map(d => d.tipo).join(",").indexOf("matriz,matrizvivo") >= 0, "   va justo detrás de la matriz de ejemplo");
+const dV = D6.filter(x => x.tipo === "matrizvivo")[0] || { html: "" };
+c(/<h2>[^<]*<\/h2><div class="lc-practica lc-mzv-ctl" aria-live="polite">/.test(dV.html) && (dV.html.match(/data-mzv-im=/g) || []).length === MZ.inteligencias.length * MZ.bloom.length && typeof dV.montar === "function",
+  "   al docente: el control encima y la rejilla vacía de 48 casillas, de la pieza");
+c(/<p class="lc-pr-al">Cuando tu Comandante abra la matriz/.test((al.filter(x => x.tipo === "matrizvivo")[0] || {}).html), "   al recluta, cómo mandar su cruce");
+// se ejecuta tal cual: el control de STARGATE con un motor de mentira y la pieza de verdad (su resumen)
+const llM = []; let vivoM = null, respM = null, pasado = null;
+const MM = {
+  vigilarEnVivo: (per, f) => { vivoM = f; return () => llM.push("paraE"); },
+  vigilarRespuestas: (per, id, f) => { respM = f; return () => llM.push("paraR"); },
+  lanzarPregunta: (per, txt, por) => { llM.push("lanza:" + txt + "|" + por); return Promise.resolve("m1"); },
+  cerrarPregunta: () => { llM.push("cierra"); return Promise.resolve(); },
+};
+const ctxM = vm.createContext({ window: { SG_MATRIZ_VIVO: MV, SG: { MOTOR: MM } }, st: { per: "per-16450", miNombre: "Norberto Cuartero" }, DIFERIDO: false, URL });
+vm.runInContext(LECJS, ctxM);
+const Gl = ctxM.window.GP.leccion;
+ctxM.window.GP.leccion = { cruces: (el, l) => { pasado = l; return Gl.resumenCruces(l, MV.inteligencias, MV.bloom); } };
+vm.runInContext(trozo(/function esc\(s\)\{[^\n]*\n/) + trozo(/  var LC_MZV=[\s\S]*?\n  function montarMatrizVivo\(el\)\{[\s\S]*?\n  \}\n/)
+  + ";function practicaPosible(){ return true; };this.F={montarMatrizVivo,cruceMzv,lcMatrizVivoHtml};", ctxM);
+const FM = ctxM.F, ctl = caja(); let tema = { value: "", focus() { tema.enfocado = true; } };
+ctl.querySelector = (q) => /mzv-tema/.test(q) ? tema : null; ctl.handlers = {}; ctl.addEventListener = (t, f) => { ctl.handlers[t] = f; };
+const pararM = FM.montarMatrizVivo({ querySelector: () => ctl });
+vivoM({ pregunta: null });
+c(/Abrir la matriz en sus móviles/.test(ctl.innerHTML) && tema.value === MV.tema, "   sin matriz abierta: el tema (por defecto, «" + MV.tema + "») y «Abrir la matriz en sus móviles»");
+ctl.handlers.click({ target: { closest: q => /mzv-tema/.test(q) ? null : { getAttribute: () => "abrir" } }, stopPropagation() {} });
+c(llM.indexOf("lanza:" + MV.prefijo + MV.tema + "|Norberto Cuartero") >= 0, "   y la abre como pregunta en directo: el prefijo, el tema y su nombre", llM.join(" · "));
+ctl.handlers.input({ target: { hasAttribute: () => true, value: "  " } });
+const antes = llM.length;
+ctl.handlers.click({ target: { closest: q => /mzv-tema/.test(q) ? null : { getAttribute: () => "abrir" } }, stopPropagation() {} });
+c(llM.length === antes && tema.enfocado, "   sin tema, no la abre (y lleva al cursor a escribirlo)");
+vivoM({ pregunta: { id: "m1", abierta: true, texto: MV.prefijo + "El agua" } });
+const ok1 = "Musical" + MV.por + "Crear" + MV.separa + "Una canción <b>", ok2 = "Musical" + MV.por + "Crear" + MV.separa + "Un rap", ok3 = "Naturalista" + MV.por + "Recordar" + MV.separa + "Un herbario";
+respM([{ alias: "Eva", texto: ok1 }, { alias: "Leo", texto: ok2 }, { alias: "Ana", texto: ok3 }, { alias: "X", texto: "hola" }, { alias: "Y", texto: "Musical × Volar · algo" }]);
+c(pasado && pasado.length === 3 && pasado[0].col === "Musical" && pasado[0].fila === "Crear" && pasado[0].texto === "Una canción <b>" && pasado[0].quien === "Eva",
+  "   cada respuesta se lee como cruce (col, fila, idea, alias) y lo que no lo es, fuera", JSON.stringify(pasado));
+c(/<b>3<\/b> cruces/.test(ctl.innerHTML) && /<b>2<\/b> de 48 casillas/.test(ctl.innerHTML) && /Sin nadie:/.test(ctl.innerHTML) && /<span>Lingüística<\/span>/.test(ctl.innerHTML) && !/<span>Musical<\/span>/.test(ctl.innerHTML),
+  "   cuenta cruces y casillas, y dice qué talentos y niveles siguen sin nadie", ctl.innerHTML.slice(0, 300));
+c(/Tema: <b>El agua<\/b>/.test(ctl.innerHTML) && /Cerrar la matriz/.test(ctl.innerHTML), "   abierta: su tema y «Cerrar la matriz»");
+vivoM({ pregunta: { id: "q9", abierta: true, texto: "¿Otra?" } });
+c(/Cierra la pregunta en directo que tienes abierta/.test(ctl.innerHTML), "   si hay otra pregunta abierta, lo dice en vez de pisarla");
+if (pararM) pararM();
+c(llM.indexOf("paraE") >= 0 && llM.indexOf("paraR") >= 0, "   al salir de la diapositiva deja de escuchar");
+c(/var txt=im\+LC_MZV\.por\+bl\+LC_MZV\.separa\+idea;/.test(SES) && /id="ses-mzv-enviar"/.test(SES), "el recluta manda su cruce desde la sesión que sigue (talento, nivel y su actividad)");
+c(/var txt=f\.im\+MZV\.por\+f\.bl\+MZV\.separa\+idea;/.test(RJ) && /id="ev-mzv-enviar"/.test(RJ), "   y desde su Nave, con el mismo formato");
+c(/cab\.length!==2\|\|MZV\.inteligencias\.indexOf\(cab\[0\]\)<0/.test(RJ) && FM.cruceMzv(ok1).idea === "Una canción <b>" && !FM.cruceMzv("Musical · sin nivel"), "   y lo lee igual (lo que no casa con la rejilla, no cuenta)");
+c(/\.ses-al-mzv select,\.ses-al-mzv input,\.ev-mzv select,\.ev-mzv input\{[^}]*min-height:40px/.test(CSS), "   desplegables y caja de 40 px");
 
 console.log("\n  Batería 155 · La lección");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");

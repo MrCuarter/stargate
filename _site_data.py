@@ -1482,6 +1482,11 @@ LECCION_AULAS = [("per-16450", "Norberto Cuartero"), ("demo-stargate", None)]
 # enlace va a la galería; «Me he atascado» se cuenta y se nombra en la diapositiva para ir a ayudarle.
 PRACTICA_EN_VIVO = dict(prefijo="Manos a la obra · ", texto="pega aquí el enlace de lo que has creado cuando lo tengas.",
                         atascado="Me he atascado", voy="Voy bien")
+# 11-nov (3) · LA MATRIZ DE LA CLASE, EN VIVO (Norberto eligió «Matriz en vivo» de las herramientas propuestas). Como el tablero de
+# la práctica, va sobre la pregunta en directo de siempre: el texto empieza por `prefijo` y sigue el tema que escribe el docente.
+# Cada recluta manda UN cruce (lo puede cambiar): «inteligencia × nivel · su idea». Las listas son las de INTELIGENCIAS y BLOOM.
+MATRIZ_EN_VIVO = dict(prefijo="Matriz en vivo · ", tema="El agua", separa=" · ", por=" × ",
+                      pista="Elige un talento y un nivel, y escribe tu actividad en una frase.")
 # Cada lección, por semana del grupo (REGULAR). Tipos de diapositiva (los pinta la pieza del motor, GamificaPro sdk/leccion.js;
 # sesion.js → diasLeccion le pone la piel):
 #   tarjetas · (kicker, titulo, tarjetas=[(titulo, texto)], pie)            · todas iguales, de un vistazo
@@ -1492,6 +1497,7 @@ PRACTICA_EN_VIVO = dict(prefijo="Manos a la obra · ", texto="pega aquí el enla
 #   ia       · la IA como ayudante: el prompt para copiar y lo que decide tu criterio
 #   lista    · la lista de comprobación (se marca en pantalla; no se guarda)
 #   galeria  · lo que han creado: los enlaces que pegan en el tablero de la práctica (PRACTICA_EN_VIVO), con el visor
+#   matrizvivo · la matriz DE LA CLASE: el docente escribe un tema y cada recluta manda un cruce desde el móvil (MATRIZ_EN_VIVO)
 LECCIONES = {
  5: dict(tema=3, parte="Tema 3 · 1.ª parte", titulo="Que el alumnado decida", dias=[
    dict(tipo="tarjetas", rot="Lineal o interactivo", kicker="Lo mínimo", titulo="¿Qué hace interactivo un recurso?",
@@ -1541,6 +1547,12 @@ LECCIONES = {
         ejemplo="a2",   # el huerto de Patricia: el MISMO de la sesión de la Actividad 2 (SESION_ACTIVIDAD["a2"]["ejemplo"])
         notas=["Pulsa casillas de distintas filas y columnas: variedad en talento y en dificultad.", "El color es el tipo: obligatoria, optativa, voluntaria.", "En la Actividad 2 bastan 6 cruces; no hay que llenar las 48."],
         pie="En la Actividad 2: **al menos 6 cruces**, variados en talento y en dificultad. No hace falta llenar las 48."),
+   dict(tipo="matrizvivo", rot="La matriz de la clase", kicker="Manos a la obra", titulo="Ahora, la vuestra: un tema, toda la clase",
+        notas=["Escribe un tema que valga para cualquiera (el agua, el barrio, el reciclaje) y abre la matriz en sus móviles.",
+               "Cada recluta manda un cruce: talento × nivel y su actividad en una frase. Lo pueden cambiar mientras siga abierta.",
+               "Al cabo de 4 o 5 minutos, mira lo que queda vacío: «¿nadie en Musical? ¿nadie en Crear?». Eso es lo que hay que variar.",
+               "Pulsa una casilla para leer sus ideas en voz alta; ciérrala antes de «Manos a la obra»."],
+        pie="Un paisaje rico **varía talentos y niveles**: fíjate en las columnas y filas que se quedan vacías."),
    dict(tipo="ejemplos", notas=["Abre Stranger chemistry con «Verlo aquí» y entra por dos sitios distintos: no hay orden.", "La plantilla de la matriz es la que enlaza el enunciado de la Actividad 2."], rot="Paisajes reales", kicker="Míralo hecho", titulo="Paisajes e itinerarios de verdad",
         ejemplos=[("Stranger chemistry", "Mónica Pareja · 3.º de ESO", "Un paisaje de Física y Química con la estética de una serie: "
                    "se entra por donde se quiera.", "https://view.genially.com/5ade0e73524a2d65b26ce156"),

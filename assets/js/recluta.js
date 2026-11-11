@@ -1910,7 +1910,7 @@
       // 🔴 solo se repinta si cambia lo que se VE: el docente pasando diapositivas mueve esta ficha a cada rato, y repintar
       // la Nave recargaba la sesión incrustada y borraba lo que el recluta estuviera escribiendo
       var firma=[p&&p.id, s?1:0, s&&s.sem].join('|');
-      if(p && ENV.miaDe!==p.id){ ENV.miaDe=p.id; ENV.mia=null; ENV.borrador='';
+      if(p && ENV.miaDe!==p.id){ ENV.miaDe=p.id; ENV.mia=null; ENV.borrador=''; ENV.mzv=null;
         return M.miRespuesta(per, p.id, st.yo.ficha).then(function(r){ ENV.mia=r; ENV.firma=firma; render(); }, function(){ ENV.firma=firma; render(); }); }
       if(firma!==ENV.firma){ ENV.firma=firma; render(); }
     });
@@ -1931,7 +1931,8 @@
   }
   function envivoVista(){
     var s=sesionEnDirecto(), p=preguntaAbierta(), html='';
-    if(p){
+    if(p&&esMatrizEV(p)) html+=matrizVivoEV(p);
+    else if(p){
       html+='<div class="card ev-pregunta"><div class="eyebrow amber">Pregunta en directo'+(p.por?' · '+esc(p.por):'')+'</div>'
         +'<h3>'+esc(p.texto)+'</h3>'
         +(ENV.mia?'<p class="small ev-mia">Tu respuesta: «'+esc(ENV.mia.texto)+'». Puedes cambiarla mientras siga abierta.</p>':'')
@@ -1954,6 +1955,46 @@
     return html||'<div class="card"><p class="muted">Ahora mismo no hay nada en directo.</p></div>';
   }
   var PRAC=window.SG_PRACTICA||{prefijo:'Manos a la obra · ', atascado:'Me he atascado', voy:'Voy bien'};
+  /**
+   * 11-nov (3) · LA MATRIZ DE LA CLASE (SG_MATRIZ_VIVO): la pregunta en directo cuyo texto empieza por su prefijo. El recluta manda
+   * UN cruce, «inteligencia × nivel · su actividad», y lo puede cambiar mientras siga abierta; tu Comandante lo ve en la rejilla 8×6.
+   */
+  var MZV=window.SG_MATRIZ_VIVO||{prefijo:'Matriz en vivo · ', separa:' · ', por:' × ', inteligencias:[], bloom:[], pista:''};
+  function esMatrizEV(p){ return !!(p&&String(p.texto||'').indexOf(MZV.prefijo)===0); }
+  function cruceEV(t){
+    t=String(t||''); var i=t.indexOf(MZV.separa); if(i<0) return null;
+    var cab=t.slice(0, i).split(MZV.por), idea=t.slice(i+MZV.separa.length).trim();
+    if(cab.length!==2||MZV.inteligencias.indexOf(cab[0])<0||MZV.bloom.indexOf(cab[1])<0||!idea) return null;
+    return {im:cab[0], bl:cab[1], idea:idea};
+  }
+  function matrizVivoEV(p){
+    var mia=ENV.mia?cruceEV(ENV.mia.texto):null, f=ENV.mzv||(mia?{im:mia.im, bl:mia.bl, idea:mia.idea}:{im:'', bl:'', idea:''});
+    var op=function(l, v, vacio){ return '<option value="">'+vacio+'</option>'+l.map(function(x){ return '<option'+(x===v?' selected':'')+'>'+esc(x)+'</option>'; }).join(''); };
+    return '<div class="card ev-pregunta ev-mzv"><div class="eyebrow amber">La matriz de la clase'+(p.por?' · '+esc(p.por):'')+'</div>'
+      +'<h3>Tema: '+esc(String(p.texto).slice(MZV.prefijo.length))+'</h3><p class="small muted">'+esc(MZV.pista||'')+'</p>'
+      +(mia?'<p class="small ev-mia">Tu cruce: <b>'+esc(mia.im)+' × '+esc(mia.bl)+'</b> · «'+esc(mia.idea)+'». Puedes cambiarlo mientras siga abierta.</p>':'')
+      +'<div class="ev-mzv-sel"><label><span>Talento</span><select id="ev-mzv-im">'+op(MZV.inteligencias, f.im, 'Elige una inteligencia')+'</select></label>'
+      +'<label><span>Nivel</span><select id="ev-mzv-bl">'+op(MZV.bloom.slice().reverse(), f.bl, 'Elige un nivel de Bloom')+'</select></label></div>'
+      +'<input id="ev-mzv-idea" type="text" maxlength="200" aria-label="Tu actividad, en una frase" placeholder="Tu actividad, en una frase" value="'+esc(f.idea||'')+'">'
+      +'<p class="ev-acc"><button type="button" class="btn primary" id="ev-mzv-enviar"'+(ENV.enviando?' disabled':'')+'>'+(mia?'Cambiar mi cruce':'Enviar a la matriz')+'</button>'
+      +'<span class="small muted" id="ev-msg"></span></p></div>';
+  }
+  function leeMzv(){ var g=function(id){ var e=document.getElementById(id); return e?e.value:''; };
+    ENV.mzv={im:g('ev-mzv-im'), bl:g('ev-mzv-bl'), idea:g('ev-mzv-idea')}; return ENV.mzv; }
+  document.addEventListener('input', function(ev){ if(ev.target&&/^ev-mzv-/.test(ev.target.id||'')) leeMzv(); });
+  document.addEventListener('change', function(ev){ if(ev.target&&/^ev-mzv-/.test(ev.target.id||'')) leeMzv(); });
+  document.addEventListener('click', function(ev){
+    var b=ev.target&&ev.target.closest&&ev.target.closest('#ev-mzv-enviar'); if(!b) return;
+    var p=preguntaAbierta(), M=window.SG&&window.SG.MOTOR, msg=document.getElementById('ev-msg'), f=leeMzv();
+    if(!p||!M) return;
+    var idea=String(f.idea||'').trim();
+    if(!f.im||!f.bl||!idea){ if(msg) msg.textContent=!f.im?'Elige un talento.':!f.bl?'Elige un nivel.':'Escribe tu actividad.'; return; }
+    var txt=f.im+MZV.por+f.bl+MZV.separa+idea;
+    ENV.enviando=true; b.disabled=true; if(msg) msg.textContent='Enviando…';
+    M.responderPregunta(per, p.id, st.yo.ficha, st.yo.alias||'', txt).then(function(){
+      ENV.enviando=false; ENV.mia={texto:txt}; ENV.mzv=null; render(); aviso('<b>En la matriz.</b> Tu Comandante ya ve tu cruce.');
+    }, function(e){ ENV.enviando=false; b.disabled=false; if(msg) msg.textContent='No se ha podido enviar: '+(e&&e.message||e); });
+  });
   function esPracticaEV(p){ return !!(p&&String(p.texto||'').indexOf(PRAC.prefijo)===0); }
   document.addEventListener('click', function(ev){
     var b=ev.target&&ev.target.closest&&ev.target.closest('[data-ev-prac]'); if(!b) return;

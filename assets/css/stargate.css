@@ -8658,3 +8658,19 @@ body .mazo .dia.leccion h2{font-size:clamp(1.3rem,2.7vw,2.15rem)}
 .ses-al-prac-b .btn,.ev-prac .btn{min-height:40px}
 .ses-al-prac input{width:100%;min-height:40px;margin:4px 0 6px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:#05080e;color:var(--ink);font:inherit}
 @media (prefers-reduced-motion:reduce){ .lc-gal-t{animation:none} }
+/* 11-nov (3) · LA MATRIZ DE LA CLASE, EN VIVO: la piel de STARGATE (la rejilla y sus casillas son de la pieza, .lc-mzv-* en GP.leccion.CSS) */
+.lc-mzv-ctl{padding:10px 14px;gap:8px 12px}
+.lc-mzv-tema{display:flex;align-items:center;gap:8px;flex:1 1 260px;min-width:0}
+.lc-mzv-tema span{color:var(--amber);font-weight:800;white-space:nowrap}
+.lc-mzv-tema input{flex:1 1 auto;min-width:0;min-height:40px;padding:6px 12px;border-radius:10px;border:1px solid var(--line);background:#05080e;color:var(--ink);font:inherit}
+.lc-mzv-t{margin:0;flex:1 1 200px;min-width:0;font-size:1.05rem;overflow-wrap:anywhere}
+.lc-mzv-ctl .lc-pr-nombres{flex-basis:100%;order:3;margin:0}
+.dia.leccion.lct-matrizvivo .lc-caja{gap:8px}
+.lct-matrizvivo .lc-mzv-rej .lc-mz-c{min-height:40px}
+.ses-al-mzv-s{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;margin:6px 0}
+.ses-al-mzv select,.ses-al-mzv input,.ev-mzv select,.ev-mzv input{width:100%;min-width:0;min-height:40px;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:#05080e;color:var(--ink);font:inherit}
+.ses-al-mzv input{margin:0 0 6px}
+.ev-mzv-sel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin:8px 0}
+.ev-mzv-sel label{display:grid;gap:4px;min-width:0}
+.ev-mzv-sel span{font-size:.85rem;color:var(--mut)}
+@media (max-width:620px){ .ev-mzv-sel,.ses-al-mzv-s{grid-template-columns:minmax(0,1fr)} }

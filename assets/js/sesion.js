@@ -2723,7 +2723,7 @@
       base:{sec:'despegue', t:'pr'}, fondo:capaFondo(s), fuerte:fuerte,
       clases:{dia:'dia leccion lct-{tipo} con-fondo', kicker:'kicker', boton:'lc-btn btn min', botonPrincipal:'lc-btn btn primary min'},
       icono:function(n){ return LC_ICONO[n]?'<img class=ico src=assets/img/iconos/p/'+LC_ICONO[n]+'.png alt>':''; },
-      textos:{matrizAria:'Matriz de programación: 8 inteligencias por 6 niveles de Bloom'},
+      textos:{matrizAria:'Matriz de programación: 8 inteligencias por 6 niveles de Bloom', mzvAria:'La matriz de la clase: 8 inteligencias por 6 niveles de Bloom'},
       enlaces:{MATRIZ:M.plantilla||''},
       // el ejemplo de la matriz es el de la sesión de la Actividad (SG_SES_ACT; un dato, un sitio): cruces = [planta, nivel, inteligencia, tipo, título, tarea]
       matriz:{columnas:M.inteligencias||[], filas:M.bloom||[], corto:LC_CORTO, ejemplo:function(d){
@@ -2736,8 +2736,81 @@
         return cronoRelampago(min).replace(/(<div class="rc-eyebrow">)[\s\S]*?(<\/div>)/, '$1<img class=ico src=assets/img/iconos/p/tiempo.png alt> El reloj de la práctica$2'); }},
       // 11-nov (2) · la práctica en vivo: el tablero junto al reloj y la galería de enlaces (la pieza pone el visor)
       extras:{manos:{html:function(){ return lcPracticaHtml('manos'); }, montar:montarPractica('manos')},
-              galeria:{html:function(){ return lcPracticaHtml('galeria'); }, montar:montarPractica('galeria')}}
+              galeria:{html:function(){ return lcPracticaHtml('galeria'); }, montar:montarPractica('galeria')},
+              // 11-nov (3) · la matriz de la clase: el tema, abrir y cerrar, y la rejilla que se llena (GP.leccion.cruces)
+              matrizvivo:{html:lcMatrizVivoHtml, montar:montarMatrizVivo}}
     });
+  }
+  /**
+   * ════════ 🔴 11-nov (3) · LA MATRIZ DE LA CLASE, EN VIVO ════════
+   *
+   * Norberto eligió «Matriz en vivo» de las herramientas propuestas. La rejilla y el «pulsa una casilla» son de la pieza (tipo
+   * «matrizvivo», GP.leccion.cruces); aquí, lo de STARGATE: sobre la pregunta en directo de siempre (sin servidor nuevo), el
+   * docente escribe un tema y abre una pregunta cuyo texto es SG_MATRIZ_VIVO.prefijo + tema; cada recluta manda UN cruce,
+   * «inteligencia × nivel · su actividad» (lo puede cambiar), y la rejilla se llena al llegar. Solo el docente con grupo y en
+   * directo; el recluta lo manda desde la sesión que sigue (pintarSeguir) o desde la Nave (recluta.js).
+   */
+  var LC_MZV=window.SG_MATRIZ_VIVO||{prefijo:'Matriz en vivo · ', tema:'', separa:' · ', por:' × ', inteligencias:[], bloom:[], pista:''};
+  function esMatrizVivo(p){ return !!(p&&p.id&&String(p.texto||'').indexOf(LC_MZV.prefijo)===0); }
+  function cruceMzv(t){
+    t=String(t||''); var i=t.indexOf(LC_MZV.separa); if(i<0) return null;
+    var cab=t.slice(0, i).split(LC_MZV.por), idea=t.slice(i+LC_MZV.separa.length).trim();
+    if(cab.length!==2||(LC_MZV.inteligencias||[]).indexOf(cab[0])<0||(LC_MZV.bloom||[]).indexOf(cab[1])<0||!idea) return null;
+    return {im:cab[0], bl:cab[1], idea:idea};
+  }
+  function lcMatrizVivoHtml(){
+    if(practicaPosible()) return '<div class="lc-practica lc-mzv-ctl" aria-live="polite"><p class="lc-pr-cargando">Conectando con la clase…</p></div>';
+    return '<p class="lc-pr-al">'+(st.alumno?'Cuando tu Comandante abra la matriz, te saldrá abajo: elige <b>talento</b> y <b>nivel</b> y escribe tu actividad.'
+      :'La matriz se llena en clase: cada recluta manda un cruce desde su móvil.')+'</p>';
+  }
+  function montarMatrizVivo(el){
+    var ctl=el.querySelector('.lc-mzv-ctl'), M=window.SG&&window.SG.MOTOR, G=window.GP&&window.GP.leccion;
+    if(!ctl||!M||!G||!practicaPosible()) return null;
+    var cur={p:null, de:'', resp:[], ocupado:false, tema:String(LC_MZV.tema||'')}, pararR=null, vivo=true, total=(LC_MZV.inteligencias||[]).length*(LC_MZV.bloom||[]).length;
+    var pinta=function(){
+      if(!vivo) return;
+      var p=cur.p, abierta=!!(p&&p.abierta&&esMatrizVivo(p)), mia=cur.de&&p&&p.id===cur.de;
+      var lista=(mia?cur.resp:[]).map(function(r){ var c=cruceMzv(r.texto); return c?{col:c.im, fila:c.bl, texto:c.idea, quien:r.alias||'Recluta'}:null; }).filter(Boolean);
+      var R=G.cruces(el, lista), h='';
+      if(!abierta){
+        h+='<label class="lc-mzv-tema"><span>El tema</span><input type="text" maxlength="80" data-mzv-tema placeholder="Por ejemplo, el agua"></label>'
+          +'<button type="button" class="btn primary" data-mzv="abrir"'+(cur.ocupado?' disabled':'')+'>Abrir la matriz en sus móviles</button>'
+          +(p&&p.abierta&&!esMatrizVivo(p)?'<p class="lc-pr-pista"><b>Cierra la pregunta en directo que tienes abierta.</b></p>':'');
+      } else h+='<p class="lc-mzv-t">Tema: <b>'+esc(String(p.texto).slice(LC_MZV.prefijo.length))+'</b></p>';
+      if(R.cruces||abierta){
+        h+='<div class="lc-pr-cifras"><span class="lc-pr-c ok"><b>'+R.cruces+'</b> cruce'+(R.cruces===1?'':'s')+'</span><span class="lc-pr-c voy"><b>'+R.casillas+'</b> de '+total+' casillas</span></div>';
+        var vac=R.vacias.columnas.concat(R.vacias.filas);
+        if(R.cruces&&vac.length) h+='<p class="lc-pr-nombres"><b>Sin nadie:</b> '+vac.map(function(x){ return '<span>'+esc(x)+'</span>'; }).join('')+'</p>';
+      }
+      if(abierta) h+='<button type="button" class="btn min" data-mzv="cerrar"'+(cur.ocupado?' disabled':'')+'>Cerrar la matriz</button>';
+      if(ctl.getAttribute('data-h')!==h){
+        ctl.setAttribute('data-h', h); ctl.innerHTML=h;
+        var t=ctl.querySelector('[data-mzv-tema]'); if(t) t.value=cur.tema;   // (el valor, fuera de la huella: escribir no repinta)
+      }
+    };
+    var pararE=M.vigilarEnVivo(st.per, function(d){
+      var p=(d||{}).pregunta; cur.p=(p&&p.id)?p:null;
+      if(esMatrizVivo(cur.p) && cur.p.id!==cur.de){
+        cur.de=cur.p.id; cur.resp=[]; if(pararR) pararR();
+        pararR=M.vigilarRespuestas(st.per, cur.p.id, function(l){ cur.resp=l||[]; pinta(); });
+      }
+      pinta();
+    });
+    ctl.addEventListener('input', function(e){ if(e.target.hasAttribute&&e.target.hasAttribute('data-mzv-tema')) cur.tema=e.target.value; });
+    ctl.addEventListener('keydown', function(e){ if(e.target.hasAttribute&&e.target.hasAttribute('data-mzv-tema')){ e.stopPropagation(); if(e.key==='Enter'){ var b=ctl.querySelector('[data-mzv="abrir"]'); if(b) b.click(); } } });   // (las flechas no pasan de diapositiva)
+    ctl.addEventListener('click', function(e){
+      if(e.target.closest&&e.target.closest('.lc-mzv-tema')){ e.stopPropagation(); return; }
+      var b=e.target.closest&&e.target.closest('[data-mzv]'); if(!b) return;
+      e.stopPropagation();
+      var a=b.getAttribute('data-mzv'), tema=String(cur.tema||'').trim();
+      if(a==='abrir'&&!tema){ var t=ctl.querySelector('[data-mzv-tema]'); if(t) t.focus(); return; }
+      cur.ocupado=true; pinta();
+      var hecho=function(){ cur.ocupado=false; pinta(); };
+      var fallo=function(err){ cur.ocupado=false; pinta(); if(window.SG&&window.SG.avisar) window.SG.avisar('No ha funcionado', (err&&err.message)||String(err), true); };
+      if(a==='abrir') M.lanzarPregunta(st.per, LC_MZV.prefijo+tema, st.miNombre||'').then(hecho, fallo);
+      else if(a==='cerrar') M.cerrarPregunta(st.per).then(hecho, fallo);
+    });
+    return function(){ vivo=false; try{ if(pararE) pararE(); if(pararR) pararR(); }catch(e){} };
   }
   /**
    * ════════ 🔴 11-nov (2) · LA PRÁCTICA EN VIVO: «ME HE ATASCADO» Y LA GALERÍA ════════
@@ -3574,7 +3647,18 @@
     // 16-oct · el plan B: si no tiene la diapositiva del docente, lo dice (nunca se queda quieto en silencio) y le pone al día
     if(vivo&&SEG.perdido) html+='<div class="ses-al-perdido" role="status"><b>Tu Comandante está en «'+esc(SEG.perdido.rot||'otra diapositiva')+'»</b>'
       +'<p>Esa aún no te ha llegado.</p><button type="button" class="btn primary" id="ses-al-aldia">Ponerme al día</button></div>';
-    if(p&&p.abierta&&p.id&&esPractica(p)){
+    if(p&&p.abierta&&p.id&&esMatrizVivo(p)){
+      // 11-nov (3) · la matriz de la clase: talento, nivel y su actividad; se cambia cuantas veces haga falta mientras siga abierta
+      var yaC=SEG.mia?cruceMzv(SEG.mia.texto):null, opc=function(l, vacio){ return '<option value="">'+vacio+'</option>'+l.map(function(x){ return '<option>'+esc(x)+'</option>'; }).join(''); };
+      html+='<div class="ses-al-pq ses-al-mzv'+(yaC?'':' abierta')+'"><b>La matriz de la clase</b><p>Tema: '+esc(String(p.texto).slice(LC_MZV.prefijo.length))+'</p>'
+        +(yaC?'<p class="ses-al-mia">Tu cruce: <b>'+esc(yaC.im)+' × '+esc(yaC.bl)+'</b> · «'+esc(yaC.idea)+'». Puedes cambiarlo.</p>':'')
+        +'<div class="ses-al-mzv-s"><select id="ses-mzv-im" aria-label="Talento">'+opc(LC_MZV.inteligencias||[], 'Talento')+'</select>'
+        +'<select id="ses-mzv-bl" aria-label="Nivel">'+opc((LC_MZV.bloom||[]).slice().reverse(), 'Nivel')+'</select></div>'
+        +'<input id="ses-mzv-idea" type="text" maxlength="200" placeholder="Tu actividad, en una frase" aria-label="Tu actividad, en una frase">'
+        +'<button type="button" class="btn primary" id="ses-mzv-enviar">'+(yaC?'Cambiar mi cruce':'Enviar a la matriz')+'</button>'
+        +'<span class="ses-al-msg" id="ses-al-msg"></span></div>';
+    }
+    else if(p&&p.abierta&&p.id&&esPractica(p)){
       // 11-nov (2) · el tablero de la práctica: dos botones y su enlace; se cambia cuantas veces haga falta mientras siga abierto
       var yaE=SEG.mia?estadoPractica(SEG.mia.texto):null;
       html+='<div class="ses-al-pq ses-al-prac'+(SEG.mia?'':' abierta')+'"><b>Manos a la obra</b>'
@@ -3601,9 +3685,12 @@
       +'</div>';
     // (lo que se está escribiendo no se pisa al repintar)
     var ta=caja.querySelector('#ses-al-resp'), borrador=ta?ta.value:'';
+    // (la matriz: lo elegido y lo escrito tampoco)
+    var mzvAntes=['ses-mzv-im','ses-mzv-bl','ses-mzv-idea'].map(function(id){ var x=caja.querySelector('#'+id); return x?x.value:''; });
     if(caja.getAttribute('data-html')===html) return;
     caja.setAttribute('data-html', html); caja.innerHTML=html;
     var ta2=caja.querySelector('#ses-al-resp'); if(ta2&&borrador) ta2.value=borrador;
+    ['ses-mzv-im','ses-mzv-bl','ses-mzv-idea'].forEach(function(id, i){ var x=caja.querySelector('#'+id); if(x&&mzvAntes[i]) x.value=mzvAntes[i]; });
     if(crVivo){ relojAlumno(); if(!SEG.relojIv) SEG.relojIv=setInterval(relojAlumno, 500); }
     var ad=caja.querySelector('#ses-al-aldia'); if(ad) ad.onclick=function(){ ad.disabled=true; location.reload(); };
     var v=caja.querySelector('#ses-al-volver'); if(v) v.onclick=function(){ SEG.on=true; var s2=SEG.d.sesion; if(s2){ var i=indiceDe(s2.k,s2.n); if(i>=0) ir(i,false,true); } pintarSeguir(); };
@@ -3613,6 +3700,18 @@
       M.responderPregunta(st.per, p.id, st.ficha, aliasMio(), txt).then(function(){ SEG.mia={texto:txt}; caja.removeAttribute('data-html'); pintarSeguir(); },
         function(e){ b.disabled=false; if(msg) msg.textContent='No se ha podido enviar: '+(e&&e.message||e); });
     }; });
+    var mzE=caja.querySelector('#ses-mzv-enviar');
+    if(mzE) mzE.onclick=function(){
+      var M=window.SG&&window.SG.MOTOR, msg=caja.querySelector('#ses-al-msg'), v=function(id){ var x=caja.querySelector('#'+id); return x?String(x.value||'').trim():''; };
+      var im=v('ses-mzv-im'), bl=v('ses-mzv-bl'), idea=v('ses-mzv-idea');
+      if(!im||!bl||!idea){ msg.textContent=!im?'Elige un talento.':!bl?'Elige un nivel.':'Escribe tu actividad.'; return; }
+      var txt=im+LC_MZV.por+bl+LC_MZV.separa+idea;
+      mzE.disabled=true; msg.textContent='Enviando…';
+      M.responderPregunta(st.per, p.id, st.ficha, aliasMio(), txt).then(function(){ SEG.mia={texto:txt};
+          ['ses-mzv-im','ses-mzv-bl','ses-mzv-idea'].forEach(function(id){ var x=caja.querySelector('#'+id); if(x) x.value=''; });
+          caja.removeAttribute('data-html'); pintarSeguir(); },
+        function(e){ mzE.disabled=false; msg.textContent='No se ha podido enviar: '+(e&&e.message||e); });
+    };
     var en=caja.querySelector('#ses-al-enviar');
     if(en) en.onclick=function(){
       var M=window.SG&&window.SG.MOTOR, txt=(caja.querySelector('#ses-al-resp').value||'').trim(), msg=caja.querySelector('#ses-al-msg');
