@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>El Puente · sesión en vivo</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilo.css?v=b7ccd456b2">
+<link rel="stylesheet" href="estilo.css?v=623d779442">
 <style>
 .capa{grid-template-rows:auto 1fr auto;gap:12px}
 .titulo h1{font-size:clamp(40px,9vw,150px);line-height:.95;color:#fff;text-shadow:0 0 40px var(--mundo),0 4px 30px #000}
@@ -18,7 +18,24 @@
 .reloj.si{opacity:1}
 .reloj small{display:block;font-size:clamp(11px,1.2vw,16px);letter-spacing:.22em;color:var(--ambar);font-weight:600}
 #voz{max-width:min(100%,58ch);animation:entra .5s}
+/* 11-nov · LA TIERRA EN EL HOLOGRAMA DEL PUENTE (GamificaPro GP.mapaMundo con `globo`), solo en la llegada: cada recluta se enciende
+   en su ciudad y sale de ahí, en estela, hasta su órbita alrededor del planeta. */
+.holo{grid-row:2;grid-column:1;justify-self:start;align-self:center;height:min(100%,40vw,46vh);aspect-ratio:1;min-height:0;position:relative;
+  transition:opacity .9s,transform .9s;transform-origin:30% 50%;
+  --gpmm-espacio:transparent;--gpmm-globo-mar:#03101c;--gpmm-globo-mar2:#0f3a52;--gpmm-globo-tierra:#0f4656;--gpmm-globo-borde:#5ff4ff;--gpmm-globo-hay:#2bb3c4;
+  --gpmm-globo-halo:#5ff4ff;--gpmm-globo-brasa:#ffc24a;--gpmm-globo-brasa2:#ff8a2a;--gpmm-globo-nucleo:#fff6e0;--gpmm-globo-estrella:#01040c;--gpmm-brillo:rgba(255,194,74,.85)}
+.titulo{grid-row:1}#reloj{grid-row:2;grid-column:1}#voz{grid-row:3}
+.holo.fuera{opacity:0;transform:scale(.55)}
+.holo[hidden]{display:none}
+.holo .gpmm-ctrl,.holo .gpmm-pista,.holo .gpmm-vacio,.holo .gpmm-cartel{display:none!important}
+.holo .gpmm-pin{opacity:0!important;pointer-events:none}   /* en el holograma, solo las luces: los nombres van en la órbita */
+.holo .gpmm-lienzo{background:transparent!important}
+.holo .holo-lienzo{-webkit-mask:radial-gradient(circle at 50% 50%,#000 60%,transparent 71%);mask:radial-gradient(circle at 50% 50%,#000 60%,transparent 71%)}
+@media (orientation:portrait){.holo{height:min(100%,30vw,40vh)}}
+.holo .holo-pie{position:absolute;left:0;right:0;bottom:0;text-align:center;font-family:Orbitron,sans-serif;font-size:clamp(9px,.9vw,12px);letter-spacing:.2em;color:var(--cian);opacity:.8;text-shadow:0 2px 10px #000}
 </style>
+<script src="../../assets/js/mapaMundo.js?v=623d779442"></script>
+<script src="../../assets/js/mapaMundoTierra.js?v=623d779442"></script>
 </head>
 <body class="proyector">
 <canvas class="lienzo" id="gl"></canvas>
@@ -32,6 +49,7 @@
     <div class="fases" id="fases"></div>
   </div>
   <div class="reloj" id="reloj"><small>MISIÓN EN CURSO</small><span id="tiempo">10:00</span></div>
+  <div class="holo" id="holo" hidden aria-hidden="true"><div class="holo-lienzo" style="position:absolute;inset:0 0 18px 0"></div><div class="holo-pie">DESDE DÓNDE LLEGÁIS</div></div>
   <div class="caja-voz" id="voz"><div class="quien" id="quien">NEBULA</div><p id="dice"></p></div>
 </div>
 <div class="sala-info"><b id="abordo">0</b><span>A BORDO · SALA <i id="salan" style="font-style:normal"></i></span></div>
@@ -43,10 +61,10 @@
   <span class="hueco"></span>
   <button id="b-sim">Simular clase</button><button id="b-son" aria-pressed="false">Sonido</button>
   <a class="boton" id="a-movil" target="_blank" rel="noopener">Móvil de prueba</a>
-  <a class="boton" id="a-frag">Fragmento</a><a class="boton" id="a-salir" href="index.html?v=b7ccd456b2">Salir</a>
+  <a class="boton" id="a-frag">Fragmento</a><a class="boton" id="a-salir" href="index.html?v=623d779442">Salir</a>
   <small>H oculta · F pantalla completa</small>
 </div>
-<script src="nucleo.js?v=b7ccd456b2"></script>
+<script src="nucleo.js?v=623d779442"></script>
 <script>
 (async () => {
   await F.arranque();
@@ -106,14 +124,60 @@ void main(){
 }`;
   const G = F.gl($("gl"), frag), orb = $("orb"), o2 = orb.getContext("2d");
 
+  /* ── 11-nov · la Tierra en el holograma (Norberto: «¿qué se te ocurre para mantener las dos cosas?» → de su ciudad al planeta). Los
+     puntos, del mapa del grupo (`mod_mapa/{grupo}`, una lectura para la sala, con SG.MOTOR.mapaEscuchar); en la clase simulada y en
+     el borrador, ciudades de prueba. Quien llega con su ciudad se enciende ahí y, al momento, sale en estela hacia su órbita; quien no
+     la ha dicho, llega a la órbita como siempre. Solo en la llegada; en las otras fases, el holograma se recoge. ── */
+  const CIUDADES = [[40.42,-3.7,"ES","Madrid"],[19.43,-99.13,"MX","Ciudad de México"],[4.71,-74.07,"CO","Bogotá"],[37.39,-5.98,"ES","Sevilla"],
+    [-12.05,-77.04,"PE","Lima"],[-34.6,-58.38,"AR","Buenos Aires"],[-33.45,-70.66,"CL","Santiago"],[41.39,2.17,"ES","Barcelona"],[-0.23,-78.52,"EC","Quito"],
+    [38.72,-9.14,"PT","Lisboa"],[39.47,-0.38,"ES","Valencia"],[10.49,-66.88,"VE","Caracas"],[18.48,-69.9,"DO","Santo Domingo"],[43.26,-2.93,"ES","Bilbao"],
+    [14.63,-90.51,"GT","Guatemala"],[28.12,-15.43,"ES","Las Palmas"],[-16.5,-68.15,"BO","La Paz"],[9.93,-84.08,"CR","San José"],[37.18,-3.6,"ES","Granada"],
+    [42.88,-8.54,"ES","Santiago de Compostela"],[36.72,-4.42,"ES","Málaga"],[-25.26,-57.58,"PY","Asunción"],[-34.9,-56.16,"UY","Montevideo"],[13.69,-89.19,"SV","San Salvador"]];
+  const H = (() => {
+    const caja = $("holo"), GPm = window.GP && window.GP.mapaMundo;
+    let mapa = null, puntos = {}, prueba = 0;
+    const ciudadDe = (p) => puntos[p.id] || (p.bot || !S.web ? (p.d.prueba = p.d.prueba || (() => { const c = CIUDADES[prueba++ % CIUDADES.length]; return { la: c[0], lo: c[1], p: c[2], c: c[3] }; })()) : null);
+    const lista = () => [...S.gente.values()].map((p) => { const q = ciudadDe(p); return q ? { id: p.id, alias: p.alias, lat: q.la, lon: q.lo, pais: q.p, ciudad: q.c || "" } : null; }).filter(Boolean);
+    const api = {
+      on: !!GPm,
+      arrancar() {
+        if (!GPm) return;
+        caja.hidden = false;
+        mapa = GPm.crear(caja.querySelector(".holo-lienzo"), { llenar: true, avisar: true, animarAlEmpezar: true, minAncho: 60, globo: { lon: -38, lat: 22 }, brillo: true,
+          textos: { vacio: "" } });
+        if (S.web && F.M && F.M.mapaEscuchar) try { F.M.mapaEscuchar(F.PER, (P) => { puntos = P || {}; api.pintar(); }, () => {}); } catch (e) { /* sin mapa: llegan a la órbita como siempre */ }
+        api.pintar();
+      },
+      pintar() { if (mapa) mapa.poner(lista()); },
+      ver(si) { caja.classList.toggle("fuera", !si); },
+      /** Dónde está ahora en pantalla la ciudad de `id` (el centro de su burbuja), o null si está detrás o no se ve. */
+      donde(id) {
+        if (!mapa) return null;
+        const b = (mapa._estado().burbujas || []).findIndex((g) => g.indexOf(id) >= 0), pins = caja.querySelectorAll(".gpmm-pin"), e = pins[b];
+        if (b < 0 || !e || parseFloat(e.style.opacity || "1") < .3 || caja.classList.contains("fuera")) return null;   // (la del globo: por CSS, los pines no se ven)
+        const r = e.getBoundingClientRect(); return r.width ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null;
+      },
+      /** Llega alguien: a su ciudad y, cuando el globo ya la enseña, la estela hasta la órbita (con movimiento reducido, sin estela). */
+      llega(p) {
+        if (!mapa) return;
+        api.pintar();
+        if (F.reducido || fase !== 0 || !ciudadDe(p)) return;
+        p.d.viaje = { espera: performance.now() + 1100 };
+      },
+    };
+    return api;
+  })();
+
   /* ── sala ── */
   const S = F.sala("puente", () => ({ tema, fase, nebula: nebulaTxt, inter, vaeon: vaeonTxt, fin: fase === 2 ? finMision : 0 }), (m, p, nuevo) => {
-    if (nuevo) { p.d.rad = 1.22 + (S.gente.size % 4) * .16 + Math.random() * .08; p.d.vel = .12 + Math.random() * .1; p.d.luz = 1; }
+    if (nuevo) { p.d.rad = 1.22 + (S.gente.size % 4) * .16 + Math.random() * .08; p.d.vel = .12 + Math.random() * .1; p.d.luz = 1; H.llega(p); }
+    if (m.t === "adios") H.pintar();
     if (m.t === "pulso") { p.d.luz = 1; pulso = 0; if (inter) estObj = Math.max(0, estObj - .06); }
     $("abordo").textContent = S.gente.size;
   });
   $("salan").textContent = F.SALA;
-  $("a-movil").href = F.url("movil.html?v=b7ccd456b2");
+  H.arrancar();
+  $("a-movil").href = F.url("movil.html?v=623d779442");
 
   function decir(texto, deVaeon) {
     $("voz").classList.toggle("vaeon", !!deVaeon); $("quien").textContent = deVaeon ? "VAEON" : "NEBULA";
@@ -132,8 +196,8 @@ void main(){
     const m = M[tema]; document.documentElement.style.setProperty("--mundo", F.css(m.c));
     $("mundo").textContent = m.n; $("tema").textContent = `Tema ${tema + 1} · ${m.tema}`; $("trip").textContent = `${m.quien.toUpperCase()} · ${m.rol.toUpperCase()}`;
     $("fases").innerHTML = FASES.map((f, i) => `<span class="${i === fase ? "si" : ""}">${f.toUpperCase()}</span>`).join("");
-    $("reloj").classList.toggle("si", fase === 2);
-    $("a-frag").href = F.url("fragmento.html?v=b7ccd456b2", { f: tema + 1 });
+    $("reloj").classList.toggle("si", fase === 2); H.ver(fase === 0);
+    $("a-frag").href = F.url("fragmento.html?v=623d779442", { f: tema + 1 });
     $("b-fase").textContent = fase === 3 ? "Volver a la llegada" : "Fase siguiente";
     if (llegada) { zoom = .05; warp = 1; }
     decir(textoFase()); F.sonido.campana(fase === 2 ? 330 : 440, 1.6); S.emitir();
@@ -160,7 +224,7 @@ void main(){
   let antes = performance.now(), tBots = 0;
   function bucle(ahora) {
     const dt = Math.min(.05, (ahora - antes) / 1000); antes = ahora;
-    const W = innerWidth, H = innerHeight, asp = W / H, retrato = asp < 1;
+    const W = innerWidth, H_ = innerHeight, asp = W / H_, retrato = asp < 1;
     const zObj = retrato ? .2 : .3, cx = retrato ? 0 : asp * .17, cy = retrato ? -.02 : -.02;
     zoom += (zObj - zoom) * Math.min(1, dt * 1.1); warp += (0 - warp) * Math.min(1, dt * 1.3);
     if (inter && (ahora >= interHasta || estObj <= .02)) { inter = false; estObj = 0; decir("Señal restablecida. Gracias, reclutas."); F.sonido.campana(660, 1.8); S.emitir(); }
@@ -173,14 +237,32 @@ void main(){
     const m = M[tema];
     if (G) G.dibujar({ uC: [cx, cy], uZ: zoom, uEst: est, uWarp: warp, uPulso: pulso, uA: m.a, uB: m.b, uCc: m.c, uP: m.sh });
     // tripulación en órbita
-    const dpr = Math.min(devicePixelRatio || 1, 2); if (orb.width !== Math.round(W * dpr) || orb.height !== Math.round(H * dpr)) { orb.width = Math.round(W * dpr); orb.height = Math.round(H * dpr); }
-    o2.setTransform(dpr, 0, 0, dpr, 0, 0); o2.clearRect(0, 0, W, H);
-    const px = W / 2 + cx * H, py = H / 2 - cy * H, R = zoom * H, color = F.css(m.c), fs = Math.max(11, Math.min(18, W / 90));
+    const dpr = Math.min(devicePixelRatio || 1, 2); if (orb.width !== Math.round(W * dpr) || orb.height !== Math.round(H_ * dpr)) { orb.width = Math.round(W * dpr); orb.height = Math.round(H_ * dpr); }
+    o2.setTransform(dpr, 0, 0, dpr, 0, 0); o2.clearRect(0, 0, W, H_);
+    const px = W / 2 + cx * H_, py = H_ / 2 - cy * H_, R = zoom * H_, color = F.css(m.c), fs = Math.max(11, Math.min(18, W / 90));
     o2.font = `600 ${fs}px "Exo 2", sans-serif`; o2.textAlign = "center";
     for (const p of S.gente.values()) {
       p.fase += dt * p.d.vel; p.d.luz = Math.max(0, p.d.luz - dt * .8);
       const a = p.fase, rx = R * p.d.rad, x0 = Math.cos(a) * rx, y0 = Math.sin(a) * rx * .3, c = Math.cos(-.32), s = Math.sin(-.32);
       const x = px + x0 * c - y0 * s, y = py + x0 * s + y0 * c, detras = Math.sin(a) < 0;
+      // 11-nov · de su ciudad a su órbita: espera a que el globo enseñe la ciudad, y una estela en arco hasta su luz
+      const v = p.d.viaje;
+      if (v) {
+        if (!v.t0) {
+          if (ahora < v.espera) continue;
+          const d = H.donde(p.id); if (!d) { p.d.viaje = null; p.d.luz = 1; continue; }
+          v.t0 = ahora; v.x0 = d.x; v.y0 = d.y; F.sonido.campana(560 + Math.random() * 200, .9);
+        }
+        const k = Math.min(1, (ahora - v.t0) / 1700), cxq = (v.x0 + x) / 2, cyq = Math.min(v.y0, y) - H_ * .22;
+        const en = (u) => { const e = 1 - Math.pow(1 - u, 3), q = 1 - e; return [q * q * v.x0 + 2 * q * e * cxq + e * e * x, q * q * v.y0 + 2 * q * e * cyq + e * e * y]; };
+        for (let j = 14; j >= 0; j--) {
+          const u = Math.max(0, k - j * .018), [ex, ey] = en(u), al2 = (1 - j / 15) * (1 - est * .7), rr = 2 + (1 - j / 15) * 6;
+          const g2 = o2.createRadialGradient(ex, ey, 0, ex, ey, rr * 3); g2.addColorStop(0, `rgba(255,246,224,${al2})`); g2.addColorStop(.35, `rgba(255,194,74,${al2 * .7})`); g2.addColorStop(1, "rgba(0,0,0,0)");
+          o2.fillStyle = g2; o2.beginPath(); o2.arc(ex, ey, rr * 3, 0, 7); o2.fill();
+        }
+        if (k < 1) continue;
+        p.d.viaje = null; p.d.luz = 1; pulso = Math.min(pulso, .4);
+      }
       if (detras && Math.hypot(x - px, y - py) < R) continue;
       const al = (detras ? .35 : 1) * (1 - est * .7), r = 4.5 + p.d.luz * 6;
       const g = o2.createRadialGradient(x, y, 0, x, y, r * 4); g.addColorStop(0, `rgba(255,255,255,${al})`); g.addColorStop(.3, color.replace("rgb", "rgba").replace(")", `,${al * .8})`)); g.addColorStop(1, "rgba(0,0,0,0)");

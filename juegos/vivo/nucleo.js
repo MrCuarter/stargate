@@ -170,7 +170,7 @@
     // el mando, en la web: sin clase simulada ni móvil de prueba, y «Salir» vuelve a la pantalla del directo
     if (web) {
       ["b-sim", "a-movil"].forEach(id => { const el = F.$(id); if (el) el.hidden = true; });
-      const sal = F.$("a-salir"); if (sal) sal.href = F.url("../directo/proyector.html?v=b7ccd456b2");
+      const sal = F.$("a-salir"); if (sal) sal.href = F.url("../directo/proyector.html?v=623d779442");
     }
     return { gente, recibir, emitir, simular, web, nuevaRonda: () => { ronda++; }, bots: () => bots.filter(b => gente.has(b.id)).map(b => gente.get(b.id)) };
   };

@@ -23,7 +23,7 @@ const R = path.join(__dirname, "..");
 const L = (f) => fs.readFileSync(path.join(R, f), "utf8");
 const BUILD = L("_build_site.py"), SES = L("assets/js/sesion.js"), NAVE_JS = L("assets/js/recluta.js"), OSG = L("assets/js/origen-sg.js"), MOT = L("assets/js/motor.js");
 const FUE = L("assets/js/fuente.js"), CSS = L("assets/css/stargate.css"), SESH = L("sesion.html"), NAVE = L("recluta.html"), PRIV = L("privacidad.html");
-const ORI = L("assets/js/origen.js"), MAPA = L("assets/js/mapaMundo.js");
+const ORI = L("assets/js/origen.js"), MAPA = L("assets/js/mapaMundo.js"), PTE = L("juegos/vivo/puente.html");
 let ok = 0; const fallos = [];
 const c = (cond, txt) => { if (cond) ok++; else fallos.push(txt); console.log("   " + (cond ? "✓" : "✗") + " " + txt); };
 const antes = (html, a, b) => html.indexOf(a) >= 0 && html.indexOf(b) > html.indexOf(a);
@@ -62,6 +62,13 @@ c(/--gpo-fondo:#0d1626/.test(CSS) && /\.gpo-ventana\.sg-origen/.test(CSS), "   l
 console.log("\n  · 4 · la privacidad");
 c(/Tu ciudad y tu país<\/b>/.test(PRIV) && /Tu edad no la ve nadie<\/b>/.test(PRIV) && /Mostrar solo mi país/.test(PRIV), "🔴 el punto 3 cuenta la ciudad, el país y la edad, y quién los ve");
 c(/Versión 2026-11-11/.test(PRIV), "   y la política sube de versión (sin volver a pedir el sí)");
+
+console.log("\n  · 5 · El Puente: de su ciudad al planeta (Norberto: «¿qué se te ocurre para mantener las dos cosas?»)");
+c(/<script src="\.\.\/\.\.\/assets\/js\/mapaMundo\.js/.test(PTE) && /<script src="\.\.\/\.\.\/assets\/js\/mapaMundoTierra\.js/.test(PTE), "🔴 el Puente carga el globo del motor (la misma copia)");
+c(/<div class="holo" id="holo" hidden aria-hidden="true">/.test(PTE) && /H\.ver\(fase === 0\)/.test(PTE), "   la Tierra en holograma, solo en la llegada (en las otras fases se recoge)");
+c(/F\.M\.mapaEscuchar\(F\.PER,/.test(PTE) && /p\.bot \|\| !S\.web/.test(PTE), "   en clase, las ciudades del grupo (mod_mapa); simulada o en el borrador, de prueba");
+c(/H\.llega\(p\)/.test(PTE) && /if \(F\.reducido \|\| fase !== 0 \|\| !ciudadDe\(p\)\) return;/.test(PTE), "   quien llega con ciudad sale en estela; sin ciudad o con movimiento reducido, a la órbita como siempre");
+c(/\.holo \.gpmm-pin\{opacity:0!important/.test(PTE), "   en el holograma solo las luces (los nombres, en la órbita)");
 
 console.log("\n  Batería 154 · " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 if (fallos.length) process.exit(1);
