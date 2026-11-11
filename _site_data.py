@@ -1475,6 +1475,11 @@ SESION_SECCIONES = [
 # LECCION_AULAS: dónde sale, de estreno. (PER, Comandante): None = todo el grupo. En PER 16450 están Norberto (grupos 25 y 55,
 # «Norberto Cuartero») y Caridad: solo el aula de él. `?leccion=1` en la URL la enseña en cualquier grupo, para mirarla.
 LECCION_AULAS = [("per-16450", "Norberto Cuartero"), ("demo-stargate", None)]
+# 11-nov · EL FEEDBACK DE LA ACTIVIDAD 1, PARA EL ALUMNADO (Norberto, en clase: «cuando inicien sesión solo mi grupo, ponles que
+# el comandante les diga revisa el feedback de la actividad 1 y que lo puedan consultar en el panel, al igual que pueden consultar
+# otras actividades»). Es el Informe de la Misión 1 (los mismos datos, _informe_mision1.py) en una página para reclutas
+# (feedback-mision1.html, puerta de sesión). Quién lo ve en su Nave (aviso del Comandante + Archivo → Sesiones), como la lección.
+FEEDBACK_M1_AULAS = [("per-16450", "Norberto Cuartero"), ("demo-stargate", None)]
 # 11-nov (2) · LA PRÁCTICA EN VIVO: «me he atascado» y la galería (Norberto eligió estas dos de las cuatro propuestas). Va sobre la
 # pregunta en directo que ya existía (modClase, sala envivo: lanzarPregunta / responderPregunta / vigilarRespuestas): sin
 # servidor nuevo. El docente la abre desde «Manos a la obra»; al recluta le salta en la Nave y en la sesión con dos botones

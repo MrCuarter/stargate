@@ -466,6 +466,30 @@
   function urlSesion(sem){ return 'sesion.html?embed=1&diferido=1&per='+encodeURIComponent(per||'')+'&sem='+(Number(sem)||1); }
   function urlPresentacion(){ return 'sesion.html?embed=1&diferido=1&pres=1&per='+encodeURIComponent(per||''); }
   function urlActividad(n){ return 'sesion.html?embed=1&diferido=1&act='+n+'&per='+encodeURIComponent(per||''); }
+  /**
+   * 🔴 11-nov · EL FEEDBACK DE LA ACTIVIDAD 1. Norberto, en clase: «cuando inicien sesión solo mi grupo, ponles que el comandante les
+   * diga revisa el feedback de la actividad 1 y que lo puedan consultar en el panel, al igual que pueden consultar otras actividades».
+   * Quién: SG_FEEDBACK_M1_AULAS (PER y Comandante, en _site_data.py; null = todo el grupo), como la lección. Dónde: Archivo → Sesiones
+   * (detrás de «La Actividad 1») y el aviso del Comandante en Mi nave, que se cierra al verlo o con la ×.
+   */
+  var URL_FEEDBACK_M1='feedback-mision1.html?embed=1';
+  function feedbackM1(){
+    var quien=String((st.yo&&st.yo.profe)||'').trim();
+    return (window.SG_FEEDBACK_M1_AULAS||[]).some(function(a){ return a && a[0]===per && (!a[1] || a[1]===quien); });
+  }
+  var FB_VISTO='sg-feedback-m1-visto';
+  function feedbackM1Visto(){ try{ return localStorage.getItem(FB_VISTO+':'+per)==='1'; }catch(e){ return false; } }
+  function marcarFeedbackM1(){ try{ localStorage.setItem(FB_VISTO+':'+per,'1'); }catch(e){} }
+  function avisoFeedbackM1(){
+    if(!feedbackM1() || feedbackM1Visto()) return '';
+    var cmd=String((st.yo&&st.yo.profe)||'').trim()||'Tu Comandante';
+    return '<section class="card fb-m1" role="status">'
+      +'<button type="button" class="fb-m1-x" data-fbm1-cerrar aria-label="Cerrar el aviso">×</button>'
+      +'<div class="eyebrow amber">Mensaje de tu Comandante</div>'
+      +'<p class="fb-m1-t"><b>'+esc(cmd)+':</b> «Revisa el feedback de la Actividad 1: lo que brilla en vuestras entregas y las cinco averías más repetidas, con cómo repararlas antes de la Actividad 2».</p>'
+      +'<p class="fb-m1-b"><button type="button" class="btn primary" data-fbm1-ver>Ver el feedback</button>'
+      +' <a class="btn" href="'+esc(URL_FEEDBACK_M1.replace('?embed=1',''))+'" target="_blank" rel="noopener" data-fbm1-aparte>Abrir aparte ↗</a></p></section>';
+  }
   // 26-sep · la sesión de una actividad se abre la semana en que se lanza (y se queda)
   function actividadAbierta(a){ return st.estado==='fin' || (st.estado==='curso' && Number(st.actual||0)>=Number(a.sem||99)); }
   function archivo(){
@@ -537,8 +561,12 @@
       if(s.sem>hasta) return;
       out.push({u:urlSesion(s.sem), t:'Semana '+s.sem, s:s.tema||''});
       acts.filter(function(a){ return Number(a.sem)===Number(s.sem); }).forEach(function(a){
-        out.push({u:urlActividad(a.n), t:'La Actividad '+a.n, s:a.titulo||'Qué se entrega, paso a paso'}); });
+        out.push({u:urlActividad(a.n), t:'La Actividad '+a.n, s:a.titulo||'Qué se entrega, paso a paso'});
+        if(Number(a.n)===1 && feedbackM1()) out.push({u:URL_FEEDBACK_M1, t:'Feedback de la Actividad 1', s:'Lo que brilla y las cinco averías, con cómo repararlas'}); });
     });
+    // (si la Actividad 1 no estuviera en la lista, el feedback va igual, al final)
+    if(feedbackM1() && !out.some(function(x){ return x.u===URL_FEEDBACK_M1; }))
+      out.push({u:URL_FEEDBACK_M1, t:'Feedback de la Actividad 1', s:'Lo que brilla y las cinco averías, con cómo repararlas'});
     return out;
   }
   /**
@@ -1437,6 +1465,8 @@
       +'</section>'
       // 25-sep · la entrega de la actividad, en sus semanas (4-5 y 7-8), justo debajo de la ficha
       +recordatorioActividad()
+      // 11-nov · el aviso del Comandante: revisa el feedback de la Actividad 1 (solo su aula)
+      +avisoFeedbackM1()
       // debajo, a todo el ancho, lo que toca ESTA semana: la carta del comandante (la misma que se proyecta)
       +ordenDeLaSemana()
       +cine()
@@ -5585,6 +5615,9 @@
     verSesion(dentro && st.tab==='archivo' && st.arSub==='sesiones');
     ayudaNebula(dentro && motorNuevo() && !DEMO && !SIMULACRO);
     Array.prototype.forEach.call(root.querySelectorAll('[data-arsub]'),function(b){ b.onclick=function(){ st.arSub=b.getAttribute('data-arsub'); render(); }; });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-fbm1-ver]'),function(b){ b.onclick=function(){ marcarFeedbackM1(); st.arSub='sesiones'; st.arSes=URL_FEEDBACK_M1; irA('archivo'); try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){} }; });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-fbm1-aparte]'),function(b){ b.addEventListener('click',function(){ marcarFeedbackM1(); setTimeout(render,0); }); });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-fbm1-cerrar]'),function(b){ b.onclick=function(){ marcarFeedbackM1(); render(); }; });
     Array.prototype.forEach.call(root.querySelectorAll('[data-arses]'),function(b){ b.onclick=function(){ st.arSes=b.getAttribute('data-arses'); render();
       var c=document.getElementById('nave-ses'); if(c) try{ c.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){} }; });
     // Solo con el motor nuevo: en la Nave de siempre no suena nada, y un botón de silenciar algo

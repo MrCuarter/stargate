@@ -8674,3 +8674,10 @@ body .mazo .dia.leccion h2{font-size:clamp(1.3rem,2.7vw,2.15rem)}
 .ev-mzv-sel label{display:grid;gap:4px;min-width:0}
 .ev-mzv-sel span{font-size:.85rem;color:var(--mut)}
 @media (max-width:620px){ .ev-mzv-sel,.ses-al-mzv-s{grid-template-columns:minmax(0,1fr)} }
+/* 11-nov · el aviso del Comandante: revisa el feedback de la Actividad 1 (recluta.js → avisoFeedbackM1; solo FEEDBACK_M1_AULAS) */
+.fb-m1{position:relative;border-color:color-mix(in srgb,var(--amber) 55%,var(--line));padding-right:52px}
+.fb-m1 .fb-m1-t{margin:6px 0 10px;font-size:1.05rem;line-height:1.5;min-width:0;overflow-wrap:anywhere}
+.fb-m1 .fb-m1-b{display:flex;flex-wrap:wrap;gap:10px;margin:0}
+.fb-m1 .fb-m1-b .btn{min-height:44px}
+.fb-m1-x{position:absolute;top:8px;right:8px;width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:1.4rem;line-height:1;cursor:pointer}
+.fb-m1-x:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
