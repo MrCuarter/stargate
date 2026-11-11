@@ -466,6 +466,15 @@
       "cursor:pointer;min-height:44px;line-height:1.45;font-size:clamp(.95rem,1.35vw,1.06rem)}" +
     ".lc-lista input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--gpl-acento,#37e0ec)}" +
     ".lc-lista label:has(input:checked){border-color:var(--gpl-acento,#37e0ec);background:var(--gpl-marcada,rgba(55,224,236,.08))}" +
+    /* 11-nov · LAS MATRICES, GRANDES (Norberto, proyectándola en clase: se veía diminuta y sobraba hueco abajo). En pantalla ancha, la
+       rejilla llena el alto que deja la diapositiva: la caja crece, la zona también y cada fila de casillas se reparte lo que queda
+       (nunca menos de 44 px); la letra sube con el ancho. En móvil, como estaba. */
+    "@media (min-width:901px){" +
+      ".lct-matriz .lc-caja,.lct-matrizvivo .lc-caja{flex:1 1 auto;min-height:0}" +
+      ".lct-matriz .lc-mz-zona,.lct-matrizvivo .lc-mz-zona{flex:1 1 auto;min-height:0}" +
+      ".lct-matriz .lc-mz,.lct-matrizvivo .lc-mz{grid-template-rows:auto;grid-auto-rows:minmax(44px,1fr);font-size:clamp(.78rem,.9vw,1.1rem)}" +
+      ".lct-matriz .lc-mz-det,.lct-matrizvivo .lc-mz-det{font-size:clamp(.9rem,.95vw,1.15rem)}" +
+    "}" +
     "@media (max-width:900px){" +
       ".lc-tarjetas{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}" +
       ".lc-piezas,.lc-manos,.lc-ia,.lc-mz-zona,.lc-lado{grid-template-columns:minmax(0,1fr)}" +

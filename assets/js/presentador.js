@@ -22,8 +22,8 @@
  *       pantalla, como presentación». Sin `url`, `nota` (por qué aquí no hay mando en el móvil).
  *   GP.presentador.abrir(url, nombre)       → la emergente (o null si el navegador la bloquea).
  *   GP.presentador.mando({ per, alCambiar(vivo), alTecla(key, shift), alPide() }) → { mandar(estado), acc(a), abierta(win), cerrar(),
- *       vivo(), destruir() }: en la ventana del docente. `vivo()`, si hay una presentación abierta (late cada 3 s; a los 9 s sin latido,
- *       o al momento si se despide, deja de contar). `alPide()`: la presentación acaba de abrir y pide el estado.
+ *       vivo(), destruir() }: en la ventana del docente. `vivo()`, si hay una presentación abierta (late cada 3 s y contesta al «¿sigues?»
+ *       del mando cada 2 s; a los 75 s sin señal, o al momento si se despide, deja de contar). `alPide()`: la presentación acaba de abrir y pide el estado.
  *   GP.presentador.presentacion({ per, alEstado(e), alAcc(a) }) → { tecla(key, shift), destruir() }: en la emergente. Late, se despide
  *       al cerrarse y cierra la ventana si el mando lo pide.
  *
@@ -60,16 +60,23 @@
   function mando(o) {
     o = o || {};
     var bc = nuevoCanal(o.per), win = null, latido = 0, on = false, vigia = null;
-    function vivoAhora() { return (!!win && !win.closed) || Date.now() - latido < 9000; }
+    // 🔴 11-nov · EL TEMBLOR (Norberto, en clase: «cada pocos segundos se está haciendo pequeña la pantalla, se reajusta»). Con la
+    // presentación escondida (minimizada, detrás o en otro escritorio) el navegador frena sus relojes: el latido de 3 s llegaba una vez
+    // por minuto y el mando, a los 9 s sin él, se apagaba y se encendía solo (la diapositiva cambiaba de alto cada vez). Ahora el mando
+    // pregunta «¿sigues?» y la presentación contesta al momento (un mensaje no se frena como un reloj); y sin señal se espera 75 s,
+    // más que el freno del navegador (1 min). Cerrarla sigue contando al momento: se despide.
+    var ESPERA = 75000;
+    function vivoAhora() { return (!!win && !win.closed) || (latido > 0 && Date.now() - latido < ESPERA); }
     function mirar() { var v = vivoAhora(); if (v !== on) { on = v; if (!on) win = null; if (typeof o.alCambiar === "function") o.alCambiar(on); } }
     if (bc) bc.onmessage = function (ev) {
       var m = ev && ev.data; if (!m) return;
       if (m.tipo === "hola") { latido = Date.now(); mirar(); if (typeof o.alPide === "function") o.alPide(); }
+      else if (m.tipo === "aqui") { latido = Date.now(); mirar(); }
       else if (m.tipo === "adios") { latido = 0; setTimeout(mirar, 60); }
       else if (m.tipo === "tecla" && on && typeof o.alTecla === "function") o.alTecla(String(m.key || ""), !!m.shift);
     };
-    vigia = setInterval(mirar, 2000);
     function post(m) { if (bc) try { bc.postMessage(m); } catch (e) { /* nada */ } }
+    vigia = setInterval(function () { post({ tipo: "sigues" }); mirar(); }, 2000);
     return {
       mandar: function (estado) { if (on && estado) post({ tipo: "estado", e: estado }); },
       acc: function (a) { post({ tipo: "acc", a: String(a || "") }); },
@@ -89,6 +96,7 @@
       var m = ev && ev.data; if (!m) return;
       if (m.tipo === "estado" && m.e && typeof o.alEstado === "function") o.alEstado(m.e);
       else if (m.tipo === "acc" && typeof o.alAcc === "function") o.alAcc(String(m.a || ""));
+      else if (m.tipo === "sigues") post({ tipo: "aqui" });   // (11-nov · contesta al momento aunque esté escondida y sus relojes, frenados)
       else if (m.tipo === "cierra") try { W.close(); } catch (e) { /* nada */ }
     };
     var hola = function () { post({ tipo: "hola" }); };
