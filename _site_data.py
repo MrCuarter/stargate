@@ -1463,6 +1463,108 @@ SESION_SECCIONES = [
     ("directo", "En directo", "El juego del final: cada recluta desde su móvil, con su personaje. Tras el ticket."),
 ]
 
+# ────────────────────────── 🔴 11-nov · LA LECCIÓN: EL BLOQUE CENTRAL SIN GENIALLY ──────────────────────────
+# Norberto: «Quiero hacer COMPLETAS las presentaciones. Ahora mismo tenemos intro, actividades y outro. La parte central es
+# Genially. Me gustaría poder prescindir de Genially y hacerlo todo dentro de nuestra plataforma… Son clases muy prácticas
+# con mínimo de teoría». Y: «este encargo va a afectar de momento SOLO a mis grupos, así lo pruebo tranquilamente antes de
+# embarcar al resto de docentes». Estructura elegida (11-nov): gancho (la pregunta de la clase, que ya existe) → lo mínimo →
+# míralo hecho → manos a la obra (con cronómetro) → el puente al reto o la actividad (las misiones, que ya existen).
+# Donde hay lección, va en lugar del Genially del despegue (sección «despegue»: se apaga y se mueve igual en la rueda).
+# Fuentes: el temario oficial (Temario y actividades/Tema 3.pdf, con sus ejemplos y enlaces) y el enunciado de la Actividad 2.
+#
+# LECCION_AULAS: dónde sale, de estreno. (PER, Comandante): None = todo el grupo. En PER 16450 están Norberto (grupos 25 y 55,
+# «Norberto Cuartero») y Caridad: solo el aula de él. `?leccion=1` en la URL la enseña en cualquier grupo, para mirarla.
+LECCION_AULAS = [("per-16450", "Norberto Cuartero"), ("demo-stargate", None)]
+# Cada lección, por semana del grupo (REGULAR). Tipos de diapositiva (los pinta sesion.js, diasLeccion):
+#   tarjetas · (kicker, titulo, tarjetas=[(titulo, texto)], pie)            · todas iguales, de un vistazo
+#   piezas   · las 8 inteligencias y los 6 niveles de Bloom (de INTELIGENCIAS y BLOOM: un dato, un sitio)
+#   matriz   · la matriz 8×6 con un ejemplo: cada casilla con actividad se pulsa y se lee
+#   ejemplos · tarjetas con «Verlo aquí» (visor dentro de la diapositiva) y «Abrir aparte»
+#   manos    · manos a la obra: pasos numerados, consejo y cronómetro (el del relámpago)
+#   ia       · la IA como ayudante: el prompt para copiar y lo que decide tu criterio
+#   lista    · la lista de comprobación (se marca en pantalla; no se guarda)
+LECCIONES = {
+ 5: dict(tema=3, parte="Tema 3 · 1.ª parte", titulo="Que el alumnado decida", dias=[
+   dict(tipo="tarjetas", rot="Lineal o interactivo", kicker="Lo mínimo", titulo="¿Qué hace interactivo un recurso?",
+        tarjetas=[("Lineal", "Todo el mundo ve lo mismo, en el mismo orden, siempre. Como un PowerPoint que solo avanza."),
+                  ("Interactivo", "Lo que aparece depende de lo que **elige** el docente o el estudiante: no hay un orden rígido."),
+                  ("El primer paso", "Un **vínculo** que lleva a otra página o un contenido **embebido**. Con eso, cualquier "
+                                     "presentación (PowerPoint, Google o Genially) deja de ser lineal.")],
+        pie="Interactivo = cada cual explora a su ritmo y recibe respuesta a lo que hace."),
+   dict(tipo="tarjetas", rot="Tres interactividades", kicker="Lo mínimo", titulo="Tres formas de interactividad en el aula",
+        tarjetas=[("Con el alumnado, en directo", "Sondeos al momento desde el móvil: **Mentimeter**, **Vevox**, **Wooclap**. "
+                                                  "Ajustas la clase a lo que responden (y también funcionan en asíncrono)."),
+                  ("Con el contenido", "Actividades que **se autocorrigen** y responden según la respuesta: el videoquiz de "
+                                       "**Edpuzzle** del Tema 2 es una."),
+                  ("Itinerarios", "Rutas con varios recursos y actividades: **Genially**, **Prezi**, **Deck.toys** o "
+                                  "**LessonPlans** de Symbaloo.")],
+        pie="Hoy nos quedamos con la tercera: el itinerario es el esqueleto del paisaje de la Actividad 2."),
+   dict(tipo="ejemplos", rot="Míralo hecho", kicker="Míralo hecho", titulo="Recursos interactivos de docentes reales",
+        ejemplos=[("Crear libros interactivos", "Margarita González del Hierro", "Qué es un libro interactivo, ejemplos y consejos.",
+                   "https://view.genially.com/5bac87bc304be15920346afa"),
+                  ("Libro digital: La energía", "4.º de Primaria", "Una unidad didáctica completa de Ciencias de la Naturaleza.",
+                   "https://view.genially.com/5b1fd46e5caad1746d1b53d9"),
+                  ("Banco de recursos Cerebro", "Jorge QC", "Un banco de recursos por etapas y áreas: un REA hecho presentación.",
+                   "https://view.genially.com/5e9aa4aab65e370dac6aa4e9"),
+                  ("Huye con Baby Yoda: fracciones", "Norberto Cuartero · Deck.toys", "Un itinerario con varias rutas para llegar al final.",
+                   "https://deck.toys/decks/71oF4PQIt/Huye-con-Baby-Yoda-Fracciones", "aparte")]),
+   dict(tipo="ia", rot="La IA te ayuda", kicker="La IA, de ayudante", titulo="Planifica tu itinerario con IA… y decide tú",
+        prompt="Actúa como docente de [etapa y curso]. Mi objetivo de aprendizaje es: [objetivo]. Propón un itinerario de "
+               "4 pasos para conseguirlo, con dos caminos distintos en el paso 2 (uno haciendo y otro leyendo o viendo), "
+               "una actividad de refuerzo para quien se atasca y una de ampliación para quien va por delante. Para cada "
+               "paso: qué hace el alumnado, con qué recurso y cuánto tarda.",
+        criterio=["¿Llegan los dos caminos **al mismo objetivo**?", "¿Es **realista** para tu aula y tu tiempo?",
+                  "Cita la herramienta, el **prompt** y **qué cambiaste**."]),
+ ]),
+ 6: dict(tema=3, parte="Tema 3 · 2.ª parte", titulo="Del itinerario al paisaje", dias=[
+   dict(tipo="tarjetas", notas=["Enlaza con su relámpago: sus dos senderos ya son un itinerario.", "La diferencia clave: en la paleta el orden lo pones tú; en el paisaje lo elige cada estudiante."], rot="Del itinerario al paisaje", kicker="Lo mínimo", titulo="Del itinerario al paisaje",
+        tarjetas=[("Itinerario", "Un camino con pasos en orden. Tus **dos senderos** del relámpago son su bifurcación."),
+                  ("Paleta de inteligencias", "**8 actividades**, una por inteligencia, para un mismo objetivo… pero en un "
+                                              "**orden fijo**."),
+                  ("Paisaje de aprendizaje", "Actividades que cruzan **inteligencias** y **niveles de dificultad**: cada "
+                                             "estudiante elige **por dónde entra** y a qué ritmo.")],
+        pie="Paisaje = inteligencias múltiples (Gardner) + taxonomía de Bloom, sobre una imagen interactiva (Hernando, 2016)."),
+   dict(tipo="piezas", notas=["Pregunta rápida: ¿con qué inteligencia te sientes más cómodo/a?", "Bloom va de abajo arriba: recordar es lo más fácil; crear, lo más difícil."], rot="Las dos piezas", kicker="Lo mínimo", titulo="Las dos piezas del paisaje",
+        talentos="Las 8 inteligencias de Gardner: **el talento** con el que se trabaja",
+        niveles="Los 6 niveles de Bloom: **la dificultad**, de recordar a crear"),
+   dict(tipo="matriz", rot="La matriz", kicker="Míralo hecho", titulo="La matriz de programación, con un ejemplo",
+        ejemplo="a2",   # el huerto de Patricia: el MISMO de la sesión de la Actividad 2 (SESION_ACTIVIDAD["a2"]["ejemplo"])
+        notas=["Pulsa casillas de distintas filas y columnas: variedad en talento y en dificultad.", "El color es el tipo: obligatoria, optativa, voluntaria.", "En la Actividad 2 bastan 6 cruces; no hay que llenar las 48."],
+        pie="En la Actividad 2: **al menos 6 cruces**, variados en talento y en dificultad. No hace falta llenar las 48."),
+   dict(tipo="ejemplos", notas=["Abre Stranger chemistry con «Verlo aquí» y entra por dos sitios distintos: no hay orden.", "La plantilla de la matriz es la que enlaza el enunciado de la Actividad 2."], rot="Paisajes reales", kicker="Míralo hecho", titulo="Paisajes e itinerarios de verdad",
+        ejemplos=[("Stranger chemistry", "Mónica Pareja · 3.º de ESO", "Un paisaje de Física y Química con la estética de una serie: "
+                   "se entra por donde se quiera.", "https://view.genially.com/5ade0e73524a2d65b26ce156"),
+                  ("(Math) Series niveladas", "Genially", "Varias actividades para un mismo objetivo: cada estudiante escoge su camino.",
+                   "https://view.genially.com/673a886db3cebc087dcc971a"),
+                  ("La plantilla de la matriz", "La de la Actividad 2", "Para planificar tu matriz 8×6 antes de montar el paisaje.",
+                   "MATRIZ")]),
+   dict(tipo="manos", notas=["Aquí entras en Genially y lo montas desde cero, en directo, mientras lo hacen.", "Pon el cronómetro al empezar; a los 25 minutos, que enseñen su enlace en el chat."], rot="Manos a la obra", kicker="Manos a la obra", titulo="Tu paisaje en Genially, desde cero", minutos=25,
+        pasos=[("Entra", "en **genially.com** con tu cuenta (la gratuita vale)."),
+               ("Crea una imagen interactiva", "**no una presentación**: la Actividad 2 lo exige."),
+               ("Elige el territorio", "un huerto, un mapa, una isla… Tuya, de un banco libre o hecha con IA: **cítala**."),
+               ("Una actividad, un elemento", "un icono, un botón o un área invisible por actividad, repartidos por la imagen. "
+                                              "**Sin flechas ni números**: se entra por donde se quiera."),
+               ("Dale interactividad", "una **ventana** con la ficha de la actividad: objetivo, tarea, recursos, evaluación y tiempo."),
+               ("El color dice el tipo", "uno para **obligatoria**, otro para **optativa**, otro para **voluntaria**, y una leyenda."),
+               ("Publícalo", "en **público**, copia el enlace, ábrelo en una ventana de **incógnito** e incrústalo en tu Bitácora.")],
+        consejo="Hoy basta con **tres actividades colocadas**: el resto, en casa, ya dentro de la Actividad 2."),
+   dict(tipo="ia", notas=["Copia el prompt y pruébalo en directo con un tema que te digan.", "Recalca el criterio: la IA propone, el docente decide, y se cita."], rot="La IA y tu matriz", kicker="La IA, de ayudante", titulo="La IA te ayuda a llenar la matriz… y decide tú",
+        prompt="Actúa como docente de [etapa y curso]. Mi unidad es «[tema]» y el objetivo es: [objetivo]. Propón una "
+               "actividad para cada uno de estos cruces de la matriz de programación: [inteligencia × nivel de Bloom], "
+               "[inteligencia × nivel de Bloom]… Para cada una: la tarea del alumnado, los recursos, cómo la evalúo, el "
+               "tiempo y si es obligatoria, optativa o voluntaria. Que sean distintas entre sí y realistas para mi aula.",
+        criterio=["¿Cada actividad **encaja en su cruce**?", "¿Trabaja **tu objetivo** y es realista?",
+                  "La Actividad 2 lo pide: **herramienta, prompt** y **qué cambiaste** de la respuesta."]),
+   dict(tipo="lista", notas=["Es la lista de lo que pide el enunciado: que la usen antes de entregar.", "Después vienen la misión (vídeo) y la Actividad 2."], rot="¿Está listo?", kicker="Antes de entregar", titulo="¿Tu paisaje está listo?",
+        items=["Es una **imagen interactiva**, no una presentación.",
+               "Tiene **al menos 6 actividades** de tu matriz, variadas en talento y dificultad.",
+               "Cada actividad: **objetivo, tarea, recursos citados, evaluación, tiempo y tipo**.",
+               "**Sin un orden fijo**: el color dice si es obligatoria, optativa o voluntaria.",
+               "El enlace es **público** y lo has probado en **incógnito**.",
+               "Está **incrustado en tu Bitácora**, con la matriz y un párrafo sobre la atención a la diversidad."]),
+ ]),
+}
+
 # 15-sep · UN EJEMPLO POR RETO (Norberto: «es lo que más les ayuda»).
 # 17-sep · Y AHORA EN TODOS (Norberto: «me encantaría que cada reto fuera acompañado de un ejemplo: a veces una imagen,
 # una descripción o algo más elaborado»). Cada uno es el caso de una docente o un docente concreto, con la herramienta,

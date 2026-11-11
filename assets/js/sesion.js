@@ -2666,7 +2666,10 @@
      * lo dice sin una tarjeta de por medio.
      */
     var medio=[];
-    {
+    // 11-nov · donde hay lección (de estreno, el aula de Norberto), la lección ES el despegue: sin Genially
+    var lec=leccionDe(s);
+    if(lec) medio=diasLeccion(s, lec);
+    else {
       var panel=panelDelMazo(!EMBED || VENTANA || DIFERIDO);
       if(panel) medio.push({k:'genially', t:'pr', rot:'El despegue', html:
         '<div class="dia genially"><iframe src="'+esc(panel)+'" title="Panel de control de la clase" loading="lazy" allowfullscreen allow="fullscreen"></iframe></div>'});
@@ -2692,6 +2695,150 @@
     var off=apagadasEn(s);
     if(off.length){ var quedan=todo.filter(function(x){ return off.indexOf(secDe(x))<0; }); todo=quedan.length?quedan:[todo[0]]; }
     return enSuOrden(todo);
+  }
+
+  /**
+   * ════════ 🔴 11-nov · LA LECCIÓN: EL BLOQUE CENTRAL SIN GENIALLY ════════
+   *
+   * Norberto: «Quiero hacer COMPLETAS las presentaciones… La parte central es Genially. Me gustaría poder prescindir de
+   * Genially y hacerlo todo dentro de nuestra plataforma… clases muy prácticas con mínimo de teoría». De estreno, solo en su
+   * aula (LECCION_AULAS: PER y Comandante, en _site_data.py); `?leccion=1` la enseña en cualquier grupo y `?leccion=0` la quita.
+   * Donde hay lección, va en lugar del Genially del despegue, con la misma sección («despegue»): la rueda la apaga y la mueve.
+   * El contenido es dato (SG_LECCIONES, por semana); aquí solo se pinta cada tipo de diapositiva.
+   */
+  function leccionDe(s){
+    var L=(window.SG_LECCIONES||{})[String(s&&s.sem)];
+    if(!L||!L.dias||!L.dias.length) return null;
+    var q=location.search;
+    if(/[?&]leccion=0\b/.test(q)) return null;
+    if(/[?&]leccion=1\b/.test(q)) return L;
+    if(st.tipo==='PUA') return null;
+    var per=String(st.per||''), quien=String((!st.alumno&&st.miNombre)||st.profeMio||'').trim();
+    return (window.SG_LECCION_AULAS||[]).some(function(a){ return a[0]===per && (!a[1] || a[1]===quien); }) ? L : null;
+  }
+  function lcCabeza(L, d){
+    return '<div class="kicker"><img class=ico src=assets/img/iconos/p/libro.png alt> '+esc(L.parte)+' · '+esc(d.kicker||'')+'</div><h2>'+esc(d.titulo)+'</h2>';
+  }
+  var LC_TIPO={obligatoria:'Obligatoria', optativa:'Optativa', voluntaria:'Voluntaria'};
+  var LC_CORTO={'Lingüística':'Ling.', 'Lógico-matemática':'Lóg.-mat.', 'Visual-espacial':'Visual', 'Corporal-cinestésica':'Corporal',
+    'Musical':'Musical', 'Interpersonal':'Interp.', 'Intrapersonal':'Intrap.', 'Naturalista':'Natural.'};
+  function diasLeccion(s, L){
+    return L.dias.map(function(d, i){
+      var x=diaLeccion(s, L, d);
+      if(!x) return null;
+      return Object.assign({k:'lc-'+(i+1), sec:'despegue', t:'pr', rot:d.rot||d.titulo, guion:d.notas||null}, x);
+    }).filter(Boolean);
+  }
+  function diaLeccion(s, L, d){
+    var abre='<div class="dia leccion lct-'+esc(d.tipo)+' con-fondo">'+capaFondo(s)+'<div class="lc-caja">'+lcCabeza(L, d), cierra='</div></div>';
+    if(d.tipo==='tarjetas') return {html: abre
+      +'<div class="lc-tarjetas" style="--n:'+(d.tarjetas||[]).length+'">'+(d.tarjetas||[]).map(function(t, i){
+        return '<div class="lc-tarjeta" style="--i:'+i+'"><b class="lc-num">'+(i+1)+'</b><h3>'+esc(t[0])+'</h3><p>'+fuerte(t[1])+'</p></div>'; }).join('')+'</div>'
+      +(d.pie?'<p class="lc-pie">'+fuerte(d.pie)+'</p>':'')+cierra};
+    if(d.tipo==='piezas'){
+      var M=window.SG_MATRIZ||{}, IM=M.inteligencias||[], B=(M.bloom||[]).slice().reverse();
+      return {html: abre+'<div class="lc-piezas">'
+        +'<div class="lc-pieza"><p class="lc-pieza-t">'+fuerte(d.talentos)+'</p><ul class="lc-chips">'+IM.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul></div>'
+        +'<div class="lc-pieza"><p class="lc-pieza-t">'+fuerte(d.niveles)+'</p><ol class="lc-escalera">'+B.map(function(x, i){
+          return '<li style="--i:'+i+'"><span>'+(i+1)+'</span>'+esc(x)+'</li>'; }).join('')+'</ol></div>'
+        +'</div><p class="lc-pie">Cada actividad del paisaje es <b>un cruce</b>: un talento × un nivel.</p>'+cierra};
+    }
+    if(d.tipo==='matriz'){
+      // el ejemplo es el de la sesión de la Actividad (SG_SES_ACT): cruces = [planta, nivel, inteligencia, tipo, título, tarea]
+      var EJ=((window.SG_SES_ACT||{})[d.ejemplo]||{}).ejemplo||{};
+      var Mz=window.SG_MATRIZ||{}, IMs=Mz.inteligencias||[], BL=Mz.bloom||[],
+          A=(EJ.cruces||[]).map(function(c){ return [c[2], c[1], c[4], c[5], c[3], c[0]]; });
+      if(!A.length) return null;
+      var celda=function(im, bl){ return A.filter(function(a){ return a[0]===im && a[1]===bl; })[0]; };
+      var tabla='<div class="lc-mz" role="grid" aria-label="Matriz de programación: 8 inteligencias por 6 niveles de Bloom">'
+        +'<div class="lc-mz-esq"></div>'+IMs.map(function(im){ return '<div class="lc-mz-col" title="'+esc(im)+'"><span class="lc-largo">'+esc(im)+'</span><span class="lc-corto">'+esc(LC_CORTO[im]||im)+'</span></div>'; }).join('');
+      BL.forEach(function(bl){
+        tabla+='<div class="lc-mz-fila">'+esc(bl)+'</div>';
+        IMs.forEach(function(im){
+          var a=celda(im, bl);
+          tabla+=a?'<button type="button" class="lc-mz-c con t-'+esc(a[4])+'" data-lc-a="'+A.indexOf(a)+'" aria-label="'+esc(a[2]+' · '+im+' × '+bl)+'"><span>'+esc(a[2])+'</span></button>'
+                  :'<div class="lc-mz-c"></div>';
+        });
+      });
+      tabla+='</div>';
+      return {montar:montarMatriz(A), html: abre
+        +'<p class="lc-unidad"><b>'+esc(EJ.area||'')+' · '+esc(EJ.nivel||'')+'</b> · el huerto de '+esc(String(EJ.quien||'').split(',')[0])+': cada planta, una actividad</p>'
+        +'<div class="lc-mz-zona">'+tabla+'<div class="lc-mz-det" aria-live="polite"><p class="lc-mz-pista">Pulsa una casilla de color para leer su actividad.</p></div></div>'
+        +'<p class="lc-leyenda">'+Object.keys(LC_TIPO).map(function(k){ return '<span class="t-'+k+'"><i></i>'+LC_TIPO[k]+'</span>'; }).join('')+'</p>'
+        +(d.pie?'<p class="lc-pie">'+fuerte(d.pie)+'</p>':'')+cierra};
+    }
+    if(d.tipo==='ejemplos'){
+      var plantilla=(window.SG_MATRIZ||{}).plantilla||'';
+      var E=(d.ejemplos||[]).map(function(e){ return {t:e[0], quien:e[1], que:e[2], url:e[3]==='MATRIZ'?plantilla:e[3], aparte:e[4]==='aparte'}; }).filter(function(e){ return e.url; });
+      return {montar:montarVisor, html: abre
+        +'<div class="lc-tarjetas lc-ejemplos" style="--n:'+E.length+'">'+E.map(function(e, i){
+          return '<div class="lc-tarjeta" style="--i:'+i+'"><h3>'+esc(e.t)+'</h3><p class="lc-quien">'+esc(e.quien)+'</p><p>'+esc(e.que)+'</p>'
+            +'<div class="lc-bots">'+(e.aparte?'':'<button type="button" class="btn primary min" data-lc-ver="'+esc(e.url)+'" data-lc-tit="'+esc(e.t)+'">Verlo aquí</button>')
+            +'<a class="btn min" href="'+esc(e.url)+'" target="_blank" rel="noopener">Abrir aparte &#8599;</a></div></div>'; }).join('')+'</div>'
+        +'<div class="lc-visor" hidden><div class="lc-visor-barra"><b class="lc-visor-t"></b><a class="btn min lc-visor-ap" target="_blank" rel="noopener">Abrir aparte &#8599;</a>'
+        +'<button type="button" class="btn min lc-visor-x">Cerrar</button></div><iframe title="Ejemplo" allowfullscreen allow="fullscreen"></iframe></div>'+cierra};
+    }
+    if(d.tipo==='manos') return {montar:montarCrono, html: abre
+      +'<div class="lc-manos"><ol class="lc-pasos">'+(d.pasos||[]).map(function(p, i){
+        return '<li style="--i:'+i+'"><b class="lc-num">'+(i+1)+'</b><div><b>'+esc(p[0])+'</b> '+fuerte(p[1])+'</div></li>'; }).join('')+'</ol>'
+      +'<div class="lc-lado">'+cronoRelampago(Number(d.minutos)||20).replace(/(<div class="rc-eyebrow">)[\s\S]*?(<\/div>)/, '$1<img class=ico src=assets/img/iconos/p/tiempo.png alt> El reloj de la práctica$2')+(d.consejo?'<p class="lc-consejo"><img class=ico src=assets/img/iconos/p/diana.png alt> '+fuerte(d.consejo)+'</p>':'')+'</div></div>'+cierra};
+    if(d.tipo==='ia') return {montar:montarCopiar, html: abre
+      +'<div class="lc-ia"><div class="lc-prompt"><div class="lc-prompt-t"><b>El prompt</b><button type="button" class="btn min" data-lc-copiar>Copiar</button></div>'
+      +'<p class="lc-prompt-x">'+esc(d.prompt)+'</p></div>'
+      +'<div class="lc-criterio"><b>Y lo decide tu criterio</b><ul>'+(d.criterio||[]).map(function(c){ return '<li>'+fuerte(c)+'</li>'; }).join('')+'</ul></div></div>'+cierra};
+    if(d.tipo==='lista') return {montar:montarLista, html: abre
+      +'<ul class="lc-lista">'+(d.items||[]).map(function(it, i){
+        return '<li><label><input type="checkbox" data-lc-i="'+i+'"> <span>'+fuerte(it)+'</span></label></li>'; }).join('')+'</ul>'
+      +'<p class="lc-pie lc-cuenta" aria-live="polite"></p>'+cierra};
+    return null;
+  }
+  function montarMatriz(A){
+    return function(el){
+      var det=el.querySelector('.lc-mz-det'); if(!det) return null;
+      el.addEventListener('click', function(e){
+        var b=e.target.closest&&e.target.closest('[data-lc-a]'); if(!b) return;
+        e.stopPropagation();
+        var a=A[Number(b.getAttribute('data-lc-a'))]; if(!a) return;
+        Array.prototype.forEach.call(el.querySelectorAll('.lc-mz-c.sel'), function(x){ x.classList.remove('sel'); });
+        b.classList.add('sel');
+        det.innerHTML='<div class="lc-mz-cruce">'+esc(a[0])+' × '+esc(a[1])+'</div><h3>'+(a[5]?esc(a[5])+' · ':'')+esc(a[2])+'</h3><p>'+esc(a[3])+'</p>'
+          +'<span class="lc-tipo t-'+esc(a[4])+'">'+esc(LC_TIPO[a[4]]||a[4])+'</span>';
+      });
+      return null;
+    };
+  }
+  function montarVisor(el){
+    var v=el.querySelector('.lc-visor'); if(!v) return null;
+    var fr=v.querySelector('iframe'), t=v.querySelector('.lc-visor-t'), ap=v.querySelector('.lc-visor-ap');
+    var cerrar=function(){ v.hidden=true; fr.removeAttribute('src'); el.classList.remove('lc-con-visor'); };
+    var tecla=function(e){ if(e.key==='Escape'&&!v.hidden){ e.stopPropagation(); cerrar(); } };
+    el.addEventListener('click', function(e){
+      var b=e.target.closest&&e.target.closest('[data-lc-ver]');
+      if(b){ e.stopPropagation(); var u=b.getAttribute('data-lc-ver'); t.textContent=b.getAttribute('data-lc-tit')||''; ap.href=u; fr.src=u; v.hidden=false; el.classList.add('lc-con-visor'); return; }
+      if(e.target.closest&&e.target.closest('.lc-visor-x')){ e.stopPropagation(); cerrar(); }
+    });
+    document.addEventListener('keydown', tecla, true);
+    return function(){ document.removeEventListener('keydown', tecla, true); cerrar(); };
+  }
+  function montarCopiar(el){
+    var b=el.querySelector('[data-lc-copiar]'), x=el.querySelector('.lc-prompt-x'); if(!b||!x) return null;
+    b.addEventListener('click', function(e){
+      e.stopPropagation();
+      var ok=function(){ b.textContent='Copiado'; setTimeout(function(){ b.textContent='Copiar'; }, 2000); };
+      var txt=x.textContent;
+      if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, function(){ b.textContent='Selecciónalo y cópialo'; });
+      else b.textContent='Selecciónalo y cópialo';
+    });
+    return null;
+  }
+  function montarLista(el){
+    var cajas=el.querySelectorAll('[data-lc-i]'), cuenta=el.querySelector('.lc-cuenta'); if(!cajas.length) return null;
+    var pinta=function(){ var n=0; Array.prototype.forEach.call(cajas, function(c){ if(c.checked) n++; });
+      cuenta.textContent=n===cajas.length?'Todo listo: ya puedes entregarlo.':n+' de '+cajas.length+' comprobado'+(n===1?'':'s'); };
+    el.addEventListener('click', function(e){ if(e.target.closest&&e.target.closest('label')) e.stopPropagation(); });
+    el.addEventListener('change', pinta);
+    pinta();
+    return null;
   }
 
   // ---------- pintado ----------
@@ -2745,7 +2892,7 @@
     return NOTAS.em;
   }
   function claveSes(){ return st.act?'act'+st.act:st.pres?'pres':'s'+st.sem; }
-  function guionPorDefecto(sl){ var G=window.SG_GUIONES||{}; return (sl&&(G[claveSes()+':'+sl.k]||G[sl.k]))||null; }
+  function guionPorDefecto(sl){ var G=window.SG_GUIONES||{}; return (sl&&(G[claveSes()+':'+sl.k]||G[sl.k]||sl.guion))||null; }
   // 17-oct · lo de cada docente: las suyas, de su perfil (mod_profes/stargate__<uid>: `notas`, `notasOn`, `notasBase`; valen para todos
   // sus grupos), se editan en la ventana de notas o en el móvil; aquí se escucha el perfil y se manda el guion que toca (GP.notas.efectivo)
   function guionDe(sl){ var N=window.GP&&window.GP.notas; return N?N.efectivo(guionPorDefecto(sl), NOTAS.perfil, claveSes(), sl&&sl.k||''):{guion:guionPorDefecto(sl)}; }
