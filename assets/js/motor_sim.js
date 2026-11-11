@@ -723,6 +723,13 @@ function conIdsDeDocumento(per, x) {
  */
 const llamar = SDK.llamador(nombre => httpsCallable(fns, nombre));
 /**
+ * 11-nov · DE DÓNDE ES CADA CUAL (GamificaPro, pieza `origen`; lo que se pregunta y cuándo, assets/js/origen-sg.js con GP.origen).
+ * `mapaEscuchar` escucha el mapa del grupo, `mod_mapa/{grupo}`: UN documento con el punto de cada ficha (sin edad), para el globo de
+ * la Llamada a filas: una lectura para toda la sala, ninguna por recluta. Lo mismo que DPG (web-camino, motor.js).
+ */
+const mapaEscuchar = (perId, cb, alFallar) => onSnapshot(doc(db, "mod_mapa", String(perId)),
+  (s) => cb((s.exists() && s.data().puntos) || {}), (e) => { if (alFallar) alFallar(e); });
+/**
  * 7-oct · ¿QUÉ PAPEL TENGO? (GP_SDK.papel → la callable `miPapel`): lo que dice el servidor de quien ha entrado, con las personas
  * que Norberto da de alta en la app. Una pregunta por cuenta (la guarda por uid). → { vitalicio, mando } en STARGATE. Nadie lo usa aún: la web sigue
  * con REFERENTES_VITALICIOS, que también sirve para marcar a OTRAS personas (el equipo de un grupo). Cambiarlo, en una pausa.
@@ -2437,7 +2444,7 @@ function cambiarCuenta() { return cuenta().abrir(); }
 
 window.SG = window.SG || {};
 if (EMU) window.SG.EMU = { entrarComo, cuenta };
-window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, cambiarCuenta, leerPER, tablero, misPERs, sembrarPER, alistar, llamar, entrarInvitado,
+window.SG.MOTOR = { entrar, salir, sesion, credencial, miPapel, cambiarCuenta, leerPER, tablero, misPERs, sembrarPER, alistar, llamar, entrarInvitado, mapaEscuchar,
                     guardarAjustes, guardarCalendario, otorgarReto, anularReto, traspasar, cambiarComandante, avisarRecluta, vigilarMensajes, mensajeLeido, historialMensajes, vigilarMensajesDelSistema, resolverVale,
                     llamadaAbierta, abrirLlamada, cerrarLlamada, ficharLlamada, fichajesDe, yaFiche, vigilarLlamada, traerPalabra, miFichaDocente, ponerAvatarDocente, avatarEnGrupo, citaEnGrupo, academiaMia, academiaGuardar, academiaInvitar, academiaEscuchar, academiaProfes, academiaTodos, academiaEditar, academiaQuitar, academiaBendecir, academiaResponder, buzonComprimir, buzonAdjuntar, academiaFichas, cambiarMiNombre, ponerModoDocente, misNotas, guardarNotas,
                     premiar, regalarEnClase, presentesDeHoy, darDeBaja, moverRecluta, alumno, nuevoCodigo, guardarForo, guardarForoModo, ticketsGuardados, ticketsDelMotor, marcasTicket, marcarTicket,

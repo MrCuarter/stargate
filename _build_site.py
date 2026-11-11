@@ -197,6 +197,11 @@ print("· guiones de la sesión:", len(GUIONES_SG))
 # 13-oct · LA PÁGINA «ESTADÍSTICAS» (GamificaPro sdk/estadisticas.js, `GP.estadisticas`): filtros, pestañas, gráficas, horarios de
 # clase detectados y CSV, para todos los mods; las cifras, de `modEstadisticas`. Se copia igual y la carga solo estadisticas.html.
 GB.copiar_pieza(HERE, "estadisticas.js", os.path.join(HERE, "assets", "js", "estadisticas.js"), decir=print)
+# 11-nov · DE DÓNDE ES CADA CUAL Y EL GLOBO DE LA LLAMADA A FILAS (GamificaPro, pieza `origen`: sdk/origen.js con su lista de ciudades, y
+# sdk/mapaMundo.js con su tierra). Norberto: «que cuando entren en directo ya aparezca el mapa y se les pregunte su ciudad y país». El
+# globo, en la sesión (sesion.js → la Llamada a filas); la pregunta, al fichar (sesión y Nave) y la edad al entrar en la Nave (recluta.js).
+for _p in ("origen.js", "ciudades.json", "mapaMundo.js", "mapaMundoTierra.js"):
+    GB.copiar_pieza(HERE, _p, os.path.join(HERE, "assets", "js", _p), decir=print)
 # 🔴 19-sep · «Mis grupos» es ahora la NAVE DEL COMANDANTE (se entra directo en tu grupo) y «Crear grupo» vive dentro de
 # «Gestionar grupos», con todo lo que se hace una o dos veces por curso (Norberto: «simplicidad máxima en la página
 # principal… no queremos info que se usará una o dos veces en todo el curso»). Solo el referente la ve.
@@ -3496,6 +3501,11 @@ afecta a lo que se hizo antes.</p>
 <li><b>El enlace a tu Bitácora</b> (tu ePortfolio) y las evidencias de cada misión.</li>
 <li>Una <b>biografía breve</b> de tu personaje, si quieres escribirla.</li>
 <li>Las <b>dudas que envías</b> al equipo docente desde «Pregunta a NEBULA» (punto 5).</li>
+<li><b>Tu ciudad y tu país</b> (o solo tu país) y tu <b>rango de edad</b>, si quieres decirlos. Se preguntan una vez: la ciudad, al fichar
+  en la llamada a filas; la edad, después, al entrar en tu Nave; siempre con «Ahora no». La ciudad sirve para que tu personaje se encienda
+  en el globo de tu tripulación: la ven <b>tu grupo y su equipo docente</b>, con las coordenadas de la ciudad (nunca más finas), y puedes
+  marcar «Mostrar solo mi país». <b>Tu edad no la ve nadie</b>: solo cuenta en las cifras del grupo (cuántos hay de cada rango), también
+  para la investigación, siempre sin nombre.</li>
 </ul>
 
 <h3>Lo que genera el juego</h3>
@@ -4222,6 +4232,10 @@ al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></heade
 <script src="assets/js/divisor.js" defer></script>
 <script src="assets/js/mazo.js" defer></script>
 <script>window.SG_GUIONES={json.dumps(GUIONES_SG, ensure_ascii=False)};</script>
+<script src="assets/js/origen.js" defer></script>
+<script src="assets/js/origen-sg.js" defer></script>
+<script src="assets/js/mapaMundo.js" defer></script>
+<script src="assets/js/mapaMundoTierra.js" defer></script>
 <script src="assets/js/directo.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>
 </div></section>
@@ -4372,6 +4386,8 @@ tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <script src="assets/js/nebula-chat.js" defer></script>
 <script src="assets/js/tkcomun.js" defer></script>
 <script>window.GP_CONSENTIMIENTO={_CONSENT_PIEZA_JSON};</script><script src="assets/js/consentimiento.js" defer></script>
+<script src="assets/js/origen.js" defer></script>
+<script src="assets/js/origen-sg.js" defer></script>
 <script>window.GP_INVESTIGACION={_INVESTIGACION_JSON};</script><script src="assets/js/investigacion.js" defer></script>
 <script src="assets/js/recluta.js" defer></script>
 </div></section>

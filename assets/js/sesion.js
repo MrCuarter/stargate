@@ -509,13 +509,17 @@
   function llamadaAlumno(M, mando){
     if(!M||!M.llamadaAbierta||!M.ficharLlamada||!st.ficha){ mando.innerHTML='<p class="sub">Ficha desde tu Nave.</p>'; return null; }
     var vivo=true, hecho=false, yendo=false;
+    // 11-nov · su tripulación en el globo (la que ya ha dicho de dónde es) y, al fichar, su ciudad si aún no la ha dicho
+    var dia=mando.closest&&mando.closest('.dia.llamada'), globo=dia&&dia.parentNode ? globoDeLaLlamada(dia.parentNode, { vacio:'Aún no hay nadie de tu tripulación en el globo.' }) : null;
+    if(globo) globo.gente(vivos());
+    var trasFichar=function(){ if(window.SG&&SG.origen) SG.origen.alFichar(st.per); };
     // 🔴 20-sep · quien entra por el enlace del chat (?fichar=1) NO pulsa nada: ficha «solo, en cuanto la
     // llamada está abierta». El botón se queda para quien abre la presentación por su cuenta.
     var fichar=function(){
       if(!vivo||hecho||yendo) return; yendo=true;
       mando.innerHTML='<p class="sub">Fichando…</p>';
       M.ficharLlamada(st.per, st.ficha).then(function(){
-        hecho=true; if(vivo) mando.innerHTML='<p class="sub"><b>Presente.</b> Ya estás en la lista de hoy.</p>';
+        hecho=true; if(vivo) mando.innerHTML='<p class="sub"><b>Presente.</b> Ya estás en la lista de hoy.</p>'; trasFichar();
       },function(err){ yendo=false; if(vivo) mando.innerHTML='<p class="ses-err">No he podido ficharte: '+esc(String((err&&err.message)||err))+'</p>'; });
     };
     var mira=function(){
@@ -528,13 +532,13 @@
         mando.innerHTML='<button type="button" class="btn primary grande" id="ses-al-presente">Presente</button><p class="ses-err" id="ses-al-err"></p>';
         mando.querySelector('#ses-al-presente').onclick=function(e){
           var b=e.currentTarget; b.disabled=true; b.textContent='Fichando…';
-          M.ficharLlamada(st.per, st.ficha).then(function(){ hecho=true; mando.innerHTML='<p class="sub"><b>Presente.</b> Ya estás en la lista de hoy.</p>'; })
+          M.ficharLlamada(st.per, st.ficha).then(function(){ hecho=true; mando.innerHTML='<p class="sub"><b>Presente.</b> Ya estás en la lista de hoy.</p>'; trasFichar(); })
             .catch(function(err){ b.disabled=false; b.textContent='Presente'; mando.querySelector('#ses-al-err').textContent=String(err&&err.message||err); });
         };
       }).catch(function(){});
     };
     mira(); var iv=setInterval(mira, 5000);
-    return function(){ vivo=false; clearInterval(iv); };
+    return function(){ vivo=false; clearInterval(iv); if(globo) globo.fin(); };
   }
   /**
    * 19-sep · ÚNETE A LA CLASE, en las semanas 1 y 2. Norberto: «en la sesión de la semana 1 y semana 2, deberías añadir una
@@ -578,7 +582,67 @@
       +'<div class="ll-cuerpo"><div class="kicker"><img class=ico src=assets/img/iconos/p/clase.png alt> Para empezar</div><h2>Llamada a filas</h2>'
       +'<p class="sub">Entra en tu Nave y pulsa <b><img class=ico src=assets/img/iconos/p/gente.png alt> Presente</b>.</p>'
       +'<div class="ll-mando" id="ses-ll"><p class="sub">Un momento…</p></div>'
-      +'<div id="ses-ll-gente"></div></div></div>', montar: conRetrato(montarLlamada)};
+      +'<div id="ses-ll-gente"></div></div>'
+      +'<div class="ll-mapa" id="ses-ll-mapa" hidden><div class="ll-mapa-lienzo"></div><p class="ll-mapa-n" id="ses-ll-mapa-n" aria-live="polite"></p></div></div>', montar: conRetrato(montarLlamada)};
+  }
+  /**
+   * 11-nov · EL GLOBO DE LA LLAMADA A FILAS (GamificaPro `GP.mapaMundo` con `globo`; los puntos, de la pieza `origen`). Norberto: «que
+   * cuando entren en directo ya aparezca el mapa… la pantalla de espera mientras se unen sea el mapa 3D y vayan apareciendo destellos
+   * desde las ciudades que se conectan». Mientras esperas, el globo gira solo; cada recluta que ficha se enciende en su ciudad con un
+   * destello (la de `mod_mapa/{grupo}`: una lectura para toda la sala, ninguna por recluta), y el globo se mece sobre la tripulación.
+   * Quien aún no ha dicho de dónde es, se le pregunta al fichar (origen-sg.js) y aparece en cuanto contesta. Se arrastra para girarlo.
+   * Al recluta que sigue la sesión, su tripulación entera (la que ya ha dicho de dónde es). Sin canvas, el plano; sin la pieza, las caras.
+   * Para verlo sin clase: `sesion.html?per=demo-stargate&mapa=prueba` (ciudades de mentira; no toca el servidor).
+   */
+  var MAPA_PRUEBA = q.get('mapa')==='prueba';
+  var CIUDADES_PRUEBA = [[40.42,-3.7,'ES','Madrid'],[19.43,-99.13,'MX','Ciudad de México'],[4.71,-74.07,'CO','Bogotá'],[37.39,-5.98,'ES','Sevilla'],
+    [-12.05,-77.04,'PE','Lima'],[-34.6,-58.38,'AR','Buenos Aires'],[-33.45,-70.66,'CL','Santiago'],[41.39,2.17,'ES','Barcelona'],
+    [-0.23,-78.52,'EC','Quito'],[38.72,-9.14,'PT','Lisboa'],[39.47,-0.38,'ES','Valencia'],[10.49,-66.88,'VE','Caracas'],
+    [18.48,-69.9,'DO','Santo Domingo'],[43.26,-2.93,'ES','Bilbao'],[14.63,-90.51,'GT','Guatemala'],[28.12,-15.43,'ES','Las Palmas'],
+    [-16.5,-68.15,'BO','La Paz'],[9.93,-84.08,'CR','San José'],[37.18,-3.6,'ES','Granada'],[42.88,-8.54,'ES','Santiago de Compostela']];
+  function globoDeLaLlamada(el, o){
+    var caja=el.querySelector('#ses-ll-mapa'), dia=el.querySelector('.dia.llamada'), M=window.SG&&window.SG.MOTOR;
+    if(!caja||!dia||!window.GP||!window.GP.mapaMundo||(!MAPA_PRUEBA&&!(M&&M.mapaEscuchar&&st.per))) return null;
+    var puntos={}, gente=[], mapa=null, quita=null, vivo=true, n=el.querySelector('#ses-ll-mapa-n');
+    var pin=function(p, x){ var src=''; try{ src=(window.SG&&SG.avatarSrc)?SG.avatarSrc(p.avatar,p.alias,p.xp,st.tipo).src:''; }catch(e){}
+      return { id:p.fid, alias:p.alias||'Recluta', img:src, lat:x.la, lon:x.lo, pais:x.p, ciudad:x.c||'' }; };
+    var pintar=function(){
+      if(!vivo) return;
+      if(!mapa){
+        caja.hidden=false; dia.classList.add('con-mapa');
+        mapa=window.GP.mapaMundo.crear(caja.querySelector('.ll-mapa-lienzo'), { llenar:true, avisar:true, animarAlEmpezar:true, minAncho:60,
+          globo:{ lon:-38, lat:22 }, brillo:true, textos:{ vacio:o.vacio, pista:'Arrastra para girar' } });
+      }
+      var lista=gente.filter(function(p){ return p.fid&&puntos[p.fid]; }).map(function(p){ return pin(p, puntos[p.fid]); });
+      mapa.poner(lista);
+      var paises={}; lista.forEach(function(x){ paises[x.pais]=1; }); var np=Object.keys(paises).length, sin=gente.length-lista.length;
+      if(n) n.textContent=!gente.length ? '' : lista.length+(lista.length===1?' en el globo':' en el globo')+' · '+np+(np===1?' país':' países')
+        +(sin>0&&o.sinCiudad ? ' · '+sin+' sin ciudad todavía' : '');
+    };
+    if(MAPA_PRUEBA) vivos().forEach(function(p, i){ var c=CIUDADES_PRUEBA[i%CIUDADES_PRUEBA.length]; if(p.fid) puntos[p.fid]={ la:c[0], lo:c[1], p:c[2], c:c[3] }; });
+    else quita=M.mapaEscuchar(st.per, function(P){ puntos=P||{}; pintar(); }, function(){ /* sin permiso o sin red: se queda lo que había */ });
+    pintar();
+    return {
+      gente: function(g){ gente=(g||[]).slice(); pintar(); },
+      fin: function(){ vivo=false; if(quita) try{ quita(); }catch(e){} if(mapa&&mapa.destruir) try{ mapa.destruir(); }catch(e){} }
+    };
+  }
+  /** La llamada de prueba (`&mapa=prueba`, solo en el grupo demo): llegan los reclutas del tablero, uno a uno, sin servidor. */
+  function llamadaDePrueba(el, mando, caja){
+    var g=globoDeLaLlamada(el, { vacio:'Esperando al primero…', sinCiudad:true }); if(!g){ mando.innerHTML='<p class="sub">Sin globo en este navegador.</p>'; return null; }
+    var todos=vivos().filter(function(p){ return p.fid; }), k=0, tot=Math.max(1, todos.length);
+    mando.innerHTML='<div class="ll-viva"><div class="ll-aro"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ll-aro-p" cx="60" cy="60" r="50"/><circle class="ll-aro-f" cx="60" cy="60" r="50"/></svg>'
+      +'<div class="ll-aro-c"><b id="ses-ll-n">0</b><span>de <i id="ses-ll-de">'+tot+'</i></span></div></div><span class="ll-punto"></span> <span id="ses-ll-pal">a bordo</span>'
+      +'<span class="ll-cuenta">prueba: nadie ficha de verdad</span></div>';
+    var paso=function(){
+      if(k>=todos.length) return;
+      k++; g.gente(todos.slice(0,k));
+      var c=el.querySelector('#ses-ll-n'); if(c) c.textContent=k;
+      var aro=el.querySelector('.ll-aro-f'); if(aro) aro.style.strokeDasharray=(2*Math.PI*50*Math.min(1,k/tot)).toFixed(1)+' 400';
+      var ll=el.querySelector('.ll-aro'); if(ll) ll.classList.toggle('llena', k>=tot);
+    };
+    var iv=setTimeout(function t(){ paso(); if(k<todos.length) iv=setTimeout(t, 1400); }, 1800);
+    return function(){ clearTimeout(iv); g.fin(); };
   }
   /** Los de tu escuadrón (o, si no hay escuadrones, todo el grupo); nunca menos de los que ya han fichado. */
   function totalLlamada(fichados){
@@ -587,9 +651,11 @@
   }
   function montarLlamada(el){
     var M=window.SG&&window.SG.MOTOR, mando=el.querySelector('#ses-ll'), caja=el.querySelector('#ses-ll-gente');
+    if(MAPA_PRUEBA && !st.alumno && st.per===(window.SG_PER_DEMO||'demo-stargate')) return llamadaDePrueba(el, mando, caja);
     if(st.alumno) return llamadaAlumno(M, mando);
     if(!M||!M.llamadaAbierta||!st.per){ mando.innerHTML='<p class="sub">Ábrela desde tu Genially o desde tu Nave.</p>'; return null; }
     var reloj=null, vivo=true, vistos={};
+    var globo=globoDeLaLlamada(el, { vacio:'Esperando al primero…', sinCiudad:true });
     var cerrada=function(){
       var min=MINUTOS[1];
       mando.innerHTML='<div class="ll-minutos">'+MINUTOS.map(function(m){ return '<button type="button" class="ll-m'+(m===min?' on':'')+'" data-min="'+m+'">'+m+' min</button>'; }).join('')+'</div>'
@@ -616,6 +682,7 @@
         if(f.some(function(x){ return !porFicha[x.studentProfileId]; }))
           refrescarTablero().then(function(ok){ if(ok&&vivo) pintaGente(id); });
         var gente=f.map(function(x){ return porFicha[x.studentProfileId] || { fid:x.studentProfileId, alias:'Recluta', avatar:null, xp:0 }; });
+        if(globo) globo.gente(gente);
         var cuantos=el.querySelector('#ses-ll-n'), tot=totalLlamada(f.length);
         if(cuantos && Number(cuantos.getAttribute('data-ahora')||0)!==f.length) contar(cuantos, f.length);
         var de=el.querySelector('#ses-ll-de'); if(de) de.textContent=tot;
@@ -635,7 +702,7 @@
         +'<div class="ll-aro-c"><b id="ses-ll-n">0</b><span>de <i id="ses-ll-de">'+totalLlamada(0)+'</i></span></div></div>'
         +'<span class="ll-punto"></span> <span id="ses-ll-pal">a bordo</span>'
         +'<span class="ll-cuenta" id="ses-ll-cuenta"></span><button type="button" class="btn small" id="ses-ll-cerrar">Cerrar la llamada</button></div>';
-      mando.querySelector('#ses-ll-cerrar').onclick=function(){ M.cerrarLlamada(s.id).then(function(){ if(reloj){ clearInterval(reloj); reloj=null; } caja.innerHTML=''; cerrada(); }); };
+      mando.querySelector('#ses-ll-cerrar').onclick=function(){ M.cerrarLlamada(s.id).then(function(){ if(reloj){ clearInterval(reloj); reloj=null; } caja.innerHTML=''; if(globo) globo.gente([]); cerrada(); }); };
       pintaGente(s.id);
       reloj=setInterval(function(){
         var seg=Math.round((hasta-Date.now())/1000), c=el.querySelector('#ses-ll-cuenta');
@@ -646,7 +713,7 @@
     };
     // (15-sep · la SUYA: la de otro Comandante del grupo no se adopta, ni se cierra desde aquí)
     M.llamadaAbierta(st.per, 'mia').then(function(s){ if(!vivo) return; if(s) abierta(s); else cerrada(); }).catch(cerrada);
-    return function(){ vivo=false; if(reloj) clearInterval(reloj); };
+    return function(){ vivo=false; if(reloj) clearInterval(reloj); if(globo) globo.fin(); };
   }
 
   /**

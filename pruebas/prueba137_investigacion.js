@@ -67,8 +67,9 @@ c(/Tu nombre no se guarda con lo que contestes\. ' *\n?\s*\+ 'Si participas en l
 // a 2026-10-11, y se vuelve a preguntar una vez: lo que se comprueba es la versión vigente, no la de entonces.
 // 18-oct · sube a 2026-10-18 (la IA aprobada) SIN volver a preguntar: la pieza común lleva `pide` = 2026-10-11 (lo que se manda del
 // alumnado no cambia hasta Navidad)
-c(/PRIVACIDAD_V = "2026-10-18"/.test(DATOS) && PRIV.indexOf("Versión 2026-10-18") > 0, "🔴 la política sube de versión");
-c(JSON.parse(NAVE.match(/window\.SG_CONSENTIMIENTO=(\{.*?\});/)[1]).v === "2026-10-18", "   y quien se aliste firma la nueva");
+// (11-nov · y otra vez: la ciudad y la edad de la pieza `origen`, punto 3)
+c(/PRIVACIDAD_V = "2026-11-11"/.test(DATOS) && PRIV.indexOf("Versión 2026-11-11") > 0, "🔴 la política sube de versión");
+c(JSON.parse(NAVE.match(/window\.SG_CONSENTIMIENTO=(\{.*?\});/)[1]).v === "2026-11-11", "   y quien se aliste firma la nueva");
 c(JSON.parse(NAVE.match(/window\.GP_CONSENTIMIENTO=(\{.*?\});<\/script>/)[1]).pide === "2026-10-11", "🔴 pero a quien aceptó desde el 11-oct no se le vuelve a preguntar (pide)");
 c(/no se borran al terminar el curso: se conservan mientras sirvan a esa investigación/.test(PRIV.replace(/<\/?b>/g, "").replace(/\s+/g, " ")) && !/se archiva, y se borra/.test(PRIV.replace(/\s+/g, " ")), "🔴 punto 9: los datos se conservan mientras sirvan a la investigación (ya no se borran al acabar el curso)");
 c(!/Son anónimos/.test(PRIV) && /No llevan tu nombre\.<\/b> Si aceptas la investigación \(voluntaria\), llevan un seudónimo/.test(PRIV), "   los tickets en la política: «No llevan tu nombre. Si aceptas…, un seudónimo»");

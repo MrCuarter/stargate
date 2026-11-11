@@ -454,6 +454,8 @@
                 if (yo_) yo_.congelado = !!f.stargateCongelado;
                 // 5-oct · y si es un fantasma (de su propia ficha: vale aunque el tablero sea de antes de traer la marca)
                 if (yo_) yo_.fantasma = f.fantasma === true;
+                // 11-nov · si ya ha dicho de dónde es (`modOrigen` de su ficha: { listo, lugar, aplazado }; sin ciudad ni edad): origen-sg.js
+                if (yo_) yo_.origen = f.modOrigen || null;
                 // 14-sep · las ofertas que ya ha comprado (una por persona)
                 if (yo_) yo_.ofertas = f.stargateOfertas || {};
                 // 15-sep (noche) · sus logros de a bordo, las cubiertas cobradas y los días a bordo (los apunta el servidor)

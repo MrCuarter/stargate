@@ -223,8 +223,10 @@ PLANTILLA_EPORTFOLIO = "https://view.genially.com/695f825d05cc22f3f7fac45b"
 # contesta el buzón), 6 (Anthropic como encargado), 7 y 8 (la investigación con IA, voluntaria y aparte). Versión nueva, pero SIN volver a
 # pedir el sí: lo que se manda del alumnado no cambia (L1 y el Vigía siguen apagados hasta Navidad). `PRIVACIDAD_PIDE`: la más antigua
 # que vale sin preguntar (GamificaPro sdk/consentimiento.js → `pide`); quien se aliste desde hoy firma la nueva.
-PRIVACIDAD_V = "2026-10-18"
-PRIVACIDAD_FECHA = "18 de octubre de 2026"
+# 11-nov · la ciudad, el país y el rango de edad (pieza `origen`, encendida con el curso en marcha): punto 3. Tampoco se vuelve a pedir el sí:
+# se preguntan aparte, con «Ahora no», y la ventana que los pide dice para qué son.
+PRIVACIDAD_V = "2026-11-11"
+PRIVACIDAD_FECHA = "11 de noviembre de 2026"
 PRIVACIDAD_PIDE = "2026-10-11"
 PRIVACIDAD_CONTACTO = "n.cuartero.10@gmail.com"
 CONSENTIMIENTO_TEXTO = ("He leído la política de privacidad y acepto participar en STARGATE y que mis datos se usen, sin mi nombre, "

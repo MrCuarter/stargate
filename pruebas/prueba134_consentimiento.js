@@ -135,7 +135,7 @@ async function prueba(o) {
   // 18-oct · Anthropic, encargado del tratamiento (punto 6); sin el Marco de Privacidad UE-EE. UU. (no confirmado) ni el punto 5 bis (hasta Navidad)
   c(/Anthropic, PBC/.test(P) && /encargado del tratamiento/.test(P) && /como mucho 30 días/.test(P) && /puntos 5, 6 y 8/.test(P), "🔴 Anthropic en el punto 6 (encargado, 30 días, cláusulas tipo) y en el 7");
   c(!/Marco de Privacidad/.test(P) && !/5 bis/.test(P), "   sin el Marco de Privacidad ni el punto 5 bis (L1 y el Vigía, apagados hasta Navidad)");
-  c(/Versión 2026-10-18/.test(P) && /los cambios\s+de esta versión no hace falta volver a aceptarlos/.test(P), "   versión nueva sin volver a pedir el sí");
+  c(/Versión 2026-11-11/.test(P) && /los cambios\s+de esta versión no hace falta volver a aceptarlos/.test(P), "   versión nueva sin volver a pedir el sí");
   c(!/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(P.replace(/<script[\s\S]*?<\/script>/g, "")), "   sin emojis");
 
   console.log("\n  Batería 134 · el consentimiento");

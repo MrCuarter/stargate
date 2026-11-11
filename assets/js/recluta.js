@@ -2490,6 +2490,8 @@
       aviso('<b>Esto es una demostración.</b> En tu Nave de verdad, «Presente» te daría los créditos de la asistencia.'); return; }
     (SIMULACRO ? SG.FUENTE.fichar() : window.SG.MOTOR.ficharLlamada(per, st.yo.ficha)).then(function(r){
       st.fichado=true;
+      // 11-nov · y su ciudad, si aún no la ha dicho (solo la ciudad y el país: se enciende en el globo de la Llamada a filas)
+      if(!SIMULACRO && window.SG.origen) setTimeout(function(){ SG.origen.alFichar(per, { alGuardar:function(g, t){ aviso(t); } }); }, r&&r.regalo&&r.regalo.length ? 4500 : 900);
       if(r&&r.repetido){ if(m) m.textContent='Ya constabas en la lista de hoy.'; render(); return; }
       /**
        * 🔴 LA RACHA SE DICE, o no sirve de nada. Un bonus que llega sin avisar es dinero que
@@ -4403,6 +4405,13 @@
       alLeer:function(dat){ if(st.bit===undefined){ st.bit=String(dat.bitacora||'').trim(); pintarBitacora(); } } });
   }
   // Con sesión iniciada no hace falta preguntar nada: quien pide la ficha ES quien ha entrado.
+  /** 11-nov · DE DÓNDE ERES (GamificaPro GP.origen; cuándo y con qué piel, origen-sg.js). Nunca en la demo, el simulacro ni incrustada. */
+  function origenAlEntrar(){
+    if(!window.SG.origen||!st.yo) return;
+    // (si en ese momento hay otra ventana abierta —un capítulo, la oferta, un sobre—, esta espera a la próxima vez)
+    if(document.querySelector('.gpo-capa,[role="dialog"][aria-modal="true"]')) return;
+    SG.origen.alEntrar(per, st.yo, { excluir: DEMO || SIMULACRO || q.get('embed')==='1', alGuardar:function(g, t){ aviso(t); } });
+  }
   function identificarPorSesion(){
     // 🔴 Sin los datos del grupo no hay Nave que pintar. Si el enlace trae un grupo que no existe,
     // la página ya lo ha dicho con sus palabras; llegar aquí y renderizar encima reventaba con un
@@ -4423,6 +4432,7 @@
         cargarTickets();         // 10-oct · los tickets que no ha enviado (servidor), una vez por carga
         setTimeout(ofrecerCapitulos, 700); setTimeout(zocoAlEntrar, 1200); setTimeout(sorteosAlEntrar, 900); setTimeout(ofertaAlEntrar, 1100);
         setTimeout(comprobarHitos, 1800);   // 15-sep · el día a bordo y los logros que ya se vean en los datos
+        setTimeout(origenAlEntrar, 3200);   // 11-nov · la edad a quien dio su ciudad en el directo; a quien nada, desde Navidad (origen-sg.js)
         setTimeout(comprobarBatalla, 2400);  // 16-sep · el reto de la batalla, si ganó y no llegó a registrarse (desde el 23-sep, ninguno: BT.reto = null)
         });
       } else if(d&&d.sinSesion&&!DEMO&&window.top===window.self&&q.get('embed')!=='1'){
