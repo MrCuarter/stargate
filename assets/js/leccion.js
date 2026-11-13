@@ -499,6 +499,31 @@
     D.head.appendChild(s);   // al final, como las demás piezas: la piel del mod manda con más especificidad (p. ej. «.mi-dia .lc-tarjeta») o con --gpl-*
   }
 
+  /**
+   * 🔴 13-nov · LA DIAPOSITIVA CRECE CON LA PANTALLA (Norberto: «estudiantes que decían que se veía muy pequeño»). La letra de la
+   * lección tiene topes en px (clamp(…, 1.1rem)): proyectada a 1920×1080, el 93 % del texto quedaba por debajo del 2,2 % del alto
+   * de la pantalla (lo que se lee en una pantalla compartida); en 1280×720, el 21 %. Ahora la diapositiva se diseña a `base`
+   * (1280×720) y, en una pantalla mayor, se amplía entera con `zoom` CSS (letra, huecos e imágenes a la vez, sin descolocar nada):
+   * lo que cabe en 1280×720 cabe igual en cualquier 16:9. Nunca se encoge (en la ventana normal del docente, 1×).
+   *   GP.leccion.escala(ancho, alto, base, tope) → el factor: min(ancho/base[0], alto/base[1]) entre 1 y `tope` (3).
+   *   GP.leccion.escalar(el, o) → pone `zoom` en `el` (la diapositiva) según su contenedor (o.caja, por defecto su padre) y lo
+   *       devuelve. o.base, o.tope. El mod lo llama al pintar cada diapositiva y al cambiar el tamaño de la ventana (se mide con
+   *       getBoundingClientRect: vale también en una ventana escondida, que no recibe ResizeObserver).
+   */
+  function escala(ancho, alto, base, tope) {
+    base = base || [1280, 720]; tope = Number(tope) > 1 ? Number(tope) : 3;
+    var a = Number(ancho), b = Number(alto); if (!(a > 0) || !(b > 0)) return 1;
+    var f = Math.min(a / base[0], b / base[1]);
+    return Math.round(Math.max(1, Math.min(tope, f)) * 1000) / 1000;
+  }
+  function escalar(el, o) {
+    o = o || {}; if (!el) return 1;
+    var caja = o.caja || el.parentElement; if (!caja) return 1;
+    var r = caja.getBoundingClientRect(), f = escala(r.width, r.height, o.base, o.tope);
+    el.style.zoom = f > 1 ? String(f) : "";
+    return f;
+  }
+
   return { TIPOS: TIPOS, TEXTOS: TEXTOS, CLASES: CLASES, CSS: CSS, elegir: elegir, dias: dias, estilo: estilo, fuerte: fuerteBase, esc: esc,
-    resumenCruces: resumenCruces, cruces: cruces };
+    resumenCruces: resumenCruces, cruces: cruces, escala: escala, escalar: escalar };
 });

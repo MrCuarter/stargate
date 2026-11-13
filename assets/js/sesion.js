@@ -3010,7 +3010,7 @@
   function presUrl(){ var u=new URL(location.href); u.searchParams.set('presentar','1'); u.searchParams.set('sem', st.sem); u.searchParams.delete('embed'); u.searchParams.delete('ventana'); return u.toString(); }
   function presIniciar(){
     if(PZ.ini||!GPP||st.alumno) return; PZ.ini=true;
-    if(PRES){ PZ.p=GPP.presentacion({ per:st.per||'demo', alEstado:seguirMando, alAcc:function(a){ var m=/^yt:(\d+)$/.exec(a), y=m&&root.querySelectorAll('.lienzo .yt')[+m[1]]; if(y) y.click(); } }); return; }
+    if(PRES){ PZ.p=GPP.presentacion({ per:st.per||'demo', alEstado:seguirMando, alAcc:function(a){ if(lupaDesde(a)) return; var m=/^yt:(\d+)$/.exec(a), y=m&&root.querySelectorAll('.lienzo .yt')[+m[1]]; if(y) y.click(); } }); return; }
     // (11-nov · al cargar, una presentación que ya estaba abierta no enciende el mando sola, salvo con «dos pantallas» recordado: la que
     // Chrome reabre al reiniciar como pestaña normal lo hacía temblar. Para volver a ella, el icono: reutiliza esa misma ventana)
     PZ.m=GPP.mando({ per:st.per||'demo', ignorar:GPP.recordado(PRES_CLAVE)!=='presentador', alCambiar:presOn, alPide:presMandar,
@@ -3110,6 +3110,7 @@
       +(!st.alumno?'<button type="button" class="ses-ic ses-son'+(suenaSesion()?'':' mudo')+'" id="ses-son" title="'+(suenaSesion()?'Quitar el sonido (M)':'Poner el sonido (M)')+'" aria-label="'+(suenaSesion()?'Quitar el sonido':'Poner el sonido')+'">'+(suenaSesion()?IC_SON:IC_MUDO)+'</button>':'')
       +(!st.alumno&&(!EMBED||VENTANA||PZ.on)&&window.GP&&window.GP.presentador?presBoton():'')
       +(!st.alumno&&window.GP&&window.GP.notas?'<button type="button" class="ses-ic ses-notas" data-notas-ventana title="Notas en otra ventana (la que no compartes)" aria-label="Notas en otra ventana">'+IC_NOTAS+'</button>':'')
+      +(window.GP&&window.GP.lupa?window.GP.lupa.botonHTML({ icono:LUPA_ICO, clase:'ses-ic ses-lupa', textos:{ lupa:'Lupa: pulsa donde quieras ampliar (Esc o 0 vuelven). Sin lupa, pulsar un texto lo abre grande' } }):'')
       +'<button type="button" class="ses-ic" id="ses-pantalla" title="'+(fs?'Salir de pantalla completa (F)':'Pantalla completa (F)')+'" aria-label="'+(fs?'Salir de pantalla completa':'Pantalla completa')+'">'+(fs?IC_SALIR:IC_PANTALLA)+'</button>'
       +'<div class="cuenta">'+(st.i+1)+' / '+st.slides.length+'</div></div>';
   }
@@ -3330,7 +3331,7 @@
     // (30-sep · si el docente la apaga a mano, se queda apagada: antes cada repintado la volvía a encender)
     var bd=root.querySelector('#ses-directo'); if(bd) bd.onclick=function(){ if(DIRECTO.on){ DIRECTO.aMano=true; apagarDirecto(); } else { DIRECTO.aMano=false; presAlEmitir(); encenderDirecto(); } };
     if(EMBED && !st.alumno && st.per && st.yo && !DIRECTO.aMano) encenderDirecto(); else emitir();
-    publicarNotas(); presIniciar(); if(PZ.on) pintaSiguiente();
+    lupaIniciar(); publicarNotas(); presIniciar(); if(PZ.on) pintaSiguiente();
     if(st.alumno && !DIFERIDO){ seguirDocente(); SEG.dibujado=''; pintarSeguir(); }
   }
   /**
@@ -3343,7 +3344,43 @@
     var dia=lienzo.firstElementChild; if(dia) dia.classList.add('entra');
     frags();
     if(sl.montar){ try{ st.fuera=sl.montar(lienzo)||null; }catch(e){ st.fuera=null; } }
+    escalarLeccion();
     guiar(false);
+  }
+  /**
+   * 🔴 13-nov · LO QUE SE VE EN CLASE, MÁS GRANDE (Norberto: «estudiantes que decían que se veía muy pequeño y no se podía ampliar»).
+   * El laboratorio lo midió: proyectada a 1920×1080, el 93 % del texto de la lección quedaba por debajo del 2,2 % del alto de la
+   * pantalla (la letra tenía topes en px); en 1280×720, el 21 %. Dos piezas de GamificaPro:
+   *   · GP.leccion.escalar: la diapositiva de la lección se diseña a 1280×720 y, en una pantalla mayor, crece entera (zoom CSS).
+   *     Nunca encoge: en la ventana normal, igual que antes.
+   *   · GP.lupa: pulsar un bloque con texto lo abre grande; el botón de la lupa amplía la diapositiva donde se pulse; pellizco y
+   *     Ctrl + rueda, también; Esc o 0 vuelven. Con dos pantallas, lo que se amplía en el mando sale igual en la presentación
+   *     (por el canal del presentador, `acc`; nada por el directo de Firestore). Para todos: docente, presentación y recluta.
+   */
+  function escalarLeccion(){
+    var L=window.GP&&window.GP.leccion, l=root.querySelector('#mazo .lienzo'), d=l&&l.firstElementChild;
+    if(L&&L.escalar&&d&&d.classList.contains('leccion')) L.escalar(d, { caja:l, base:[1280,640] });   // (640: lo que deja la diapositiva en 1280×720, con sus barras)
+  }
+  window.addEventListener('resize', escalarLeccion);
+  document.addEventListener('fullscreenchange', function(){ setTimeout(escalarLeccion, 60); });
+  var LUPA=null, LUPA_ICO='assets/img/iconos/lupa.png';
+  function lupaIniciar(){
+    var Z=window.GP&&window.GP.lupa; if(!Z) return;
+    if(!LUPA) LUPA=Z.poner('#mazo .lienzo', {
+      evitar: Z.EVITAR+',[data-revelable]:not(.on),.cara[data-quien],.ses-ficha,.lc-visor,.ll-mando',
+      bloques: Z.BLOQUES+',.lc-tarjeta,.lc-pieza,.lc-consejo,.lc-prompt,.lc-criterio,.lc-unidad,.lc-mz-det,.card',
+      alCambiar: function(v){ if(PZ.on&&PZ.m) PZ.m.acc('lupa:'+JSON.stringify(v)); },
+      alLector: function(r){ if(PZ.on&&PZ.m) PZ.m.acc('lector:'+JSON.stringify(r||[])); }
+    });
+    LUPA.lupa(document.documentElement.classList.contains('gpz-lupa-on'));   // (el botón, repintado, con su estado)
+  }
+  function lupaDesde(a){
+    if(!LUPA) lupaIniciar(); if(!LUPA) return false;
+    try{
+      if(a.indexOf('lupa:')===0){ LUPA.vista(JSON.parse(a.slice(5))); return true; }
+      if(a.indexOf('lector:')===0){ LUPA.abrir(JSON.parse(a.slice(7))); return true; }
+    }catch(e){}
+    return false;
   }
 
   /**

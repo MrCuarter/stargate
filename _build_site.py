@@ -191,6 +191,10 @@ GB.copiar_pieza(HERE, "mazo.js", os.path.join(HERE, "assets", "js", "mazo.js"), 
 # piezas, matriz, ejemplos, manos a la obra, galería, IA y lista) a partir del dato (LECCIONES) y quién la ve (LECCION_AULAS). Aquí solo
 # el dato, la piel (stargate.css, «LA LECCIÓN») y la llamada (sesion.js → leccionDe, diasLeccion). La carga sesion.html.
 GB.copiar_pieza(HERE, "leccion.js", os.path.join(HERE, "assets", "js", "leccion.js"), decir=print)
+# 13-nov · LA LUPA DE LA CLASE (GamificaPro sdk/lupa.js, `GP.lupa`, común con DPG). Norberto: «estudiantes que decían que se veía muy
+# pequeño y no se podía ampliar». Pulsar un bloque con texto lo abre grande; la lupa amplía la diapositiva donde se pulse; pellizco y
+# Ctrl + rueda, también. En el mando, sale igual en la presentación (por el canal del presentador). La carga sesion.html.
+GB.copiar_pieza(HERE, "lupa.js", os.path.join(HERE, "assets", "js", "lupa.js"), decir=print)
 # y el guion de cada diapositiva (_guiones_sg.json: {clave: [líneas]}; la clave, la `k` de la diapositiva, o «s3:k» / «act1:k» / «pres:k»
 # para una sesión concreta, que gana a la general). Solo lo ve el docente, en sus notas.
 GUIONES_SG = json.load(open(os.path.join(HERE, "_guiones_sg.json"), encoding="utf-8")) if os.path.exists(os.path.join(HERE, "_guiones_sg.json")) else {}
@@ -4236,6 +4240,7 @@ al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></heade
 <script src="assets/js/divisor.js" defer></script>
 <script src="assets/js/mazo.js" defer></script>
 <script src="assets/js/leccion.js" defer></script>
+<script src="assets/js/lupa.js" defer></script>
 <script>window.SG_GUIONES={json.dumps(GUIONES_SG, ensure_ascii=False)};</script>
 <script src="assets/js/origen.js" defer></script>
 <script src="assets/js/origen-sg.js" defer></script>
