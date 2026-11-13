@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Ashan vuelve a hablar · la pregunta de Vaeon</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilo.css?v=3632f99d19">
+<link rel="stylesheet" href="estilo.css?v=512cf8fef2">
 <style>
 .capa{grid-template-rows:auto minmax(0,1fr) auto;gap:12px}
 .preg{max-width:min(100%,70ch)}
@@ -40,10 +40,11 @@ body.alba .preg{opacity:.55}
   <span class="hueco"></span>
   <button id="b-sim">Simular clase</button><button id="b-son" aria-pressed="false">Sonido</button>
   <a class="boton" id="a-movil" target="_blank" rel="noopener">Móvil de prueba</a>
-  <a class="boton" id="a-puente">Puente</a><a class="boton" id="a-salir" href="index.html?v=3632f99d19">Salir</a>
+  <a class="boton" id="a-puente">Puente</a><a class="boton" id="a-salir" href="index.html?v=512cf8fef2">Salir</a>
   <small>Pulsa una voz para retirarla · H oculta</small>
 </div>
-<script src="nucleo.js?v=3632f99d19"></script>
+<script src="../../assets/js/mapaMundo.js?v=512cf8fef2"></script>   <!-- 13-nov · solo por su pulso (GP.mapaMundo.pulso) -->
+<script src="nucleo.js?v=512cf8fef2"></script>
 <script>
 (async () => {
   await F.arranque();
@@ -94,7 +95,7 @@ void main(){
     if (m.t === "voz" && m.texto) anadir(p, String(m.texto).replace(/\s+/g, " ").trim().slice(0, 90));
     $("abordo").textContent = S.gente.size; contar();
   });
-  $("salan").textContent = F.SALA; $("a-movil").href = F.url("movil.html?v=3632f99d19"); $("a-puente").href = F.url("puente.html?v=3632f99d19");
+  $("salan").textContent = F.SALA; $("a-movil").href = F.url("movil.html?v=512cf8fef2"); $("a-puente").href = F.url("puente.html?v=512cf8fef2");
 
   function contar() { $("cuenta").textContent = alba ? `${voces.length} VOCES · ASHAN VUELVE A HABLAR` : `${voces.length} DE ${meta()} VOCES PARA ENCENDER ASHAN`; }
   function anadir(p, texto) {
@@ -132,9 +133,12 @@ void main(){
     luz += (Math.min(1, voces.length / meta()) - luz) * Math.min(1, dt * 1.5); uAlba += ((alba ? 1 : 0) - uAlba) * Math.min(1, dt * .5);
     F.sonido.nivel((1 - luz) * (1 - uAlba), luz);
     if (G) G.dibujar({ uLuz: luz, uAlba });
-    requestAnimationFrame(bucle);
+    latir(bucle);
   }
-  F.escribir($("preg"), pregunta, 28); contar(); requestAnimationFrame(bucle);
+  // 13-nov · como El Puente: compartida desde detrás de otra ventana, el navegador no le da fotogramas; el pulso de GamificaPro
+  // (GP.mapaMundo.pulso) sigue con el reloj de un worker. Sin la pieza, como siempre.
+  const latir = (window.GP && window.GP.mapaMundo && window.GP.mapaMundo.pulso) || ((f) => requestAnimationFrame(f));
+  F.escribir($("preg"), pregunta, 28); contar(); latir(bucle);
   window.__a = { S, estado: () => ({ voces: voces.length, alba, luz }) };
 })();
 </script>

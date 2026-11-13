@@ -55,6 +55,13 @@ def _jfiles():
     return sorted(out)
 _jh = hashlib.md5()
 for _f in _jfiles(): _jh.update(_sin_v(open(_f, encoding="utf-8").read()).encode())
+# 🔴 13-nov · y lo que juegos/ pide de fuera (../../assets/js/mapaMundo.js en El Puente, Fragmento y Ashan): también va con ?v=JV, así
+# que su contenido entra en la huella. Si no, al cambiar solo el globo, la CDN seguía sirviendo el viejo bajo la misma huella 7 días.
+_J_FUERA = sorted({m for _f in _jfiles() for m in _re_j.findall(r"\.\./\.\./(assets/[\w./-]+?\.(?:js|css))", open(_f, encoding="utf-8").read())})
+for _r in _J_FUERA:   # (si es una pieza de GamificaPro, la que se va a copiar más abajo: así la huella sale bien a la primera)
+    _p = os.path.join(GP, "sdk", os.path.basename(_r))
+    if not os.path.exists(_p): _p = os.path.join(HERE, _r)
+    if os.path.exists(_p): _jh.update(_r.encode()); _jh.update(open(_p, "rb").read())
 _jh.update(json.dumps([RUTA, SALA_JORAN, DIRECTO, ASEDIO], ensure_ascii=False, sort_keys=True).encode())
 JV = _jh.hexdigest()[:10]
 for _d in (RUTA, SALA_JORAN, DIRECTO, ASEDIO): _d["v"] = JV

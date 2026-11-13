@@ -324,13 +324,30 @@
    * por escondida: no le da fotogramas (requestAnimationFrame) aunque quien la comparte sí la sigue viendo, y frena sus setTimeout a uno
    * por segundo. Así que: a la vista, requestAnimationFrame; escondida, el reloj de un worker (los relojes de un worker no se frenan) y,
    * sin worker, setTimeout. GP.mapaMundo.pulso(f) → id (f(t) una vez, como requestAnimationFrame) · GP.mapaMundo.quitarPulso(id).
+   * 13-nov · un latido cada vez: el worker no corre suelto (con setInterval, si un fotograma tardaba más de 33 ms, los latidos se
+   * amontonaban y la página se ahogaba); se le pide el siguiente cuando el anterior ya se ha pintado. Y si la página dice estar a la
+   * vista pero en 250 ms no llega ningún fotograma (hay navegadores y capturas que la dejan así), también el reloj, hasta que vuelvan.
    */
   var pulso = (function () {
-    var cola = {}, n = 0, hay = 0, raf = 0, wk = null, sinWk = false, reloj = false, to = 0, doc = W && W.document, PASO = 33;
-    function oculta() { return !!(doc && (doc.hidden === true || doc.visibilityState === "hidden")); }
+    var cola = {}, n = 0, hay = 0, raf = 0, wk = null, sinWk = false, reloj = false, pedido = false, to = 0, doc = W && W.document, PASO = 33;
+    var mudo = false, vigia = 0, sonda = 0;   // (13-nov · a la vista sin fotogramas)
+    function oculta() { return mudo || !!(doc && (doc.hidden === true || doc.visibilityState === "hidden")); }
+    var armando = false;
+    function vigilar() {
+      if (vigia || mudo || armando) return;
+      armando = true;   // (un setTimeout que contestara en el acto no cuenta: no han pasado los 250 ms)
+      vigia = setTimeout(function () {
+        if (armando) return;
+        vigia = 0; if (!raf || !hay) return;
+        W.cancelAnimationFrame(raf); raf = 0; mudo = true;
+        sonda = W.requestAnimationFrame(function () { sonda = 0; mudo = false; mover(); });   // (en cuanto llegue uno, otra vez fotogramas)
+        mover();
+      }, 250);
+      armando = false;
+    }
     function ahora() { return W && W.performance && W.performance.now ? W.performance.now() : Date.now(); }
     function correr() {
-      raf = 0; to = 0;
+      raf = 0; to = 0; if (vigia) { clearTimeout(vigia); vigia = 0; }
       var l = cola, t = ahora(); cola = {}; hay = 0;
       Object.keys(l).forEach(function (k) { try { l[k](t); } catch (e) { /* una que falle no para a las demás */ } });
       if (!hay) apagarReloj();
@@ -338,26 +355,26 @@
     function trabajador() {
       if (wk || sinWk) return wk;
       try {
-        var url = W.URL.createObjectURL(new W.Blob(["var i=0;onmessage=function(e){clearInterval(i);i=e.data?setInterval(function(){postMessage(0)},e.data):0}"], { type: "text/javascript" }));
-        wk = new W.Worker(url); wk.onmessage = function () { if (reloj && hay) correr(); };
+        var url = W.URL.createObjectURL(new W.Blob(["onmessage=function(e){setTimeout(function(){postMessage(0)},e.data)}"], { type: "text/javascript" }));
+        wk = new W.Worker(url); wk.onmessage = function () { pedido = false; if (reloj && hay) correr(); if (reloj && hay) latido(); };
       } catch (e) { wk = null; sinWk = true; }
       return wk;
     }
-    function encenderReloj() {
-      if (reloj) return; reloj = true;
+    function latido() {   // el siguiente, uno solo
+      if (pedido || !reloj) return; pedido = true;
       var w = trabajador();
-      if (w) try { w.postMessage(PASO); return; } catch (e) { /* sin worker: setTimeout */ }
-      (function vuelta() { if (!reloj) return; to = setTimeout(function () { if (reloj && hay) correr(); if (reloj) vuelta(); }, PASO); })();
+      if (w) try { w.postMessage(PASO); return; } catch (e) { wk = null; sinWk = true; }
+      to = setTimeout(function () { to = 0; pedido = false; if (reloj && hay) correr(); if (reloj && hay) latido(); }, PASO);
     }
+    function encenderReloj() { reloj = true; latido(); }
     function apagarReloj() {
-      if (!reloj) return; reloj = false;
-      if (wk) try { wk.postMessage(0); } catch (e) { /* nada */ }
-      if (to) { clearTimeout(to); to = 0; }
+      reloj = false;   // (el latido ya pedido llega y no hace nada)
+      if (to) { clearTimeout(to); to = 0; pedido = false; }
     }
     function mover() {
       if (!hay) { if (raf) { W.cancelAnimationFrame(raf); raf = 0; } apagarReloj(); return; }
       if (oculta()) { if (raf) { W.cancelAnimationFrame(raf); raf = 0; } encenderReloj(); }
-      else { apagarReloj(); if (!raf) raf = W.requestAnimationFrame(correr); }
+      else { apagarReloj(); if (!raf) { raf = W.requestAnimationFrame(correr); vigilar(); } }
     }
     if (doc && doc.addEventListener) doc.addEventListener("visibilitychange", mover);
     return {

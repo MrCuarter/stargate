@@ -54,5 +54,13 @@ const PU = fs.readFileSync(path.join(__dirname, "..", "juegos/vivo/puente.html")
 c(/var rafG = pulso\.puede\(\) \? pulso\.pedir : null;/.test(MM) && /new W\.Worker\(url\)/.test(MM), "🔴 el globo late con el pulso de GamificaPro: con la ventana escondida (compartida desde detrás), el reloj de un worker");
 c(/else esperarTam\(\);/.test(MM), "🔴 creado sin tamaño (la página aún cerrada), se vuelve a mirar cada poco: no depende solo del ResizeObserver");
 c(/const latir = \(window\.GP && window\.GP\.mapaMundo && window\.GP\.mapaMundo\.pulso\)/.test(PU) && /pintar\(true\); latir\(bucle\);/.test(PU) && !/requestAnimationFrame\(bucle\)/.test(PU), "🔴 El Puente (la Tierra al planeta) late con el mismo pulso");
+// 6 · 13-nov · Fragmento y Ashan, con el mismo pulso; y la huella de juegos/ cuenta lo que pide de fuera
+for (const j of ["fragmento", "ashan"]) {
+  const T = fs.readFileSync(path.join(__dirname, "..", "juegos/vivo/" + j + ".html"), "utf8");
+  c(/<script src="\.\.\/\.\.\/assets\/js\/mapaMundo\.js\?v=[0-9a-f]{10}"><\/script>/.test(T) && /latir\(bucle\);/.test(T) && !/requestAnimationFrame\(bucle\)/.test(T), "🔴 " + j + " late con el pulso de GamificaPro (escondida o sin fotogramas, sigue)");
+}
+c(/un latido cada vez/.test(MM) && /mudo = true;/.test(MM), "   el pulso: un latido cada vez (no se amontonan) y, a la vista sin fotogramas, también el reloj");
+const B = fs.readFileSync(path.join(__dirname, "..", "_build_site.py"), "utf8");
+c(/_J_FUERA = sorted/.test(B) && /for _r in _J_FUERA:/.test(B), "🔴 la huella de juegos/ incluye lo que pide de assets/ (mapaMundo): cambiar solo el globo cambia la huella");
 console.log("\n  " + ok + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);

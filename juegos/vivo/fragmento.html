@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Fragmento vivo · la clase recupera un recuerdo</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Exo+2:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilo.css?v=3632f99d19">
+<link rel="stylesheet" href="estilo.css?v=512cf8fef2">
 <style>
 .capa{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);grid-template-rows:auto 1fr;gap:clamp(10px,2vw,30px);align-items:start}
 .cab{grid-column:1/-1}
@@ -63,10 +63,11 @@ body.fin .pars,body.fin .lado{display:none}
   <span class="hueco"></span>
   <button id="b-sim">Simular clase</button><button id="b-son" aria-pressed="false">Sonido</button>
   <a class="boton" id="a-movil" target="_blank" rel="noopener">Móvil de prueba</a>
-  <a class="boton" id="a-puente">Puente</a><a class="boton" id="a-salir" href="index.html?v=3632f99d19">Salir</a>
+  <a class="boton" id="a-puente">Puente</a><a class="boton" id="a-salir" href="index.html?v=512cf8fef2">Salir</a>
   <small>H oculta · F pantalla completa</small>
 </div>
-<script src="nucleo.js?v=3632f99d19"></script>
+<script src="../../assets/js/mapaMundo.js?v=512cf8fef2"></script>   <!-- 13-nov · solo por su pulso (GP.mapaMundo.pulso) -->
+<script src="nucleo.js?v=512cf8fef2"></script>
 <script>
 (async () => {
   await F.arranque();
@@ -107,7 +108,7 @@ void main(){
     if (m.t === "adios") { hechos.delete(p.id); manos.delete(p.id); }
     $("abordo").textContent = S.gente.size;
   });
-  $("salan").textContent = F.SALA; $("a-movil").href = F.url("movil.html?v=3632f99d19");
+  $("salan").textContent = F.SALA; $("a-movil").href = F.url("movil.html?v=512cf8fef2");
 
   const decir = t => F.escribir($("dice"), t, 22);
   function montar() {
@@ -116,7 +117,7 @@ void main(){
     $("kick").textContent = `Fragmento ${f + 1} · Los Fragmentos de la Cero`; $("nombre").textContent = m.quien; $("rol").textContent = `${m.rol.toUpperCase()} · ${m.n.toUpperCase()}`;
     $("pars").innerHTML = m.p.map((_, i) => `<div class="par" id="par${i}"><span class="tx"></span><span class="avance"></span></div>`).join("");
     $("manos").classList.remove("si"); $("cita").classList.remove("si"); $("b-go").textContent = "Empezar"; $("b-salta").disabled = true; $("b-salta").textContent = "Dar por recuperada";
-    $("a-puente").href = F.url("puente.html?v=3632f99d19", { t: f + 1 });
+    $("a-puente").href = F.url("puente.html?v=512cf8fef2", { t: f + 1 });
     decir(`Hay un recuerdo de ${m.quien} bajo la Estática. Solo vuelve si lo reconstruís entre todos, desde vuestros puestos.`); S.emitir();
   }
   function empezar() { if (fase !== "espera") { montar(); return; } fase = "linea"; n = 0; hechos.clear(); cambio = performance.now(); prepararBots(); $("b-go").textContent = "Reiniciar"; $("b-salta").disabled = false; decir("Primera página. Ordenad las palabras en vuestras pantallas."); S.emitir(); }
@@ -173,9 +174,12 @@ void main(){
     uFin += ((fase === "fin" ? 1 : 0) - uFin) * Math.min(1, dt * .8);
     F.sonido.nivel(1 - mem, mem);
     if (G) G.dibujar({ uMem: mem, uManos, uFin, uCc: M[f].c });
-    requestAnimationFrame(bucle);
+    latir(bucle);
   }
-  montar(); requestAnimationFrame(bucle);
+  // 13-nov · como El Puente: compartida desde detrás de otra ventana, el navegador no le da fotogramas; el pulso de GamificaPro
+  // (GP.mapaMundo.pulso) sigue con el reloj de un worker. Sin la pieza, como siempre.
+  const latir = (window.GP && window.GP.mapaMundo && window.GP.mapaMundo.pulso) || ((f) => requestAnimationFrame(f));
+  montar(); latir(bucle);
   window.__f = { S, empezar, estado: () => ({ fase, n, hechos: hechos.size, manos: manos.size, mem }) };
 })();
 </script>
