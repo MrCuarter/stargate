@@ -88,7 +88,7 @@ c(/tkp-n"><b>La clase<\/b>/.test(TK.lineasParte([{ firma: null, respuestas: 5, f
   igual(TK.fraseParte(TK.cifrasDe({ firma: "Ana", respuestas: 15, fichas: 76, meta: 0.25, umbral: 19 }), "Tu escuadrón"), "Tu escuadrón: <b>15 de 76</b> · la raya, 25 %", "   letra por letra");
   igual(TK.fraseParte(TK.cifrasDe(faro), "Tu escuadrón"), "Tu escuadrón: <b>34 de 86</b> · ¡ya pasó la raya (30 %)!", "   y cuando ya la pasó");
   c(/una tirada de la rueda<\/b> para ti; y si tu escuadrón pasa su raya, <b>otra para cada recluta<\/b>/.test(REC), "   y la recompensa: una tirada al enviarlo y otra para todos si pasan la raya");
-  c(/data-vent="Ticket de salida · '/.test(REC) && /split\('\{TEMA\}'\)\.join\(encodeURIComponent\(x\.clave\)\)/.test(REC), "   el botón abre ticket.html?per=…&tema=… en la ventana de la Nave");
+  c(/data-vent="Ticket de salida · '/.test(REC) && /split\('\{TEMA\}'\)\.join\(encodeURIComponent\(clave\)\)/.test(REC) && /var u=urlTicket\(x\.clave\);/.test(REC), "   el botón abre ticket.html?per=…&tema=… en la ventana de la Nave");
   c(/ticketHecho\(m\.tema\); refrescar\(\);/.test(REC) && /window\.addEventListener\('storage'/.test(REC), "   enviado (aquí o en otra pestaña), su línea se va");
   c(!/tk-nave/.test(REC + CSS) && !/function ticketUrl\(d\)/.test(REC), "   sin rastro de la tarjeta de antes (tk-nave) ni de ticketUrl");
   c(/<script src="assets\/js\/tkcomun\.js(\?v=\w+)?" defer><\/script>/.test(HTML) && /<script src="assets\/js\/tkcomun\.js(\?v=\w+)?" defer><\/script>/.test(leer("clase.html")),

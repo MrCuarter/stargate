@@ -5984,15 +5984,16 @@ for _html in _glob2.glob(os.path.join(HERE, "*.html")):
     if _s2 != _s:
         open(_html, "w", encoding="utf-8").write(_s2)
 
-# ---------------------------------------------------------------- 23-oct · el anuncio breve (GamificaPro sdk/anuncio.js), solo en la consola
+# ---------------------------------------------------------------- 23-oct · el anuncio breve (GamificaPro sdk/anuncio.js): la consola
+# 14-nov · y la Nave del recluta: la ventana del ticket de salida sin enviar, la primera vez y dos insistencias (recluta.js → insistirTicket)
 _TAG_ANUNCIO = '<script src="assets/js/anuncio.js?v=' + _ver("assets/js/anuncio.js") + '" defer></script>'
-_html = os.path.join(HERE, "consola.html")
-_s = open(_html, encoding="utf-8").read()
-_s2 = _re2.sub(r'<script src="assets/js/anuncio\.js(\?v=[0-9a-f]+)?" defer></script>\n?', '', _s)
-assert "</head>" in _s2, "consola.html sin </head>: revisa el anuncio"
-_s2 = _s2.replace("</head>", _TAG_ANUNCIO + "\n</head>", 1)
-if _s2 != _s:
-    open(_html, "w", encoding="utf-8").write(_s2)
+for _html in [os.path.join(HERE, "consola.html"), os.path.join(HERE, "recluta.html")]:
+    _s = open(_html, encoding="utf-8").read()
+    _s2 = _re2.sub(r'<script src="assets/js/anuncio\.js(\?v=[0-9a-f]+)?" defer></script>\n?', '', _s)
+    assert "</head>" in _s2, os.path.basename(_html) + " sin </head>: revisa el anuncio"
+    _s2 = _s2.replace("</head>", _TAG_ANUNCIO + "\n</head>", 1)
+    if _s2 != _s:
+        open(_html, "w", encoding="utf-8").write(_s2)
 
 # ---------------------------------------------------------------- 9-oct · cambiar el correo con el que entro (GamificaPro sdk/cuenta.js)
 # Solo en la Nave del recluta (recluta.html): el botón está en su menú «···». Con su huella, como desliza.js.

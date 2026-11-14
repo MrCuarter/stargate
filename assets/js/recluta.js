@@ -1463,6 +1463,9 @@
       +'</div>'
       +(r.bio?'<blockquote class="nave-bio">'+esc(r.bio)+'</blockquote>':'')
       +'</section>'
+      // 🔴 14-nov · el ticket de salida sin enviar, lo PRIMERO bajo la ficha (antes iba tras los retos y nadie lo veía; Norberto:
+      // «nuestros estudiantes no están respondiendo los tickets de salida… una tarjeta que se mantiene hasta que lo rellenan»)
+      +ticketDelTema()
       // 25-sep · la entrega de la actividad, en sus semanas (4-5 y 7-8), justo debajo de la ficha
       +recordatorioActividad()
       // 11-nov · el aviso del Comandante: revisa el feedback de la Actividad 1 (solo su aula)
@@ -1479,7 +1482,6 @@
       +votacionCaja()
       +retosDeLaSemana()
       +investigacionOferta()
-      +ticketDelTema()
       +asedioCaja()+directoCaja()
       +panelEmbebido()
       +investigacionLinea();
@@ -4985,6 +4987,7 @@
       var pend=lista.filter(function(x){ return !x.hecho; });
       st.tk={ ficha:ficha, lista:lista }; if(!pend.length) return;
       render();
+      insistirTicket(ficha, 0);   // 14-nov · la ventana: la primera vez y dos insistencias por ticket
       // 🔴 el parte lee las fichas de todo el grupo: solo para los tres más recientes que le faltan
       var mio=String(st.yo.profe||'').trim();
       Promise.all(pend.slice(0,3).map(function(x){ return TK.parte(per, x.clave).then(function(E){
@@ -4996,12 +4999,68 @@
     if(!st.tk) return;
     st.tk.lista.forEach(function(x){ if(x.clave===String(clave)) x.hecho=true; });
     if(window.SG&&window.SG.TK) window.SG.TK.apuntarHecho(per, clave, st.tk.ficha);
+    if(window.GP&&window.GP.anuncio) window.GP.anuncio.hecho(claveInsistir(clave), st.tk.ficha);
+  }
+  /**
+   * 🔴 14-nov · QUE LO HAGAN: LA VENTANA (×3) Y LA FRANJA. Norberto: «nuestros estudiantes no están respondiendo los tickets de
+   * salida. Haz algo para que les salga un pop up cada vez que se termine un tema para que hagan el ticket de salida, insiste hasta
+   * 2 veces… También pon un aviso constante en su panel o una tarjeta que se mantiene hasta que lo rellenan».
+   *  · LA VENTANA es la pieza del motor `GP.anuncio` con `veces: 3, cada: 20` (GamificaPro sdk/anuncio.js): al cerrarse un tema
+   *    (su ticket entra en `SG.TK.ticketsAbiertos`), la primera vez que entra a la Nave; y dos insistencias más, como mucho una
+   *    por día. Cada ticket lleva su cuenta (por recluta, en su navegador); al enviarlo se apaga para siempre (ticketHecho). Una
+   *    sola ventana por carga: la del ticket más reciente que aún pueda salir. Espera a que no haya otra ventana abierta (el
+   *    consentimiento, un capítulo, el Zoco…): mira cada 3 s, durante un minuto; si no, en la próxima visita.
+   *  · LA TARJETA «Tu ticket de salida está abierto» sube a lo primero de Mi nave, bajo la ficha; y en las demás pestañas, una
+   *    FRANJA arriba con el botón (avisoTicket). Las dos se van solas al enviarlo y no se pueden cerrar.
+   *  Mismas exclusiones que la tarjeta (tkVisible): ni demo, ni simulacro, ni Nave proyectada o incrustada, ni fantasma.
+   */
+  function claveInsistir(clave){ return 'sgTk:'+per+':'+clave; }
+  function urlTicket(clave){
+    return String(window.SG_TICKET_URL||'').split('{GRUPO}').join(encodeURIComponent(per)).split('{COMANDANTE}').join(encodeURIComponent((st.yo&&st.yo.profe)||'')).split('{TEMA}').join(encodeURIComponent(clave));
+  }
+  function abrirTicket(clave){ ventana('Ticket de salida · '+window.SG.TK.nombreTicket(clave), urlTicket(clave)); }
+  function insistirTicket(ficha, intento){
+    var A=window.GP&&window.GP.anuncio, TK=window.SG&&window.SG.TK;
+    if(!A||!TK||!st.tk||st.tk.ficha!==ficha||!st.yo||st.yo.ficha!==ficha||!tkVisible()) return;
+    // (otra ventana abierta —o el aviso de «Actualizando servidores», #gpm-capa—: se espera; a la 20.ª vez, para la próxima visita)
+    if(document.querySelector('#gpm-capa,.gpa-capa,.gpo-capa,.vent.open,.modal-backdrop.open,[role="dialog"][aria-modal="true"]')){
+      if(intento<20) setTimeout(function(){ insistirTicket(ficha, intento+1); }, 3000);
+      return;
+    }
+    var pend=st.tk.lista.filter(function(x){ return !x.hecho; });
+    for(var j=0;j<pend.length;j++){
+      var x=pend[j], nom=TK.nombreTicket(x.clave), del=TK.delTicket(x.clave), mas=pend.length-1;
+      var c=x.esc?TK.cifrasDe(x.esc):null;
+      var premio='<p>Dos minutos y sin tu nombre. Al enviarlo, <b>una tirada de la rueda</b> para ti; y si tu escuadrón pasa su raya, <b>otra para cada recluta</b> del escuadrón.</p>';
+      var esc2=c?'<p>'+TK.fraseParte(c,'Tu escuadrón')+'</p>':'';
+      var otros=mas>0?'<p class="small">Y '+(mas===1?'otro ticket más':mas+' tickets más')+' sin enviar: los tienes en tu Nave.</p>':'';
+      var cierre=x.clave==='p'?'Tu primera clase ha terminado':x.clave==='0'?'El viaje ha terminado':'Se ha cerrado '+nom;
+      if(A.mostrar({ clave:claveInsistir(x.clave), quien:ficha, veces:3, cada:20, clase:'sg-tk-insiste',
+        titulo:[cierre+': tu ticket de salida', 'Tu ticket '+del+' sigue sin enviar', 'Último aviso: tu ticket '+del],
+        html:[
+          '<p><b>NEBULA:</b> antes de seguir viaje, cuéntanos cómo te ha ido.</p>'+premio+otros,
+          '<p><b>NEBULA:</b> tu escuadrón cuenta contigo para pasar la raya.</p>'+esc2+premio+otros,
+          '<p><b>NEBULA:</b> no te lo volveré a pedir con esta ventana. La tarjeta seguirá en tu Nave hasta que lo envíes.</p>'+esc2+premio+otros],
+        boton:{ texto:'Rellenarlo ahora', alPulsar:(function(k){ return function(){ abrirTicket(k); }; })(x.clave) },
+        entendido:['Luego','Luego','Entendido'] })) return;
+    }
+  }
+  function avisoTicket(){
+    // (en Mi nave ya está la tarjeta entera, lo primero bajo la ficha)
+    if(st.tab==='nave'||!tkVisible()||!st.tk||st.tk.ficha!==(st.yo&&st.yo.ficha)) return '';
+    var pend=st.tk.lista.filter(function(x){ return !x.hecho; });
+    if(!pend.length) return '';
+    var TK=window.SG.TK, x=pend[0];
+    return '<div class="card tk-franja" role="region" aria-label="Ticket de salida sin enviar">'
+      +'<img src="assets/img/iconos/p/ticket.png" alt=""><p><b>'+(pend.length===1?'Tu ticket de salida está abierto':'Tienes '+pend.length+' tickets de salida sin enviar')+'</b>'
+      +'<small>Ticket '+esc(TK.delTicket(x.clave))+' · dos minutos y una tirada de la rueda</small></p>'
+      +'<a class="btn primary" href="'+esc(urlTicket(x.clave))+'" data-vent="Ticket de salida · '+esc(TK.nombreTicket(x.clave))+'">Rellenarlo</a></div>';
   }
   function ticketDelTema(){
     if(!tkVisible()) return '';
     if(st.tkPara!==st.yo.ficha){ setTimeout(cargarTickets,0); return ''; }   // (si se identificó por otro camino)
     if(!st.tk||st.tk.ficha!==st.yo.ficha) return '';
-    var TK=window.SG.TK, U=window.SG_TICKET_URL, pend=st.tk.lista.filter(function(x){ return !x.hecho; });
+    var TK=window.SG.TK, pend=st.tk.lista.filter(function(x){ return !x.hecho; });
     if(!pend.length) return '';
     var uno=pend.length===1;
     return '<div class="card tk-abierto" id="tk-abierto" role="region" aria-label="Ticket de salida sin enviar">'
@@ -5009,7 +5068,7 @@
       +'<p>Dos minutos y sin tu nombre'+(invMia()&&window.SG.INV.participa(st.inv.estado)?' (con tu seudónimo: participas en la investigación)':'')+'. '
       +'Al enviarlo, <b>una tirada de la rueda</b> para ti; y si tu escuadrón pasa su raya, <b>otra para cada recluta</b> del escuadrón.</p></div></div>'
       +pend.map(function(x){
-        var u=U.split('{GRUPO}').join(encodeURIComponent(per)).split('{COMANDANTE}').join(encodeURIComponent((st.yo&&st.yo.profe)||'')).split('{TEMA}').join(encodeURIComponent(x.clave));
+        var u=urlTicket(x.clave);
         var c=x.esc?TK.cifrasDe(x.esc):null;
         return '<div class="tk-uno-l" data-tk-clave="'+esc(x.clave)+'"><span class="tku-t"><b>Ticket '+esc(TK.delTicket(x.clave))+'</b>'
           +(c?'<small class="tku-esc">'+TK.fraseParte(c,'Tu escuadrón')+'</small>'
@@ -5607,7 +5666,7 @@
         + '<a class="btn ghost" href="index.html">Volver a la presentación</a></p></div>'
       : '';
     root.innerHTML = avisoDemo + (dentro
-      ? barraSimulacro()+login()+pestanas()+avisoAcademia()+avisoFantasma()+avisoCongelado()+avisoMensajes()+avisoEnVivo()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
+      ? barraSimulacro()+login()+pestanas()+avisoAcademia()+avisoTicket()+avisoFantasma()+avisoCongelado()+avisoMensajes()+avisoEnVivo()+avisoPase()+avisoSorteo()+avisoZoco()+cabecera()
         +'<div id="nave-panel" role="tabpanel" aria-labelledby="nb-t-'+st.tab+'">'+contenido()+'</div>'
       : login()+(st.cargandoYo?'<div class="card">'+cargando('Contactando con NEBULA…','Buscándote en el registro de la tripulación')+'</div>':''));
     verTablero(dentro && st.tab==='rankings' && tabVisible('rankings'));

@@ -13,6 +13,16 @@
  *   GP.anuncio.visto(clave, quien, almacen?) → true si ya lo vio
  *   GP.anuncio.cerrar() → true si había uno abierto (y lo da por visto)
  *
+ * 🔴 14-nov · INSISTIR, CON MEDIDA. Norberto: «nuestros estudiantes no están respondiendo los tickets de salida. Haz algo para que les
+ * salga un pop up cada vez que se termine un tema… insiste hasta 2 veces». Con `veces` (> 1) el mismo anuncio sale hasta ese número
+ * de veces —la primera y `veces - 1` insistencias—, con al menos `cada` horas entre una y otra (20 por defecto: una por día, sin
+ * agobiar en la misma visita). Cada vez que SALE cuenta (se apunta al abrirla: recargar sin cerrarla no la repite). `titulo`, `html`
+ * y `entendido` pueden ser una lista (uno por vez; la última se repite) o una función de la vez (0, 1, 2…), para subir el tono.
+ * Cuando lo que pide ya está hecho, `hecho()` la apaga para siempre. Sin `veces`, todo como antes: una vez, y cuenta al cerrarla.
+ *   o += { veces?: 1, cada?: 20 (horas), ahora?: ms (si no, el reloj), clase? (una clase más en la capa, para la piel de la web) }
+ *   GP.anuncio.vez(clave, quien, almacen?) → cuántas veces ha salido (con `visto`, ya no saldrá más)
+ *   GP.anuncio.hecho(clave, quien, almacen?) → lo da por terminado: no vuelve a salir
+ *
  * Variables de la piel (con valor por defecto): --gpa-fondo (#121722), --gpa-borde (rgba(255,255,255,.18)), --gpa-texto (#eee),
  * --gpa-acento (#37e0ec), --gpa-capa (1900). Se copia en el build de cada web (como videoVentana.js) y NO se edita allí: aquí.
  */
@@ -33,6 +43,23 @@
   function marcar(clave, quien, almacen) {
     var A = almacenDe(almacen);
     try { if (A) A.setItem(llave(clave, quien), "1"); } catch (e) { /* sin almacenamiento: se verá otra vez */ }
+  }
+  // (insistir: «n|t» = ha salido n veces, la última en t; «1» = terminado)
+  function leerVeces(clave, quien, almacen) {
+    var A = almacenDe(almacen), v = null;
+    try { v = A ? A.getItem(llave(clave, quien)) : null; } catch (e) { v = null; }
+    var m = /^(\d+)\|(\d+)$/.exec(String(v || ""));
+    return m ? { n: Number(m[1]), t: Number(m[2]) } : { n: v === "1" ? 1 : 0, t: 0 };
+  }
+  function apuntarVez(o, n, ahora) {
+    var A = almacenDe(o.almacen);
+    try { if (A) A.setItem(llave(o.clave, o.quien), n >= o.veces ? "1" : n + "|" + ahora); } catch (e) { /* se verá otra vez */ }
+  }
+  function vez(clave, quien, almacen) { return leerVeces(clave, quien, almacen).n; }
+  function deLaVez(v, n) {
+    if (typeof v === "function") return v(n);
+    if (Object.prototype.toString.call(v) === "[object Array]") return v.length ? v[Math.min(n, v.length - 1)] : "";
+    return v;
   }
 
   var CSS = ""
@@ -63,11 +90,22 @@
     if (!o.clave || !o.titulo || capa) return false;
     if (o.hasta && (o.hoy || hoyIso()) > o.hasta) return false;
     if (visto(o.clave, o.quien, o.almacen)) return false;
+    var veces = Math.max(1, Math.floor(Number(o.veces) || 1)), n = 0;
+    if (veces > 1) {
+      var ahora = Number(o.ahora) || Date.now(), ya = leerVeces(o.clave, o.quien, o.almacen);
+      var cada = (o.cada == null ? 20 : Math.max(0, Number(o.cada) || 0)) * 3600000;
+      if (ya.n >= veces || (ya.n > 0 && ahora - ya.t < cada)) return false;
+      n = ya.n;
+      o = copia(o); o.veces = veces; o.vez = n;
+      o.titulo = deLaVez(o.titulo, n); o.html = deLaVez(o.html, n); o.entendido = deLaVez(o.entendido, n);
+      if (!o.titulo) return false;
+      apuntarVez(o, n + 1, ahora);
+    }
     estilo();
     actual = o; volverA = document.activeElement;
     var b = o.boton || null;
     capa = document.createElement("div");
-    capa.className = "gpa-capa";
+    capa.className = "gpa-capa" + (o.clase ? " " + o.clase : "");
     capa.innerHTML = '<div class="gpa-ventana" role="dialog" aria-modal="true" aria-labelledby="gpa-titulo">'
       + '<button type="button" class="gpa-x" data-gpa="x" aria-label="Cerrar">✕</button>'
       + '<p class="gpa-titulo" id="gpa-titulo">' + esc(o.titulo) + '</p>'
@@ -84,7 +122,7 @@
   function cerrar() {
     if (!capa) return false;
     var o = actual;
-    marcar(o.clave, o.quien, o.almacen);
+    if (!(o.veces > 1)) marcar(o.clave, o.quien, o.almacen);   // (insistiendo, ya se apuntó al salir)
     if (capa.remove) capa.remove(); else if (capa.parentNode) capa.parentNode.removeChild(capa);
     capa = null; actual = null;
     if (document.body.classList) document.body.classList.remove("gpa-abierto");
@@ -105,5 +143,11 @@
   });
   document.addEventListener("keydown", function (ev) { if (capa && ev.key === "Escape") { if (ev.stopPropagation) ev.stopPropagation(); cerrar(); } }, true);
 
-  window.GP.anuncio = { mostrar: mostrar, cerrar: cerrar, visto: visto, CSS: CSS };
+  function copia(o) { var x = {}, k; for (k in o) x[k] = o[k]; return x; }
+  function hecho(clave, quien, almacen) {
+    marcar(clave, quien, almacen);
+    if (capa && actual && actual.clave === clave && String(actual.quien || "").toLowerCase() === String(quien || "").toLowerCase()) cerrar();
+  }
+
+  window.GP.anuncio = { mostrar: mostrar, cerrar: cerrar, visto: visto, vez: vez, hecho: hecho, CSS: CSS };
 })();

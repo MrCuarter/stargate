@@ -237,7 +237,8 @@ const errorFirebase = (code, message) => Object.assign(new Error(message), { cod
     c(r.oferta === "" && r.linea === "" && r.llamadas.length === 0, "   " + txt + ": nada, y ni se pregunta al servidor");
   }
   c(/pedirConsentimiento\(function\(\)\{\n\s*cargarInvestigacion\(\);/.test(REC), "🔴 solo después del consentimiento general (quien no lo acepta no ve la investigación)");
-  c(/\+investigacionOferta\(\)\n\s*\+ticketDelTema\(\)/.test(REC) && /\+panelEmbebido\(\)\n\s*\+investigacionLinea\(\);/.test(REC), "   la tarjeta, junto al ticket del tema; la línea, al pie de la Nave");
+  // 14-nov · el ticket sin enviar sube a lo primero bajo la ficha; la oferta, voluntaria, se queda tras los retos de la semana
+  c(/\+retosDeLaSemana\(\)\n\s*\+investigacionOferta\(\)/.test(REC) && /\+panelEmbebido\(\)\n\s*\+investigacionLinea\(\);/.test(REC), "   la tarjeta, tras los retos de la semana; la línea, al pie de la Nave");
 
   console.log("\n  · El ticket: la entradilla dice la verdad (se ejecuta)");
   const trozoTk = TK.match(/  var INV = null, invAbierta = false;[\s\S]*?\n(?=  function pintarInvestigacion\(\))/)[0];
