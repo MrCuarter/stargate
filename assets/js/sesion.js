@@ -2732,7 +2732,8 @@
       clases:{dia:'dia leccion lct-{tipo} con-fondo', kicker:'kicker', boton:'lc-btn btn min', botonPrincipal:'lc-btn btn primary min'},
       icono:function(n){ return LC_ICONO[n]?'<img class=ico src=assets/img/iconos/p/'+LC_ICONO[n]+'.png alt>':''; },
       textos:{matrizAria:'Matriz de programación: 8 inteligencias por 6 niveles de Bloom', mzvAria:'La matriz de la clase: 8 inteligencias por 6 niveles de Bloom'},
-      enlaces:{MATRIZ:M.plantilla||''},
+      // 15-nov · y la plantilla del ePortfolio (PLANTILLA_EPORTFOLIO), para el Tema 1: un dato, un sitio
+      enlaces:{MATRIZ:M.plantilla||'', PORTFOLIO:window.SG_PLANTILLA_EP||''},
       // el ejemplo de la matriz es el de la sesión de la Actividad (SG_SES_ACT; un dato, un sitio): cruces = [planta, nivel, inteligencia, tipo, título, tarea]
       matriz:{columnas:M.inteligencias||[], filas:M.bloom||[], corto:LC_CORTO, ejemplo:function(d){
         var EJ=(ACT[d.ejemplo]||{}).ejemplo||{};

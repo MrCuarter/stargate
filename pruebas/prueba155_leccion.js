@@ -33,10 +33,13 @@ Object.keys(LEC).forEach(k => {
   const rots = D.map(d => d.rot); c(new Set(rots).size === rots.length, "   semana " + k + ": nombres distintos en la barra", rots);
   // 15-nov · con los temas 4 a 8 entran webs, canales y redes de docentes: enlaces https, y «Verlo aquí» (el visor de la diapositiva)
   // solo para lo que se deja incrustar (Genially y los vídeos de YouTube en /embed/); lo demás, «aparte» (Sites, Wix e Instagram lo prohíben)
-  D.filter(d => d.tipo === "ejemplos").forEach(d => c(d.ejemplos.every(e => e[3] === "MATRIZ" || (/^https:\/\//.test(e[3]) &&
+  D.filter(d => d.tipo === "ejemplos").forEach(d => c(d.ejemplos.every(e => ["MATRIZ", "PORTFOLIO"].indexOf(e[3]) >= 0 || (/^https:\/\//.test(e[3]) &&
       (e[4] === "aparte" || /^https:\/\/(view\.genially\.com\/|www\.youtube\.com\/embed\/)/.test(e[3])))),
     "   semana " + k + ": los ejemplos, enlaces https; «Verlo aquí» solo con Genially o YouTube incrustado, lo demás aparte", d.ejemplos.map(e => e[3] + " " + (e[4] || ""))));
 });
+// 15-nov · las claves de enlace (MATRIZ, PORTFOLIO) las resuelve la sesión con su dato de siempre: ninguna URL copiada
+c(/enlaces:\{MATRIZ:M\.plantilla\|\|'', PORTFOLIO:window\.SG_PLANTILLA_EP\|\|''\}/.test(SES), "las claves MATRIZ y PORTFOLIO salen de SG_MATRIZ y SG_PLANTILLA_EP (un dato, un sitio)");
+c([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].every(n => LEC[n]), "hay lección en las semanas 1 a 14 (los ocho temas)", Object.keys(LEC));
 // 15-nov · el Tema 4 (semanas 7 y 8): la web de aula y el aula que conversa, y la lista pide lo del reto «El entorno de aula»
 c(LEC["7"] && LEC["8"] && LEC["7"].tema === 4 && LEC["8"].tema === 4, "hay lección en las semanas 7 y 8, del Tema 4");
 const S8 = (LEC["8"] || {}).dias || [];
