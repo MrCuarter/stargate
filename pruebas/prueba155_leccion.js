@@ -31,9 +31,18 @@ Object.keys(LEC).forEach(k => {
   const D = LEC[k].dias || [];
   c(D.length >= 4 && D.every(d => TIPOS.indexOf(d.tipo) >= 0 && d.titulo && d.rot), "semana " + k + ": " + D.length + " diapositivas, todas con tipo conocido, título y nombre", D.map(d => d.tipo));
   const rots = D.map(d => d.rot); c(new Set(rots).size === rots.length, "   semana " + k + ": nombres distintos en la barra", rots);
-  D.filter(d => d.tipo === "ejemplos").forEach(d => c(d.ejemplos.every(e => e[3] === "MATRIZ" || /^https:\/\/(view\.genially\.com|deck\.toys)\//.test(e[3])),
-    "   semana " + k + ": los ejemplos, enlaces https a Genially (o Deck.toys, aparte)", d.ejemplos.map(e => e[3])));
+  // 15-nov · con los temas 4 a 8 entran webs, canales y redes de docentes: enlaces https, y «Verlo aquí» (el visor de la diapositiva)
+  // solo para lo que se deja incrustar (Genially y los vídeos de YouTube en /embed/); lo demás, «aparte» (Sites, Wix e Instagram lo prohíben)
+  D.filter(d => d.tipo === "ejemplos").forEach(d => c(d.ejemplos.every(e => e[3] === "MATRIZ" || (/^https:\/\//.test(e[3]) &&
+      (e[4] === "aparte" || /^https:\/\/(view\.genially\.com\/|www\.youtube\.com\/embed\/)/.test(e[3])))),
+    "   semana " + k + ": los ejemplos, enlaces https; «Verlo aquí» solo con Genially o YouTube incrustado, lo demás aparte", d.ejemplos.map(e => e[3] + " " + (e[4] || ""))));
 });
+// 15-nov · el Tema 4 (semanas 7 y 8): la web de aula y el aula que conversa, y la lista pide lo del reto «El entorno de aula»
+c(LEC["7"] && LEC["8"] && LEC["7"].tema === 4 && LEC["8"].tema === 4, "hay lección en las semanas 7 y 8, del Tema 4");
+const S8 = (LEC["8"] || {}).dias || [];
+c(/Classroom/.test(JSON.stringify((S8.filter(d => d.tipo === "manos")[0] || {}).pasos || [])), "   semana 8: manos a la obra en Classroom");
+c(["Classroom", "Sites", "Tres materiales", "Una tarea", "Dos capturas"].every(w => JSON.stringify((S8.filter(d => d.tipo === "lista")[0] || {}).items || []).indexOf(w) >= 0),
+  "   la lista de «¿está listo?» pide lo del reto «El entorno de aula»");
 const S6 = (LEC["6"] || {}).dias || [];
 const man = S6.filter(d => d.tipo === "manos")[0] || {};
 c(man.minutos > 0 && (man.pasos || []).length >= 5 && /imagen interactiva/i.test(JSON.stringify(man.pasos)), "semana 6: manos a la obra con cronómetro y la imagen interactiva desde cero", man.minutos);
@@ -63,7 +72,8 @@ c(ve({ per: "demo-stargate", miNombre: "" }), "   la demo: sí");
 c(!ve({ per: "per-16450", miNombre: "Norberto Cuartero", tipo: "PUA" }), "   un grupo PUA: no (la lección va por semanas del regular)");
 c(ve({ per: "per-99999", miNombre: "X" }, "?leccion=1"), "   ?leccion=1 la enseña en cualquier grupo");
 c(!ve({ per: "per-16450", miNombre: "Norberto Cuartero" }, "?leccion=0"), "   ?leccion=0 la quita");
-c(!ve({ per: "per-16450", miNombre: "Norberto Cuartero" }, "", 7), "   una semana sin lección (la 7): su Genially, como siempre");
+const SIN = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].filter(n => !LEC[n])[0] || 99;
+c(!ve({ per: "per-16450", miNombre: "Norberto Cuartero" }, "", SIN), "   una semana sin lección (la " + SIN + "): su Genially, como siempre");
 
 console.log("  La pieza es del motor (GamificaPro sdk/leccion.js); STARGATE pone el dato, la piel y la llamada");
 const GP_DIR = process.env.GAMIFICAPRO_DIR || path.join(R, "..", "..", "gamificapro");
