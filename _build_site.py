@@ -159,6 +159,10 @@ GB.copiar_pieza(HERE, "desliza.js", os.path.join(HERE, "assets", "js", "desliza.
 # 9-oct · CAMBIAR EL CORREO CON EL QUE ENTRO (GamificaPro sdk/cuenta.js): la ventana y los pasos son del motor; se copia igual y se
 # carga con defer en la Nave del recluta (recluta.html), que es donde está el botón (menú «···»).
 GB.copiar_pieza(HERE, "cuenta.js", os.path.join(HERE, "assets", "js", "cuenta.js"), decir=print)
+# 16-nov · ¿YA TE ALISTASTE Y NO VES TU CLASE? (GamificaPro sdk/otraCuenta.js, `GP.otraCuenta`; el servidor, `modPistaCuenta`): la línea
+# fija y la ventana con la pista de la otra cuenta. Se copia igual; su piel, assets/js/otra-cuenta-sg.js. En la puerta, alistarse, la
+# Nave y la sesión: donde se pide el código de clase o se dice «no te encuentro».
+GB.copiar_pieza(HERE, "otraCuenta.js", os.path.join(HERE, "assets", "js", "otraCuenta.js"), decir=print)
 # 11-oct · EL PARTE DEL TICKET, EN LÍNEAS (GamificaPro sdk/parte.js, `GP.parte`): la raya, la barra y las líneas de cada escuadrón son
 # del motor (las mismas que DPG); tkcomun.js solo les pone la piel («tkp»). Se copia igual y se carga antes que tkcomun.js.
 GB.copiar_pieza(HERE, "parte.js", os.path.join(HERE, "assets", "js", "parte.js"), decir=print)
@@ -4253,6 +4257,8 @@ al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></heade
 <script src="assets/js/origen-sg.js" defer></script>
 <script src="assets/js/mapaMundo.js" defer></script>
 <script src="assets/js/mapaMundoTierra.js" defer></script>
+<script src="assets/js/otraCuenta.js" defer></script>
+<script src="assets/js/otra-cuenta-sg.js" defer></script>
 <script src="assets/js/directo.js" defer></script>
 <script src="assets/js/sesion.js" defer></script>
 </div></section>
@@ -4421,6 +4427,8 @@ tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <script>window.GP_CONSENTIMIENTO={_CONSENT_PIEZA_JSON};</script><script src="assets/js/consentimiento.js" defer></script>
 <script src="assets/js/origen.js" defer></script>
 <script src="assets/js/origen-sg.js" defer></script>
+<script src="assets/js/otraCuenta.js" defer></script>
+<script src="assets/js/otra-cuenta-sg.js" defer></script>
 <script>window.GP_INVESTIGACION={_INVESTIGACION_JSON};</script><script src="assets/js/investigacion.js" defer></script>
 <script src="assets/js/recluta.js" defer></script>
 </div></section>
@@ -5647,7 +5655,7 @@ _html = head("STARGATE · Entrar",
 '''
 <section id="entrar"><div class="wrap wrap-puerta">
 <div id="entrar-app"><div class="card puerta-unica"><h3>Abriendo…</h3></div></div>
-''' + '<script src="' + _v("assets/js/entrar.js") + '" defer></script>' + '''
+''' + '<script src="' + _v("assets/js/otraCuenta.js") + '" defer></script><script src="' + _v("assets/js/otra-cuenta-sg.js") + '" defer></script>' + '<script src="' + _v("assets/js/entrar.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "entrar.html"), "w", encoding="utf-8").write(_ver_assets(_html))
@@ -5795,7 +5803,7 @@ _html = head("STARGATE · Alistarse",
 <p>Se hace una vez. Entra con tu cuenta, di quién eres y elige a tu Comandante: él te llevará a tu escuadrón.</p></header>
 <section id="alistarse"><div class="wrap">
 <div id="alistarse-app"><p class="muted">Cargando…</p></div>
-''' + '<script>window.SG_PLANTILLA_EP=' + json.dumps(PLANTILLA_EPORTFOLIO) + ';window.SG_CONSENTIMIENTO=' + _CONSENT_JSON + ';</script><script src="' + _v("assets/js/alistarse.js") + '" defer></script>' + '''
+''' + '<script src="' + _v("assets/js/otraCuenta.js") + '" defer></script><script src="' + _v("assets/js/otra-cuenta-sg.js") + '" defer></script>' + '<script>window.SG_PLANTILLA_EP=' + json.dumps(PLANTILLA_EPORTFOLIO) + ';window.SG_CONSENTIMIENTO=' + _CONSENT_JSON + ';</script><script src="' + _v("assets/js/alistarse.js") + '" defer></script>' + '''
 </div></section>
 ''' + FOOT
 open(os.path.join(HERE, "alistarse.html"), "w", encoding="utf-8").write(_ver_assets(_html))

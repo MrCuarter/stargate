@@ -4085,8 +4085,13 @@
     caja('<h2 class="ses-h-larga">Lo siento, esas credenciales no coinciden con las de ningún comandante.</h2>'
       +'<p class="sub">Has entrado como <b>'+esc(yo.correo||'')+'</b>. ¿Quieres intentarlo con otra cuenta?</p>'
       +'<button class="btn primary grande" id="ses-otra">Entrar con otra cuenta</button>'
-      +'<p class="small muted">¿Eres recluta y aún no te has alistado? Hazlo en stargate.mistercuarter.es con el código de tu clase.</p>');
+      +'<p class="small muted">¿Eres recluta y aún no te has alistado? Hazlo en stargate.mistercuarter.es con el código de tu clase.</p>'
+      // 16-nov · el recluta que se alistó con otra cuenta (PER 16450, en plena clase): la línea fija y la ayuda para encontrarla
+      +'<div class="sg-otra-cuenta" id="ses-otra-ayuda"><p class="gpo-linea"><b>¿Ya te habías alistado y no ves tu clase o tu personaje?</b> '
+      +'Hay un 99 % de probabilidades de que estés en otra cuenta.</p></div>');
     document.getElementById('ses-otra').onclick=function(){ salir(); };
+    if(window.SG&&window.SG.ayudaOtraCuenta) window.SG.ayudaOtraCuenta(document.getElementById('ses-otra-ayuda'),{ per:st.per||q.get('per')||'',
+      correo:(yo&&yo.correo)||'', alEntrar:function(){ location.reload(); } });
   }
   /** Quién ha entrado, y el botón para salir (15-sep · Norberto: «aquí necesito también un botón para cerrar sesión de Google»). */
   function quienSoy(yo){

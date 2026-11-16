@@ -225,12 +225,19 @@
       '<p class="small muted">¿No tienes código? Tu docente lo reparte en clase — también sirve el ' +
       "enlace de alistamiento que os haya pasado.</p>" +
       // 2-oct · el lío de Adriana: entró con otra cuenta y la web la tomó por recluta. Quien ya se alistó (o da clase) con otra
-      // cuenta no debe escribir el código aquí: se haría una ficha nueva y vacía
-      '<p class="puerta-otra"><b>¿Ya te alistaste con otra cuenta, o eres docente?</b> No escribas el código: pulsa ' +
-      "«Entrar con otra cuenta» y entra con la de siempre (la de tu correo de bienvenida, o la que tu referente puso en el equipo).</p>" +
+      // cuenta no debe escribir el código aquí: se haría una ficha nueva y vacía.
+      // 🔴 16-nov · PER 16450, en plena clase: tres reclutas con ficha no podían fichar porque esta pantalla les pedía el código
+      // (entraban con otra cuenta). Norberto: una línea fija («Hay un 99 % de probabilidades de que estés en otra cuenta») y la
+      // ayuda para encontrarla (GamificaPro sdk/otraCuenta.js, assets/js/otra-cuenta-sg.js: PER, alias, avatar y una parte del
+      // correo). Sin la pieza o sin la función, se queda la línea con «Entrar con otra cuenta», que ya lo resuelve.
+      '<div class="sg-otra-cuenta" id="e-otra-ayuda"><p class="gpo-linea"><b>¿Ya te habías alistado y no ves tu clase o tu personaje?</b> ' +
+      "Hay un 99 % de probabilidades de que estés en otra cuenta. No escribas el código: pulsa «Entrar con otra cuenta» y entra con la de siempre.</p></div>" +
+      '<p class="small muted"><b>¿Eres docente?</b> Entra con la cuenta que tu referente puso en el equipo.</p>' +
       '<p class="small muted"><a href="#" id="e-otra">Entrar con otra cuenta</a></p>'
     );
     var i = document.getElementById("e-cod"), b = document.getElementById("e-cod-ok");
+    if (window.SG && window.SG.ayudaOtraCuenta) window.SG.ayudaOtraCuenta(document.getElementById("e-otra-ayuda"), {
+      correo: yo.correo, alEntrar: function () { repartiendo = false; repartir(); } });
 
     // que se escriba en mayúsculas aunque se teclee en minúsculas: el código vive en mayúsculas y
     // ver «a1b2c3» en la caja mientras el sistema busca «A1B2C3» hace dudar a cualquiera

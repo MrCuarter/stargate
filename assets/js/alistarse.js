@@ -102,6 +102,17 @@
     return MOTOR.codigoEs(PER, c).catch(function () { return false; });
   }
 
+  /**
+   * 16-nov · ¿YA TE ALISTASTE Y NO VES TU CLASE? (PER 16450, en plena clase: reclutas con ficha que entraban con otra cuenta). La
+   * línea fija y la ayuda del motor (GamificaPro sdk/otraCuenta.js, piel en assets/js/otra-cuenta-sg.js), con el grupo ya puesto.
+   * Elegida la otra cuenta, esta misma página vuelve a mirar: si con ella ya estaba, va derecho a su Nave.
+   */
+  function otraCuentaAyuda(id) {
+    if (DEMO || !window.SG || !window.SG.ayudaOtraCuenta) return;
+    window.SG.ayudaOtraCuenta(document.getElementById(id), { per: PER, nombreGrupo: (PROY && PROY.name) || PER,
+      correo: YO && YO.correo, alEntrar: function () { location.reload(); } });
+  }
+
   function pedirCodigo(aviso) {
     tarjeta('<h3>El código de tu clase</h3>'
       + '<p>Para alistarte en <b>' + esc(PROY.name || PER) + '</b> hace falta el código de seis '
@@ -110,7 +121,11 @@
       + (aviso ? '<p class="aviso malo">' + esc(aviso) + "</p>" : "")
       + '<label>Código<input id="a-codigo" maxlength="8" autocomplete="off" spellcheck="false" '
       + 'placeholder="ABC123" style="text-transform:uppercase;letter-spacing:.18em;font-size:1.2rem"></label>'
-      + '<p><button class="btn grande" id="a-codigo-ok">Entrar</button></p>');
+      + '<p><button class="btn grande" id="a-codigo-ok">Entrar</button></p>'
+      // 16-nov · quien ya se alistó con otra cuenta no debe escribir el código: la ayuda para encontrarla (assets/js/otra-cuenta-sg.js)
+      + '<div class="sg-otra-cuenta" id="a-otra-ayuda"><p class="gpo-linea"><b>¿Ya te habías alistado y no ves tu clase o tu personaje?</b> '
+      + 'Hay un 99 % de probabilidades de que estés en otra cuenta: entra con la de siempre.</p></div>');
+    otraCuentaAyuda("a-otra-ayuda");
     var inp = document.querySelector("#a-codigo");
     var mete = function () {
       var dado = inp.value;
@@ -148,6 +163,9 @@
         '<li><b>Nadie de la clase te ve.</b> Lo que compras no gasta existencias y no entras en el Zoco.</li>' +
         '</ul><p class="small muted">El modo fantasma no se quita: esta ficha será siempre de fantasma. ' +
         'Tu nombre real lo ve solo el equipo docente, como el de cualquier recluta.</p></div>' : '') +
+      // 16-nov · quien llega con el enlace (código incluido) y ya se alistó con otra cuenta haría aquí una ficha nueva y vacía
+      (fantasma ? '' : '<div class="sg-otra-cuenta" id="a-otra-ayuda"><p class="gpo-linea"><b>¿Ya te habías alistado y no ves tu clase o tu personaje?</b> ' +
+        'Hay un 99 % de probabilidades de que estés en otra cuenta: no te alistes otra vez, entra con la de siempre.</p></div>') +
       '<div id="a-aviso" class="aviso" hidden></div>' +
 
       '<div class="card"><h3>1 · Quién eres</h3>' +
@@ -224,6 +242,7 @@
       '<div id="a-paso" class="small muted"></div></div>';
 
     document.querySelector("#a-salir").onclick = function () { MOTOR.salir(); };
+    if (!fantasma) otraCuentaAyuda("a-otra-ayuda");
     // El dado no repite el que ya está puesto: pulsarlo y que no cambie nada parece que está roto.
     var dado = document.querySelector("#a-dado"), campo = document.querySelector("#a-alias");
     // 🔴 13-sep · y no propone uno que ya lleve alguien del grupo (el alta lo rechazaría: dos alias

@@ -362,6 +362,10 @@
           ? '<a class="btn primary" href="'+esc(altaUrl)+'">Alistarme ahora →</a>'
             +'<p class="small muted">Es el <b>primer paso</b> y solo se hace una vez: nombre, alias, '
             +'Comandante y personaje. Si tu clase tiene <b>código</b>, tenlo a mano — te lo pedirá.</p>'
+            // 16-nov · PER 16450, en plena clase: reclutas con ficha que entraban con otra cuenta. La línea fija y la ayuda para
+            // encontrar la de siempre (GamificaPro sdk/otraCuenta.js; la monta montarBotonFirebase)
+            +'<div class="sg-otra-cuenta" id="nave-otra-ayuda"><p class="gpo-linea"><b>¿Ya te habías alistado y no ves tu clase o tu personaje?</b> '
+            +'Hay un 99 % de probabilidades de que estés en otra cuenta: no te alistes otra vez, entra con la de siempre.</p></div>'
           : '<a class="btn primary" href="'+esc(altaUrl)+'" data-vent="Bitácora de mando">Alistarme en la Bitácora de mando →</a>'
             +'<p class="small muted">Es el <b>primer paso</b> y solo se hace una vez: eliges alias y personaje. '
             +'Hasta que no lo envíes no existes a bordo. Después vuelve aquí con <b>ese mismo correo</b>.</p>')
@@ -4453,6 +4457,9 @@
 
   function montarBotonFirebase(){
     var hueco=document.getElementById('g-nave'); if(!hueco) return;
+    var ayuda=document.getElementById('nave-otra-ayuda');
+    if(ayuda&&window.SG&&window.SG.ayudaOtraCuenta) window.SG.ayudaOtraCuenta(ayuda,{ per:per||'', nombreGrupo:(st.d&&st.d.nombre)||per||'',
+      correo:st.email||'', alEntrar:function(){ identificarPorSesion(); } });
     // la «G» de Google: la misma que en las demás puertas, y por la misma razón —un botón que solo
     // dice «entrar» no promete nada, y este es el que más gente va a pulsar de toda la web
     hueco.innerHTML='<button class="btn primary grande btn-google" type="button" id="fb-entrar">'
