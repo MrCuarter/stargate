@@ -3292,13 +3292,15 @@
 
     root.innerHTML=(EMBED||PRES ? '' : st.aviso+prep(s)+tira())
       +'<div class="mazo" id="mazo" tabindex="0" aria-live="polite">'
-      +tramos()
       +'<div class="lienzo">'+st.slides[st.i].html+'</div>'
       +'<button type="button" class="nav ant" id="ant" aria-label="Anterior">‹</button>'
       +'<button type="button" class="nav sig" id="sig" aria-label="Siguiente">›</button>'
       // con varios grupos: cambiar de grupo sin salir del Genially (abajo, en la barra: arriba tapaba títulos)
       +'<div class="barra-pasos">'+(EMBED && st.yo ? '<button type="button" class="ses-salir-b" id="ses-salir-b" title="Cerrar sesión ('+esc(st.yo.correo||'')+')">⏻</button>' : '')
-      +(st.grupos && st.grupos.length > 1 ? '<button type="button" class="ses-cambiar" id="ses-cambiar" title="Cambiar de grupo">⇄ '+esc(st.nombre||'Grupo')+'</button>' : '')+st.slides.map(function(d,i){
+      +(st.grupos && st.grupos.length > 1 ? '<button type="button" class="ses-cambiar" id="ses-cambiar" title="Cambiar de grupo">⇄ '+esc(st.nombre||'Grupo')+'</button>' : '')
+      // 16-nov · los tres tiempos, al principio de esta barra: arriba se montaban encima de «En directo» y «Herramientas»
+      // (el mazo es más estrecho que la pantalla, así que medirlo por el ancho de la ventana no bastaba) y a la izquierda tapaban el antetítulo
+      +tramos()+st.slides.map(function(d,i){
           // (19-sep · data-sec: la sección de «Configurar la sesión» a la que pertenece; con ella se hacen sus capturas)
           return '<button type="button" class="p'+(i===st.i?' on':'')+(i<st.i?' past':'')+'" data-i="'+i+'" data-sec="'+esc(secDe(d))+'" title="'+esc(d.rot)+'"><span>'+esc(d.rot)+'</span></button>';
         }).join('')+'</div>'
@@ -3696,7 +3698,8 @@
     if(!st.alumno) return;
     var mazo=root.querySelector('#mazo'); if(!mazo) return;
     var s=SEG.d.sesion, vivo=s&&s.activa&&(Date.now()-Number(s.t||0))<3*3600e3, p=SEG.d.pregunta;
-    var caja=mazo.querySelector('.ses-al'); if(!caja){ caja=document.createElement('div'); caja.className='ses-al'; mazo.appendChild(caja); }
+    // 16-nov · justo detrás de la diapositiva: en el ordenador flota igual (va en absoluto), y en el móvil queda debajo de ella en vez de taparla
+    var caja=mazo.querySelector('.ses-al'); if(!caja){ caja=document.createElement('div'); caja.className='ses-al'; var lz=mazo.querySelector('.lienzo'); mazo.insertBefore(caja, lz?lz.nextSibling:null); }
     var html='';
     // mientras emite, el recluta va con él y no puede moverse: el rótulo lo dice y no hay «volver al ritmo» que dar
     mazo.classList.toggle('ses-bloqueado', !!vivo);

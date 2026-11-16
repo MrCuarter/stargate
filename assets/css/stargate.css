@@ -2241,8 +2241,9 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 /* 🔴 16-sep · LOS TRES TIEMPOS DE LA CLASE. El rótulo de tramos (apertura · presentación · cierre) y la
    tarjeta puente que manda al Genially. El rótulo va dentro del mazo, arriba. 17-sep · y se pulsa: lleva a la primera
    diapositiva de ese tiempo (la caja deja pasar el clic; solo los botones lo recogen). */
-.ses-tramos{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:4;display:flex;gap:6px;
-  flex-wrap:wrap;justify-content:center;pointer-events:none}
+/* 16-nov · ya no va encima de la diapositiva: abre la barra de pasos de abajo, como un grupo aparte */
+.ses-tramos{display:flex;gap:6px;flex:0 0 auto;flex-wrap:wrap;align-items:center;margin-right:8px;padding-right:10px;
+  border-right:1px solid var(--line);pointer-events:none}
 .ses-tramos .tr{font-family:inherit;font-size:12px;line-height:1.4;font-weight:700;letter-spacing:.04em;padding:4px 12px;border-radius:99px;
   border:1px solid rgba(255,255,255,.14);color:rgba(233,240,246,.55);background:rgba(8,12,20,.55);white-space:nowrap;
   pointer-events:auto;cursor:pointer;transition:color .15s,border-color .15s}
@@ -2252,9 +2253,7 @@ td.who img.av{width:44px;height:44px;aspect-ratio:1}
 .ses-tramos .tr.on{color:#0a1118;background:var(--teal,#37e0ec);border-color:transparent}
 .ses-tramos .tr.fuera{opacity:.5;font-weight:500}
 @media(max-width:720px){.ses-tramos{display:none}}
-/* 23-sep · a media pantalla los tramos (centrados) se montaban encima de «Emitir en directo» y «Herramientas»: por debajo
-   de 1320 px se van a la izquierda, que está libre; y por debajo de 900, «Herramientas» se queda en su icono. */
-@media(max-width:1320px){.ses-tramos{left:14px;transform:none}}
+/* 23-sep · por debajo de 900, «Herramientas» se queda en su icono (16-nov · los tramos ya no van arriba: abren la barra de pasos) */
 @media(max-width:900px){.ses-aula-b span{display:none}.ses-aula-b{padding:5px 8px}}
 
 .dia.puente{display:grid;place-items:center;text-align:center}
@@ -3218,6 +3217,11 @@ body.embed section:has(#sesion-app){padding:0;border:0}
 body.embed .wrap:has(#sesion-app){max-width:none;padding:0}
 body.embed .mazo{border:0;border-radius:0;height:100vh;display:flex;flex-direction:column}
 body.embed .mazo .lienzo{flex:1;min-height:0;overflow:hidden}
+/* 16-nov · en el móvil, la diapositiva que sigue el recluta no cabe en una pantalla: se recortaba (los últimos pasos de «Manos a la obra»
+   no se veían). Ahí crece con lo que lleva y la página se baja con el dedo, con el cuadro de responder debajo (solo el recluta que sigue:
+   el Genially del docente incrustado en un hueco pequeño se queda como estaba) */
+@media(max-width:720px),(max-height:500px){body.embed .mazo:has(> .ses-al:not(:empty)){height:auto;min-height:100vh;min-height:100dvh}
+  body.embed .mazo:has(> .ses-al:not(:empty)) .lienzo{flex:1 0 auto;overflow:visible}}
 body.embed .mazo .dia{padding:3.5vh 6vw}
 body.embed .mazo .dia h1{font-size:clamp(2rem,5.6vw,4.6rem)}
 body.embed .mazo .dia h2{font-size:clamp(1.6rem,4.2vw,3.2rem)}
@@ -4734,6 +4738,10 @@ body.embed.embed-caja .hv-fig img{box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .ses-directo.on{border-color:#ff7d7d;color:#ffd0d0;background:rgba(255,93,93,.14)}
 .ses-directo.on::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff5d5d;margin-right:6px;vertical-align:1px}
 .ses-al{position:absolute;right:14px;bottom:62px;z-index:6;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-width:min(420px,70%)}
+/* 16-nov · en el móvil (y en el marco de la Nave) el cuadro tapaba la mitad de la diapositiva, p. ej. los pasos de «Manos a la obra»:
+   ahí va debajo de ella, a lo ancho, y se lee la diapositiva entera antes de responder */
+@media(max-width:720px),(max-height:500px){.mazo .ses-al{position:static;max-width:none;align-items:stretch;padding:10px 12px 12px;border-top:1px solid var(--line)}
+  .mazo .ses-al .ses-al-sigo,.mazo .ses-al .ses-al-volver{align-self:flex-start}.mazo .ses-al:empty{display:none}}
 .ses-al-sigo,.ses-al-volver{font:inherit;font-size:.8rem;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid rgba(55,224,236,.4);background:rgba(4,12,20,.8);color:#bff5f9}
 .ses-al-volver{cursor:pointer;border-color:#f5b043;color:#ffe3a1}
 /* 16-oct · el directo nunca falla en silencio: el botón del docente dice «Sin señal» y el recluta que no tiene la diapositiva, dónde está su Comandante */

@@ -105,7 +105,8 @@ const c = (cond, txt, dato) => { if (cond) ok++; else fallos.push(txt); console.
     "🔴 Nave: si las pestañas no caben, se quedan en icono (medido) y ninguna queda escondida");
   c(/addEventListener\('resize',function\(\)\{ cancelAnimationFrame\(rsP\); rsP=requestAnimationFrame\(ajustarPestanas\); \}\)/.test(REC), "   y se vuelve a medir al cambiar la ventana");
   c(/\.nf-arriba \.nave-cifras\{flex:1 1 520px/.test(CSS), "🔴 las cifras de la ficha: las cinco en fila o en su propia fila (nunca 3+2 con hueco)");
-  c(/@media\(max-width:1320px\)\{\.ses-tramos\{left:14px;transform:none\}\}/.test(CSS), "🔴 sesión: los tramos no se montan encima de «Emitir en directo» ni de «Herramientas»");
+  // 16-nov · ni a media pantalla ni con el mazo más estrecho que la ventana: los tramos ya no van arriba, abren la barra de pasos
+c(!/\.ses-tramos\{[^}]*position:absolute/.test(CSS) && /\+tramos\(\)\+st\.slides\.map/.test(L("assets/js/sesion.js")), "🔴 sesión: los tramos no se montan encima de «Emitir en directo» ni de «Herramientas» (van en la barra de pasos)");
 
   console.log("\n  Batería 107 · media pantalla y peso");
   console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
