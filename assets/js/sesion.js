@@ -667,6 +667,8 @@
     var reloj=null, vivo=true, vistos={};
     var globo=globoDeLaLlamada(el, { vacio:'Esperando al primero…', sinCiudad:true });
     var cerrada=function(){
+      // 16-nov · en la ventana que se comparte (presentar=1) no se toca nada: sin minutos ni botón, solo lo que ve la clase
+      if(PRES){ mando.innerHTML=''; caja.innerHTML=''; if(globo) globo.gente([]); return; }
       var min=MINUTOS[1];
       mando.innerHTML='<div class="ll-minutos">'+MINUTOS.map(function(m){ return '<button type="button" class="ll-m'+(m===min?' on':'')+'" data-min="'+m+'">'+m+' min</button>'; }).join('')+'</div>'
         +'<label class="ll-regalo"><input type="checkbox" id="ses-ll-sobre"> Regalo: un <b>sobre de cromos</b> a quien fiche</label>'
@@ -711,9 +713,10 @@
       mando.innerHTML='<div class="ll-viva"><div class="ll-aro"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ll-aro-p" cx="60" cy="60" r="50"/><circle class="ll-aro-f" cx="60" cy="60" r="50"/></svg>'
         +'<div class="ll-aro-c"><b id="ses-ll-n">0</b><span>de <i id="ses-ll-de">'+totalLlamada(0)+'</i></span></div></div>'
         +'<span class="ll-punto"></span> <span id="ses-ll-pal">a bordo</span>'
-        +'<span class="ll-cuenta" id="ses-ll-cuenta"></span><button type="button" class="btn small" id="ses-ll-cerrar">Cerrar la llamada</button></div>';
-      mando.querySelector('#ses-ll-cerrar').onclick=function(){ M.cerrarLlamada(s.id).then(function(){ if(reloj){ clearInterval(reloj); reloj=null; } caja.innerHTML=''; if(globo) globo.gente([]); cerrada(); }); };
+        +'<span class="ll-cuenta" id="ses-ll-cuenta"></span>'+(PRES?'':'<button type="button" class="btn small" id="ses-ll-cerrar">Cerrar la llamada</button>')+'</div>';
+      if(!PRES) mando.querySelector('#ses-ll-cerrar').onclick=function(){ M.cerrarLlamada(s.id).then(function(){ if(reloj){ clearInterval(reloj); reloj=null; } caja.innerHTML=''; if(globo) globo.gente([]); cerrada(); }); };
       pintaGente(s.id);
+      if(reloj) clearInterval(reloj);
       reloj=setInterval(function(){
         var seg=Math.round((hasta-Date.now())/1000), c=el.querySelector('#ses-ll-cuenta');
         if(seg<=0){ clearInterval(reloj); reloj=null; cerrada(); return; }
@@ -721,6 +724,26 @@
         if(seg%4===0) pintaGente(s.id);
       },1000);
     };
+    /*
+     * 🔴 16-nov · LA VENTANA QUE SE COMPARTE (Norberto: «en mi panel se ven los estudiantes, pero no en la pantalla para compartir»).
+     * La presentación miraba UNA vez, al pintar la diapositiva, si había llamada abierta: la que se toca después desde el mando no
+     * le llegaba nunca (se quedaba con «Esperando al primero…» y, encima, con los botones de tocarla). Ahora escucha en directo la
+     * llamada de su Comandante (la misma cuenta que el mando) y solo la enseña: el anillo, la cuenta atrás, las caras y el globo.
+     */
+    if(PRES&&M.vigilarLlamada&&M.sesion){
+      var actual=null, quita=null;
+      mando.innerHTML='';
+      Promise.resolve(M.sesion()).then(function(yo){
+        if(!vivo) return;
+        var uid=yo&&yo.uid;
+        quita=M.vigilarLlamada(st.per, function(s){
+          if(!vivo) return;
+          if(s&&(!actual||actual.id!==s.id)){ actual=s; abierta(s); }
+          else if(!s&&actual){ actual=null; if(reloj){ clearInterval(reloj); reloj=null; } cerrada(); }
+        }, function(x){ return !!uid && x.teacherId===uid; });
+      }).catch(function(){});
+      return function(){ vivo=false; if(quita) try{ quita(); }catch(e){} if(reloj) clearInterval(reloj); if(globo) globo.fin(); };
+    }
     // (15-sep · la SUYA: la de otro Comandante del grupo no se adopta, ni se cierra desde aquí)
     M.llamadaAbierta(st.per, 'mia').then(function(s){ if(!vivo) return; if(s) abierta(s); else cerrada(); }).catch(cerrada);
     return function(){ vivo=false; if(reloj) clearInterval(reloj); if(globo) globo.fin(); };

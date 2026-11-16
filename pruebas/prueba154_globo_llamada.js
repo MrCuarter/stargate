@@ -70,5 +70,14 @@ c(/F\.M\.mapaEscuchar\(F\.PER,/.test(PTE) && /p\.bot \|\| !S\.web/.test(PTE), " 
 c(/H\.llega\(p\)/.test(PTE) && /if \(F\.reducido \|\| fase !== 0 \|\| !ciudadDe\(p\)\) return;/.test(PTE), "   quien llega con ciudad sale en estela; sin ciudad o con movimiento reducido, a la órbita como siempre");
 c(/\.holo \.gpmm-pin\{opacity:0!important/.test(PTE), "   en el holograma solo las luces (los nombres, en la órbita)");
 
+console.log("\n  · 6 · la ventana que se comparte (16-nov, Norberto: «en mi panel se ven los estudiantes, pero no en la pantalla para compartir»)");
+c(/if\(PRES&&M\.vigilarLlamada&&M\.sesion\)\{/.test(SES) && /quita=M\.vigilarLlamada\(st\.per, function\(s\)\{/.test(SES) && /function\(x\)\{ return !!uid && x\.teacherId===uid; \}/.test(SES),
+  "🔴 la presentación escucha en directo la llamada de su Comandante (antes miraba una vez y la que se tocaba después no le llegaba)");
+c(/if\(s&&\(!actual\|\|actual\.id!==s\.id\)\)\{ actual=s; abierta\(s\); \}/.test(SES) && /else if\(!s&&actual\)\{ actual=null;/.test(SES), "   se enciende al abrirla desde el mando y se apaga al cerrarla");
+c(/if\(PRES\)\{ mando\.innerHTML=''; caja\.innerHTML=''; if\(globo\) globo\.gente\(\[\]\); return; \}/.test(SES), "   sin minutos ni «Tocar llamada a filas» en lo que ve la clase");
+c(/\(PRES\?'':'<button type="button" class="btn small" id="ses-ll-cerrar">Cerrar la llamada<\/button>'\)/.test(SES) && /if\(!PRES\) mando\.querySelector\('#ses-ll-cerrar'\)/.test(SES), "   ni «Cerrar la llamada»: la presentación no escribe nada");
+c(/vigilarLlamada, /.test(MOT) && /entrar, salir, sesion, /.test(MOT), "   el motor da vigilarLlamada y sesion");
+c(/if\(reloj\) clearInterval\(reloj\);\n      reloj=setInterval/.test(SES), "   una llamada nueva no deja dos relojes a la vez");
+
 console.log("\n  Batería 154 · " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 if (fallos.length) process.exit(1);
