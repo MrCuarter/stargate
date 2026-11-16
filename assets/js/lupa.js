@@ -39,6 +39,9 @@
  *                   iframe, video, audio, canvas, [contenteditable], [role=button], [data-gpz-no]
  *       o.bloques   lo que se abre al pulsar. Por defecto: p, li, h1-h4, blockquote, figure, img, table, pre, [data-gpz]. Se
  *                   elige el de fuera del todo que no ocupe casi toda la diapositiva (una tarjeta entera, no su párrafo)
+ *       o.vale(el)  16-nov · ¿merece la pena abrirlo? (DPG, Norberto: «te has pasado con los zooms… está más pensado cuando haya texto
+ *                   o tablas pequeñas, hace falta en pocas diapositivas»). Sin ella, todo bloque vale (como antes). Si dice que no,
+ *                   ni se marca al pasar ni se abre. GP.lupa.letraPequena(el, px) da una de serie: tablas, o texto de menos de `px`.
  *       o.pulsar    false: sin lector (por defecto, true)
  *       o.boton     elemento donde se pone el botón de la lupa (sin él, la web pone el suyo con el atributo data-gpz-lupa:
  *                   GP.lupa.botonHTML(o) da uno). o.icono: url del icono (sin él, una lupa de línea)
@@ -199,6 +202,7 @@
         }
         el = el.parentElement;
       }
+      if (elegido && typeof o.vale === "function") { try { if (!o.vale(elegido)) return null; } catch (e) { /* ante la duda, vale */ } }
       return elegido;
     }
     function cerrarLector(callado) {
@@ -378,6 +382,27 @@
     };
   }
 
+  /**
+   * 16-nov · LA «VALE» DE SERIE: ¿merece la pena ampliar este bloque? Una tabla, sí; una imagen o una figura sola, no (ya se ve);
+   * un texto, solo si su letra se ve de menos de `px` (16 de serie) en pantalla y tiene algo que leer (12 letras). La letra se mide
+   * como se ve (su tamaño por lo que se ha encogido o agrandado el bloque: transform, zoom), y no cuenta lo invisible.
+   */
+  function letraPequena(el, px) {
+    if (!el || !el.matches) return false;
+    var tope = num(px, 16), W0 = el.ownerDocument && el.ownerDocument.defaultView;
+    if (el.matches("table") || (el.querySelector && el.querySelector("table"))) return true;
+    if (el.matches("img,figure,svg,canvas,video")) return false;
+    var r = el.getBoundingClientRect ? el.getBoundingClientRect() : null, esc = r && el.offsetWidth ? r.width / el.offsetWidth : 1;
+    if (!(esc > 0)) esc = 1;
+    var doc0 = el.ownerDocument, paseo = doc0.createTreeWalker(el, 4, null), n, letras = 0, menor = Infinity;
+    while ((n = paseo.nextNode())) {
+      var t = String(n.nodeValue || "").trim(), pe = n.parentElement; if (!t || !pe) continue;
+      var cs = W0 ? W0.getComputedStyle(pe) : null; if (!cs || cs.display === "none" || cs.visibility === "hidden") continue;
+      letras += t.length; menor = Math.min(menor, parseFloat(cs.fontSize) * esc);
+    }
+    return letras >= 12 && menor < tope;
+  }
+
   return { limitar: limitar, desplazamiento: desplazamiento, zoomEn: zoomEn, mover: mover, ruta: ruta, nodo: nodo, tamLector: tamLector,
-    botonHTML: botonHTML, poner: poner, TEXTOS: TEXTOS, EVITAR: EVITAR, BLOQUES: BLOQUES, CSS: CSS, MAX: MAX, PASO: PASO };
+    botonHTML: botonHTML, poner: poner, letraPequena: letraPequena, TEXTOS: TEXTOS, EVITAR: EVITAR, BLOQUES: BLOQUES, CSS: CSS, MAX: MAX, PASO: PASO };
 });

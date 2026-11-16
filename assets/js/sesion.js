@@ -3373,7 +3373,10 @@
     var Z=window.GP&&window.GP.lupa; if(!Z) return;
     if(!LUPA) LUPA=Z.poner('#mazo .lienzo', {
       evitar: Z.EVITAR+',[data-revelable]:not(.on),.cara[data-quien],.ses-ficha,.lc-visor,.ll-mando',
-      bloques: Z.BLOQUES+',.lc-tarjeta,.lc-pieza,.lc-consejo,.lc-prompt,.lc-criterio,.lc-unidad,.lc-mz-det,.card',
+      // 16-nov (Norberto: «te has pasado con los zooms, algunos no funcionan o no hacen falta… está más pensado para texto o tablas
+      // pequeñas»): sin figuras ni imágenes, y `vale` (la de serie del motor) solo deja abrir tablas y texto que se ve a menos de 16 px.
+      bloques: Z.BLOQUES.replace(/,figure|,img/g,'')+',.lc-tarjeta,.lc-pieza,.lc-consejo,.lc-prompt,.lc-criterio,.lc-unidad,.lc-mz-det,.card',
+      vale: function(el){ return Z.letraPequena ? Z.letraPequena(el,16) : true; },
       alCambiar: function(v){ if(PZ.on&&PZ.m) PZ.m.acc('lupa:'+JSON.stringify(v)); },
       alLector: function(r){ if(PZ.on&&PZ.m) PZ.m.acc('lector:'+JSON.stringify(r||[])); }
     });

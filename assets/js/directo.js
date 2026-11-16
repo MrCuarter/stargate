@@ -141,6 +141,33 @@
  *                                        señal del docente es de los últimos `o.sigue` min (30): { s, t, llamada: null }. Si no, null.
  *                                        Con `estado.cols` (las columnas que da su docente) y `o.columna`, solo si es una de ellas.
  *
+ * 🔴 14-nov · QUIÉN ESTÁ EN LA SALA DE VERDAD (Norberto: «si yo me meto en una sesión en directo, hay fantasmas: estudiantes que dice
+ * que están dentro, pero no están»). Medido en DPG1 el 13-nov: al abrir la clase 4 para una columna, la sala decía 19; 18 eran las marcas
+ * del 2-nov, de cuando esa clase se dio la primera vez. «fich:<sesión>» y «sala:<sesión>» se guardan para siempre: eran «pasó por
+ * aquí alguna vez», no «está aquí». Y esos fantasmas contaban en «N de M han respondido», la ruleta y «Premiar a los presentes».
+ * Ahora estar en la sala es de ESTE directo y con señal de vida:
+ *   GP.directo.PRESENCIA              { antes: 15, sinDirecto: 180, cadena: 30, latido: 4, silencio: 12 } (minutos).
+ *   GP.directo.marcaT(v)              → la hora (ms) de una marca que la lleva (un número de reloj), o 0 (1, true, el id de una llamada).
+ *   GP.directo.ventana(llamadas, ahora, o) → { desde, llamadas: [ids] }: desde cuándo cuenta estar en la sala. `llamadas`: las del
+ *                                        docente (o la de la columna del estudiante), vivas o recién acabadas ({ id, desde|startTime,
+ *                                        hasta|endTime, active? }). Con un directo abierto, o acabado hace menos de `sinDirecto` min:
+ *                                        su inicio menos `antes` min (y si empalma con el anterior —menos de `cadena` min entre uno y
+ *                                        otro: se acabó la hora y se abrió otro—, desde el primero). Sin ninguno, los últimos `sinDirecto` min.
+ *   GP.directo.presente(p, sid, o)    → { dentro, fichado, entro, callado }. `p`: { fich: { <sesión>: marca }, sala: { <sesión>: marca },
+ *                                        fichEn?, t?, late? } con las marcas TAL CUAL (no true/false); `fichEn`: la llamada en que consta su
+ *                                        fichaje (attendance); `t`: su última escritura (ms); `late`: su web ya ha latido alguna vez
+ *                                        (tiene la clave del latido). `o`: lo de `ventana` más `ahora` y `silencio` (min; 0 o sin
+ *                                        decir: sin esa regla).
+ *                                        fichado = su marca es una llamada de la ventana (o una hora dentro de ella: las visitas);
+ *                                        entro   = fichado, o su marca de sala es una hora de la ventana;
+ *                                        callado = su web late (`late`) y no da señal desde hace `silencio` min. Quien nunca ha latido
+ *                                                  (una web de antes, o si el latido fallara) no se da por callado: nadie desaparece por error;
+ *                                        dentro  = entro y no callado.
+ *   GP.directo.tocaEntrar(marca, desde) → ¿hay que dejar (otra vez) la marca de sala? Sin marca con hora, o de antes de la ventana.
+ * La web del estudiante deja «sala:<sesión>» = la hora al entrar en una clase en marcha y la renueva cuando su marca es de antes de la
+ * ventana (otro directo, otro día); y late: cada `latido` min escribe una clave que NO es de ninguna sesión (no despierta la vista de
+ * la sala, D5: solo la lee el equipo docente), y con eso el servidor le pone la hora (`t`). Sin cambios en el servidor.
+ *
  * Cada web la copia en su build (assets/js/directo.js, con `guardas.copiar_pieza`) y NO se edita allí: aquí.
  */
 (function (raiz, fabrica) {
@@ -401,6 +428,41 @@
     return { s: String(e.s), t: t, llamada: null };
   }
 
+  // ── 🔴 14-nov · quién está en la sala de verdad (la ventana de este directo y la señal de vida)
+  var PRESENCIA = { antes: 15, sinDirecto: 180, cadena: 30, latido: 4, silencio: 12 };
+  function minutos(o, k) { var v = o && o[k] != null ? Number(o[k]) : PRESENCIA[k]; return (isFinite(v) && v >= 0 ? v : PRESENCIA[k]) * 60000; }
+  function marcaT(v) { return typeof v === "number" && isFinite(v) && v > 1e11 ? v : 0; }
+  function ventana(llamadas, ahora, o) {
+    ahora = Number(ahora) || 0;
+    var antes = minutos(o, "antes"), sin = minutos(o, "sinDirecto"), cadena = minutos(o, "cadena");
+    var L = (Array.isArray(llamadas) ? llamadas : []).filter(function (l) { return l && l.id && inicioLlamada(l) > 0 && inicioLlamada(l) <= ahora + 60000; })
+      .map(function (l) {
+        var ini = inicioLlamada(l), fin = finLlamada(l);
+        // (cerrada a mano sin hora de fin escrita: no se sabe cuándo; cuenta como acabada al empezar)
+        return { id: String(l.id), ini: ini, fin: l.active === false ? Math.min(fin || ini, ahora) : (fin || Infinity) };
+      }).sort(function (a, b) { return b.ini - a.ini; });
+    var i = -1;
+    for (var j = 0; j < L.length; j++) if (L[j].fin >= ahora - sin) { i = j; break; }
+    if (i < 0) return { desde: ahora - sin, llamadas: [] };
+    var ids = [L[i].id], ini = L[i].ini;
+    for (var k = i + 1; k < L.length; k++) { if (ini - L[k].fin > cadena) break; ids.push(L[k].id); ini = Math.min(ini, L[k].ini); }
+    return { desde: ini - antes, llamadas: ids };
+  }
+  function presente(p, sid, o) {
+    o = o || {}; p = p || {};
+    var desde = Number(o.desde) || 0, ids = Array.isArray(o.llamadas) ? o.llamadas : [];
+    var f = p.fich ? p.fich[sid] : undefined, s = p.sala ? p.sala[sid] : undefined;
+    var fichado = (typeof f === "string" && ids.indexOf(f) >= 0) || (marcaT(f) > 0 && marcaT(f) >= desde) || (!!p.fichEn && ids.indexOf(String(p.fichEn)) >= 0);
+    // (una marca con hora dentro de la ventana: la de sala, o el fichaje de una visita)
+    var conHora = (marcaT(s) > 0 && marcaT(s) >= desde) || (marcaT(f) > 0 && marcaT(f) >= desde);
+    var entro = fichado || conHora;
+    // (callado: solo quien ya ha latido alguna vez —`late`—: si el latido fallara, nadie desaparece de la sala)
+    var sil = o.silencio ? minutos(o, "silencio") : 0, t = Number(p.t) || 0;
+    var callado = !!(sil && entro && p.late && t > 0 && Number(o.ahora) - t > sil);
+    return { dentro: entro && !callado, fichado: fichado, entro: entro, callado: callado };
+  }
+  function tocaEntrar(marca, desde) { var t = marcaT(marca); return !t || t < (Number(desde) || 0); }
+
   // ── lo que queda de una prueba en una sesión (20-oct)
   function restos(docs, sid, o) {
     o = o || {};
@@ -501,5 +563,6 @@
            sala: sala, deLaSala: deLaSala, trabajos: trabajos, punto: punto, textoPremio: textoPremio, premios: premios,
            restos: restos, textoRestos: textoRestos, empezarDeCero: empezarDeCero, enDirecto: enDirecto, porFichar: porFichar, marcaFichaje: marcaFichaje,
            DURACIONES: DURACIONES, nuevo: nuevo, vivo: vivo, deColumna: deColumna, paraColumna: paraColumna, directoDe: directoDe, cubre: cubre,
-           queda: queda, textoQueda: textoQueda, ficharEn: ficharEn };
+           queda: queda, textoQueda: textoQueda, ficharEn: ficharEn,
+           PRESENCIA: PRESENCIA, marcaT: marcaT, ventana: ventana, presente: presente, tocaEntrar: tocaEntrar };
 });

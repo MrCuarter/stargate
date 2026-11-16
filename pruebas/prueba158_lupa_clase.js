@@ -36,6 +36,12 @@ c(/GP\.lupa\.botonHTML\(\{ icono:LUPA_ICO, clase:'ses-ic ses-lupa'/.test(S) && /
 c(fs.existsSync(path.join(__dirname, "..", "assets/img/iconos/lupa.png")) && fs.existsSync(path.join(__dirname, "..", "assets/img/iconos/p/lupa.png")), "   el icono, con aro y solo el pictograma");
 c(/LUPA\.lupa\(document\.documentElement\.classList\.contains\('gpz-lupa-on'\)\)/.test(S), "   repintada la barra, el botón conserva si la lupa estaba encendida");
 
+// 16-nov · Norberto: «te has pasado con los zooms, algunos no funcionan o no hacen falta… está más pensado cuando haya texto o tablas pequeñas»
+c(/vale: function\(el\)\{ return Z\.letraPequena \? Z\.letraPequena\(el,16\) : true; \}/.test(S), "🔴 16-nov · solo se abre lo que merece la pena: tablas y texto que se ve a menos de 16 px (la `vale` de serie del motor)");
+c(/o\.vale\(el\)/.test(R("assets/js/lupa.js")) && /function letraPequena\(el, px\)/.test(R("assets/js/lupa.js")), "   y la lupa copiada ya la trae (o.vale y letraPequena)");
+c(/bloques: Z\.BLOQUES\.replace\(\/,figure\|,img\/g,''\)/.test(S), "   las figuras y las imágenes no son bloques (ya se ven)");
+c(!/\.lc-gal[^'\n]*'\s*\)/.test((S.match(/bloques: [^\n]*/) || [""])[0]) && !/,img|,figure/.test(((S.match(/bloques: [^\n]*/) || [""])[0]).replace(/Z\.BLOQUES\.replace\([^)]*\)/, "")), "   y no se cuelan por la lista propia de la web");
+
 console.log("\n  Batería 158 · La lupa de la clase");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");
 if (fallos.length) process.exit(1);
