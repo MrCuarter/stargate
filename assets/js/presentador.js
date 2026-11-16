@@ -1,6 +1,9 @@
 /**
  * GAMIFICAPRO · EL MODO PRESENTADOR (17-oct-2026) — pieza del motor para cualquier mod.
  *
+ * 🔴 16-nov · AL REVÉS (Norberto, en DPG y en STARGATE: «la ventana que se abre sea el panel del docente y la que se queda en la página sea
+ * lo que ve el estudiante»): las dos webs abren ahora el MANDO en la emergente y la pestaña pasa a presentación (`&aparte=1`); la pieza
+ * no cambia (mando y presentación hablan igual por el canal), solo sus textos. Lo de abajo cuenta cómo nació.
  * Norberto (17-oct): «un botón “Presentar en otra ventana” abre la PRESENTACIÓN LIMPIA en una ventana emergente, que es la que se
  * comparte o se proyecta; la ventana principal se convierte en su CENTRO DE MANDO». Y al empezar la clase en directo, una pregunta
  * corta y visual, con dos tarjetas iguales: «Una pantalla · simple» (todo como hoy) y «Dos pantallas · presentador». Con «Recordar
@@ -140,7 +143,7 @@
     var v = ventana("<h2>¿Cómo das la clase?</h2>" +
       '<div class="gpp-op" role="radiogroup" aria-label="Una o dos pantallas">' +
       tarjeta("simple", ICO_UNA, "Una pantalla", "simple", "Todo como siempre, en esta ventana.") +
-      tarjeta("presentador", ICO_DOS, "Dos pantallas", "presentador", "La presentación, en una ventana aparte para compartir o proyectar; tu centro de mando, en esta.") + "</div>" +
+      tarjeta("presentador", ICO_DOS, "Dos pantallas", "presentador", "Tu panel, en una ventana aparte; esta pestaña queda como la ve tu clase: es la que compartes o proyectas.") + "</div>" +
       '<label class="gpp-rec"><input type="checkbox"' + (recordado(o.clave) ? " checked" : "") + "> Recordar mi elección en este navegador</label>" +
       '<button type="button" class="gpp-b gpp-pri" data-ok>Empezar</button>' +
       '<p class="gpp-peq">¿Una pantalla y quieres el mando aparte? <button type="button" class="gpp-enlace" data-ayuda>' + esc(o.pie || "Comparte solo la ventana de la presentación o lleva el mando al móvil") + "</button></p>",
@@ -171,8 +174,8 @@
     o = o || {};
     var nombre = esc(o.nombre || "la presentación");
     var paso = function (t, l) { return "<div><b>" + t + "</b><ol>" + l.map(function (x) { return "<li>" + x + "</li>"; }).join("") + "</ol></div>"; };
-    var v = ventana("<h2>Presentar en otra ventana</h2><p>La diapositiva sola, en una ventana aparte: <b>esa es la que compartes o proyectas</b>. Esta se queda como tu mando, con la siguiente, tus notas y todas las herramientas; lo que hagas aquí sale al momento en la presentación y en los móviles.</p>" +
-      '<button type="button" class="gpp-b gpp-pri" data-p="abrir">Abrir la presentación</button>' +
+    var v = ventana("<h2>Dos pantallas</h2><p>Tu panel (la siguiente, tus notas y todas las herramientas) se abre en una ventana aparte, y esta pestaña se queda con la diapositiva limpia, como la ve tu clase: <b>esa es la que compartes o proyectas</b>, y en ella también puedes pulsar los enlaces y los ejemplos. Lo que hagas en el panel sale al momento en ella y en los móviles.</p>" +
+      '<button type="button" class="gpp-b gpp-pri" data-p="abrir">Abrir mi panel</button>' +
       '<h3>Con una sola pantalla: comparte solo esa ventana</h3><div class="gpp-pasos">' +
       paso("Zoom", ["Pulsa «Compartir pantalla».", "Elige la ventana «" + nombre + "», no la pantalla entera.", "Pulsa «Compartir»."]) +
       paso("Meet", ["Pulsa «Compartir pantalla».", "Elige «Una ventana» y, en la lista, «" + nombre + "».", "Pulsa «Compartir»."]) +

@@ -25,18 +25,28 @@ c(/function presOn\(on\)\{[\s\S]{0,700}ctl\.insertAdjacentHTML\('beforeend', pre
 c(/data-ses-mando-cerrar>Volver a una pantalla</.test(S), "   el botón del mando dice «Volver a una pantalla»");
 c(/\[data-ses-mando-cerrar\]'\)\.onclick=presUna;/.test(S), "🔴 el botón del mando hace lo mismo que el icono (presUna)");
 c(/if\(PZ\.on\) presUna\(\); else presElegir\('presentador'\);/.test(S), "   el icono, presentando, vuelve a una pantalla con presUna");
-const fn = linea(/function presUna\(\)\{[^\n]*\}/);
+const fn = (S.match(/function presUna\(\)\{[\s\S]*?\n  \}/) || [""])[0];
 const PRES_CLAVE = "sg-sesion";
-const prueba = (recordado) => {
+// (16-nov · con «al revés»: MANDO_APARTE es la ventana del panel; en la pestaña de siempre, false)
+const prueba = (recordado, aparte, emite) => {
   const hechos = [], mem = { v: recordado };
   const GPP = { recordado: () => mem.v, recordar: (k, m) => { hechos.push("recordar:" + k + ":" + m); mem.v = m; } };
-  new Function("GPP", "PRES_CLAVE", "presCerrar", fn + "\npresUna();")(GPP, PRES_CLAVE, () => hechos.push("cerrar"));
-  return { hechos, mem: mem.v };
+  const PZ = { m: { acc: (a) => hechos.push("acc:" + a) }, salta: false };
+  const win = { close: () => hechos.push("cerrar-ventana") };
+  new Function("GPP", "PRES_CLAVE", "presCerrar", "MANDO_APARTE", "PZ", "DIRECTO", "presOn", "setTimeout", "window", fn + "\npresUna();")(
+    GPP, PRES_CLAVE, () => hechos.push("cerrar"), !!aparte, PZ, { on: !!emite }, (on) => hechos.push("presOn:" + on), (f) => f(), win);
+  return { hechos, mem: mem.v, salta: PZ.salta };
 };
 let r = prueba("presentador");
-c(r.hechos[0] === "cerrar" && r.mem === "simple", "🔴 con «dos pantallas» recordado: cierra la presentación y queda recordado «una pantalla»", r);
+c(r.hechos.includes("cerrar") && r.mem === "simple", "🔴 con «dos pantallas» recordado: cierra la presentación y queda recordado «una pantalla»", r);
 r = prueba(null);
 c(r.hechos.join() === "cerrar" && r.mem === null, "   sin nada recordado: solo cierra (no se pone a recordar por su cuenta)", r);
+// 16-nov · AL REVÉS: desde el panel aparte, la pestaña vuelve a ser la sesión (emitiendo si emitía) y el panel se cierra; nunca «cierra»
+r = prueba("presentador", true, true);
+c(r.hechos.includes("acc:volver:1") && !r.hechos.includes("cerrar") && r.hechos.includes("cerrar-ventana") && r.salta === true && r.mem === "simple",
+  "🔴 al revés, desde el panel emitiendo: la pestaña vuelve con el directo (volver:1), el panel se cierra y no se apaga la emisión al irse", r);
+r = prueba(null, true, false);
+c(r.hechos.includes("acc:volver") && !r.hechos.includes("acc:volver:1") && !r.hechos.includes("cerrar") && r.salta === false, "   sin emitir: «volver» a secas", r);
 // 3 · la llamada en la ventana nueva
 const llamada = (S.match(/function montarLlamada\(el\)\{[\s\S]*?var reloj=null, vivo=true, vistos=\{\};/) || [""])[0];
 c(/document\.addEventListener\('sg:motor', alMotor, \{once:true\}\)/.test(llamada), "🔴 sin motor todavía, la Llamada espera a sg:motor y se monta otra vez (con su globo)");
@@ -44,7 +54,7 @@ c(/sigue=false; document\.removeEventListener\('sg:motor', alMotor\); if\(otra\)
 c(/if\(sigue&&el\.isConnected\) otra=montarLlamada\(el\)/.test(llamada), "   solo se monta si la diapositiva sigue en pantalla");
 
 // 4 · al cargar, una presentación suelta no enciende el mando (salvo «dos pantallas» recordado)
-c(/GPP\.mando\(\{ per:st\.per\|\|'demo', ignorar:GPP\.recordado\(PRES_CLAVE\)!=='presentador',/.test(S), "🔴 al cargar, el mando no se enciende por una presentación suelta (la que Chrome reabre al reiniciar), salvo con «dos pantallas» recordado");
+c(/GPP\.mando\(\{ per:st\.per\|\|'demo', ignorar:!MANDO_APARTE&&GPP\.recordado\(PRES_CLAVE\)!=='presentador',/.test(S), "🔴 al cargar, el mando no se enciende por una presentación suelta (la que Chrome reabre al reiniciar), salvo con «dos pantallas» recordado");
 const PJ = fs.readFileSync(path.join(__dirname, "..", "assets/js/presentador.js"), "utf8");
 c(/m\.tipo === "sigues"\) post\(\{ tipo: "aqui" \}\)/.test(PJ) && /ESPERA = 75000/.test(PJ), "🔴 sin temblor: la presentación contesta al «sigues» del mando y sin señal se esperan 75 s (pieza de GamificaPro)");
 c(/calla = true; mirar\(\); \}/.test(PJ), "   tras «una pantalla», el mando calla hasta que se piden dos otra vez");
@@ -62,5 +72,21 @@ for (const j of ["fragmento", "ashan"]) {
 c(/un latido cada vez/.test(MM) && /mudo = true;/.test(MM), "   el pulso: un latido cada vez (no se amontonan) y, a la vista sin fotogramas, también el reloj");
 const B = fs.readFileSync(path.join(__dirname, "..", "_build_site.py"), "utf8");
 c(/_J_FUERA = sorted/.test(B) && /for _r in _J_FUERA:/.test(B), "🔴 la huella de juegos/ incluye lo que pide de assets/ (mapaMundo): cambiar solo el globo cambia la huella");
+// 7 · 16-nov · DOS PANTALLAS AL REVÉS (Norberto: «la ventana que se abre sea el panel del docente y la que se queda, lo que ve el estudiante»)
+c(/var APARTE=q\.get\('aparte'\)==='1', MANDO_APARTE=APARTE&&!PRES;/.test(S), "🔴 &aparte=1: en la emergente, el panel; en la pestaña (con presentar=1), la vista de la clase");
+c(/GPP\.abrir\(urlCon\(\{ presentar:null, aparte:'1', i:st\.i, directo:DIRECTO\.on\?'1':null \}\), \(st\.per\|\|'demo'\)\+'_mando'\)/.test(S)
+  && /location\.replace\(urlCon\(\{ presentar:'1', aparte:'1' \}\)\);/.test(S), "🔴 abrir: el panel en la emergente (misma diapositiva, emitiendo si emitía) y esta pestaña pasa a presentación");
+c(/if\(MANDO_APARTE\) return true;/.test(S), "   el panel aparte no vuelve a abrir nada");
+c(/encenderDirecto\(\); presAlEmitir\(\); \} \};/.test(S) && /if\(\(EMBED\|\|DIR_URL\) && !st\.alumno/.test(S), "🔴 «Emitir en directo»: primero se enciende y el panel lo hereda (&directo=1) y sigue emitiendo");
+c(/if\(DIRECTO\.on&&!PZ\.salta\)\{/.test(S), "   la pestaña que pasa a presentación no apaga el directo al irse");
+c(/if\(I_URL!=null\)\{ st\.i=I_URL; I_URL=null; \}/.test(S) && /uL\.searchParams\.delete\('i'\); uL\.searchParams\.delete\('directo'\)/.test(S), "   el panel empieza en la misma diapositiva; i y directo se quitan de la URL al leerlos");
+c(/if\(\/\^volver\(:1\)\?\$\/\.test\(a\)\)\{ if\(APARTE\) presVolver\(a==='volver:1'\); return; \}/.test(S), "🔴 en la pestaña, «volver» del panel la devuelve a la sesión del docente");
+c(/data-pa="panel">Abrir mi panel<\/button><button type="button" class="btn min" data-pa="una">Volver a una pantalla/.test(S), "   y en ella, al mover el ratón, «Abrir mi panel» y «Volver a una pantalla»");
+c(/PZ\.m\.acc\('lcver:'\+/.test(S) && /if\(a==='lcx'\)/.test(S), "🔴 «Verlo aquí» y «Cerrar» del visor de ejemplos, abiertos en el panel, salen también en la vista de la clase");
+const CSS = fs.readFileSync(path.join(__dirname, "..", "assets/css/stargate.css"), "utf8");
+c(/body\.ses-presenta \.mazo \.lienzo a\[href\],body\.ses-presenta \.mazo \.lienzo \[data-lc-ver\],body\.ses-presenta \.mazo \.lienzo \.lc-visor\{pointer-events:auto\}/.test(CSS),
+  "🔴 en la vista de la clase se pulsan los enlaces y los ejemplos (los botones que escriben, no)");
+c(/Tu panel, en una ventana aparte; esta pestaña queda como la ve tu clase/.test(PJ) && /Abrir mi panel/.test(PJ), "   la pregunta y la ayuda del motor ya lo cuentan al revés (GamificaPro sdk/presentador.js)");
+
 console.log("\n  " + ok + " comprobaciones, " + fallos.length + " fallos");
 process.exit(fallos.length ? 1 : 0);

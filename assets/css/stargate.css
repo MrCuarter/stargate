@@ -8396,6 +8396,13 @@ body.ses-presenta .ses-ctl,body.ses-presenta .mazo .nav,body.ses-presenta .barra
 body.ses-presenta .ses-al,body.ses-presenta .ses-mando,body.ses-presenta #sg-guia,body.ses-presenta .gp-cab{display:none!important}
 body.ses-presenta .mazo .lienzo{pointer-events:none}
 body.ses-presenta .mazo .lienzo .yt.on,body.ses-presenta .mazo .lienzo iframe{pointer-events:auto}
+/* 16-nov · en la vista de la clase también se pulsan los enlaces y los ejemplos (Norberto: «poder hacer clic a esos enlaces en la vista
+   del estudiante, ahora es complicado abrir enlaces y ejemplos»); los botones que escriben siguen quietos: esta ventana no escribe nada */
+body.ses-presenta .mazo .lienzo a[href],body.ses-presenta .mazo .lienzo [data-lc-ver],body.ses-presenta .mazo .lienzo .lc-visor{pointer-events:auto}
+/* 16-nov · dos pantallas al revés: en la pestaña que pasa a presentación, «Abrir mi panel» y «Volver a una pantalla», solo al mover el ratón */
+.ses-pres-aparte{position:fixed;left:72px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:60;display:flex;gap:8px;flex-wrap:wrap;opacity:0;transition:opacity .3s;pointer-events:none}
+.ses-pres-aparte.on,.ses-pres-aparte:focus-within{opacity:.92;pointer-events:auto}
+.ses-pres-aparte .btn{min-height:40px;background:rgba(5,12,22,.85);backdrop-filter:blur(6px)}
 /* el mando: la siguiente en pequeño y las notas, debajo de la diapositiva */
 .ses-pres.on{color:var(--teal);border-color:var(--teal)}
 .ses-mando{margin:14px 0;border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:12px 14px;display:grid;grid-template-columns:minmax(220px,30%) minmax(0,1fr);gap:12px 18px;align-items:start}

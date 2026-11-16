@@ -3022,8 +3022,17 @@
    * siguiente en pequeño y las notas. Para cambiar: el icono de las dos pantallas, junto a los demás. Sin avisos ni visitas nuevas.
    */
   var PRES=q.get('presentar')==='1', GPP=window.GP&&window.GP.presentador, PRES_CLAVE='sg-sesion';
+  /*
+   * 🔴 16-nov · DOS PANTALLAS, AL REVÉS (Norberto: «quiero que la ventana que se abre sea el panel del docente y la que se queda en la
+   * página sea lo que ve el estudiante»; lo mismo que DPG hizo hoy, web-camino clase.js). `&aparte=1`: en la ventana emergente, el MANDO
+   * (la sesión entera del docente, en la misma diapositiva y emitiendo si ya emitía: `&i=` y `&directo=1`); en la pestaña de siempre, que
+   * pasa a presentación (`&presentar=1&aparte=1`), «Volver a una pantalla» y «Abrir mi panel», que solo salen al mover el ratón.
+   */
+  var APARTE=q.get('aparte')==='1', MANDO_APARTE=APARTE&&!PRES;
+  var I_URL=q.get('i')!=null&&q.get('i')!==''?Math.max(0, parseInt(q.get('i'),10)||0):null, DIR_URL=q.get('directo')==='1';
+  if(I_URL!=null||DIR_URL) try{ var uL=new URL(location.href); uL.searchParams.delete('i'); uL.searchParams.delete('directo'); history.replaceState(null,'',uL); }catch(e){}
   if(PRES) document.body.classList.add('embed','ses-presenta');
-  var PZ={m:null, p:null, on:false, vista:null, ini:false};
+  var PZ={m:null, p:null, on:false, vista:null, ini:false, salta:false};
   var IC_DOS='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 6h9v7H2zM13 6h9v7h-9zM5 17h3M6.5 13v4M16 17h3M17.5 13v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   /** Lo que viaja: lo mismo que se emite al directo (sin esperar a que el directo esté encendido). */
   function estadoSesion(){
@@ -3033,14 +3042,52 @@
       rot:String(sl.rot||'').slice(0,80), mazo:mazoParaEmitir(), t:Date.now(), por:st.miNombre||''};
   }
   function presMandar(){ if(PZ.m&&PZ.on){ var e=estadoSesion(); if(e) PZ.m.mandar(e); } }
-  function presUrl(){ var u=new URL(location.href); u.searchParams.set('presentar','1'); u.searchParams.set('sem', st.sem); u.searchParams.delete('embed'); u.searchParams.delete('ventana'); return u.toString(); }
+  /** La URL de esta sesión con cambios (null quita el parámetro); siempre con su semana y sin «embed» ni «ventana». */
+  function urlCon(c){
+    var u=new URL(location.href); u.searchParams.set('sem', st.sem); u.searchParams.delete('embed'); u.searchParams.delete('ventana');
+    Object.keys(c||{}).forEach(function(k){ if(c[k]==null) u.searchParams.delete(k); else u.searchParams.set(k, String(c[k])); });
+    return u.toString();
+  }
+  function presUrl(){ return urlCon({ presentar:'1' }); }
+  /** 16-nov · en la presentación de la pestaña de siempre: volver a ser la sesión del docente (y seguir emitiendo si emitía el mando). */
+  function presVolver(emitia){ location.replace(urlCon({ presentar:null, aparte:null, directo:emitia?'1':null })); }
+  /** 16-nov · «Abrir mi panel»: si se ha cerrado la ventana del mando, otra vez (es un clic: el navegador la deja abrir). */
+  function presPanel(){
+    var w=GPP?GPP.abrir(urlCon({ presentar:null, aparte:'1' }), (st.per||'demo')+'_mando'):null;
+    if(!w) alert('El navegador ha bloqueado la ventana de tu panel: permite las ventanas emergentes de esta web y vuelve a probar.');
+  }
+  /** 16-nov · en la presentación de la pestaña de siempre, los dos botones (solo se ven al mover el ratón, como en DPG). */
+  function presBotonesAparte(){
+    if(!PRES||!APARTE||document.getElementById('ses-pres-aparte')) return;
+    var d=document.createElement('div'); d.id='ses-pres-aparte'; d.className='ses-pres-aparte';
+    d.innerHTML='<button type="button" class="btn min" data-pa="panel">Abrir mi panel</button><button type="button" class="btn min" data-pa="una">Volver a una pantalla</button>';
+    d.addEventListener('click', function(ev){ var b=ev.target.closest('[data-pa]'); if(!b) return;
+      if(b.getAttribute('data-pa')==='panel') presPanel(); else { if(PZ.p) PZ.p.destruir(); presVolver(false); } });
+    document.body.appendChild(d);
+    var t=null, mueve=function(){ d.classList.add('on'); clearTimeout(t); t=setTimeout(function(){ d.classList.remove('on'); }, 2500); };
+    document.addEventListener('pointermove', mueve); mueve();
+  }
   function presIniciar(){
     if(PZ.ini||!GPP||st.alumno) return; PZ.ini=true;
-    if(PRES){ PZ.p=GPP.presentacion({ per:st.per||'demo', alEstado:seguirMando, alAcc:function(a){ if(lupaDesde(a)) return; var m=/^yt:(\d+)$/.exec(a), y=m&&root.querySelectorAll('.lienzo .yt')[+m[1]]; if(y) y.click(); } }); return; }
+    if(PRES){ presBotonesAparte();
+      PZ.p=GPP.presentacion({ per:st.per||'demo', alEstado:seguirMando, alAcc:function(a){
+        if(/^volver(:1)?$/.test(a)){ if(APARTE) presVolver(a==='volver:1'); return; }
+        if(lupaDesde(a)) return;
+        // 16-nov · el visor de ejemplos («Verlo aquí» / «Cerrar») que se abre en el mando sale también aquí
+        var v=/^lcver:(\d+)$/.exec(a), bv=v&&root.querySelectorAll('.lienzo [data-lc-ver]')[+v[1]]; if(bv){ bv.click(); return; }
+        if(a==='lcx'){ var bx=root.querySelector('.lienzo .lc-visor:not([hidden]) .lc-visor-x'); if(bx) bx.click(); return; }
+        var m=/^yt:(\d+)$/.exec(a), y=m&&root.querySelectorAll('.lienzo .yt')[+m[1]]; if(y) y.click(); } }); return; }
     // (11-nov · al cargar, una presentación que ya estaba abierta no enciende el mando sola, salvo con «dos pantallas» recordado: la que
     // Chrome reabre al reiniciar como pestaña normal lo hacía temblar. Para volver a ella, el icono: reutiliza esa misma ventana)
-    PZ.m=GPP.mando({ per:st.per||'demo', ignorar:GPP.recordado(PRES_CLAVE)!=='presentador', alCambiar:presOn, alPide:presMandar,
+    PZ.m=GPP.mando({ per:st.per||'demo', ignorar:!MANDO_APARTE&&GPP.recordado(PRES_CLAVE)!=='presentador', alCambiar:presOn, alPide:presMandar,
       alTecla:function(key, shift){ document.dispatchEvent(new KeyboardEvent('keydown',{key:key, shiftKey:shift})); } });
+    // 16-nov · «Verlo aquí» y «Cerrar» del visor de ejemplos: se abre aquí y también en la presentación (lo que ve la clase)
+    document.addEventListener('click', function(ev){
+      if(!PZ.on||!ev.target.closest) return;
+      var b=ev.target.closest('.lienzo [data-lc-ver]');
+      if(b){ PZ.m.acc('lcver:'+Array.prototype.indexOf.call(root.querySelectorAll('.lienzo [data-lc-ver]'), b)); return; }
+      if(ev.target.closest('.lienzo .lc-visor-x')) PZ.m.acc('lcx');
+    }, true);
     // (en el mando, el vídeo suena en la presentación)
     document.addEventListener('click', function(ev){
       if(!PZ.on||!ev.target.closest) return; var y=ev.target.closest('.lienzo .yt'); if(!y||y.classList.contains('on')) return;
@@ -3066,7 +3113,7 @@
     var p=document.getElementById('ses-mando');
     if(PZ.on&&!p){
       p=document.createElement('aside'); p.id='ses-mando'; p.className='ses-mando'; p.setAttribute('aria-label','Tu centro de mando');
-      p.innerHTML='<div class="ses-mando-cab"><b>Presentando en otra ventana</b><span>Comparte o proyecta esa ventana: desde aquí la pasas y sale al momento.</span>'
+      p.innerHTML='<div class="ses-mando-cab"><b>'+(MANDO_APARTE?'Tu panel':'Presentando en otra ventana')+'</b><span>'+(MANDO_APARTE?'Tu clase ve la otra pestaña: compártela o proyéctala. Desde aquí la pasas y sale al momento.':'Comparte o proyecta esa ventana: desde aquí la pasas y sale al momento.')+'</span>'
         +'<button type="button" class="btn min" data-ses-mando-cerrar>Volver a una pantalla</button></div>'
         +'<div class="ses-mando-sig"><small id="ses-mando-sig-t">La siguiente</small><div class="ses-mando-mini" id="ses-mando-mini"></div></div><div class="ses-mando-notas" id="ses-mando-notas"></div>';
       root.parentNode.insertBefore(p, root.nextSibling);
@@ -3091,14 +3138,26 @@
     escala(); if(window.ResizeObserver&&!caja._ro) (caja._ro=new ResizeObserver(function(){ var x=caja.firstChild; if(x){ m=x; escala(); } })).observe(caja);
   }
   function presAbrir(){
-    var w=GPP&&PZ.m?GPP.abrir(presUrl(), st.per||'demo'):null;
-    if(!w){ alert('El navegador ha bloqueado la ventana de la presentación: sigues con una pantalla. Para usar dos, permite las ventanas emergentes de esta web y vuelve a probar.'); return false; }
-    PZ.m.abierta(w); return true;
+    if(MANDO_APARTE) return true;   // (ya es el mando aparte: la presentación es la pestaña de la que salió)
+    // 16-nov · al revés: la emergente es el mando (esta sesión, en la misma diapositiva y emitiendo si emitía) y esta pestaña, la presentación
+    var w=GPP&&PZ.m?GPP.abrir(urlCon({ presentar:null, aparte:'1', i:st.i, directo:DIRECTO.on?'1':null }), (st.per||'demo')+'_mando'):null;
+    if(!w){ alert('El navegador ha bloqueado la ventana de tu panel: sigues con una pantalla. Para usar dos, permite las ventanas emergentes de esta web y vuelve a probar.'); return false; }
+    PZ.salta=true;   // (la emisión la sigue el mando: al irse, esta pestaña no la apaga)
+    if(PZ.m){ PZ.m.destruir(); PZ.m=null; }
+    location.replace(urlCon({ presentar:'1', aparte:'1' }));
+    return true;
   }
   function presCerrar(){ if(PZ.m) PZ.m.cerrar(); presOn(false); }
   /** Volver a una pantalla (el icono y el botón del mando): cierra la presentación y, si «dos pantallas» estaba recordado, recuerda «una»
    *  (11-nov · antes el botón del mando no lo cambiaba y «Emitir en directo» volvía a abrir la ventana: «no me deja cambiar a una pantalla»). */
-  function presUna(){ presCerrar(); if(GPP&&GPP.recordado(PRES_CLAVE)) GPP.recordar(PRES_CLAVE,'simple'); }
+  function presUna(){
+    if(GPP&&GPP.recordado(PRES_CLAVE)) GPP.recordar(PRES_CLAVE,'simple');
+    // 16-nov · el mando aparte: la presentación vuelve a ser la sesión de siempre (emitiendo, si emitía este) y esta ventana se cierra.
+    // (Sin «cierra»: si la pestaña la abrió la Nave, la presentación se cerraría entera en vez de volver)
+    if(MANDO_APARTE){ if(PZ.m) PZ.m.acc(DIRECTO.on?'volver:1':'volver'); PZ.salta=DIRECTO.on; presOn(false);
+      setTimeout(function(){ try{ window.close(); }catch(e){} }, 200); return; }
+    presCerrar();
+  }
   function presBoton(){ return '<button type="button" class="ses-ic ses-pres'+(PZ.on?' on':'')+'" data-ses-presentar title="Una o dos pantallas: la presentación en una ventana aparte (la que compartes) y esta como tu mando" aria-label="Presentar en otra ventana">'+IC_DOS+'</button>'; }
   function presAyuda(){
     GPP.ayuda({ nombre:'Presentación · STARGATE', nota:'El mando va en esta ventana: comparte solo la de la presentación.', alAbrir:presAbrir });
@@ -3357,8 +3416,8 @@
     marcarTramo();
     // 17-sep · en directo: el docente que proyecta dentro de su Genially emite solo; el recluta, sigue
     // (30-sep · si el docente la apaga a mano, se queda apagada: antes cada repintado la volvía a encender)
-    var bd=root.querySelector('#ses-directo'); if(bd) bd.onclick=function(){ if(DIRECTO.on){ DIRECTO.aMano=true; apagarDirecto(); } else { DIRECTO.aMano=false; presAlEmitir(); encenderDirecto(); } };
-    if(EMBED && !st.alumno && st.per && st.yo && !DIRECTO.aMano) encenderDirecto(); else emitir();
+    var bd=root.querySelector('#ses-directo'); if(bd) bd.onclick=function(){ if(DIRECTO.on){ DIRECTO.aMano=true; apagarDirecto(); } else { DIRECTO.aMano=false; encenderDirecto(); presAlEmitir(); } };
+    if((EMBED||DIR_URL) && !st.alumno && st.per && st.yo && !DIRECTO.aMano) encenderDirecto(); else emitir();
     lupaIniciar(); publicarNotas(); presIniciar(); if(PZ.on) pintaSiguiente();
     if(st.alumno && !DIFERIDO){ seguirDocente(); SEG.dibujado=''; pintarSeguir(); }
   }
@@ -3649,7 +3708,7 @@
     b.title=sinSenal?'No llega a tus reclutas: lo estoy volviendo a mandar solo. Si dura, revisa la conexión.'
       :DIRECTO.on?'Tus reclutas ven esta sesión a tu ritmo desde su Nave. Pulsa para dejar de emitir.':'Que tus reclutas la sigan a tu ritmo desde su Nave';
   }
-  window.addEventListener('pagehide', function(){ if(DIRECTO.on){ var M=window.SG&&window.SG.MOTOR; if(M&&M.publicarEnVivo) M.publicarEnVivo(st.per,{sesion:{activa:false,t:Date.now()}}).catch(function(){}); } });
+  window.addEventListener('pagehide', function(){ if(DIRECTO.on&&!PZ.salta){ var M=window.SG&&window.SG.MOTOR; if(M&&M.publicarEnVivo) M.publicarEnVivo(st.per,{sesion:{activa:false,t:Date.now()}}).catch(function(){}); } });
 
   // ── el recluta sigue al docente
   function indiceDe(k, n){ var c=-1; for(var i=0;i<st.slides.length;i++){ if(st.slides[i].k===k){ c++; if(c===Number(n||0)) return i; } } return -1; }
@@ -3913,6 +3972,7 @@
     var hoy=window.SGCAL.semanaActual(st.inicio, st.pausas);
     st.semHoy=hoy&&hoy>0?hoy:1;
     st.sem=forzada||st.semHoy;
+    if(I_URL!=null){ st.i=I_URL; I_URL=null; }   // 16-nov · el mando aparte, en la diapositiva en la que estaba
     if(st.alumno && st.sem>st.semHoy) st.sem=st.semHoy;   // 25-sep · el recluta, nunca más allá de la semana en curso
     // 16-sep · el ticket de salida se pide YA, en paralelo: Apps Script tarda unos segundos en despertar, y así
     // cuando el docente llega a esa diapositiva las respuestas ya están (o ya se sabe que no van a llegar)

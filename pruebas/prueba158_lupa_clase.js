@@ -30,7 +30,7 @@ c(!/\.lc-caja,/.test((S.match(/bloques: [^\n]*/) || [""])[0]), "   el contenedor
 c(/alCambiar: function\(v\)\{ if\(PZ\.on&&PZ\.m\) PZ\.m\.acc\('lupa:'\+JSON\.stringify\(v\)\); \}/.test(S), "🔴 con dos pantallas, lo ampliado viaja a la presentación por el canal del presentador");
 c(/alLector: function\(r\)\{ if\(PZ\.on&&PZ\.m\) PZ\.m\.acc\('lector:'/.test(S), "   y lo abierto con un clic, también");
 c(!/lupa:[^\n]*(setDoc|updateDoc|emitir\()/.test(S), "   🔴 nada de eso pasa por el directo de Firestore (cada zoom sería una escritura)");
-c(/alAcc:function\(a\)\{ if\(lupaDesde\(a\)\) return;/.test(S), "   la presentación lo aplica (vista y lector) antes que lo demás");
+c(/alAcc:function\(a\)\{\s*if\(\/\^volver\(:1\)\?\$\/\.test\(a\)\)\{[^\n]*\}\s*if\(lupaDesde\(a\)\) return;/.test(S), "   la presentación lo aplica (vista y lector) antes que lo demás (16-nov · solo «volver», del panel aparte, va delante)");
 c(/LUPA\.vista\(JSON\.parse\(a\.slice\(5\)\)\)/.test(S) && /LUPA\.abrir\(JSON\.parse\(a\.slice\(7\)\)\)/.test(S), "   con try: un mensaje roto no la tumba");
 c(/GP\.lupa\.botonHTML\(\{ icono:LUPA_ICO, clase:'ses-ic ses-lupa'/.test(S) && /LUPA_ICO='assets\/img\/iconos\/lupa\.png'/.test(S), "   el botón, con los demás mandos y el icono de la Nave");
 c(fs.existsSync(path.join(__dirname, "..", "assets/img/iconos/lupa.png")) && fs.existsSync(path.join(__dirname, "..", "assets/img/iconos/p/lupa.png")), "   el icono, con aro y solo el pictograma");
