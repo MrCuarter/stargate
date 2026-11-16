@@ -618,6 +618,8 @@
       var paises={}; lista.forEach(function(x){ paises[x.pais]=1; }); var np=Object.keys(paises).length, sin=gente.length-lista.length;
       if(n) n.textContent=!gente.length ? '' : lista.length+(lista.length===1?' en el globo':' en el globo')+' · '+np+(np===1?' país':' países')
         +(sin>0&&o.sinCiudad ? ' · '+sin+' sin ciudad todavía' : '');
+      // 16-nov · con el globo, las caras se ocultan: si ya ha fichado alguien sin ciudad, el globo no puede decir «Esperando al primero…»
+      var vac=caja.querySelector('.gpmm-vacio'); if(vac) vac.textContent=gente.length ? gente.length+' a bordo · falta'+(gente.length===1?' su ciudad':'n sus ciudades') : o.vacio;
     };
     if(MAPA_PRUEBA) vivos().forEach(function(p, i){ var c=CIUDADES_PRUEBA[i%CIUDADES_PRUEBA.length]; if(p.fid) puntos[p.fid]={ la:c[0], lo:c[1], p:c[2], c:c[3] }; });
     else quita=M.mapaEscuchar(st.per, function(P){ puntos=P||{}; pintar(); }, function(){ /* sin permiso o sin red: se queda lo que había */ });
