@@ -2571,6 +2571,24 @@
       +'<p class="sub">'+(H?'Llevas <b>'+n+' de '+ids.length+'</b>. ':'')+'El relámpago se hace en clase… o después, cuando tú quieras; el principal, en casa. Se registran en tu Nave.</p>'
       +'<div class="rtt-l">'+filas+'</div></div>'};
   }
+  /**
+   * 🔴 17-nov · LA SESIÓN DE UNA SEMANA, PARA REPARTIR SIN CUENTA. El enlace `sesion.html?embed=1&diferido=1&per=…&sem=N` lo abre
+   * cualquiera (el Panel UNIR lo manda al alumnado que no juega). Sin cuenta no se sabe quién mira, y el mazo entero era el del
+   * docente: ranking con alias y XP, «han movido ficha», quién superó las misiones, lo que escribió cada uno en el ticket y los
+   * resultados de cada escuadrón, y se abría hasta una semana que aún no ha llegado. Aquí se queda solo lo que es de la asignatura
+   * (la clase, los vídeos, la entrega, los retos del tema y el cierre): nada de lo que sea de las personas del grupo.
+   * Es la lista de lo que SÍ sale, a propósito: una diapositiva nueva no se cuela sin que alguien la mire.
+   */
+  var PUBLICAS_SIN_CUENTA=['portada','pregunta','video','entrega','retos_tema','retos-semana','tripulante','insignias','hito','genially',
+    'ticket_form','hasta','plantilla'];
+  function sinCuentaSemana(){ return DIFERIDO && !st.alumno && !st.yo; }
+  function paraSinCuenta(sl, s){
+    var out=[]; sl.forEach(function(x){
+      if(x.k==='retos-semana'){ var r=diaRetosTema(s); if(r) out.push(r); return; }
+      if(PUBLICAS_SIN_CUENTA.indexOf(x.k)>=0) out.push(x);
+    });
+    return out.length?out:sl.slice(0,1);
+  }
   function diaRankingDif(){
     var R=vivos(); if(!R.length) return null;
     var yo=R.filter(function(x){ return x.fid===st.ficha; })[0]||null, prof=yo?yo.profe:st.profeMio;
@@ -3366,6 +3384,7 @@
     if(st.act&&st.alumno){ var aA=actN(st.act); if(!aA||Number(aA.sem)>Number(st.semHoy)) st.act=0; }
     st.slides=st.act?construirActividad(st.act):st.pres&&hayPresentacion()?construirEmbarque(lista[0]||s,n):construir(s,n);
     if(DIFERIDO&&st.alumno&&!st.pres&&!st.act) st.slides=paraDiferido(st.slides, s);   // 26-sep · menos paja para el recluta
+    else if(sinCuentaSemana()&&!st.pres&&!st.act) st.slides=paraSinCuenta(st.slides, s);   // 17-nov · y sin cuenta, solo lo de la asignatura
     if(DIFERIDO) st.slides=[diaSemanas(lista)].concat(st.slides);   // 25-sep · en diferido, el índice de semanas delante
     if(DIF_ELEGIDA && st.i===0 && st.slides.length>1) st.i=1;
     if(st.i>=st.slides.length) st.i=st.slides.length-1;
@@ -3975,6 +3994,7 @@
     st.sem=forzada||st.semHoy;
     if(I_URL!=null){ st.i=I_URL; I_URL=null; }   // 16-nov · el mando aparte, en la diapositiva en la que estaba
     if(st.alumno && st.sem>st.semHoy) st.sem=st.semHoy;   // 25-sep · el recluta, nunca más allá de la semana en curso
+    if(sinCuentaSemana() && st.sem>st.semHoy) st.sem=st.semHoy;   // 17-nov · y quien abre el enlace sin cuenta: tampoco una semana que no ha llegado
     // 16-sep · el ticket de salida se pide YA, en paralelo: Apps Script tarda unos segundos en despertar, y así
     // cuando el docente llega a esa diapositiva las respuestas ya están (o ya se sabe que no van a llegar)
     precargarTickets();

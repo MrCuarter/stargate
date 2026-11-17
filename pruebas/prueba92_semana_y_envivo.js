@@ -68,6 +68,14 @@ c(/if\(EMBED\|\|SEGUIR\|\|DIFERIDO\)\{/.test(SES) && /st\.alumno=true; st\.ficha
 const NAVE92 = leer("assets/js/recluta.js");
 c(/var DIFERIDO = q\.get\('diferido'\) === '1'/.test(SES) && /if\(st\.alumno && st\.sem>st\.semHoy\) st\.sem=st\.semHoy;/.test(SES),
   "🔴 diferido · el recluta ve la sesión de una semana, nunca más allá de la semana en curso");
+// 17-nov · el enlace sin cuenta (`sesion.html?embed=1&diferido=1&per=…&sem=N`, el que se reparte): ni datos del grupo ni semanas que no han llegado
+c(/function sinCuentaSemana\(\)\{ return DIFERIDO && !st\.alumno && !st\.yo; \}/.test(SES) && /else if\(sinCuentaSemana\(\)&&!st\.pres&&!st\.act\) st\.slides=paraSinCuenta\(st\.slides, s\)/.test(SES)
+  && /if\(sinCuentaSemana\(\) && st\.sem>st\.semHoy\) st\.sem=st\.semHoy;/.test(SES),
+  "🔴 diferido sin cuenta · el enlace de una semana trae solo lo de la asignatura y no abre una semana futura");
+{ const lista = (SES.match(/var PUBLICAS_SIN_CUENTA=\[([^\]]*)\]/) || [])[1] || "";
+  const prohibidas = ["semanal", "top", "coleccion", "escuadrones", "movido", "anteriores", "ticket", "ticket_dudas", "ticket_escuadron", "reflexion", "votacion", "oferta", "simulacro", "simulador", "directo", "atascado", "ruta"];
+  c(lista.length > 0 && prohibidas.every(k => lista.indexOf("'" + k + "'") < 0),
+    "   y nada de lo que es de las personas del grupo: ranking, quién ha movido ficha, tickets, reflexiones, votaciones, ofertas ni la Ruta"); }
 c(/if\(st\.alumno && !DIFERIDO\)\{ seguirDocente\(\)/.test(SES) && /st\.alumno && !DIFERIDO && d && d\.activa/.test(SES),
   "   a su ritmo: no sigue al docente ni se bloquea");
 c(/var SOLO_EN_DIRECTO = \['llamada', 'unete', 'alistaos'\]/.test(SES) && (SES.match(/if\(DIFERIDO\) todo=todo\.filter/g) || []).length === 2,
