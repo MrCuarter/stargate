@@ -853,6 +853,8 @@
     var repes=0; CROMOS.forEach(function(c){var n=tengo[c[0]]||0; if(n>1) repes+=n-1;});
     // los que quedan SIN cambiar los cuenta el servidor (descuenta los ya gastados): es el dato bueno
     var libres=r.repes_disponibles!=null?r.repes_disponibles:repes;
+    // 17-nov · cuántas pide un sobre en ESTE grupo (3; 5 en los que nacen nivelados: SG.repesPorSobre, stargate.js)
+    var NR=repesSobre();
     function rarCls(rz){return rz==='LEGENDARIA'?' leg':rz==='épica'?' epi':rz==='rara'?' rar':'';}
     function celda(c){var nn=tengo[c[0]]||0;
       // la que ya tienes se abre en grande (la carta lleva texto: hay que poder LEERLA)
@@ -875,10 +877,10 @@
       +'<b>LEGENDARIOS</b>: el General Vaeon (2 de cada 100 sobres) y <b>Ander Vaeon</b>, la carta que revela '
       +'quién era antes de ser Vaeon — <b>1 de cada 100</b>, la más difícil de toda la galaxia.'
       +'</p>'
-      +(repes?'<p class="repes'+(libres>=3?' listo':'')+'"><img class=ico src=assets/img/iconos/p/zoco.png alt> Llevas <b>'+repes+'</b> repetido'+(repes===1?'':'s')
-        +(libres>=3?' — y con 3 te llevas un sobre <b>gratis</b>. Puedes cambiar '+Math.floor(libres/3)+' vez'+(Math.floor(libres/3)===1?'':'es')+'.'
-                   :(libres?' ('+libres+' sin cambiar): con 3 te llevas un sobre gratis.':' — ya los has cambiado todos por sobres.'))
-        +(libres>=3&&d.formCanje?' <a class="btn small" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">Cambiar 3 repetidos →</a>':'')+'</p>':'')
+      +(repes?'<p class="repes'+(libres>=NR?' listo':'')+'"><img class=ico src=assets/img/iconos/p/zoco.png alt> Llevas <b>'+repes+'</b> repetido'+(repes===1?'':'s')
+        +(libres>=NR?' — y con '+NR+' te llevas un sobre <b>gratis</b>. Puedes cambiar '+Math.floor(libres/NR)+(Math.floor(libres/NR)===1?' vez':' veces')+'.'
+                   :(libres?' ('+libres+' sin cambiar): con '+NR+' te llevas un sobre gratis.':' — ya los has cambiado todos por sobres.'))
+        +(libres>=NR&&d.formCanje?' <a class="btn small" href="'+esc(d.formCanje)+'" target="_blank" rel="noopener">Cambiar '+NR+' repetidos →</a>':'')+'</p>':'')
       +series+'</div>'):'';
     var nIns=(r.insignias||[]).length;
     /**
@@ -898,7 +900,7 @@
     var puertas='<div class="bt-puertas" role="group" aria-label="Qué quieres ver">'
       +puerta('insignias','assets/img/iconos/p/medalla.png','Insignias',nIns+' / '+BADGES.length,'Por planetas, y los logros de a bordo')
       +(CROMOS.length?puerta('cromos','assets/img/iconos/p/estrella.png','Cromos',nCromos+' / '+CROMOS.length,'Tu álbum de cartas',
-          libres>=3?'Tienes repetidas para cambiar':''):'')
+          libres>=NR?'Tienes repetidas para cambiar':''):'')
       +puerta('heroes','assets/img/iconos/p/escudo.png','Héroes',(vestuarioAbierto()?nHer+' / '+nHerT:'—'),'Tu personaje, tus héroes y tus adornos',
           rh>=2?rh+' repetidos para cambiar':'')
       +'</div>';
@@ -2296,6 +2298,22 @@
    * en otro grupo (la puerta lo apuntó: `sgEsDocente`), también, hacia su consola. Si es del equipo de ESTE grupo y su
    * ficha aún cuenta como un recluta más (se alistó antes de que hubiera modo fantasma), se le ofrece pasarla a fantasma.
    */
+  /**
+   * 17-nov · CUÁNTAS REPETIDAS PIDE UN SOBRE EN ESTE GRUPO (la nivelación del álbum): 3 en los de siempre, 5 en los que nacen en
+   * la versión 3 del motor. Lo dice el grupo (su tarjeta: el recluta no lee el grupo entero) con SG.repesDelGrupo (stargate.js),
+   * una vez por grupo; si cambia, se repinta. Mientras no se sepa, 3: lo de siempre.
+   */
+  var repesMirado='';
+  function repesSobre(){ return window.SG&&SG.repesActual?SG.repesActual():3; }
+  function conRepes(t){ return window.SG&&SG.conRepes?SG.conRepes(t):t; }
+  function mirarRepes(){
+    if(!per||repesMirado===per||!window.SG||!SG.repesDelGrupo) return;
+    var este=per; repesMirado=este;
+    SG.repesDelGrupo(este).then(function(cambio){
+      if(cambio===null){ if(repesMirado===este) repesMirado=''; return; }   // aún sin motor: el próximo pintado lo vuelve a mirar
+      if(cambio&&per===este) render();
+    });
+  }
   var docenteMirado=false;
   function mirarSiDocente(){
     if(docenteMirado||SIMULACRO||!st.yo||!motorNuevo()) return;
@@ -3348,9 +3366,10 @@
       var veces=(r&&r.canjeados?r.canjeados[x.nombre]:0)||0;
       var repetible=!x.max||x.max>=99, tope=!repetible&&veces>=x.max;
       // (30-sep · se calcula ANTES de la etiqueta: abajo llegaba tarde y la etiqueta decía «te lo puedes permitir» sin botón)
-      var faltanRepes = x.tipo === 'cromo_repes' && (r ? (r.repes_disponibles || 0) : 0) < 3;
+      var NR = repesSobre();   // 17-nov · 3, o 5 en un grupo nivelado (la recompensa se llama igual: solo cambia lo que se lee)
+      var faltanRepes = x.tipo === 'cromo_repes' && (r ? (r.repes_disponibles || 0) : 0) < NR;
       var afford=!r?'':faltanRepes
-        ? '<span class="chip wip">Necesitas 3 repetidas · tienes '+((r&&r.repes_disponibles)||0)+'</span>'
+        ? '<span class="chip wip">Necesitas '+NR+' repetidas · tienes '+((r&&r.repes_disponibles)||0)+'</span>'
         :tope?'<span class="chip done">Ya la tienes'+(x.max>1?' ('+veces+'/'+x.max+')':'')+'</span>'
         :(mis>=x.coste?'<span class="chip ok">Te lo puedes permitir</span>':'<span class="chip wip">Te faltan '+(x.coste-mis)+' ◈</span>')
         +(veces?' <span class="chip">canjeada '+veces+(repetible?' vece'+(veces===1?'z':'s'):' de '+x.max)+'</span>':'');
@@ -3385,6 +3404,8 @@
       if(x.tipo==='heroe' && motorNuevo() && r && (r.heroes_repes||0)>=2)
         boton += '<button class="btn" type="button" data-canje="heroe_repes" data-nombre="Cambiar 2 héroes repetidos" data-coste="0" data-tipo="heroe_repes" data-abrir="1" data-usos="1">Cambiar 2 repetidos</button>';
       var qe=queEs(x.tipo), img=(window.SG_IMG_RECOMPENSA||{})[x.nombre];
+      // 17-nov · lo que se LEE con el número del grupo; el nombre de verdad (la clave de canjeados, la imagen, el botón), intacto
+      var nomV=x.tipo==='cromo_repes'?conRepes(x.nombre):x.nombre, descV=x.tipo==='cromo_repes'?conRepes(x.desc):x.desc;
       /**
        * 🔴 24-sep · TODAS DEL MISMO TAMAÑO. Norberto: «las cajas de ítems quiero que sean del mismo tamaño para dar
        * uniformidad visual; si no, chirría. Resume las que tengan descripciones muy largas u ocúltalas con un
@@ -3393,7 +3414,7 @@
        * aviso de las de nota— va en «Ver más». El pie (si te llega y el botón) cae siempre a la misma altura.
        */
       // (en «Ver más», lo que el resumen no dice: sin repetir la primera frase)
-      var resumen=resumenDesc(x.desc), resto=x.desc&&x.desc!==resumen?(x.desc.indexOf(resumen)===0?x.desc.slice(resumen.length).trim():x.desc):'';
+      var resumen=resumenDesc(descV), resto=descV&&descV!==resumen?(descV.indexOf(resumen)===0?descV.slice(resumen.length).trim():descV):'';
       var mas=(resto?'<p class="small rec-desc">'+esc(resto)+'</p>':'')
         +(qe[2]?'<p class="rec-donde">'+esc(qe[2])+'</p>':'')+aviso;
       return '<div class="card rec-card'+(tope?' agotada':'')+'">'
@@ -3401,16 +3422,16 @@
              :'<div class="rec-foto sin"><span>'+qe[0]+'</span></div>')
         +'<div class="rec-cuerpo">'
         +'<div class="rec-quees">'+qe[0]+' '+esc(qe[1])+'</div>'
-        +'<h3>'+esc(x.nombre)+'</h3>'
+        +'<h3>'+esc(nomV)+'</h3>'
         +'<p class="pts'+(gratis?' libre':'')+'">'+(gratis?'Sin créditos':x.coste+' ◈')+'</p>'
         +(resumen?'<p class="small rec-resumen">'+esc(resumen)+'</p>':'')
         // 6-oct · «Leer más…» abre la ficha entera en una ventana (la pieza del motor, sdk/tarjetas.js): antes se desplegaba
         // dentro y estiraba toda la fila (norma de diseño de GamificaPro: lo que va junto, igual)
-        +(mas?'<div class="gpt-celda rec-mas-c"><details class="gpt-tarjeta rec-mas"><summary><span class="gpt-mas">Leer más…</span><span hidden>'+esc(x.nombre)+'</span></summary>'
+        +(mas?'<div class="gpt-celda rec-mas-c"><details class="gpt-tarjeta rec-mas"><summary><span class="gpt-mas">Leer más…</span><span hidden>'+esc(nomV)+'</span></summary>'
           +'<button type="button" class="gpt-cerrar" data-gpt-cerrar aria-label="Cerrar" title="Cerrar (Esc)">×</button>'
-          +'<div class="rec-ventana"><div class="rec-quees">'+qe[0]+' '+esc(qe[1])+'</div><h3>'+esc(x.nombre)+'</h3>'
+          +'<div class="rec-ventana"><div class="rec-quees">'+qe[0]+' '+esc(qe[1])+'</div><h3>'+esc(nomV)+'</h3>'
           +'<p class="pts'+(gratis?' libre':'')+'">'+(gratis?'Sin créditos':x.coste+' ◈')+'</p>'
-          +(x.desc?'<p class="rec-desc">'+esc(x.desc)+'</p>':'')+(qe[2]?'<p class="rec-donde">'+esc(qe[2])+'</p>':'')+aviso+'</div></details>'
+          +(descV?'<p class="rec-desc">'+esc(descV)+'</p>':'')+(qe[2]?'<p class="rec-donde">'+esc(qe[2])+'</p>':'')+aviso+'</div></details>'
           +'<div class="gpt-velo" data-gpt-cerrar aria-hidden="true"></div></div>':'')
         +'</div>'
         +'<div class="rec-pie">'+(x.tipo==='nota'?'<span class="chip rec-pend" title="Las subidas de nota quedan pendientes hasta que tu docente las aprueba">Pendiente de tu docente</span>':'')+afford+boton+'</div></div>';
@@ -4008,7 +4029,12 @@
         {t:'Antes de comprar, lee esto',foco:'.nb-t[data-tab="mercado"]',
          x:'No se aplica solo: queda <b>pendiente</b> hasta que tu docente lo apruebe. Y si ya tienes la nota máxima de evaluación continua, <b>no te sube nada</b>: compruébalo antes.'}]
   };
-  function pasosDe(clave){ var v=PASOS_CAP[clave]; return clave==='c1'?pasosCap1():typeof v==='function'?v():v; }
+  function pasosDe(clave){ var v=PASOS_CAP[clave]; return pasosConRepes(clave==='c1'?pasosCap1():typeof v==='function'?v():v); }
+  // 17-nov · «Con tres repetidas…»: con el número del grupo (con 3, los mismos pasos, sin tocar)
+  function pasosConRepes(p){
+    if(!p||repesSobre()===3) return p;
+    return p.map(function(x){ return x&&typeof x.x==='string'?Object.assign({},x,{x:conRepes(x.x)}):x; });
+  }
   /** Lo visto: su ficha manda; el navegador es copia (y la bienvenida de antes cuenta como el capítulo 1). */
   function capsVistos(){
     var v=Object.assign({}, (st.yo&&st.yo.capitulos)||{});
@@ -5293,7 +5319,7 @@
       ? '<p class="neb-precio"><b>' + coste + ' ◈</b><span>de tus ' + (st.yo && st.yo.creditos != null ? st.yo.creditos : 0) + ' ◈</span></p>'
       : '<p class="neb-precio"><b>Sin créditos</b><span>esta no se paga con ◈</span></p>';
     nebulaPregunta({
-      titulo: '¿Canjeo «' + esc(nombre) + '»?',
+      titulo: '¿Canjeo «' + esc(tipo==='cromo_repes' ? conRepes(nombre) : nombre) + '»?',
       cuerpo: precio + '<p class="neb-nota">Los créditos se descuentan al confirmar. Tus <b>xp</b> no se tocan: el nivel de tu personaje no baja nunca.</p>',
       si: coste > 0 ? 'Sí, canjear' : 'Sí, cambiar',
       no: 'Ahora no'
@@ -5568,7 +5594,7 @@
       if(x){ try{ x.focus({preventScroll:true}); if(e.ini!=null) x.setSelectionRange(e.ini,e.fin); }catch(_){} } }
     if(Math.abs((window.pageYOffset||0)-e.y)>2){ try{ window.scrollTo(0,e.y); }catch(_){} }
   }
-  function render(){ var e=recordarEstado(); mirarSiDocente(); pintarNave(); restaurarEstado(e); reencenderFoco(); }
+  function render(){ var e=recordarEstado(); mirarSiDocente(); mirarRepes(); pintarNave(); restaurarEstado(e); reencenderFoco(); }
   // 14-sep · si la Nave se repinta con NEBULA a medio contar (llegan datos frescos), lo que estaba
   // iluminado se sustituye y se apaga: el paso decía «esto de aquí» sin «aquí». Se vuelve a encender.
   function reencenderFoco(){

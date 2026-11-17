@@ -21,6 +21,7 @@
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function conRepes(t) { return window.SG.conRepes ? window.SG.conRepes(t) : t; }
 
   var RAREZA = { "común": "comun", "comun": "comun", "rara": "rara", "épica": "epica", "epica": "epica",
                  "legendaria": "legendaria", "LEGENDARIA": "legendaria" };
@@ -130,7 +131,8 @@
             // 🔴 13-sep · un héroe repetido se decía como nuevo: pagabas 60 ◈ y nadie te avisaba
             ? (c.repetida ? '<p class="sb-extra"><img class=ico src=assets/img/iconos/p/zoco.png alt> Repetido: con dos héroes repetidos, uno nuevo al azar (en tu vestuario).</p>'
                           : '<p class="sb-extra nueva"><img class=ico src=assets/img/iconos/p/estrella.png alt> Nuevo en tu vestuario</p>')
-            : (c.repetida ? '<p class="sb-extra"><img class=ico src=assets/img/iconos/p/zoco.png alt> Repetida: con tres repetidas, un sobre nuevo gratis.</p>'
+            // 17-nov · con el número del grupo (3; 5 en los nivelados: SG.conRepes, stargate.js; con 3, el texto de siempre)
+            : (c.repetida ? '<p class="sb-extra"><img class=ico src=assets/img/iconos/p/zoco.png alt> ' + conRepes('Repetida: con tres repetidas, un sobre nuevo gratis.') + '</p>'
                           : '<p class="sb-extra nueva"><img class=ico src=assets/img/iconos/p/estrella.png alt> Nueva en tu álbum</p>'));
         capa.querySelector(".sb-sig").textContent = i < cartas.length - 1 ? "Siguiente carta →" : "Ver las " + cartas.length;
         if (cartas.length === 1) {

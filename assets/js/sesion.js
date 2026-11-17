@@ -1877,7 +1877,8 @@
       out.push({k:'nuevo', rot:'Novedades', html:   // (26-sep · «Tu Nave, más grande» no se entendía: es lo que se abre esa semana)
         '<div class="dia nuevo-nave"><div class="nn-txt"><div class="kicker"><img class=ico src=assets/img/iconos/p/abierto.png alt> Se abre esta semana en STARGATE</div>'
         +'<h2>'+c.icono+' '+esc(c.titulo)+'</h2><p class="sub">'+esc(c.cabecera||'')+'</p>'
-        +'<ul class="nn-lista">'+(c.puedes||[]).map(function(x,i){ return '<li style="--i:'+i+'">'+esc(x)+'</li>'; }).join('')+'</ul></div>'
+        // 17-nov · «Cambiar 3 cartas repetidas…»: con el número del grupo (SG.conRepes, stargate.js; con 3, lo de siempre)
+        +'<ul class="nn-lista">'+(c.puedes||[]).map(function(x,i){ return '<li style="--i:'+i+'">'+esc(window.SG&&SG.conRepes?SG.conRepes(x):x)+'</li>'; }).join('')+'</ul></div>'
         +(c.imagen?'<img class="nn-img" src="'+esc(c.imagen)+'" alt="">':'')+'</div>'});
     });
     out.push(diaSimulacro(s, caps));
@@ -4146,7 +4147,20 @@
       if(st.slides && st.slides.length && st.i===0 && (tarde || JSON.stringify([apagadas(), ordenGuardado()])!==antes)) pintar();
     }).catch(function(){});
   }
+  /**
+   * 17-nov · CUÁNTAS REPETIDAS PIDE UN SOBRE EN ESTE GRUPO (la nivelación del álbum: 3, o 5 en los que nacen en la versión 3 del
+   * motor), para las novedades del Mercado. Lo lee SG.repesDelGrupo (stargate.js) del grupo o de su tarjeta; si el motor aún no
+   * ha llegado, lo vuelve a intentar unos segundos. Si cambia y la sesión sigue en la portada, se rehace el mazo.
+   */
+  function mirarRepes(per, intentos){
+    if(!window.SG||!SG.repesDelGrupo) return;
+    SG.repesDelGrupo(per).then(function(cambio){
+      if(cambio===null){ if((intentos||0)<10) setTimeout(function(){ mirarRepes(per, (intentos||0)+1); }, 1000); return; }
+      if(cambio&&per===st.per&&st.slides&&st.slides.length&&st.i===0) pintar();
+    });
+  }
   function miNombreDe(per, listo){
+    mirarRepes(per);
     var g=(st.grupos||[]).filter(function(x){ return x.id===per; })[0];
     if(g){ st.miNombre=g.miNombre||''; if(st.miNombre) configFresca(per); return listo(); }
     var hecho=false, fin=function(){ if(!hecho){ hecho=true; listo(); } };

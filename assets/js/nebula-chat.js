@@ -526,7 +526,8 @@
       if (x.k === "faq") {
         var e = entrada(x.id);
         if (!e) { texto(b, "Esa respuesta ya no está en mis registros."); return b; }
-        cuerpo(b, e.r);
+        // 17-nov · «Tres repetidos…»: con el número del grupo (SG.conRepes; con 3, la respuesta de siempre)
+        cuerpo(b, window.SG && SG.conRepes ? SG.conRepes(e.r) : e.r);
         acc = el("div", "nbc-acc");
         if (e.ir) acc.appendChild(boton(NOMBRE_IR[e.ir] || "Ir a " + e.ir, "lleno", function () { irA(e.ir); }));
         b.appendChild(acc);

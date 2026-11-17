@@ -1023,3 +1023,63 @@ window.SG.avisar = function (titulo, texto, peligro) {
   if (document.body) empezar(); else document.addEventListener("DOMContentLoaded", empezar);
   window.SG.mejorarSelect = montar;
 })();
+
+/**
+ * 17-nov-2026 · CUÁNTAS REPETIDAS PIDE UN SOBRE, EN CADA GRUPO (la nivelación del álbum, GamificaPro d4a1cdd4).
+ * En el PER 16450, 13 reclutas tenían el álbum de 26 completo en la semana 7 de 15: 3 repetidas daban un sobre de 3 cartas, así
+ * que una repetida no se perdía nunca y el álbum salía siempre con 28 cartas. Los grupos que nacen en la versión 3 del motor
+ * (novedad `cromosNivelados`) piden 5 por el mismo sobre; los de antes (per-16450, versión 1; per-16457, versión 2), 3, como
+ * siempre. Los dos números son del motor (`CAMBIO_CROMOS` de functions/mods/stargate.js): el build los lee de allí y los pone
+ * en la Nave y en la sesión (`window.SG_CAMBIO_CROMOS`). Nada aquí los escribe a mano; sin ese dato, 3, lo de siempre.
+ *
+ *   SG.repesPorSobre(proyecto)  el número de ese grupo (`projects/{id}` o su tarjeta): nunca lanza
+ *   SG.repesActual()            el del grupo que se está viendo (3 hasta saberlo)
+ *   SG.fijarRepes(n)            lo apunta (el grupo leído, o `repetidasPorSobre` de la respuesta del servidor) → ¿ha cambiado?
+ *   SG.repesDelGrupo(per)       lee el grupo (la tarjeta, si eres recluta) y lo apunta → promesa: ¿ha cambiado? (null: aún sin motor)
+ *   SG.conRepes(texto)          el texto con el número del grupo. Con 3 devuelve EL MISMO texto, sin tocarlo: los grupos
+ *                               en marcha ven exactamente lo de antes (batería 161)
+ */
+(function () {
+  window.SG = window.SG || {};
+  var PALABRA = { 2: "dos", 3: "tres", 4: "cuatro", 5: "cinco", 6: "seis", 7: "siete", 8: "ocho", 9: "nueve", 10: "diez" };
+  var entero = function (n) { return typeof n === "number" && isFinite(n) && n >= 1 && Math.floor(n) === n; };
+  var cfg = function () { var c = window.SG_CAMBIO_CROMOS; return c && typeof c === "object" ? c : {}; };
+  var base = function () { var c = cfg(); return entero(c.repetidas) ? c.repetidas : 3; };
+  function repesPorSobre(proyecto) {
+    try {
+      var c = cfg(), S = window.GP_SDK;
+      if (proyecto && entero(c.nivelado) && S && S.sitio && S.sitio.tiene(proyecto, "cromosNivelados")) return c.nivelado;
+    } catch (e) {}
+    return base();
+  }
+  var actual = null;
+  function repesActual() { return actual == null ? base() : actual; }
+  function fijarRepes(n) {
+    if (!entero(n)) return false;
+    var antes = repesActual(); actual = n;
+    return n !== antes;
+  }
+  function repesDelGrupo(per) {
+    var M = window.SG && window.SG.MOTOR;
+    if (!per || !M || typeof M.leerGrupo !== "function") return Promise.resolve(null);
+    try {
+      return Promise.resolve(M.leerGrupo(per)).then(function (d) {
+        return fijarRepes(repesPorSobre(d && d.exists && d.exists() ? d.data() : null));
+      }, function () { return false; });
+    } catch (e) { return Promise.resolve(false); }
+  }
+  function conRepes(t, n) {
+    n = entero(n) ? n : repesActual();
+    if (n === 3 || typeof t !== "string" || !t) return t;
+    var pal = PALABRA[n] || String(n), Pal = pal.charAt(0).toUpperCase() + pal.slice(1);
+    return t.replace(/\b3(\s+(?:cartas\s+)?repetid)/g, n + "$1")
+      .replace(/\btres(\s+(?:cartas\s+)?repetid)/g, pal + "$1")
+      .replace(/\bTres(\s+(?:cartas\s+)?repetid)/g, Pal + "$1")
+      .replace(/\b(llegas a|[Cc]on) 3\b(?!\s*◈)/g, "$1 " + n);
+  }
+  window.SG.repesPorSobre = repesPorSobre;
+  window.SG.repesActual = repesActual;
+  window.SG.fijarRepes = fijarRepes;
+  window.SG.repesDelGrupo = repesDelGrupo;
+  window.SG.conRepes = conRepes;
+})();

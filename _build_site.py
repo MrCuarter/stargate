@@ -45,6 +45,19 @@ import guardas as GB   # GamificaPro sdk/build/guardas.py
 # se ven máquinas ni nada»). Ahora cada referencia relativa entre ficheros de juegos/ lleva ?v=JV (una huella de TODO
 # juegos/ y de sus datos) y los enlaces de entrada (Nave, sesión, consola) la llevan en X.v. Cambia algo → cambia todo.
 import re as _re_j
+# 17-nov · CUÁNTAS REPETIDAS PIDE UN SOBRE (la nivelación del álbum, GamificaPro d4a1cdd4): el dato es del motor,
+# `CAMBIO_CROMOS = { repetidas, nivelado }` de functions/mods/stargate.js (lo mismo que cobra `stargateCambiarRepes`). Se lee de
+# allí en cada build y va a la Nave y a la sesión como window.SG_CAMBIO_CROMOS; SG.repesPorSobre (stargate.js) elige el de cada
+# grupo: `nivelado` si tiene la novedad `cromosNivelados` (versión 3), `repetidas` si no. Sin el motor al lado, el build para.
+def _cambio_cromos():
+    ruta = os.path.join(GP, "functions", "mods", "stargate.js")
+    m = _re_j.search(r"const CAMBIO_CROMOS\s*=\s*\{\s*repetidas:\s*(\d+),\s*nivelado:\s*(\d+)\s*\}", open(ruta, encoding="utf-8").read())
+    assert m, "no encuentro CAMBIO_CROMOS en " + ruta
+    c = {"repetidas": int(m.group(1)), "nivelado": int(m.group(2))}
+    assert c["repetidas"] == 3, "los grupos en marcha piden 3 repetidas: el motor dice %d" % c["repetidas"]
+    return c
+CAMBIO_CROMOS = _cambio_cromos()
+_CAMBIO_CROMOS_JS = "window.SG_CAMBIO_CROMOS=" + json.dumps(CAMBIO_CROMOS) + ";"
 _J_REF = _re_j.compile(r"""(['"`(])((?:\.\.?/|(?![\w-]+/))[\w./-]*?\.(?:js|html|css|json))(\?[^'"`)\s]*)?(?=['"`)])""")
 def _sin_v(txt): return _re_j.sub(r"[?&]v=[0-9a-f]{10}(?![0-9a-f])", "", txt)   # la huella va siempre la última
 def _jfiles():
@@ -3084,6 +3097,66 @@ window.SG.avisar = function (titulo, texto, peligro) {
   if (document.body) empezar(); else document.addEventListener("DOMContentLoaded", empezar);
   window.SG.mejorarSelect = montar;
 })();
+
+/**
+ * 17-nov-2026 · CUÁNTAS REPETIDAS PIDE UN SOBRE, EN CADA GRUPO (la nivelación del álbum, GamificaPro d4a1cdd4).
+ * En el PER 16450, 13 reclutas tenían el álbum de 26 completo en la semana 7 de 15: 3 repetidas daban un sobre de 3 cartas, así
+ * que una repetida no se perdía nunca y el álbum salía siempre con 28 cartas. Los grupos que nacen en la versión 3 del motor
+ * (novedad `cromosNivelados`) piden 5 por el mismo sobre; los de antes (per-16450, versión 1; per-16457, versión 2), 3, como
+ * siempre. Los dos números son del motor (`CAMBIO_CROMOS` de functions/mods/stargate.js): el build los lee de allí y los pone
+ * en la Nave y en la sesión (`window.SG_CAMBIO_CROMOS`). Nada aquí los escribe a mano; sin ese dato, 3, lo de siempre.
+ *
+ *   SG.repesPorSobre(proyecto)  el número de ese grupo (`projects/{id}` o su tarjeta): nunca lanza
+ *   SG.repesActual()            el del grupo que se está viendo (3 hasta saberlo)
+ *   SG.fijarRepes(n)            lo apunta (el grupo leído, o `repetidasPorSobre` de la respuesta del servidor) → ¿ha cambiado?
+ *   SG.repesDelGrupo(per)       lee el grupo (la tarjeta, si eres recluta) y lo apunta → promesa: ¿ha cambiado? (null: aún sin motor)
+ *   SG.conRepes(texto)          el texto con el número del grupo. Con 3 devuelve EL MISMO texto, sin tocarlo: los grupos
+ *                               en marcha ven exactamente lo de antes (batería 161)
+ */
+(function () {
+  window.SG = window.SG || {};
+  var PALABRA = { 2: "dos", 3: "tres", 4: "cuatro", 5: "cinco", 6: "seis", 7: "siete", 8: "ocho", 9: "nueve", 10: "diez" };
+  var entero = function (n) { return typeof n === "number" && isFinite(n) && n >= 1 && Math.floor(n) === n; };
+  var cfg = function () { var c = window.SG_CAMBIO_CROMOS; return c && typeof c === "object" ? c : {}; };
+  var base = function () { var c = cfg(); return entero(c.repetidas) ? c.repetidas : 3; };
+  function repesPorSobre(proyecto) {
+    try {
+      var c = cfg(), S = window.GP_SDK;
+      if (proyecto && entero(c.nivelado) && S && S.sitio && S.sitio.tiene(proyecto, "cromosNivelados")) return c.nivelado;
+    } catch (e) {}
+    return base();
+  }
+  var actual = null;
+  function repesActual() { return actual == null ? base() : actual; }
+  function fijarRepes(n) {
+    if (!entero(n)) return false;
+    var antes = repesActual(); actual = n;
+    return n !== antes;
+  }
+  function repesDelGrupo(per) {
+    var M = window.SG && window.SG.MOTOR;
+    if (!per || !M || typeof M.leerGrupo !== "function") return Promise.resolve(null);
+    try {
+      return Promise.resolve(M.leerGrupo(per)).then(function (d) {
+        return fijarRepes(repesPorSobre(d && d.exists && d.exists() ? d.data() : null));
+      }, function () { return false; });
+    } catch (e) { return Promise.resolve(false); }
+  }
+  function conRepes(t, n) {
+    n = entero(n) ? n : repesActual();
+    if (n === 3 || typeof t !== "string" || !t) return t;
+    var pal = PALABRA[n] || String(n), Pal = pal.charAt(0).toUpperCase() + pal.slice(1);
+    return t.replace(/\b3(\s+(?:cartas\s+)?repetid)/g, n + "$1")
+      .replace(/\btres(\s+(?:cartas\s+)?repetid)/g, pal + "$1")
+      .replace(/\bTres(\s+(?:cartas\s+)?repetid)/g, Pal + "$1")
+      .replace(/\b(llegas a|[Cc]on) 3\b(?!\s*◈)/g, "$1 " + n);
+  }
+  window.SG.repesPorSobre = repesPorSobre;
+  window.SG.repesActual = repesActual;
+  window.SG.fijarRepes = fijarRepes;
+  window.SG.repesDelGrupo = repesDelGrupo;
+  window.SG.conRepes = conRepes;
+})();
 """
 
 TOUR_JS = r"""// STARGATE — visita guiada con el Capitán (autogenerado por _build_site.py: editar TOUR_JS, no este fichero)
@@ -4241,7 +4314,7 @@ Pasa con las flechas <b>←</b> y <b>→</b>.</p>
 <p class="small muted">El <b>consejo del Capitán</b> y el mensaje del foro están arriba, fuera del mazo:
 al pulsar <b>Proyectar</b> desaparecen y solo se ve la presentación.</p></header>
 <section><div class="wrap"><div id="sesion-app"></div>
-<script>window.SG_RETOS_TIPO={json.dumps(RETOS_TIPO, ensure_ascii=False)};window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};window.SG_SECCIONES_SESION={json.dumps([list(x) for x in SESION_SECCIONES], ensure_ascii=False)};window.SG_CAPTURAS_SESION={json.dumps(sorted(f[:-4] for f in os.listdir(os.path.join(HERE, "assets/img/sesion")) if f.endswith(".jpg")))};window.SG_EMBARQUE={json.dumps([list(x) for x in SESION_EMBARQUE], ensure_ascii=False)};window.SG_ASIGNATURA={json.dumps(ASIGNATURA, ensure_ascii=False)};window.SG_SEMANAS_PER={json.dumps(SEMANAS_PER)};window.SG_BLOQUES={json.dumps([list(x) for x in BLOQUES_ASIGNATURA], ensure_ascii=False)};window.SG_TEMARIO={json.dumps({str(k): list(v) for k, v in TEMARIO.items()}, ensure_ascii=False)};window.SG_SES_ACT={json.dumps(SESION_ACTIVIDAD, ensure_ascii=False)};window.SG_LECCIONES={json.dumps({str(k): v for k, v in LECCIONES.items()}, ensure_ascii=False)};window.SG_LECCION_AULAS={json.dumps(LECCION_AULAS, ensure_ascii=False)};window.SG_PRACTICA={json.dumps(PRACTICA_EN_VIVO, ensure_ascii=False)};window.SG_MATRIZ_VIVO={json.dumps(dict(MATRIZ_EN_VIVO, inteligencias=INTELIGENCIAS, bloom=BLOOM), ensure_ascii=False)};window.SG_RETO_PREMIO={json.dumps(RETO_PREMIO, ensure_ascii=False)};window.SG_MATRIZ={json.dumps({"plantilla": MATRIZ_PLANTILLA, "inteligencias": INTELIGENCIAS, "bloom": BLOOM}, ensure_ascii=False)};window.SG_ORTOGRAFIA={json.dumps(ORTOGRAFIA, ensure_ascii=False)};window.SG_CAPTURAS={json.dumps(CAPTURAS, ensure_ascii=False)};window.SG_VIDEOS={json.dumps({k: {"id": v[0], "titulo": v[1]} for k, v in V.items()}, ensure_ascii=False)};window.SG_EVALUACION={json.dumps([list(x) for x in EVALUACION], ensure_ascii=False)};window.SG_EVALUACION_EXAMEN={json.dumps(EVALUACION_EXAMEN, ensure_ascii=False)};window.SG_NOTA_FINAL={json.dumps(NOTA_FINAL)};window.SG_NOTA_FINAL_PUA={json.dumps(NOTA_FINAL_PUA)};window.SG_NOTA_EJEMPLO={NOTA_EJEMPLO_JSON};window.SG_EVALUACION_EXAMEN_PUA={json.dumps(EVALUACION_EXAMEN_PUA, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};;window.SG_TRIPULANTES={_TRIPUL_JSON};window.SG_RUTA={json.dumps(RUTA, ensure_ascii=False)};window.SG_SALA_JORAN={json.dumps(SALA_JORAN, ensure_ascii=False)};window.SG_DIRECTO={json.dumps(DIRECTO, ensure_ascii=False)};window.SG_ASEDIO={json.dumps(ASEDIO, ensure_ascii=False)};window.SG_JUEGOS={json.dumps(JUEGOS)}</script>
+<script>window.SG_RETOS_TIPO={json.dumps(RETOS_TIPO, ensure_ascii=False)};window.SG_TABLERO_API="{TABLERO_API}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_RETOS={json.dumps({"REGULAR": RETOS_REGULAR, "PUA": RETOS_PUA}, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(ACTIVIDADES, ensure_ascii=False)};window.SG_SECCIONES_SESION={json.dumps([list(x) for x in SESION_SECCIONES], ensure_ascii=False)};window.SG_CAPTURAS_SESION={json.dumps(sorted(f[:-4] for f in os.listdir(os.path.join(HERE, "assets/img/sesion")) if f.endswith(".jpg")))};window.SG_EMBARQUE={json.dumps([list(x) for x in SESION_EMBARQUE], ensure_ascii=False)};window.SG_ASIGNATURA={json.dumps(ASIGNATURA, ensure_ascii=False)};window.SG_SEMANAS_PER={json.dumps(SEMANAS_PER)};window.SG_BLOQUES={json.dumps([list(x) for x in BLOQUES_ASIGNATURA], ensure_ascii=False)};window.SG_TEMARIO={json.dumps({str(k): list(v) for k, v in TEMARIO.items()}, ensure_ascii=False)};window.SG_SES_ACT={json.dumps(SESION_ACTIVIDAD, ensure_ascii=False)};window.SG_LECCIONES={json.dumps({str(k): v for k, v in LECCIONES.items()}, ensure_ascii=False)};window.SG_LECCION_AULAS={json.dumps(LECCION_AULAS, ensure_ascii=False)};window.SG_PRACTICA={json.dumps(PRACTICA_EN_VIVO, ensure_ascii=False)};window.SG_MATRIZ_VIVO={json.dumps(dict(MATRIZ_EN_VIVO, inteligencias=INTELIGENCIAS, bloom=BLOOM), ensure_ascii=False)};window.SG_RETO_PREMIO={json.dumps(RETO_PREMIO, ensure_ascii=False)};window.SG_MATRIZ={json.dumps({"plantilla": MATRIZ_PLANTILLA, "inteligencias": INTELIGENCIAS, "bloom": BLOOM}, ensure_ascii=False)};window.SG_ORTOGRAFIA={json.dumps(ORTOGRAFIA, ensure_ascii=False)};window.SG_CAPTURAS={json.dumps(CAPTURAS, ensure_ascii=False)};window.SG_VIDEOS={json.dumps({k: {"id": v[0], "titulo": v[1]} for k, v in V.items()}, ensure_ascii=False)};window.SG_EVALUACION={json.dumps([list(x) for x in EVALUACION], ensure_ascii=False)};window.SG_EVALUACION_EXAMEN={json.dumps(EVALUACION_EXAMEN, ensure_ascii=False)};window.SG_NOTA_FINAL={json.dumps(NOTA_FINAL)};window.SG_NOTA_FINAL_PUA={json.dumps(NOTA_FINAL_PUA)};window.SG_NOTA_EJEMPLO={NOTA_EJEMPLO_JSON};window.SG_EVALUACION_EXAMEN_PUA={json.dumps(EVALUACION_EXAMEN_PUA, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};;window.SG_TRIPULANTES={_TRIPUL_JSON};window.SG_RUTA={json.dumps(RUTA, ensure_ascii=False)};window.SG_SALA_JORAN={json.dumps(SALA_JORAN, ensure_ascii=False)};window.SG_DIRECTO={json.dumps(DIRECTO, ensure_ascii=False)};window.SG_ASEDIO={json.dumps(ASEDIO, ensure_ascii=False)};window.SG_JUEGOS={json.dumps(JUEGOS)};{_CAMBIO_CROMOS_JS}</script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/tkcomun.js" defer></script>
 <script src="assets/js/guia-docente.js" defer></script>
@@ -4386,7 +4459,7 @@ GB.copiar_pieza(HERE, "tarjetas.js", os.path.join(HERE, "assets", "js", "tarjeta
 # nombre: un paquete nuevo en GamificaPro no cambia esta web hasta que se cambie esta línea y se publique. De él sale también
 # motor/semanas.js, la receta TAL CUAL (la cargan las páginas y las pruebas). Desde un worktree de GamificaPro:
 # GAMIFICAPRO_DIR=<ruta> python3 _build_site.py
-SDK_FIJADO = "mod-sdk.v1.72667d518b.js"
+SDK_FIJADO = "mod-sdk.v1.2d27a90ffe.js"
 def _traer_sdk():
     GB.traer_sdk(HERE, SDK_FIJADO, os.path.join(HERE, "assets", "js"), sacar={"semanas": os.path.join(HERE, "motor", "semanas.js")})
 _traer_sdk()
@@ -4417,7 +4490,7 @@ RECLUTA = f'''<!doctype html><html lang="es"><head><meta charset="utf-8">
 <p>Tu puesto a bordo: la orden de cada semana, los planetas que se van desbloqueando con el viaje,
 tu ficha de recluta y las recompensas. <b>NEBULA</b> te acompaña.</p></header>
 <section><div class="wrap"><div id="nave-app"></div>
-<script>window.SG_RETOS_TIPO={json.dumps(RETOS_TIPO, ensure_ascii=False)};window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(_ACT_NAVE, ensure_ascii=False)};window.SG_FEEDBACK_M1_AULAS={json.dumps(FEEDBACK_M1_AULAS, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_RUTA={json.dumps(RUTA, ensure_ascii=False)};window.SG_SALA_JORAN={json.dumps(SALA_JORAN, ensure_ascii=False)};window.SG_DIRECTO={json.dumps(DIRECTO, ensure_ascii=False)};window.SG_ASEDIO={json.dumps(ASEDIO, ensure_ascii=False)};window.SG_JUEGOS={json.dumps(JUEGOS)};window.SG_CONSENTIMIENTO={_CONSENT_JSON};window.SG_IA_TRANSPARENCIA={json.dumps(IA_TRANSPARENCIA, ensure_ascii=False)};window.SG_PRACTICA={json.dumps(PRACTICA_EN_VIVO, ensure_ascii=False)};window.SG_MATRIZ_VIVO={json.dumps(dict(MATRIZ_EN_VIVO, inteligencias=INTELIGENCIAS, bloom=BLOOM), ensure_ascii=False)};</script>
+<script>window.SG_RETOS_TIPO={json.dumps(RETOS_TIPO, ensure_ascii=False)};window.SG_TABLERO_API="{TABLERO_API}";window.SG_GOOGLE_CLIENT_ID="{GOOGLE_CLIENT_ID}";window.SG_SEMANAS={SEMANAS_JSON};window.SG_BADGE_NAMES={json.dumps(BADGE_NAME, ensure_ascii=False)};window.SG_BADGES={json.dumps(NAVE_BADGES)};window.SG_PLANETAS={json.dumps(PLANETAS, ensure_ascii=False)};window.SG_CROMOS={json.dumps([list(c) for c in CROMOS], ensure_ascii=False)};window.SG_CROMO_SERIES={json.dumps([list(x) for x in CROMO_SERIES], ensure_ascii=False)};window.SG_SERIES_ALBUM={json.dumps([[k, _SERIE_TIT_WEB[sr], n] for k, sr, n in SERIES_ALBUM], ensure_ascii=False)};window.SG_HEROES={json.dumps([[h[0], h[1], h[3], h[2]] for h in HEROES + HEROES_A_BORDO], ensure_ascii=False)};window.SG_HEROES_OCULTOS={json.dumps(HEROES_OCULTOS + [h[0] for h in HEROES_A_BORDO], ensure_ascii=False)};window.SG_CARDV="?v={_cardv}";window.SG_IMGV="?v={hashlib.md5("".join(open(os.path.join(HERE,"assets","img","planetas",k+".png"),"rb").read().hex()[:64] for k,*_ in PLANETAS).encode()).hexdigest()[:10]}";window.SG_RETOS={json.dumps(_RETOS_NAVE, ensure_ascii=False)};window.SG_AYUDA_RETOS={json.dumps(_AYUDA_NAVE, ensure_ascii=False)};window.SG_GANCHO_RETOS={json.dumps(GANCHO_RETOS, ensure_ascii=False)};window.SG_EJEMPLOS={json.dumps(_EJ_NAVE, ensure_ascii=False)};window.SG_ESCAPE_UNI={json.dumps(ESCAPE_UNI)};window.SG_EVIDENCIA={json.dumps(EVIDENCIA_RETOS)};window.SG_REFLEXION={json.dumps(REFLEXION_RETOS, ensure_ascii=False)};window.SG_TOPE_SEMANA={TOPE_RETOS_SEMANA};window.SG_SEM_RETO={SEM_RETO_JSON};window.SG_IMG_RECOMPENSA={json.dumps(IMG_RECOMPENSA, ensure_ascii=False)};window.SG_CAPITULOS={CAPITULOS_JSON};window.SG_SECRETOS={json.dumps(SECRETOS)};window.SG_FRAGMENTOS={FRAGMENTOS_JSON};window.SG_TRAS_BATALLA={TRAS_BATALLA_JSON};window.SG_A_BORDO={json.dumps(_A_BORDO, ensure_ascii=False)};window.SG_BATALLA={json.dumps(BATALLA, ensure_ascii=False)};window.SG_SIN_PUA={json.dumps(SIN_PUA, ensure_ascii=False)};window.SG_VOTACION={json.dumps(VOTACION, ensure_ascii=False)};window.SG_ACTIVIDADES={json.dumps(_ACT_NAVE, ensure_ascii=False)};window.SG_FEEDBACK_M1_AULAS={json.dumps(FEEDBACK_M1_AULAS, ensure_ascii=False)};window.SG_PLANTILLA_EP={json.dumps(PLANTILLA_EPORTFOLIO)};window.SG_TICKET_TEMAS={json.dumps(TICKET_TEMAS, ensure_ascii=False)};window.SG_TICKET_URL={json.dumps(TICKET_URL)};window.SG_RUTA={json.dumps(RUTA, ensure_ascii=False)};window.SG_SALA_JORAN={json.dumps(SALA_JORAN, ensure_ascii=False)};window.SG_DIRECTO={json.dumps(DIRECTO, ensure_ascii=False)};window.SG_ASEDIO={json.dumps(ASEDIO, ensure_ascii=False)};window.SG_JUEGOS={json.dumps(JUEGOS)};window.SG_CONSENTIMIENTO={_CONSENT_JSON};window.SG_IA_TRANSPARENCIA={json.dumps(IA_TRANSPARENCIA, ensure_ascii=False)};window.SG_PRACTICA={json.dumps(PRACTICA_EN_VIVO, ensure_ascii=False)};window.SG_MATRIZ_VIVO={json.dumps(dict(MATRIZ_EN_VIVO, inteligencias=INTELIGENCIAS, bloom=BLOOM), ensure_ascii=False)};{_CAMBIO_CROMOS_JS}</script>
 <script src="assets/js/secreto.js" defer></script>
 <script src="assets/js/calendario.js" defer></script>
 <script src="assets/js/sobre.js" defer></script>

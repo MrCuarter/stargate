@@ -1102,6 +1102,28 @@ var votacion = pieza(function (module, exports) {
     var x = b || {};
     return Object.keys(x).filter(function (k) { return Number(x[k]) > 0; })[0] || null;
   }
+  /** 16-nov · la papeleta entera ({ opción: votos o puntos }, solo lo que vale algo) o null. */
+  function entera(b) {
+    var x = b || {}, out = {}, hay = false;
+    Object.keys(x).forEach(function (k) { if (Number(x[k]) > 0) { out[k] = Number(x[k]); hay = true; } });
+    return hay ? out : null;
+  }
+  /**
+   * 16-nov · EL VOTO POR PUESTOS (votación con `puntos`, p. ej. [3, 2, 1]; functions/voting.js): de una papeleta ({ opción: puntos } o, de
+   * antes, «opción»), sus puestos → [opción del 1.º, del 2.º, …] (null si ese puesto está libre). Pura.
+   */
+  function puestosDe(b, puntos) {
+    var P = (puntos || []).map(Number), out = P.map(function () { return null; });
+    if (!P.length || !b) return out;
+    if (typeof b === "string") { out[0] = b; return out; }
+    var libres = [];
+    Object.keys(b).filter(function (k) { return Number(b[k]) > 0; }).sort(function (x, y) { return Number(b[y]) - Number(b[x]); }).forEach(function (k) {
+      var i = P.indexOf(Number(b[k]));
+      if (i >= 0 && !out[i]) out[i] = k; else libres.push(k);
+    });
+    libres.forEach(function (k) { var i = out.indexOf(null); if (i >= 0) out[i] = k; });
+    return out;
+  }
   function porCreado(a, b) { return Number(b.creado || 0) - Number(a.creado || 0); }
 
   function requiere(ctx, nombres) {
@@ -1118,24 +1140,26 @@ var votacion = pieza(function (module, exports) {
     function col(grupo) { return fs.collection(db, "projects", grupo, "voting_events"); }
     function ref(grupo, id) { return fs.doc(db, "projects", grupo, "voting_events", String(id)); }
 
-    /** Votar: gratis («free») o pagando el voto extra («paid»). Lo cuenta y lo cobra el servidor. */
-    function votar(grupo, id, opcion, tipo) {
+    /** Votar: gratis («free») o pagando el voto extra («paid»). Lo cuenta y lo cobra el servidor. 16-nov · `puesto` (1 = el mejor), en una
+     *  votación por puestos. */
+    function votar(grupo, id, opcion, tipo, puesto) {
       if (!ctx.llamar) return Promise.reject(new Error("GP_SDK.votacion: falta ctx.llamar"));
-      return ctx.llamar("castVote", { projectId: grupo, eventId: id, optionId: opcion, voteType: tipo || "free" });
+      return ctx.llamar("castVote", Object.assign({ projectId: grupo, eventId: id, optionId: opcion, voteType: tipo || "free" }, puesto != null ? { puesto: Number(puesto) } : {}));
     }
-    /** Las papeletas → { ficha: opción } (las que no votan nada no cuentan). */
-    function votos(grupo, id) {
+    /** Las papeletas → { ficha: opción } (las que no votan nada no cuentan). 16-nov · con `{ enteras: true }`, { ficha: { opción: n } }. */
+    function votos(grupo, id, o) {
+      var enteras = !!(o && o.enteras);
       return fs.getDocs(fs.collection(db, "projects", grupo, "voting_events", String(id), "votes")).then(function (r) {
         var v = {};
-        r.docs.forEach(function (d) { var k = votoDe(d.data().byOption); if (k) v[d.id] = k; });
+        r.docs.forEach(function (d) { var k = enteras ? entera(d.data().byOption) : votoDe(d.data().byOption); if (k) v[d.id] = k; });
         return v;
       });
     }
-    /** La votación y sus papeletas → { evento: { id, … } | null, votos }. Si nadie la ha abierto, { evento: null, votos: {} }. */
-    function leer(grupo, id) {
+    /** La votación y sus papeletas → { evento: { id, … } | null, votos }. Si nadie la ha abierto, { evento: null, votos: {} }. (`o`, el de votos) */
+    function leer(grupo, id, o) {
       return fs.getDoc(ref(grupo, id)).then(function (ev) {
         if (!ev.exists()) return { evento: null, votos: {} };
-        return votos(grupo, id).then(function (v) { return { evento: Object.assign({ id: ev.id }, ev.data()), votos: v }; });
+        return votos(grupo, id, o).then(function (v) { return { evento: Object.assign({ id: ev.id }, ev.data()), votos: v }; });
       });
     }
     /**
@@ -1217,7 +1241,7 @@ var votacion = pieza(function (module, exports) {
              lista: lista, vigilar: vigilar, vigilarLigero: vigilarLigero, miPapeleta: miPapeleta };
   }
 
-  return { opciones: opciones, votoDe: votoDe, crear: crear };
+  return { opciones: opciones, votoDe: votoDe, entera: entera, puestosDe: puestosDe, crear: crear };
 });
 // ─── fin de la pieza «votacion» ───
 });
@@ -2943,7 +2967,7 @@ var SDK = {
   mantenimiento: mantenimiento,
   registro: registro,
   grupos: grupos,
-  sitio: sitio.crear({"mapa":{"stargate_alias":{"nueva":"mod_alias","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_anulaciones":{"nueva":"mod_anulaciones","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_asistencia":{"nueva":"mod_asistencia","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_batallas":{"nueva":"mod_batallas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_buzon":{"nueva":"mod_buzon","mod":"stargate","ids":"azar","porGrupo":false,"fase":"vieja","comun":true},"stargate_comentarios":{"nueva":"mod_comentarios","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_congelados":{"nueva":"mod_congelados","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_directo":{"nueva":"mod_directo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_envivo":{"nueva":"mod_envivo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_formacion":{"nueva":"mod_formacion","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_invitaciones":{"nueva":"mod_invitaciones","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_profes":{"nueva":"mod_profes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_referentes":{"nueva":"mod_referentes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_reflexiones":{"nueva":"mod_reflexiones","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_respuestas":{"nueva":"mod_respuestas","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_rutas":{"nueva":"mod_rutas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_tratos":{"nueva":"mod_tratos","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_zoco":{"nueva":"mod_zoco","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_asedio":{"nueva":"mod_asedio","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_asedio_ataques":{"nueva":"mod_asedio_ataques","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_galeria":{"nueva":"mod_galeria","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_fama":{"nueva":"mod_fama","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"nueva"},"ceniza_clase":{"nueva":"mod_clase","mod":"ceniza","ids":"grupo","porGrupo":true,"fase":"vieja"},"ceniza_formacion":{"nueva":"mod_formacion","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_invitaciones":{"nueva":"mod_invitaciones","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_referentes":{"nueva":"mod_referentes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_profes":{"nueva":"mod_profes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_juegos":{"nueva":"mod_juegos","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_mesa":{"nueva":"mod_mesa","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_respuestas":{"nueva":"mod_repaso","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardia_partidas":{"nueva":"mod_retaguardia_partidas","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardias":{"nueva":"mod_retaguardias","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_publico":{"nueva":"mod_publico","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_publico_opiniones":{"nueva":"mod_publico_opiniones","mod":"ceniza","ids":"azar","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]}},"novedades":{"2":["coleccionesMod","economiaSoloServidor","ticketMotor","medianocheUnica","bancoMotor","retaguardiaMotor"]},"mods":[{"mod":"stargate","reconocer":"bloque"},{"mod":"ceniza","reconocer":null}]}),
+  sitio: sitio.crear({"mapa":{"stargate_alias":{"nueva":"mod_alias","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_anulaciones":{"nueva":"mod_anulaciones","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_asistencia":{"nueva":"mod_asistencia","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_batallas":{"nueva":"mod_batallas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_buzon":{"nueva":"mod_buzon","mod":"stargate","ids":"azar","porGrupo":false,"fase":"vieja","comun":true},"stargate_comentarios":{"nueva":"mod_comentarios","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_congelados":{"nueva":"mod_congelados","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_directo":{"nueva":"mod_directo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_envivo":{"nueva":"mod_envivo","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_formacion":{"nueva":"mod_formacion","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_invitaciones":{"nueva":"mod_invitaciones","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_profes":{"nueva":"mod_profes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_referentes":{"nueva":"mod_referentes","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["stargate"]},"stargate_reflexiones":{"nueva":"mod_reflexiones","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja","pasadaPara":["stargate","ceniza"]},"stargate_respuestas":{"nueva":"mod_respuestas","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"vieja"},"stargate_rutas":{"nueva":"mod_rutas","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_tratos":{"nueva":"mod_tratos","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_zoco":{"nueva":"mod_zoco","mod":"stargate","ids":"azar","porGrupo":true,"fase":"vieja","pasadaPara":["stargate"]},"stargate_asedio":{"nueva":"mod_asedio","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_asedio_ataques":{"nueva":"mod_asedio_ataques","mod":"stargate","ids":"azar","porGrupo":true,"fase":"nueva"},"stargate_galeria":{"nueva":"mod_galeria","mod":"stargate","ids":"grupo","porGrupo":true,"fase":"nueva"},"stargate_fama":{"nueva":"mod_fama","mod":"stargate","ids":"suelto","porGrupo":false,"fase":"nueva"},"ceniza_clase":{"nueva":"mod_clase","mod":"ceniza","ids":"grupo","porGrupo":true,"fase":"vieja"},"ceniza_formacion":{"nueva":"mod_formacion","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja"},"ceniza_invitaciones":{"nueva":"mod_invitaciones","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_referentes":{"nueva":"mod_referentes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_profes":{"nueva":"mod_profes","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_juegos":{"nueva":"mod_juegos","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_mesa":{"nueva":"mod_mesa","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_respuestas":{"nueva":"mod_repaso","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardia_partidas":{"nueva":"mod_retaguardia_partidas","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_retaguardias":{"nueva":"mod_retaguardias","mod":"ceniza","ids":"azar","porGrupo":true,"fase":"nueva"},"ceniza_publico":{"nueva":"mod_publico","mod":"ceniza","ids":"suelto","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]},"ceniza_publico_opiniones":{"nueva":"mod_publico_opiniones","mod":"ceniza","ids":"azar","porGrupo":false,"fase":"vieja","pasadaPara":["ceniza"]}},"novedades":{"2":["coleccionesMod","economiaSoloServidor","ticketMotor","medianocheUnica","bancoMotor","retaguardiaMotor"],"3":["cromosNivelados"]},"mods":[{"mod":"stargate","reconocer":"bloque"},{"mod":"ceniza","reconocer":null}]}),
   llave: Object.assign({}, llave, { porMod: {"ceniza":{"dia":0,"hora":0,"docente":false}} }),
   niveles: (function () { niveles.porMod = {"ceniza":{"tabla":[{"nivel":0,"desde":0,"titulo":{"f":"Vagabunda","m":"Vagabundo","n":"Vagabundo/a"}},{"nivel":1,"desde":30,"titulo":{"f":"Vagabunda","m":"Vagabundo","n":"Vagabundo/a"}},{"nivel":2,"desde":70,"titulo":{"f":"Vagabunda","m":"Vagabundo","n":"Vagabundo/a"}},{"nivel":3,"desde":120,"titulo":{"f":"Caminante","m":"Caminante","n":"Caminante"}},{"nivel":4,"desde":180,"titulo":{"f":"Caminante","m":"Caminante","n":"Caminante"}},{"nivel":5,"desde":260,"titulo":{"f":"Porteadora","m":"Porteador","n":"Porteador/a"}},{"nivel":6,"desde":350,"titulo":{"f":"Porteadora","m":"Porteador","n":"Porteador/a"}},{"nivel":7,"desde":460,"titulo":{"f":"Rastreadora","m":"Rastreador","n":"Rastreador/a"}},{"nivel":8,"desde":590,"titulo":{"f":"Rastreadora","m":"Rastreador","n":"Rastreador/a"}},{"nivel":9,"desde":740,"titulo":{"f":"Guía de familia","m":"Guía de familia","n":"Guía de familia"}},{"nivel":10,"desde":910,"titulo":{"f":"Guía de familia","m":"Guía de familia","n":"Guía de familia"}},{"nivel":11,"desde":1100,"titulo":{"f":"Cartógrafa","m":"Cartógrafo","n":"Cartógrafo/a"}},{"nivel":12,"desde":1320,"titulo":{"f":"Cartógrafa","m":"Cartógrafo","n":"Cartógrafo/a"}},{"nivel":13,"desde":1570,"titulo":{"f":"Abanderada","m":"Abanderado","n":"Abanderado/a"}},{"nivel":14,"desde":1860,"titulo":{"f":"Abanderada","m":"Abanderado","n":"Abanderado/a"}},{"nivel":15,"desde":2200,"titulo":{"f":"Maestra de obras","m":"Maestro de obras","n":"Maestro/a de obras"}},{"nivel":16,"desde":2600,"titulo":{"f":"Arquitecta del Camino","m":"Arquitecto del Camino","n":"Arquitecto/a del Camino"}}],"maestria":{"cada":150},"ventajas":{"semana":9,"marco":{"nivel":3,"colores":{"ambar":"#d39b2a","burdeos":"#8e2f3c","pizarra":"#4a6378","musgo":"#5f7a3a","cobre":"#b5653a","hueso":"#e8dcc0","noche":"#2c2f4a","ceniza":"#8a8580"}},"mano":{"nivel":5,"oro":5,"porSemana":1,"recibirPorSemana":2},"guia":{"nivel":9},"pregunta":{"nivel":11,"porSemana":1},"estandarte":{"nivel":13},"reto":{"nivel":16,"max":2},"viento":{"debajo":3,"extra":0.5,"porSemana":1}},"asientos":{"mano":"mod_niveles_mano","viento":"mod_niveles_viento"}}}; return niveles; })()
 };

@@ -761,6 +761,8 @@
               if (cuerpo.accion === "canje" && (cuerpo.tipo === "cromo_repes" || cuerpo.tipo === "heroe_repes"))
                 return M.llamar(cuerpo.tipo === "heroe_repes" ? "stargateCambiarHeroesRepes" : "stargateCambiarRepes",
                                 { projectId: cuerpo.per }).then(function (r) {
+                  // 17-nov · el servidor dice cuántas pide este grupo (`repetidasPorSobre`: 3, o 5 si nació nivelado)
+                  if (r && cuerpo.tipo === "cromo_repes" && window.SG && SG.fijarRepes) SG.fijarRepes(r.repetidasPorSobre);
                   var sacadas = [];
                   var abrirUna = function (n) {
                     if (n <= 0) return Promise.resolve();
@@ -1052,8 +1054,10 @@
           }
           if (c.accion === "canje" && (c.tipo === "cromo_repes" || c.tipo === "heroe_repes")) {
             var esH = c.tipo === "heroe_repes";
-            if (!quitaRepes(esH ? /__heroe_/ : /__cromo_/, esH ? 2 : 3))
-              throw new Error(esH ? "Necesitas 2 héroes repetidos." : "Necesitas 3 cartas repetidas.");
+            // 17-nov · las cartas, las que pide el grupo (3; 5 en los nivelados: SG.repesActual, stargate.js)
+            var nR = window.SG && SG.repesActual ? SG.repesActual() : 3;
+            if (!quitaRepes(esH ? /__heroe_/ : /__cromo_/, esH ? 2 : nR))
+              throw new Error(esH ? "Necesitas 2 héroes repetidos." : "Necesitas " + nR + " cartas repetidas.");
             var nuevas = esH ? [heroe()] : [carta(), carta(), carta()];
             P.inventory = P.inventory.concat(nuevas); P._cambio = true;
             return { ok: true, botin: nuevas[0], botines: nuevas };
