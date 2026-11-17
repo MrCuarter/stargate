@@ -25,7 +25,7 @@ const PROYECTO = "demo-stargate";
 // (10-oct, noche · SG_LAB_PUERTOS='{"auth":9419,"firestore":8480,"functions":5401}': otros puertos, para no chocar con las
 // pruebas del despliegue en el 8080; la web los recibe con window.SG_EMU_PUERTOS)
 const EMU = Object.assign({ auth: 9099, firestore: 8080, functions: 5001 }, JSON.parse(process.env.SG_LAB_PUERTOS || "{}"));
-const PUBLICA = `http://127.0.0.1:${EMU.functions}/${PROYECTO}/us-central1/tableroStargate`;
+const PUBLICA = `http://127.0.0.1:${EMU.functions}/${PROYECTO}/europe-west1/tableroStargate`;
 const BASE = `http://127.0.0.1:${P_WEB}/`;
 const dormir = ms => new Promise(r => setTimeout(r, ms));
 
