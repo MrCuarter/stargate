@@ -12,7 +12,7 @@
  * camino hasta allí existe. Sin red o sin Chrome, avisa y no cuenta.
  */
 const { spawn } = require("child_process"); const fs = require("fs"), os = require("os"), path = require("path");
-const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const CHROME = "/Users/nor/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
 const PUERTA = "https://stargate.mistercuarter.es/entrar.html";
 const dormir = ms => new Promise(r => setTimeout(r, ms));
 let ok = 0; const fallos = [];

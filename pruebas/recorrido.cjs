@@ -24,7 +24,7 @@
 const fs = require("fs"), path = require("path"), os = require("os"), { spawn } = require("child_process");
 
 const RAIZ = path.resolve(__dirname, "..");
-const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const CHROME = "/Users/nor/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
 const P_CDP = 9444, P_WEB = 8765;
 const VER = process.argv.includes("--ver");
 const dormir = ms => new Promise(r => setTimeout(r, ms));

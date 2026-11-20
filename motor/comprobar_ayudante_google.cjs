@@ -11,7 +11,7 @@
  * No cambia nada: solo mira. Sin dependencias.
  */
 const { spawn } = require("child_process"); const fs = require("fs"), os = require("os"), path = require("path");
-const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const CHROME = "/Users/nor/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
 const DOM = process.argv[2] || "stargate.mistercuarter.es";
 const cfg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "assets/js/firebase_config.json"), "utf8"));
 const URLH = "https://" + DOM + "/__/auth/handler?apiKey=" + cfg.apiKey + "&appName=%5BDEFAULT%5D&authType=signInViaRedirect"
