@@ -13,7 +13,7 @@
 //   scroll = JS que devuelve el elemento al que subir la vista antes de disparar
 const fs = require("fs"), path = require("path"), { spawn } = require("child_process");
 
-const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const CHROME = "/Users/nor/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
 const PUERTO = 9333;
 const trabajos = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
 const DESTINO = process.argv[3];
