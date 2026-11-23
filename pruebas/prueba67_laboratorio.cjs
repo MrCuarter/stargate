@@ -625,22 +625,35 @@ const REG = {};   // cifras que se apuntan para el informe
       c("sobre · sin 404 ni errores", !ana.rotos.filter(u => !/youtube|genially|gstatic/.test(u)).length && !ana.errores.filter(x => !/Failed to load/.test(x)).length,
         (ana.rotos[0] || "") + " " + (ana.errores[0] || ""));
     }
-    // ============================================================ 9 · TRES REPETIDAS POR UN SOBRE
+    // ============================================================ 9 · N REPETIDAS POR UN SOBRE
     /**
-     * Inventario CONTROLADO: cuatro copias de Bran y nada más repetido (tres repetidas justas). Así
-     * se ve sin ruido si el cambio retira exactamente tres copias, si deja la última, si entrega un
+     * Inventario CONTROLADO: N+1 copias de Bran y nada más repetido (N repetidas justas). Así
+     * se ve sin ruido si el cambio retira exactamente N copias, si deja la última, si entrega un
      * sobre de verdad y si el servidor dice que no cuando ya no llegan.
+     * 23-nov · N es el del grupo (SG.repesPorSobre: 3 en las versiones 1 y 2, 5 desde la 3, `cromosNivelados`):
+     * lab-clase nace en la versión de su GamificaPro, y con el 3 escrito a mano la sección daba tres rojos
+     * (y un verde falso: sin botón no había cambio, y Bran seguía con 4).
      */
     if (hacer(9)) {
       const A = admin(), fs = A.firestore();
       const f0 = await fichaDe("ana@lab.test", "lab-clase");
       const B = "lab-clase__cromo_P1_bran";
-      await fs.collection("student_profiles").doc(f0._id).update({ inventory: [B, B, B, B], consumableUses: {} });
+      await fs.collection("student_profiles").doc(f0._id).update({ inventory: [B], consumableUses: {} });
       const ana = await nueva("Ana cambia repetidas");
       await ana.ir("entrar.html"); await ana.entrarComo("ana@lab.test", "Ana Nueva");
       await ana.ir("recluta.html?per=lab-clase#mercado");
+      await ana.hasta("!!(window.SG && SG.repesPorSobre && window.GP_SDK && GP_SDK.sitio)", 20);
+      const grupo = (await leerDoc("projects/lab-clase")) || {};
+      const N = Number(await ana.js("SG.repesPorSobre(" + JSON.stringify(grupo) + ")"));
+      c("repetidas · el número sale del grupo (versión " + L.version() + " → " + N + ")",
+        Number.isInteger(N) && (L.version() >= 3 ? N > 3 : N === 3), "N = " + N);
+      await fs.collection("student_profiles").doc(f0._id).update({ inventory: Array(N + 1).fill(B), consumableUses: {} });
+      // (la misma dirección con su # no recarga: ir() se quedaría con la página vieja; se recarga de verdad)
+      try { await ana.js("window.__sgVieja=1; setTimeout(function(){ location.reload(); }, 0); 1", 3000); } catch (e) {}
+      await ana.hasta("!window.__sgVieja && document.readyState==='complete' && !!(window.SG && SG.MOTOR)", 30);
       const hay = await ana.hasta("[].slice.call(document.querySelectorAll('button[data-canje]')).some(function(b){return b.getAttribute('data-tipo')==='cromo_repes'})", 20);
-      c("repetidas · con 3 repetidas justas, el botón «Cambiar» aparece", hay);
+      c("repetidas · con " + N + " repetidas justas, el botón «Cambiar» aparece", hay, hay ? "" : await ana.js(
+        "(function(){ var t=[].slice.call(document.querySelectorAll('.rec-card')).map(function(x){return x.textContent.replace(/\\s+/g,' ').trim()}).filter(function(s){return /repetid/i.test(s)}); return (t[0]||'sin tarjeta de repetidas').slice(0,220); })()"));
       await ana.js("(function(){ var b=[].slice.call(document.querySelectorAll('button[data-canje]')).filter(function(b){return b.getAttribute('data-tipo')==='cromo_repes'})[0]; if(b) b.click(); return 1; })()");
       await ana.hasta("!!document.querySelector('.neb-capa')", 8);
       await ana.js("var c=document.querySelector('.neb-capa'); var b=c&&[].slice.call(c.querySelectorAll('button')).filter(function(x){return !/Ahora no/i.test(x.textContent)})[0]; if(b) b.click(); 1");
@@ -651,12 +664,13 @@ const REG = {};   // cifras que se apuntan para el informe
       const inv = f1.inventory || [];
       const bran = inv.filter(x => x === B).length;
       const cartas = inv.filter(x => /__cromo_/.test(x)).length;
-      c("🔴 repetidas · retira tres copias y deja la última (Bran: 4 → 1, más las que traiga el sobre)", bran >= 1 && bran <= 4 && cartas === 4,
-        "Bran " + bran + " · cartas en total " + cartas + " (4 − 3 + 3)");
+      c("🔴 repetidas · retira " + N + " copias y deja la última (Bran: " + (N + 1) + " → 1, más las que traiga el sobre)", bran >= 1 && bran <= 4 && cartas === 4,
+        "Bran " + bran + " · cartas en total " + cartas + " (" + (N + 1) + " − " + N + " + 3)");
       // y sin repetidas suficientes, el servidor dice que no aunque se llame a mano
       await fs.collection("student_profiles").doc(f0._id).update({ inventory: [B, B, "lab-clase__cromo_P2_tomas"] });
       const r = await ana.js("window.SG.MOTOR.llamar('stargateCambiarRepes', {projectId:'lab-clase'}).then(function(){return 'LO DEJÓ'}).catch(function(e){return e.message})");
-      c("🔴 repetidas · con menos de 3, el SERVIDOR lo rechaza aunque se llame a mano", /Necesitas 3/.test(r), r);
+      c("🔴 repetidas · con menos de " + N + ", el SERVIDOR lo rechaza aunque se llame a mano (y pide las mismas que la web)",
+        new RegExp("Necesitas " + N + "\\b").test(r), r);
     }
 
     // ============================================================ 10 · EL TRAMPOSO
