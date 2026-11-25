@@ -116,7 +116,7 @@ console.log("  El buzón la enseña antes de escribir");
 c(/window\.SG_CLARO=\[\["enlace-foro"/.test(BZH) && /\["mi-papel", "¿Referente o docente\?", "Solo para referentes", 1\]/.test(BZH), "la lista sale de la misma fuente que la página (SG_CLARO)");
 c(/function enClaro\(\)/.test(BZ) && /href="en-claro\.html#' \+ esc\(x\[0\]\) \+ '" target="_blank"/.test(BZ), "   cada pregunta abre su respuesta aparte (lo escrito no se pierde)");
 c(/return !x\[3\] \|\| ref;/.test(BZ), "   las de referentes, solo a quien lo es");
-c(/"crear\.html", "en-claro\.html"\)/.test(B), "la página avisa de las respuestas del buzón, como el resto del panel");
+c(/"crear\.html", "en-claro\.html"[,)]/.test(B), "la página avisa de las respuestas del buzón, como el resto del panel");
 
 console.log("\n  Batería 128 · STARGATE en claro");
 console.log("  " + (ok + fallos.length) + " comprobaciones, " + fallos.length + " fallos");

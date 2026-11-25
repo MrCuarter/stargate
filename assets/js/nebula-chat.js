@@ -388,7 +388,14 @@
     var miasSum = el("summary");
     var miasLista = el("ul");
     mias.appendChild(miasSum); mias.appendChild(miasLista);
-    mias.addEventListener("toggle", function () { if (mias.open) marcarVistas(); });
+    // 25-nov · abierto por quien lo lee, visto; abierto solo (porque hay respuesta nueva), aún no: se da por vista cuando la
+    // respuesta ha estado a la vista unos segundos (vigilarVistas). Antes, abrir el chat para otra cosa la apagaba sin leerla
+    // (Galán Carbajo no vio la de su matriz en Word); la ventana de la Nave (aviso-buzon.js) vuelve hasta que la vea.
+    var autoAbierto = false;
+    mias.addEventListener("toggle", function () {
+      if (autoAbierto) { autoAbierto = false; return; }
+      if (mias.open) marcarVistas();
+    });
 
     var log = el("div", "nbc-log");
     log.setAttribute("role", "log");
@@ -663,6 +670,7 @@
       if (nuevas) miasSum.appendChild(el("span", "nbc-nueva", nuevas === 1 ? "1 respuesta nueva" : nuevas + " respuestas nuevas"));
       dudas.forEach(function (m) {
         var li = el("li", "nbc-duda"), rs = respuestasMando(m);
+        if (m.visto === false && rs.length) li.setAttribute("data-nueva", m.id);
         li.appendChild(el("q", null, m.texto || ""));
         var pens = pensando(m);
         var est = el("span", "nbc-est" + (rs.length ? " si" : pens ? " pensando" : ""), rs.length ? "Respondida" : pens ? "NEBULA está pensando" : "Pendiente");
@@ -677,15 +685,32 @@
         });
         miasLista.appendChild(li);
       });
-      if (nuevas) mias.open = true;
-      if (mias.open) marcarVistas();
+      if (nuevas && !mias.open) { autoAbierto = true; mias.open = true; }
+      vigilarVistas();
+    }
+    // 25-nov · una respuesta nueva se da por vista cuando lleva 2,5 s a la vista (la mitad, o 140 px si es larga), con el chat abierto
+    var obsVistas = null, relojes = {};
+    function vigilarVistas() {
+      if (obsVistas) obsVistas.disconnect();
+      Object.keys(relojes).forEach(function (k) { clearTimeout(relojes[k]); }); relojes = {};
+      if (!mias.open || !("IntersectionObserver" in W)) return;
+      obsVistas = new IntersectionObserver(function (ent) {
+        ent.forEach(function (x) {
+          var id = x.target.getAttribute("data-nueva");
+          if (x.isIntersecting && (x.intersectionRatio >= 0.5 || x.intersectionRect.height >= 140)) {   // (una respuesta larga no cabe entera)
+            if (!relojes[id]) relojes[id] = setTimeout(function () { delete relojes[id]; if (visible() && mias.open) marcarVistas(id); }, 2500);
+          } else if (relojes[id]) { clearTimeout(relojes[id]); delete relojes[id]; }
+        });
+      }, { threshold: [0, 0.5, 1] });
+      Array.prototype.forEach.call(miasLista.querySelectorAll("[data-nueva]"), function (li) { obsVistas.observe(li); });
     }
     function visible() { try { return caja.offsetParent !== null && !caja.closest("[hidden]"); } catch (e) { return true; } }
-    function marcarVistas() {
+    function marcarVistas(solo) {
       if (!visible()) return;
       var M = W.SG.MOTOR;
       if (!M || !M.buzonVisto) return;
       dudas.forEach(function (m) {
+        if (solo && m.id !== solo) return;
         if (m.visto === false && respuestasMando(m).length && !vistasEnviadas[m.id]) {
           vistasEnviadas[m.id] = 1; M.buzonVisto(m.id); m.visto = true;
         }

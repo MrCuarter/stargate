@@ -21,13 +21,26 @@ const existe = f => fs.existsSync(path.join(RAIZ, f));
 
 // 1 · dónde sale
 const TAG = /<script src="assets\/js\/aviso-buzon\.js\?v=[0-9a-f]{10}" defer><\/script>/;
-for (const f of ["consola.html", "academia.html", "gestion.html", "profesores.html", "crear.html"])
+// 25-nov · y la Nave del recluta («que no se borre hasta que se vea»: Galán Carbajo no vio la respuesta de su matriz)
+for (const f of ["consola.html", "academia.html", "gestion.html", "profesores.html", "crear.html", "recluta.html"])
   c(existe(f) && TAG.test(leer(f)), f + " lleva el aviso de respuestas, con su sello");
-for (const f of ["sesion.html", "aula.html", "prestreno.html", "ensayo.html", "buzon.html", "recluta.html", "clase.html", "llamada.html", "embed.html", "batalla.html"])
-  c(!existe(f) || !/aviso-buzon\.js/.test(leer(f)), f + " NO lleva el aviso (se proyecta, es el ensayo, el buzón o el alumnado)");
+for (const f of ["sesion.html", "aula.html", "prestreno.html", "ensayo.html", "buzon.html", "clase.html", "llamada.html", "embed.html", "batalla.html"])
+  c(!existe(f) || !/aviso-buzon\.js/.test(leer(f)), f + " NO lleva el aviso (se proyecta, es el ensayo o el buzón)");
 const sello = (/aviso-buzon\.js\?v=([0-9a-f]{10})/.exec(leer("consola.html")) || [])[1];
 c(sello === require("crypto").createHash("md5").update(fs.readFileSync(path.join(RAIZ, "assets/js/aviso-buzon.js"))).digest("hex").slice(0, 10),
   "el sello de consola.html es el del fichero de hoy (si no, el CDN serviría el viejo)", sello);
+
+// 1b · 25-nov · en la Nave, solo lo del recluta, sin mandarle a buzon.html (es del profesorado), y el chat no la apaga sola
+{
+  const A = leer("assets/js/aviso-buzon.js"), N = leer("assets/js/nebula-chat.js");
+  c(/var RECLUTA = [^;]*recluta/.test(A), "el aviso sabe si está en la Nave del recluta");
+  c(A.includes('(m.tipo === "recluta") !== RECLUTA'), "en la Nave salen solo las dudas de recluta, y en las páginas del docente nunca");
+  c(/RECLUTA\s*\?\s*'<footer[^']*data-nebula/.test(A), "el pie de la Nave abre NEBULA, no buzon.html");
+  c(/autoAbierto = true; mias\.open = true/.test(N) && /if \(autoAbierto\) \{ autoAbierto = false; return; \}/.test(N),
+    "el chat abierto solo (por haber respuesta nueva) no la da por vista");
+  c(/function vigilarVistas\(\)/.test(N) && /marcarVistas\(id\)/.test(N), "se da por vista cuando ha estado unos segundos a la vista");
+  c(/vigilarVistas\(\);\n    \}/.test(N) && !/if \(mias\.open\) marcarVistas\(\);\n    \}\n/.test(N), "ya no se marca vista al pintar la lista");
+}
 
 // 2 · las dos frases, en un sitio
 const MOT = leer("assets/js/motor.js");
@@ -61,7 +74,7 @@ c(/art\.getAttribute\("data-mas"\)\) t = \(V\.mas/.test(BZ), "y «Necesito algo 
 c(/\.bz-valora\{/.test(leer("assets/css/stargate.css")), "con su estilo");
 
 // 4b · 10-oct · lo resuelto se va de la ventana (Norberto: «que desapareciese esa consulta… y quedarán las respuestas sin resolver»)
-c(/listo\("¡Gracias, Comandante! Nos ayuda a saber que el buzón sirve\."\); retirar\(art\);/.test(AV), "🔴 «Sí, resuelta»: tras el gracias, su tarjeta se retira de la ventana");
+c(/listo\(RECLUTA \? "¡Gracias, recluta! [^"]*" : "¡Gracias, Comandante! Nos ayuda a saber que el buzón sirve\."\); retirar\(art\);/.test(AV), "🔴 «Sí, resuelta»: tras el gracias, su tarjeta se retira de la ventana");
 c(/function retirar\(art\)/.test(AV) && /\.sgav-m\.sgav-fuera\{opacity:0;max-height:0/.test(AV), "   desvaneciéndose (sgav-fuera), no a golpe");
 c(/if \(!n\) return quitar\(\);/.test(AV) && /#sgav-t"\)\.textContent = n === 1 \? "Tienes una respuesta nueva" : "Tienes " \+ n \+ " respuestas nuevas"/.test(AV),
   "   el título cuenta las que quedan y, sin ninguna, la ventana se cierra");

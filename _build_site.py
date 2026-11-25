@@ -6001,7 +6001,8 @@ print("semanas.js en:", len(_con_sem), "páginas")
 # Norberto: «¿cómo saben ellos que les has respondido? Necesito algo llamativo: que cuando tengan mensajes, nada más entrar se
 # les abra una ventana… y junto con la respuesta un botón de ¿He resuelto la pregunta? ¿Necesitas algo más?». assets/js/aviso-buzon.js
 # va SOLO en las páginas del docente que no se proyectan (nunca en la sesión, el aula, la presentación ni la consola de ensayo).
-AVISO_EN = ("consola.html", "academia.html", "gestion.html", "profesores.html", "crear.html", "en-claro.html")
+# 25-nov · y en la Nave del recluta (recluta.html): sus dudas a NEBULA, con NEBULA de cara (aviso-buzon.js, RECLUTA)
+AVISO_EN = ("consola.html", "academia.html", "gestion.html", "profesores.html", "crear.html", "en-claro.html", "recluta.html")
 _TAG_AVISO = '<script src="assets/js/aviso-buzon.js?v=' + _ver("assets/js/aviso-buzon.js") + '" defer></script>'
 for _f in AVISO_EN:
     _ruta = os.path.join(HERE, _f)
