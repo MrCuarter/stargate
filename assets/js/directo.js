@@ -347,6 +347,19 @@
     return marca !== String(l.id);
   }
   function marcaFichaje(l) { return l && l.id ? String(l.id) : 1; }
+  /**
+   * 19-nov · Motor B · FICHAR SENTÁNDOSE (la Fortaleza, PLAN_FORTALEZA A3). El asiento que se puede pedir al fichar: { sala, n } con la
+   * sala en `salas` ({ sala: asientos }, los de `presencia.salas` del mod) y n de 1 a sus asientos; si no, null. La misma regla que el
+   * servidor (functions/modPresenciaLogica.js → asientoDePeticion; la prueba las compara). Se manda con
+   * GP_SDK.asistencia.fichar(grupo, ficha, { asiento }) o GP.presenciaMapa.sentarse; quién se sienta dónde lo decide el servidor.
+   */
+  function asientoLimpio(a, salas) {
+    if (!a || typeof a !== "object" || !salas || typeof salas !== "object") return null;
+    var sala = typeof a.sala === "string" ? a.sala : "", n = Number(a.n);
+    var max = Object.prototype.hasOwnProperty.call(salas, sala) ? Math.floor(Number(salas[sala])) : 0;
+    if (!(max >= 1) || Math.floor(n) !== n || n < 1 || n > max) return null;
+    return { sala: sala, n: n };
+  }
 
   // ── 21-oct · el directo es un botón (y la llamada, a la vez)
   var DURACIONES = [60, 120];
@@ -561,7 +574,7 @@
   return { deMiAula: deMiAula, vistaDeAula: vistaDeAula, aulasLimpias: aulasLimpias, esDeMisAulas: esDeMisAulas, aulasParaEmitir: aulasParaEmitir, TODO_EL_GRUPO: TODO,
            ocurrencia: ocurrencia, indiceDe: indiceDe, dondeVa: dondeVa, firma: firma, emisor: emisor, SUENA: SUENA, dormir: dormir, despertar: despertar,
            sala: sala, deLaSala: deLaSala, trabajos: trabajos, punto: punto, textoPremio: textoPremio, premios: premios,
-           restos: restos, textoRestos: textoRestos, empezarDeCero: empezarDeCero, enDirecto: enDirecto, porFichar: porFichar, marcaFichaje: marcaFichaje,
+           restos: restos, textoRestos: textoRestos, empezarDeCero: empezarDeCero, enDirecto: enDirecto, porFichar: porFichar, marcaFichaje: marcaFichaje, asientoLimpio: asientoLimpio,
            DURACIONES: DURACIONES, nuevo: nuevo, vivo: vivo, deColumna: deColumna, paraColumna: paraColumna, directoDe: directoDe, cubre: cubre,
            queda: queda, textoQueda: textoQueda, ficharEn: ficharEn,
            PRESENCIA: PRESENCIA, marcaT: marcaT, ventana: ventana, presente: presente, tocaEntrar: tocaEntrar };

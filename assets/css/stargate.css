@@ -2049,6 +2049,15 @@ body.embed #sg-son{display:none}
 .ad-pl.on{border-color:#ffd166;box-shadow:0 0 16px rgba(255,209,102,.35)}
 .ad-pl.on span{color:#ffd166;font-weight:700}
 .ad-nada{justify-content:center;min-height:74px;border-style:dashed;border-color:#24304a}
+/* 25-nov · el adorno dentro de la ventana de la compra: a la izquierda como en el cajón, planetas más pequeños para que quepa
+   en un móvil de 320 px, y la ventana se desliza si no cabe de alto */
+.neb-adorno{text-align:left;margin:0 0 16px}
+.neb-adorno .ad-uno > b{display:none}
+.neb-adorno .ad-planetas{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.neb-adorno .ad-fila .btn{min-height:42px}
+.neb-caja:has(.neb-adorno) .neb-arte{width:96px}
+/* (la capa es la que se desliza, no la caja: la cara de NEBULA sobresale por arriba y una caja con scroll la cortaría) */
+.neb-capa:has(.neb-adorno){overflow-y:auto;place-items:safe center;padding-top:54px}
 @media (prefers-reduced-motion:reduce){.ad-pl{transition:none}.ad-pl:hover{transform:none}}
 
 /* El cromo, más grande en la lupa: es la recompensa, no una miniatura de catálogo. */

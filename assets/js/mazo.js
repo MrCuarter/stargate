@@ -53,6 +53,19 @@
  *   · Sin miniaturas (STARGATE, cuya rueda va por secciones): GP.mazo.notasRejilla(caja, { items, notas }), más abajo.
  *   Lo puro: GP.mazo.lineasDe(texto) (una idea por línea, sin vacías, hasta 8) y GP.mazo.notaCorta(lineas) (el texto de la miniatura).
  *
+ * 🔴 23-nov · EL OJO DE CADA DIAPOSITIVA (Norberto, DPG1: «un ojo en la parte superior izquierda, verde, que indica que se visualizará
+ * en la clase, y si hago clic se pone rojo tachado y significa que esa diapositiva se ocultará en la clase en directo… debe guardar la
+ * elección de cada docente de forma individual»). Es una capa SOLO del docente, encima de lo que mande (grupo, perfil o serie): no toca
+ * el mazo del grupo, que comparten las columnas. Vive en el mismo sitio que su mazo del perfil, `mod_profes/{mod}__{uid}.mazos.<sesión>`,
+ * en `ocultas: [claves]` (sin cambiar las reglas: `mazos` ya es suyo y acotado). Una entrada con solo `ocultas` cuenta «por defecto»
+ * para `elegir` y `soloMazo` no la arrastra: el ojo no convierte en personalizado nada.
+ *   GP.mazo.ocultas(entrada)            → las claves ocultas de esa sesión (sin repetidas).
+ *   GP.mazo.ocultar(entrada, k, oculta) → la misma entrada con `k` oculta (true) o a la vista (false). Nunca toca el original.
+ *   GP.mazo.sinOcultas(lista, ocultas, clave) → la lista sin las ocultas (`clave(x)` da la clave; por defecto, x.k).
+ *   GP.mazo.ojo(oculta, { titulo })     → el botón (44 px): ojo verde abierto «Se verá en la clase» / rojo tachado «Oculta en la
+ *                                          clase». Lleva `data-gpm-ojo`; el mod lo pone donde quiera y escucha el clic.
+ *   GP.mazo.estilo()                    → monta la hoja de la pieza (la del botón incluida) sin abrir la ventana.
+ *
  * Cada web la copia en su build (assets/js/mazo.js, con `guardas.copiar_pieza`) y NO se edita allí: aquí.
  * STARGATE podría heredarla para su rueda «Configurar las diapositivas» (hoy, `SG.CFGSESION`, por secciones y con capturas fijas).
  */
@@ -99,6 +112,27 @@
     var mismo = o.length === s.length && o.every(function (k, i) { return k === s[i]; });
     if (!o.length || mismo) delete c.orden; else c.orden = o;
     return c;
+  }
+  // 23-nov · el ojo: la capa del docente (ocultas), encima de lo que mande
+  function ocultas(entrada) { return unicas(entrada && entrada.ocultas); }
+  function ocultar(entrada, k, oculta) {
+    var c = copia(entrada), o = ocultas(entrada).filter(function (x) { return x !== String(k); });
+    if (oculta) o.push(String(k));
+    c.ocultas = o;
+    return c;
+  }
+  function sinOcultas(L, oc, clave) {
+    var fuera = {}; lista(oc).forEach(function (k) { fuera[k] = true; });
+    clave = clave || function (x) { return x && x.k; };
+    return (Array.isArray(L) ? L : []).filter(function (x) { return !fuera[String(clave(x))]; });
+  }
+  var OJO_SVG = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path class="gpm-ojo-tacha" d="M3.5 3.5l17 17"/></svg>';
+  function ojo(oculta, o) {
+    o = o || {};
+    var t = oculta ? "Oculta en la clase en directo: pulsa para que se vea" : "Se verá en la clase en directo: pulsa para ocultarla";
+    return '<button type="button" class="gpm-ojo' + (oculta ? " gpm-ojo-no" : "") + '" data-gpm-ojo aria-pressed="' + (oculta ? "true" : "false") + '" title="' + esc(t) +
+      '" aria-label="' + esc((o.titulo ? o.titulo + ": " : "") + t) + '">' + OJO_SVG + '<span class="gpm-ojo-t">' + (oculta ? "Oculta" : "Se verá") + "</span></button>";
   }
   var MAX_LINEAS = 8;
   function lineasDe(t) {
@@ -173,6 +207,11 @@
     ".gpm-g-paso:disabled{opacity:.3;cursor:default}" +
     ".gpm-g-pie{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-start;width:min(100%,calc((100dvh - 190px) * 16 / 9));min-width:min(100%,280px);max-height:24dvh;overflow:auto}" +
     ".gpm-g-nota{flex:1;min-width:200px;margin:0;color:var(--gpm-suave,#cbbca2);font-size:.9rem}" +
+    ".gpm-ojo{display:inline-flex;align-items:center;gap:6px;min-width:44px;min-height:44px;padding:0 12px 0 10px;border-radius:999px;border:2px solid #2f9e57;" +
+      "background:rgba(10,40,20,.86);color:#7be39b;font:700 14px/1 var(--gpm-letra,system-ui,sans-serif);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.45)}" +
+    ".gpm-ojo .gpm-ojo-tacha{display:none}.gpm-ojo:focus-visible{outline:3px solid #fff;outline-offset:2px}" +
+    ".gpm-ojo.gpm-ojo-no{border-color:#d9443a;background:rgba(60,10,8,.9);color:#ff8a80}.gpm-ojo.gpm-ojo-no .gpm-ojo-tacha{display:inline}" +
+    ".gpm-ojo:disabled{opacity:.6;cursor:progress}" +
     "@media (max-width:699px),(max-height:500px){.gpm-velo{padding:0}.gpm-ventana{width:100%;height:100dvh;max-height:none;border-radius:0;border:0}" +
       ".gpm-cuerpo{padding:10px 12px calc(16px + env(safe-area-inset-bottom))}.gpm-cab{padding:12px}" +
       ".gpm-g-caja{width:100%}.gpm-g-fila{flex-wrap:wrap}.gpm-g-fila .gpm-g-paso{order:2}}" +
@@ -477,5 +516,6 @@
   }
 
   window.GP = window.GP || {};
-  window.GP.mazo = { estado: estado, elegir: elegir, soloMazo: soloMazo, porDefecto: porDefecto, alternar: alternar, conOrden: conOrden, abrir: abrir, notasRejilla: notasRejilla, lineasDe: lineasDe, notaCorta: notaCorta, CSS: CSS };
+  window.GP.mazo = { estado: estado, elegir: elegir, soloMazo: soloMazo, porDefecto: porDefecto, alternar: alternar, conOrden: conOrden, abrir: abrir, notasRejilla: notasRejilla, lineasDe: lineasDe, notaCorta: notaCorta, CSS: CSS,
+    ocultas: ocultas, ocultar: ocultar, sinOcultas: sinOcultas, ojo: ojo, estilo: montarEstilo };
 })();

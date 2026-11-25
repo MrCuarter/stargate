@@ -289,9 +289,11 @@ window.SG_NEBULA_FAQ = [
   { id: "adornos", p: ["qué son los adornos", "cómo personalizo mi ficha", "título marco y fondo", "decorar mi perfil"],
     claves: ["adornos", "personalizar", "decorar", "titulo", "marco", "fondo"],
     r: "Desde la semana 4: un <b>título</b> bajo tu alias (40 ◈), el <b>fondo</b> de tu ficha con el planeta que elijas (35 ◈) y el <b>marco dorado</b> del avatar (60 ◈). Se ven en tu ficha y en el tablero de la clase.", ir: "mercado" },
-  { id: "adorno_poner", p: ["compré un título y no se ve", "cómo me pongo el marco", "dónde activo el fondo"],
-    claves: ["poner", "activar", "ve", "titulo", "marco", "fondo"],
-    r: "Los adornos que tienes se eligen en tu vestuario: pulsa tu personaje en Mi nave. Si no aparece, recarga la Nave.", ir: "nave" },
+  // 25-nov · decía «pulsa tu personaje en Mi nave», y ahí no se ponen (MrSamper preguntó tres veces). Ahora se ponen al canjearlos
+  // y con «Ponérmelo» en su tarjeta del Bazar; el cajón de Botín → Héroes sigue
+  { id: "adorno_poner", p: ["compré un título y no se ve", "cómo me pongo el marco", "dónde activo el fondo", "cómo equipo el título que he canjeado"],
+    claves: ["poner", "activar", "equipar", "ve", "titulo", "marco", "fondo"],
+    r: "En <b>Mercado → Bazar</b>, en la tarjeta del adorno que ya tienes (título, fondo o marco), pulsa <b>«Ponérmelo»</b>: el título lo escribes tú, el fondo es el planeta que elijas. Se ve bajo tu alias, en tu ficha y en el tablero. También está en <b>Botín → Héroes</b>, abajo del todo. Si no te sale el botón, recarga la Nave.", ir: "mercado" },
 
   // ───────────────────────────── GRAN SORTEO ─────────────────────────────
   { id: "sorteo", p: ["qué es el gran sorteo", "qué se sortea", "cómo participo en el sorteo", "licencia de genially"],
