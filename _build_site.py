@@ -207,6 +207,9 @@ GB.copiar_pieza(HERE, "divisor.js", os.path.join(HERE, "assets", "js", "divisor.
 # 23-oct · UN ANUNCIO BREVE, UNA SOLA VEZ (GamificaPro sdk/anuncio.js, `GP.anuncio`): lo nuevo, al profesorado, en su consola
 # (consola.js → quizaAnuncio). Se mete en consola.html más abajo, con su huella.
 GB.copiar_pieza(HERE, "anuncio.js", os.path.join(HERE, "assets", "js", "anuncio.js"), decir=print)
+# 26-nov · LA VENTANA DE RESPUESTAS NUEVAS (GamificaPro sdk/avisoRespuestas.js, `GP.avisoRespuestas`, común con DPG): la usa
+# assets/js/aviso-buzon.js, que pone lo de STARGATE (qué hay sin leer, los textos y la piel sgav-…). Va en las mismas páginas (AVISO_EN).
+GB.copiar_pieza(HERE, "avisoRespuestas.js", os.path.join(HERE, "assets", "js", "avisoRespuestas.js"), decir=print)
 # 19-oct · LAS NOTAS, EDITABLES EN LA RUEDA (GamificaPro sdk/mazo.js, `GP.mazo.notasRejilla`, común con DPG): en «Configurar las
 # diapositivas» abierta desde la clase, las notas del presentador de cada diapositiva, con «Editar» y «Volver al texto original»
 # (las de cada docente, en su perfil: GP.notas). La carga sesion.html.
@@ -6003,13 +6006,14 @@ print("semanas.js en:", len(_con_sem), "páginas")
 # va SOLO en las páginas del docente que no se proyectan (nunca en la sesión, el aula, la presentación ni la consola de ensayo).
 # 25-nov · y en la Nave del recluta (recluta.html): sus dudas a NEBULA, con NEBULA de cara (aviso-buzon.js, RECLUTA)
 AVISO_EN = ("consola.html", "academia.html", "gestion.html", "profesores.html", "crear.html", "en-claro.html", "recluta.html")
-_TAG_AVISO = '<script src="assets/js/aviso-buzon.js?v=' + _ver("assets/js/aviso-buzon.js") + '" defer></script>'
+_TAG_AVISO = ('<script src="assets/js/avisoRespuestas.js?v=' + _ver("assets/js/avisoRespuestas.js") + '" defer></script>\n'   # 26-nov · la ventana, del motor
+              '<script src="assets/js/aviso-buzon.js?v=' + _ver("assets/js/aviso-buzon.js") + '" defer></script>')
 for _f in AVISO_EN:
     _ruta = os.path.join(HERE, _f)
     if not os.path.exists(_ruta):
         continue
     _s = open(_ruta, encoding="utf-8").read()
-    _s2 = _re2.sub(r'<script src="assets/js/aviso-buzon\.js(\?v=[0-9a-f]+)?" defer></script>', '', _s)
+    _s2 = _re2.sub(r'<script src="assets/js/(aviso-buzon|avisoRespuestas)\.js(\?v=[0-9a-f]+)?" defer></script>\n?', '', _s)
     assert "assets/js/motor.js" in _s2, _f + " sin motor: el aviso de respuestas no podría leer el buzón"
     _s2 = _s2.replace("</head>", _TAG_AVISO + "\n</head>", 1)
     if _s2 != _s:

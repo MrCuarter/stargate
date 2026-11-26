@@ -24,17 +24,20 @@
  * numerito en el botón de NEBULA y el chat la daba por vista en cuanto se abría. En la Nave salen solo sus dudas de recluta, con
  * NEBULA de cara, y la ventana vuelve en cada visita hasta que pulse «Sí, resuelta», «Entendido» o conteste (la ×, solo en esta
  * pestaña). Todo sigue en NEBULA, en «Tus dudas al Comandante» (buzon.html es del profesorado: a un recluta no se le manda allí).
+ *
+ * 26-nov · LA VENTANA ES DEL MOTOR (GamificaPro sdk/avisoRespuestas.js → assets/js/avisoRespuestas.js, `GP.avisoRespuestas`, común
+ * con DPG). Aquí queda lo de STARGATE: qué hay sin leer (el buzón y la Academia), quién contesta, los textos, lo que hace cada
+ * botón con el motor y la piel (las clases sgav-… y sus estilos). Lo que se ve y cómo se comporta, igual que antes.
  */
 (function () {
   "use strict";
   if (window.top !== window || window.SG_ENSAYO || /[?&](embed|demo)=1(&|$)/.test(location.search)) return;
   var RECLUTA = window.SG_AVISO_RECLUTA === true || /(^|\/)recluta(\.html)?$/.test(location.pathname);
   var CERRADO = "sgAvisoCerrado", ACD = "sgAcademia.claudeVisto", SEMANA = 7 * 864e5;
-  var M = null, ITEMS = [], caja = null, antesFoco = null;
+  var M = null, ITEMS = [];
+  function abierta() { return !!(window.GP && window.GP.avisoRespuestas && window.GP.avisoRespuestas.abierta()); }
 
-  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function cuando(ms) { try { return new Date(Number(ms)).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch (e) { return ""; } }
-  function corto(t, n) { t = String(t || "").replace(/\s+/g, " ").trim(); return t.length > n ? t.slice(0, n - 1) + "…" : t; }
   function leer(st, k, d) { try { var v = st.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
   function poner(st, k, v) { try { st.setItem(k, JSON.stringify(v)); } catch (e) {} }
 
@@ -81,6 +84,7 @@
     }).catch(function () { return []; });
   }
 
+  /** La piel de STARGATE (la ventana es de GamificaPro: sdk/avisoRespuestas.js; aquí, sus clases y estos estilos). */
   function css() {
     if (document.getElementById("sgav-css")) return;
     var s = document.createElement("style"); s.id = "sgav-css";
@@ -108,7 +112,7 @@
       ".sgav .btn{padding:9px 14px;font-size:.88rem}" +
       ".sgav-escribe{margin-top:8px;display:flex;flex-direction:column;gap:8px}.sgav-escribe[hidden]{display:none}" +
       ".sgav-escribe textarea{width:100%;min-height:72px;resize:vertical;background:var(--bg2,#0d1420);color:var(--ink,#e9f0f6);border:1px solid var(--line,#1c2c40);border-radius:10px;padding:8px 10px;font:inherit}" +
-      ".sgav-escribe .btn{align-self:flex-start}" +
+      ".sgav-escribe .btn{align-self:flex-start}.sgav-escribe label{display:block}.sgav-escribe .gpav-botones{display:flex;flex-wrap:wrap;gap:8px;align-items:center}" +
       ".sgav-hecho{margin:8px 0 0;color:var(--teal,#37e0ec);font-weight:700}.sgav-error{color:var(--amber,#f5b043)}" +
       // 10-oct · lo resuelto se va de la ventana (no se borra: sigue en el buzón)
       ".sgav-m.sgav-fuera{opacity:0;max-height:0!important;padding-top:0;padding-bottom:0;margin:0;border-color:transparent;overflow:hidden;transition:opacity .3s,max-height .35s,padding .35s}" +
@@ -116,148 +120,83 @@
       "@media (max-width:560px){.sgav-fondo{align-items:flex-end;padding:0}.sgav{border-radius:16px 16px 0 0;max-height:92vh}.sgav-cab h2{font-size:1.08rem}}";
     document.head.appendChild(s);
   }
+  var PIEL = { fondo: "sgav-fondo", caja: "sgav", cab: "sgav-cab", eti: "sgav-eyebrow", x: "sgav-x", lista: "sgav-lista", m: "sgav-m", tu: "sgav-tu",
+               cita: "sgav-cita", r: "sgav-r", quien: "sgav-quien", acc: "sgav-acc", q: "sgav-q", escribe: "sgav-escribe", hecho: "sgav-hecho",
+               error: "sgav-error", fuera: "sgav-fuera", pie: "sgav-pie" };
 
   function retrato(nebula) { return nebula ? "assets/img/personajes/nebula.png" : "assets/img/iconos/p/envivo.png"; }
 
-  function tarjeta(x, i) {
-    var quien = x.fuente === "academia" ? (x.mando ? "El Alto Mando" : "NEBULA") : (RECLUTA && x.r.de === "docente") ? "Tu Comandante" : (x.nebula ? "NEBULA" : "El Mando");
-    var resuelto = x.fuente === "buzon" && x.m.estado === "resuelto";
-    var cab = x.fuente === "buzon"
-      ? '<p class="sgav-tu"><b>Tu mensaje</b> · ' + esc(cuando(x.m.creado)) + (x.m.grupo ? " · " + esc(x.m.grupo) : "") + '</p><p class="sgav-cita">«' + esc(corto(x.m.texto, 220)) + '»</p>'
-      : '<p class="sgav-tu"><b>En la Academia de la Cero</b></p>';
-    var acc = resuelto
-      ? '<span class="sgav-q">¿Te ha resuelto la duda?</span><button type="button" class="btn primary" data-si>Sí, resuelta</button><button type="button" class="btn" data-mas>Necesito algo más</button>'
-      : '<button type="button" class="btn primary" data-ok>Entendido</button><button type="button" class="btn" data-mas>Contestar</button>';
-    return '<article class="sgav-m" data-i="' + i + '">' + cab +
-      '<div class="sgav-r"><div class="sgav-quien"><img src="' + retrato((x.nebula && !(RECLUTA && x.r.de === "docente")) || (x.fuente === "academia" && !x.mando)) + '" alt="">' + quien + '<time>' + esc(cuando(x.t)) + '</time></div>' +
-        '<p>' + esc(x.fuente === "buzon" ? x.r.texto : x.texto) + '</p></div>' +
-      '<div class="sgav-acc">' + acc + '</div>' +
-      '<div class="sgav-escribe" hidden><textarea maxlength="1900" placeholder="' + (resuelto ? "Cuéntanos qué te falta o qué no ha funcionado…" : "Escribe tu respuesta…") + '" aria-label="Tu respuesta"></textarea>' +
-        '<button type="button" class="btn primary" data-enviar>Enviar</button></div>' +
-      '<p class="sgav-hecho" hidden></p></article>';
+  /** Lo de este navegador: lo leído en el buzón, con cuántas respuestas (la burbuja de la consola deja de contarlo), y la Academia. */
+  function abierto(x, extra) {
+    var a = leer(localStorage, "sgBzVistos", {}) || {}; a[x.id] = (x.m.respuestas || []).length + (extra || 0); poner(localStorage, "sgBzVistos", a);
+  }
+  function academiaLeida(x) { poner(localStorage, ACD, Math.max(Number(leer(localStorage, ACD, 0)) || 0, x.t)); }
+
+  /** Lo que tiene sin leer, como lo pinta la ventana común. */
+  function tarjeta(x) {
+    var docente = x.fuente === "buzon" && RECLUTA && x.r.de === "docente";
+    var quien = x.fuente === "academia" ? (x.mando ? "El Alto Mando" : "NEBULA") : docente ? "Tu Comandante" : (x.nebula ? "NEBULA" : "El Mando");
+    x.quien = quien;
+    x.retratoQuien = retrato((x.nebula && !docente) || (x.fuente === "academia" && !x.mando));
+    if (x.fuente === "buzon") {
+      x.tu = { titulo: "Tu mensaje", detalle: cuando(x.m.creado) + (x.m.grupo ? " · " + x.m.grupo : "") };
+      x.citas = [x.m.texto]; x.texto = x.r.texto; x.resuelto = x.m.estado === "resuelto";
+    } else { x.tu = { titulo: "En la Academia de la Cero" }; x.citas = []; x.resuelto = false; x.anotado = "Anotado."; }
+    return x;
   }
 
   function pintar() {
     css();
-    var n = ITEMS.length, nebula = ITEMS.every(function (x) { return x.nebula || (x.fuente === "academia" && !x.mando); });
-    antesFoco = document.activeElement;
-    caja = document.createElement("div"); caja.className = "sgav-fondo";
-    caja.innerHTML = '<div class="sgav" role="dialog" aria-modal="true" aria-labelledby="sgav-t">' +
-      '<header class="sgav-cab"><img src="' + retrato(nebula) + '" alt=""><div><div class="sgav-eyebrow">' + (nebula ? "NEBULA te ha respondido" : "Frecuencia de mando") + '</div>' +
-        '<h2 id="sgav-t">' + (n === 1 ? "Tienes una respuesta nueva" : "Tienes " + n + " respuestas nuevas") + '</h2></div>' +
-        '<button type="button" class="sgav-x" aria-label="Cerrar por ahora">&times;</button></header>' +
-      '<div class="sgav-lista">' + ITEMS.map(tarjeta).join("") + '</div>' +
-      (RECLUTA
-        ? '<footer class="sgav-pie"><span>Tus dudas y sus respuestas, siempre en NEBULA: «Tus dudas al Comandante».</span><button type="button" class="btn" data-nebula>Abrir NEBULA</button></footer></div>'
-        : '<footer class="sgav-pie"><span>Tus mensajes y respuestas, siempre en el buzón.</span><a class="btn" href="buzon.html">Ver todos mis mensajes</a></footer></div>');
-    document.body.appendChild(caja);
-    caja.querySelector(".sgav-x").onclick = cerrarPorAhora;
-    var neb = caja.querySelector("[data-nebula]");
-    if (neb) neb.onclick = function () {   // el chat de la Nave (recluta.js, ayudaNebula): sin dar nada por visto
-      cerrarPorAhora();
-      var b = document.getElementById("neb-ayuda-b"), cap = document.getElementById("neb-ayuda");
-      if (b && (!cap || cap.hidden)) b.click();
-    };
-    caja.addEventListener("keydown", function (e) { if (e.key === "Escape") cerrarPorAhora(); });
-    Array.prototype.forEach.call(caja.querySelectorAll(".sgav-m"), cablear);
-    var f = caja.querySelector("[data-si],[data-ok]"); if (f) { try { f.focus({ preventScroll: true }); } catch (e) { f.focus(); } }
-    caja.querySelector(".sgav-lista").scrollTop = 0;
-  }
-
-  /**
-   * 10-oct · LO RESUELTO SE VA. Norberto: «cuando digo que sí está resuelta, me gustaría que desapareciese esa consulta, así da
-   * sensación de que ya está zanjado (no borrar, que desapareciera de la pantalla y quedarán las respuestas sin resolver)». Tras el
-   * «¡Gracias!», la tarjeta se desvanece; el título cuenta las que quedan y, si no queda ninguna, la ventana se cierra. El mensaje
-   * sigue entero en el buzón.
-   */
-  function retirar(art) {
-    setTimeout(function () {
-      if (!caja || !art.parentNode) return;
-      var quieto = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      art.style.maxHeight = art.scrollHeight + "px"; void art.offsetHeight;   // desde su alto, para que la transición se vea
-      art.classList.add("sgav-fuera");
-      setTimeout(function () {
-        if (art.parentNode) art.parentNode.removeChild(art);
-        if (!caja) return;
-        var n = caja.querySelectorAll(".sgav-m").length;
-        if (!n) return quitar();
-        caja.querySelector("#sgav-t").textContent = n === 1 ? "Tienes una respuesta nueva" : "Tienes " + n + " respuestas nuevas";
-        var f = caja.querySelector(".sgav-m button:not([disabled])"); if (f) { try { f.focus({ preventScroll: true }); } catch (e) { f.focus(); } }
-      }, quieto ? 0 : 380);
-    }, 1300);
-  }
-
-  /** La × (o Escape): no vuelve a salir en esta pestaña; en la próxima visita, sí, mientras no conteste. */
-  function cerrarPorAhora() {
-    var c = leer(sessionStorage, CERRADO, []) || [];
-    ITEMS.forEach(function (x) { if (!x.hecho && c.indexOf(x.id) < 0) c.push(x.id); });
-    poner(sessionStorage, CERRADO, c);
-    quitar();
-  }
-  function quitar() {
-    if (caja && caja.parentNode) caja.parentNode.removeChild(caja);
-    caja = null;
-    try { if (antesFoco && antesFoco.focus) antesFoco.focus(); } catch (e) {}
-  }
-
-  function cablear(art) {
-    var x = ITEMS[Number(art.getAttribute("data-i"))], esc_ = art.querySelector(".sgav-escribe"), ta = art.querySelector("textarea");
-    var hecho = art.querySelector(".sgav-hecho"), acc = art.querySelector(".sgav-acc");
-    var V = M.BUZON_VALORA || {}, resuelto = x.fuente === "buzon" && x.m.estado === "resuelto";
-    function listo(html) {
-      x.hecho = true; acc.hidden = true; esc_.hidden = true; hecho.hidden = false; hecho.classList.remove("sgav-error"); hecho.innerHTML = html;
-      if (ITEMS.every(function (y) { return y.hecho; })) setTimeout(quitar, 2600);
-    }
-    function fallo(e) {
-      hecho.hidden = false; hecho.classList.add("sgav-error");
-      hecho.innerHTML = "No ha salido (" + esc((e && (e.code || e.message)) || e) + "). " + (RECLUTA ? "Prueba desde NEBULA, en «Tus dudas al Comandante»." : "Prueba desde el <a href=\"buzon.html\">buzón</a>.");
-      Array.prototype.forEach.call(art.querySelectorAll("button"), function (b) { b.disabled = false; });
-    }
-    function apagar() { Array.prototype.forEach.call(art.querySelectorAll("button"), function (b) { b.disabled = true; }); }
-    // lo leído en el buzón de este navegador, con cuántas respuestas: la burbuja de la consola deja de contarlo
-    function abierto(extra) {
-      var a = leer(localStorage, "sgBzVistos", {}) || {}; a[x.id] = (x.m.respuestas || []).length + (extra || 0); poner(localStorage, "sgBzVistos", a);
-    }
-    function academiaLeida() { poner(localStorage, ACD, Math.max(Number(leer(localStorage, ACD, 0)) || 0, x.t)); }
-
-    var si = art.querySelector("[data-si]"), ok = art.querySelector("[data-ok]"), mas = art.querySelector("[data-mas]"), env = art.querySelector("[data-enviar]");
-    if (si) si.onclick = function () {
-      apagar();
-      M.buzonResponder(x.id, V.si || "✓ Me ha resuelto la duda.", { estado: "resuelto" })
-        .then(function () { return M.buzonVisto(x.id); })
-        .then(function () { abierto(1); listo(RECLUTA ? "¡Gracias, recluta! Así sabemos que NEBULA te sirve." : "¡Gracias, Comandante! Nos ayuda a saber que el buzón sirve."); retirar(art); }, fallo);
-    };
-    if (ok) ok.onclick = function () {
-      if (x.fuente === "academia") { academiaLeida(); return listo("Anotado."); }
-      apagar();
-      M.buzonVisto(x.id).then(function () { abierto(0); listo("Anotado. Si hay novedades, te avisamos aquí."); }, fallo);
-    };
-    if (mas) mas.onclick = function () {
-      if (x.fuente === "academia") { academiaLeida(); location.href = "buzon.html?desde=academia"; return; }
-      esc_.hidden = false; ta.focus();
-    };
-    if (env) env.onclick = function () {
-      var t = ta.value.trim();
-      if (!t) { ta.focus(); return; }
-      apagar();
-      // «Necesito algo más» vuelve a la guardia (el mensaje pasa a «nuevo») con la frase delante: así se cuenta
-      M.buzonResponder(x.id, (resuelto ? (V.mas || "Necesito algo más: ") : "") + t, {})
-        .then(function () { return M.buzonVisto(x.id); })
-        .then(function () { abierto(1); listo(RECLUTA ? "Enviado. Te contestamos en NEBULA, en «Tus dudas al Comandante»." : "Enviado. Te contestamos aquí y por correo."); }, fallo);
-    };
+    var V = M.BUZON_VALORA || {};
+    var nebula = ITEMS.every(function (x) { return x.nebula || (x.fuente === "academia" && !x.mando); });
+    window.GP.avisoRespuestas.abrir({
+      items: ITEMS.map(tarjeta), pestana: CERRADO, clases: PIEL, btn: "btn", btnPrincipal: "btn primary", corte: 220, maxlength: 1900,
+      eti: nebula ? "NEBULA te ha respondido" : "Frecuencia de mando", retrato: retrato(nebula),
+      pie: RECLUTA
+        ? { texto: "Tus dudas y sus respuestas, siempre en NEBULA: «Tus dudas al Comandante».", boton: { texto: "Abrir NEBULA", alPulsar: function () {
+            // el chat de la Nave (recluta.js, ayudaNebula): sin dar nada por visto
+            var b = document.getElementById("neb-ayuda-b"), cap = document.getElementById("neb-ayuda");
+            if (b && (!cap || cap.hidden)) b.click();
+          } } }
+        : { texto: "Tus mensajes y respuestas, siempre en el buzón.", boton: { texto: "Ver todos mis mensajes", href: "buzon.html" } },
+      textos: {
+        gracias: RECLUTA ? "¡Gracias, recluta! Así sabemos que NEBULA te sirve." : "¡Gracias, Comandante! Nos ayuda a saber que el buzón sirve.",
+        enviado: RECLUTA ? "Enviado. Te contestamos en NEBULA, en «Tus dudas al Comandante»." : "Enviado. Te contestamos aquí y por correo.",
+        fallo: function (motivo) { return "No ha salido (" + motivo + "). " + (RECLUTA ? "Prueba desde NEBULA, en «Tus dudas al Comandante»." : "Prueba desde el <a href=\"buzon.html\">buzón</a>."); },
+      },
+      acciones: {
+        si: function (x) {
+          return M.buzonResponder(x.id, V.si || "✓ Me ha resuelto la duda.", { estado: "resuelto" })
+            .then(function () { return M.buzonVisto(x.id); }).then(function () { abierto(x, 1); });
+        },
+        ok: function (x) {
+          if (x.fuente === "academia") return academiaLeida(x);
+          return M.buzonVisto(x.id).then(function () { abierto(x, 0); });
+        },
+        contestar: function (x) {
+          if (x.fuente !== "academia") return false;
+          academiaLeida(x); location.href = "buzon.html?desde=academia"; return true;
+        },
+        // «Necesito algo más» vuelve a la guardia (el mensaje pasa a «nuevo») con la frase delante: así se cuenta
+        enviar: function (x, t, esMas) {
+          return M.buzonResponder(x.id, (esMas ? (V.mas || "Necesito algo más: ") : "") + t, {})
+            .then(function () { return M.buzonVisto(x.id); }).then(function () { abierto(x, 1); });
+        },
+      },
+    });
   }
 
   function arrancar() {
     esperarMotor().then(function (m) {
-      if (!m) return;
+      if (!m || !window.GP || !window.GP.avisoRespuestas) return;   // sin la ventana común (assets/js/avisoRespuestas.js), nada
       M = m;
-      return sinLeer().then(function (L) { ITEMS = L; if (ITEMS.length && !caja) pintar(); });
+      return sinLeer().then(function (L) { ITEMS = L; if (ITEMS.length && !abierta()) pintar(); });
     });
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arrancar); else arrancar();
   // quien entra después de cargar la página («Entrar con Google»): se mira entonces
   document.addEventListener("sg:sesion", function (e) {
-    if (!M || !e.detail || caja || ITEMS.length) return;
-    sinLeer().then(function (L) { ITEMS = L; if (ITEMS.length && !caja) pintar(); });
+    if (!M || !e.detail || abierta() || ITEMS.length) return;
+    sinLeer().then(function (L) { ITEMS = L; if (ITEMS.length && !abierta()) pintar(); });
   });
 })();

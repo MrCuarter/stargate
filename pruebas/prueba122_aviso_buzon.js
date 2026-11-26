@@ -35,7 +35,7 @@ c(sello === require("crypto").createHash("md5").update(fs.readFileSync(path.join
   const A = leer("assets/js/aviso-buzon.js"), N = leer("assets/js/nebula-chat.js");
   c(/var RECLUTA = [^;]*recluta/.test(A), "el aviso sabe si está en la Nave del recluta");
   c(A.includes('(m.tipo === "recluta") !== RECLUTA'), "en la Nave salen solo las dudas de recluta, y en las páginas del docente nunca");
-  c(/RECLUTA\s*\?\s*'<footer[^']*data-nebula/.test(A), "el pie de la Nave abre NEBULA, no buzon.html");
+  c(/pie: RECLUTA\s*\?\s*\{ texto: "Tus dudas y sus respuestas, siempre en NEBULA[^\n]*\n\s*boton: \{ texto: "Abrir NEBULA", alPulsar/.test(A) || /pie: RECLUTA\s*\?\s*\{ texto: "Tus dudas y sus respuestas, siempre en NEBULA[^}]*boton: \{ texto: "Abrir NEBULA", alPulsar/.test(A), "el pie de la Nave abre NEBULA, no buzon.html");
   c(/autoAbierto = true; mias\.open = true/.test(N) && /if \(autoAbierto\) \{ autoAbierto = false; return; \}/.test(N),
     "el chat abierto solo (por haber respuesta nueva) no la da por vista");
   c(/function vigilarVistas\(\)/.test(N) && /marcarVistas\(id\)/.test(N), "se da por vista cuando ha estado unos segundos a la vista");
@@ -59,14 +59,19 @@ c(/const BUZON_VALORA = \(\\\{\[\^\\n\]\*\\\}\);/.test(GUARDIA), "la guardia (ma
 c(/orden === "utilidad"/.test(GUARDIA) && /utilidad: utilidad\(L, desde\)/.test(GUARDIA), "y cuenta la utilidad (comando «utilidad» y en el resumen de la semana)");
 c(/NECESITA ALGO MÁS/.test(GUARDIA), "lo que vuelve con «Necesito algo más» sale marcado en los pendientes");
 
-// 3 · el aviso
+// 3 · el aviso (26-nov · la ventana es del motor: GamificaPro sdk/avisoRespuestas.js, copiada en assets/js/avisoRespuestas.js)
+const P = existe("assets/js/avisoRespuestas.js") ? leer("assets/js/avisoRespuestas.js") : "";
+c(/GP\.avisoRespuestas = \{/.test(P) && /pieza del motor, común a STARGATE y DPG/.test(P), "la ventana común está copiada de GamificaPro");
+c(/window\.GP\.avisoRespuestas\.abrir\(\{/.test(AV) && /clases: PIEL/.test(AV) && /pestana: CERRADO/.test(AV), "aviso-buzon.js la abre con lo de STARGATE (su piel y su clave de pestaña)");
+{ const h = leer("consola.html"), i = h.indexOf("assets/js/avisoRespuestas.js?v="), j = h.indexOf("assets/js/aviso-buzon.js?v=");
+  c(i > 0 && j > i, "y la pieza se carga antes que aviso-buzon.js (las dos con defer)"); }
 c(/window\.top !== window/.test(AV) && /SG_ENSAYO/.test(AV) && /embed\|demo/.test(AV), "el aviso no sale incrustado, en el ensayo ni en la demostración");
 c(/m\.tipo === "recluta"/.test(AV) && /gamificapro/.test(AV), "ni por lo de un recluta ni por lo de GamificaPro");
 c(/m\.visto !== false/.test(AV) && /sgBzVistos/.test(AV), "cuenta como la burbuja de la consola (visto === false, y lo abierto en el buzón no)");
 c(/sgAcademia\.claudeVisto/.test(AV) && /SEMANA/.test(AV), "lo de la Academia, con la misma marca que su píldora y solo de los últimos 7 días");
-c(/sessionStorage/.test(AV) && /CERRADO/.test(AV), "la × lo cierra solo en esta pestaña (vuelve en la próxima visita)");
-c(/role="dialog" aria-modal="true"/.test(AV) && /Escape/.test(AV), "es un diálogo de verdad (y Escape lo cierra)");
-c(/¿Te ha resuelto la duda\?/.test(AV) && /Necesito algo más/.test(AV) && /estado: "resuelto"/.test(AV), "pregunta si le ha resuelto la duda, con «Sí» y «Necesito algo más»");
+c(/sessionStorage/.test(AV) && /CERRADO/.test(AV) && /sessionStorage/.test(P), "la × lo cierra solo en esta pestaña (vuelve en la próxima visita)");
+c(/role="dialog" aria-modal="true"/.test(P) && /Escape/.test(P), "es un diálogo de verdad (y Escape lo cierra)");
+c(/¿Te ha resuelto la duda\?/.test(P) && /Necesito algo más/.test(P) && /estado: "resuelto"/.test(AV), "pregunta si le ha resuelto la duda, con «Sí» y «Necesito algo más»");
 
 // 4 · el hilo del buzón
 c(/data-val-si/.test(BZ) && /data-val-mas/.test(BZ) && /¿Te ha resuelto la duda\?/.test(BZ), "el hilo del buzón lleva la valoración tras una respuesta del Mando");
@@ -74,12 +79,12 @@ c(/art\.getAttribute\("data-mas"\)\) t = \(V\.mas/.test(BZ), "y «Necesito algo 
 c(/\.bz-valora\{/.test(leer("assets/css/stargate.css")), "con su estilo");
 
 // 4b · 10-oct · lo resuelto se va de la ventana (Norberto: «que desapareciese esa consulta… y quedarán las respuestas sin resolver»)
-c(/listo\(RECLUTA \? "¡Gracias, recluta! [^"]*" : "¡Gracias, Comandante! Nos ayuda a saber que el buzón sirve\."\); retirar\(art\);/.test(AV), "🔴 «Sí, resuelta»: tras el gracias, su tarjeta se retira de la ventana");
-c(/function retirar\(art\)/.test(AV) && /\.sgav-m\.sgav-fuera\{opacity:0;max-height:0/.test(AV), "   desvaneciéndose (sgav-fuera), no a golpe");
-c(/if \(!n\) return quitar\(\);/.test(AV) && /#sgav-t"\)\.textContent = n === 1 \? "Tienes una respuesta nueva" : "Tienes " \+ n \+ " respuestas nuevas"/.test(AV),
+c(/gracias: RECLUTA \? "¡Gracias, recluta! [^"]*" : "¡Gracias, Comandante! Nos ayuda a saber que el buzón sirve\."/.test(AV) && /listo\(T\.gracias\); retirar\(art\);/.test(P), "🔴 «Sí, resuelta»: tras el gracias, su tarjeta se retira de la ventana");
+c(/function retirar\(art\)/.test(P) && /\.sgav-m\.sgav-fuera\{opacity:0;max-height:0/.test(AV) && /fuera: "sgav-fuera"/.test(AV), "   desvaneciéndose (sgav-fuera), no a golpe");
+c(/if \(!n\) return quitar\(\);/.test(P) && /#gpav-t"\)\.textContent = titulo\(n\)/.test(P) && /"Tienes " \+ n \+ " respuestas nuevas"/.test(P),
   "   el título cuenta las que quedan y, sin ninguna, la ventana se cierra");
-c(/prefers-reduced-motion: reduce/.test(AV), "   y sin animación para quien la tiene quitada");
-c((AV.match(/ retirar\(art\);/g) || []).length === 1, "   solo «Sí, resuelta» retira: «Entendido» y «Necesito algo más» se quedan con su aviso");
+c(/prefers-reduced-motion: reduce/.test(P), "   y sin animación para quien la tiene quitada");
+c((P.match(/ retirar\(art\);/g) || []).length === 1, "   solo «Sí, resuelta» retira: «Entendido» y «Necesito algo más» se quedan con su aviso");
 
 // 5 · las reglas ya lo dejan (nada que desplegar)
 const REGLAS = path.join(RAIZ, "..", "..", "gamificapro", "firestore.rules");
